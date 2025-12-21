@@ -1056,7 +1056,7 @@ export default function Home() {
               <Card
                 key={dest.id}
                 className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all"
-                onClick={() => router.push(`/vuelos/${dest.city.toLowerCase()}`)}
+                onClick={() => router.push(`/vuelos/${dest.city.toLowerCase().replace(/\s+/g, '-')}`)}
               >
                 <div className="relative h-32 overflow-hidden">
                   <img

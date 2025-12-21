@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AmadeusAdapter } from '@/services/providers/AmadeusAdapter'
 import { PolicyValidationService } from '@/services/PolicyValidationService'
+import SearchService from '@/services/SearchService'
 
 /**
  * GET /api/search
@@ -82,116 +83,97 @@ async function searchHotels(params: {
   tenantId: number
 }) {
   try {
-    // Construir URL para llamar a /api/hotels
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.asoperadora.com'
-    const queryParams = new URLSearchParams()
-
-    if (params.city) {
-      queryParams.append('city', params.city)
-    }
-    if (params.currency) {
-      queryParams.append('currency', params.currency)
+    if (!params.city || !params.checkin || !params.checkout) {
+      return NextResponse.json({
+        success: false,
+        error: 'Missing required parameters: city, checkin, checkout'
+      }, { status: 400 })
     }
 
-    const hotelResponse = await fetch(`${baseUrl}/api/hotels?${queryParams.toString()}`, {
-      cache: 'no-store'
+    console.log('🏨 Searching hotels with SearchService:', params)
+
+    // Usar SearchService con Amadeus
+    const results = await SearchService.searchHotels({
+      city: params.city,
+      checkInDate: params.checkin,
+      checkOutDate: params.checkout,
+      adults: params.guests,
+      rooms: params.rooms,
+      currency: params.currency
     })
 
-    if (!hotelResponse.ok) {
-      throw new Error(`Hotels API returned ${hotelResponse.status}`)
-    }
-
-    const hotelData = await hotelResponse.json()
-
-    if (!hotelData.success || !hotelData.data || hotelData.data.length === 0) {
+    if (results.length === 0) {
       return NextResponse.json({
         success: true,
         data: [],
         total: 0,
         providers: {
-          searched: ['database'],
-          successful: ['database'],
+          searched: ['amadeus'],
+          successful: ['amadeus'],
           failed: []
         },
         message: 'No se encontraron hoteles en este destino',
-        search_params: {
-          city: params.city,
-          checkin: params.checkin,
-          checkout: params.checkout,
-          guests: params.guests,
-          rooms: params.rooms,
-          currency: params.currency
-        }
+        search_params: params
       }, { status: 200 })
     }
 
-    // Transformar resultados al formato esperado
-    let results = hotelData.data.map((hotel: any) => ({
-      id: `hotel_${hotel.id}`,
-      provider: 'database',
+    // Transformar al formato esperado por el frontend
+    const transformedResults = results.map((hotel: any) => ({
+      id: hotel.id,
+      provider: hotel.provider,
       type: 'hotel',
-      price: hotel.price_per_night,
-      price_per_night: hotel.price_per_night,
-      check_in_date: params.checkin || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      currency: hotel.currency || params.currency,
+      price: hotel.price,
+      price_per_night: hotel.price,
+      check_in_date: params.checkin,
+      currency: hotel.currency,
       details: {
-        name: hotel.name,
-        city: hotel.city,
-        country: hotel.country,
-        address: hotel.address,
-        starRating: hotel.star_rating,
-        rating: hotel.rating,
-        reviewCount: hotel.review_count,
-        description: hotel.description,
-        amenities: hotel.amenities || [],
-        images: hotel.images || [],
-        contact: {
-          email: hotel.contact_email,
-          phone: hotel.contact_phone
-        }
+        name: hotel.details.hotelName,
+        city: hotel.details.cityCode,
+        address: hotel.details.location,
+        starRating: 4,
+        rating: 4.5,
+        reviewCount: 100,
+        description: hotel.details.room?.description || '',
+        amenities: [],
+        images: [],
+        ...hotel.details
       },
-      rawData: hotel
+      rawData: hotel.rawData
     }))
 
-    // 🔥 VALIDAR CONTRA POLÍTICAS CORPORATIVAS
-    if (params.tenantId && results.length > 0) {
+    // Validar contra políticas corporativas
+    let finalResults = transformedResults
+    if (params.tenantId && transformedResults.length > 0) {
       try {
-        results = await PolicyValidationService.validateSearchResults(
+        finalResults = await PolicyValidationService.validateSearchResults(
           params.tenantId,
-          results,
+          transformedResults,
           'hotel'
         )
-        console.log(`✅ Validated ${results.length} hotels against corporate policy`)
+        console.log(`✅ Validated ${finalResults.length} hotels against corporate policy`)
       } catch (error) {
         console.error('⚠️ Policy validation failed:', error)
-        // No fallar la búsqueda si la validación falla, solo continuar sin validación
       }
     }
 
     return NextResponse.json({
       success: true,
-      data: results,
-      total: results.length,
+      data: finalResults,
+      total: finalResults.length,
       providers: {
-        searched: ['database'],
-        successful: ['database'],
+        searched: ['amadeus'],
+        successful: ['amadeus'],
         failed: []
       },
-      search_params: {
-        city: params.city,
-        checkin: params.checkin,
-        checkout: params.checkout,
-        guests: params.guests,
-        rooms: params.rooms,
-        currency: params.currency
-      }
+      search_params: params
     })
 
   } catch (error) {
-    console.error('Hotel search error:', error)
+    console.error('❌ Hotel search error:', error)
     return NextResponse.json({
       success: false,
       error: 'Hotel search failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
       providerErrors: [error instanceof Error ? error.message : 'Unknown error']
     }, { status: 500 })
   }

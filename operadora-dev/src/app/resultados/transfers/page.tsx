@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -47,7 +47,7 @@ interface TransferResult {
   }
 }
 
-export default function TransferResultsPage() {
+function TransferResultsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [results, setResults] = useState<TransferResult[]>([])
@@ -279,5 +279,17 @@ export default function TransferResultsPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function TransferResultsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+      </div>
+    }>
+      <TransferResultsPageContent />
+    </Suspense>
   )
 }
