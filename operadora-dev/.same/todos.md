@@ -1,6 +1,43 @@
 # TODOs - AS OPERADORA
-**Última actualización: 21 Diciembre 2025 - 04:30 CST**
-**Versión: v2.149 - Integración Amadeus Completa ✅**
+**Última actualización: 21 Diciembre 2025 - 05:45 CST**
+**Versión: v2.149 - Integración Amadeus Completa + Build Fixes ✅**
+
+---
+
+## 🐛 BUILD FIXES (21 Dic 2025 - 05:45 CST)
+
+### ✅ Errores Corregidos
+
+**1. Error de Suspense en páginas de resultados**
+- ❌ Error: `useSearchParams() should be wrapped in a suspense boundary`
+- ✅ Solución: Agregado `Suspense` wrapper en:
+  - `/resultados/activities/page.tsx`
+  - `/resultados/transfers/page.tsx`
+- ✅ Componentes divididos: `*Content()` + `export default` con Suspense
+
+**2. Error 500 en /api/search?type=hotel**
+- ❌ Error: Llamaba a `/api/hotels` que no existía
+- ✅ Solución: Actualizado `searchHotels()` para usar `SearchService` directamente
+- ✅ Ahora usa Amadeus como proveedor principal
+- ✅ Transformación correcta de resultados
+
+**3. Navegación de Destinos de Vuelos**
+- ❌ Error: Navegaba a rutas incorrectas
+- ✅ Solución: onClick actualizado a ruta dinámica `/vuelos/${city}`
+- ✅ Limpieza de espacios con `.replace(/\s+/g, '-')`
+
+**4. TypeScript Error**
+- ❌ Error: Property 'cached' is missing
+- ✅ Solución: Propiedad `cached?` marcada como opcional en interface
+
+**📦 Commits:**
+- `3e9ae0a` - Fix TypeScript error
+- `8a1d9a9` - Fix build errors and improve navigation
+
+**🚀 Deploy:**
+- Build ahora compila exitosamente
+- Vercel deploy en proceso
+- URL: https://app.asoperadora.com
 
 ---
 
