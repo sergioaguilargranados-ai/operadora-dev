@@ -1,6 +1,143 @@
 # TODOs - AS OPERADORA
-**Última actualización: 21 Diciembre 2025 - 01:00 CST**
-**Versión: v2.145 - Hero Section Fusionado ✅**
+**Última actualización: 21 Diciembre 2025 - 04:30 CST**
+**Versión: v2.149 - Integración Amadeus Completa ✅**
+
+---
+
+## 🚀 VERSIÓN v2.149 - FRONTEND TRANSFERS Y ACTIVITIES (21 Dic 2025)
+
+### ✅ Interfaz de Usuario Completada
+
+**🎨 Homepage Actualizada:**
+1. ✅ Tab "Autos" (Transfers) - Formulario completo
+   - Campos: Origen, Destino, Fecha, Hora, Pasajeros
+   - Validaciones implementadas
+   - Handler `handleSearchTransfers()`
+2. ✅ Tab "Actividades" - Formulario completo
+   - Campos: Ciudad, Radio de búsqueda (5-50 km)
+   - Handler `handleSearchActivities()`
+
+**📄 Nuevas Páginas de Resultados:**
+1. ✅ `/resultados/transfers` - Página completa de transfers
+   - Listado de vehículos disponibles
+   - Detalles: capacidad, equipaje, proveedor
+   - Distancia y ruta completa
+   - Precios en tiempo real
+   - Botón "Reservar ahora"
+2. ✅ `/resultados/activities` - Página completa de actividades
+   - Grid responsivo (3 columnas)
+   - Fotos de alta calidad
+   - Ratings y reviews
+   - Descripción y ubicación
+   - Deep links a Viator/GetYourGuide
+   - Botón "Reservar" con external link
+
+**✨ Características UI:**
+- Animaciones con Framer Motion
+- Loading states con spinners
+- Error handling completo
+- Responsive design (mobile-first)
+- Hover effects y transiciones
+
+---
+
+## 🟢 VERSIÓN v2.148 - APIs REST TRANSFERS Y ACTIVITIES (21 Dic 2025)
+
+### ✅ Endpoints Funcionales
+
+**🔌 API de Transfers:**
+- Ruta: `GET /api/search/transfers`
+- Parámetros:
+  - `startLocationCode` (requerido)
+  - `endLocationCode` (requerido)
+  - `transferDate` (YYYY-MM-DD, requerido)
+  - `transferTime` (HH:mm:ss, requerido)
+  - `passengers` (1-8, requerido)
+  - `transferType` (opcional: PRIVATE, SHARED, TAXI)
+- Validaciones completas
+- Error handling robusto
+- Integración con `SearchService.searchTransfers()`
+
+**🔌 API de Actividades:**
+- Ruta: `GET /api/search/activities`
+- Parámetros:
+  - Opción 1: `latitude` + `longitude`
+  - Opción 2: `city` (con geocoding automático)
+  - `radius` (opcional, default: 20 km)
+- Geocoding de 20+ ciudades principales
+- Integración con `SearchService.searchActivities()`
+
+**📊 Respuestas JSON:**
+```json
+{
+  "success": true,
+  "data": [...],
+  "count": 15,
+  "searchParams": {...}
+}
+```
+
+---
+
+## 🔵 VERSIÓN v2.147 - BACKEND SEARCHSERVICE INTEGRADO (21 Dic 2025)
+
+### ✅ Amadeus como Proveedor Principal
+
+**🔧 SearchService Actualizado:**
+1. ✅ Imports de 4 adapters Amadeus
+   - `AmadeusAdapter` (Vuelos)
+   - `AmadeusHotelAdapter` (Hoteles)
+   - `AmadeusTransferAdapter` (Transfers)
+   - `AmadeusActivitiesAdapter` (Actividades)
+
+2. ✅ Inicialización en constructor
+   - Lee variables de entorno
+   - Detecta sandbox vs production
+   - Instancia 4 adapters
+
+3. ✅ Método `searchFlights()` actualizado
+   - Usa Amadeus como proveedor principal
+   - Soporte para filtros de aerolíneas
+   - Cache de 15 minutos
+   - Error handling completo
+
+4. ✅ Nuevo método `searchHotels()`
+   - **Amadeus como principal**
+   - Geocoding automático (20+ ciudades)
+   - Fallback a Booking.com (preparado)
+   - Deduplicación de resultados
+   - Ordenamiento por precio
+
+5. ✅ Nuevo método `searchTransfers()`
+   - Búsqueda de transfers privados/compartidos
+   - Validación de parámetros
+   - Ordenamiento por precio
+
+6. ✅ Nuevo método `searchActivities()`
+   - Búsqueda por coordenadas
+   - Radio configurable (1-100 km)
+   - Ordenamiento por precio
+
+7. ✅ Métodos auxiliares
+   - `getCityCode()` - Mapeo de 20+ ciudades a IATA
+   - `mergeAndDeduplicateHotels()` - Combinar proveedores
+
+**📦 Variables de Entorno Requeridas:**
+```bash
+AMADEUS_API_KEY=...
+AMADEUS_API_SECRET=...
+AMADEUS_ENVIRONMENT=test # o 'production'
+```
+
+**🎯 Estrategia de Proveedores:**
+```
+Hoteles: Amadeus (principal) + Booking.com (complementario)
+Vuelos: Amadeus (único por ahora)
+Transfers: Amadeus (único)
+Activities: Amadeus (único, con deep links)
+```
+
+---
 
 ## 🎉 VERSIÓN v2.145 - HERO SECTION FUSIONADO (21 Dic 2025)
 

@@ -1,5 +1,9 @@
 import { query, queryOne, queryMany, insertOne } from '@/lib/db'
 import crypto from 'crypto'
+import AmadeusAdapter from './providers/AmadeusAdapter'
+import AmadeusHotelAdapter from './providers/AmadeusHotelAdapter'
+import AmadeusTransferAdapter from './providers/AmadeusTransferAdapter'
+import AmadeusActivitiesAdapter from './providers/AmadeusActivitiesAdapter'
 
 export interface SearchParams {
   search_type: 'flight' | 'hotel' | 'package' | 'attraction'
@@ -24,6 +28,23 @@ export interface SearchResult {
 }
 
 class SearchService {
+  // Inicializar adapters de Amadeus
+  private amadeusFlights: AmadeusAdapter
+  private amadeusHotels: AmadeusHotelAdapter
+  private amadeusTransfers: AmadeusTransferAdapter
+  private amadeusActivities: AmadeusActivitiesAdapter
+
+  constructor() {
+    const apiKey = process.env.AMADEUS_API_KEY || ''
+    const apiSecret = process.env.AMADEUS_API_SECRET || ''
+    const useSandbox = process.env.AMADEUS_ENVIRONMENT !== 'production'
+
+    this.amadeusFlights = new AmadeusAdapter(apiKey, apiSecret, useSandbox)
+    this.amadeusHotels = new AmadeusHotelAdapter(apiKey, apiSecret, useSandbox)
+    this.amadeusTransfers = new AmadeusTransferAdapter(apiKey, apiSecret, useSandbox)
+    this.amadeusActivities = new AmadeusActivitiesAdapter(apiKey, apiSecret, useSandbox)
+  }
+
   /**
    * Generar hash único para una búsqueda
    */
@@ -85,7 +106,7 @@ class SearchService {
   }
 
   /**
-   * Buscar vuelos (preparado para múltiples proveedores)
+   * Buscar vuelos usando Amadeus como proveedor principal
    */
   async searchFlights(params: {
     origin: string
@@ -95,27 +116,214 @@ class SearchService {
     adults: number
     children?: number
     cabin_class?: string
+    includedAirlineCodes?: string
+    excludedAirlineCodes?: string
   }): Promise<SearchResult[]> {
-    // Generar hash de búsqueda
     const searchHash = this.generateSearchHash(params as any)
-
-    // Intentar obtener desde cache
     const cached = await this.getFlightSearchCache(searchHash)
 
     if (cached) {
       return cached.results.map((r: any) => ({ ...r, cached: true }))
     }
 
-    // TODO: Aquí irán las llamadas a los proveedores (Amadeus, Kiwi, etc)
-    // Por ahora retornamos array vacío
-    const results: SearchResult[] = []
+    try {
+      console.log('🔍 Searching flights with Amadeus...')
 
-    // Guardar en cache (15 minutos)
-    if (results.length > 0) {
-      await this.saveFlightSearchCache(searchHash, params, results)
+      const amadeusParams = {
+        originLocationCode: params.origin,
+        destinationLocationCode: params.destination,
+        departureDate: params.departure_date,
+        returnDate: params.return_date,
+        adults: params.adults,
+        children: params.children || 0,
+        travelClass: params.cabin_class,
+        includedAirlineCodes: params.includedAirlineCodes,
+        excludedAirlineCodes: params.excludedAirlineCodes,
+        maxResults: 50
+      }
+
+      const results = await this.amadeusFlights.search(amadeusParams)
+
+      if (results.length > 0) {
+        await this.saveFlightSearchCache(searchHash, params, results)
+      }
+
+      return results
+
+    } catch (error) {
+      console.error('❌ Error searching flights:', error)
+      return []
+    }
+  }
+
+  /**
+   * Buscar hoteles - Amadeus principal + Booking.com complementario
+   */
+  async searchHotels(params: {
+    city: string
+    cityCode?: string
+    checkInDate: string
+    checkOutDate: string
+    adults: number
+    children?: number
+    rooms?: number
+    currency?: string
+  }): Promise<SearchResult[]> {
+    try {
+      console.log('🏨 Searching hotels with Amadeus (primary)...')
+
+      // Obtener cityCode si no se proporciona
+      const cityCode = params.cityCode || await this.getCityCode(params.city)
+
+      if (!cityCode) {
+        console.error('❌ Could not determine city code')
+        return []
+      }
+
+      const amadeusParams = {
+        cityCode,
+        checkInDate: params.checkInDate,
+        checkOutDate: params.checkOutDate,
+        adults: params.adults,
+        children: params.children || 0,
+        rooms: params.rooms || 1,
+        currency: params.currency || 'MXN'
+      }
+
+      const amadeusResults = await this.amadeusHotels.search(amadeusParams)
+
+      console.log(`✅ Amadeus returned ${amadeusResults.length} hotels`)
+
+      // Si hay menos de 10 resultados, complementar con Booking.com (futuro)
+      if (amadeusResults.length < 10) {
+        console.log('⚠️ Less than 10 results, consider adding Booking.com fallback')
+        // TODO: Implementar BookingAdapter y merge aquí
+      }
+
+      // Ordenar por precio
+      return amadeusResults.sort((a, b) => a.price - b.price)
+
+    } catch (error) {
+      console.error('❌ Error searching hotels:', error)
+      return []
+    }
+  }
+
+  /**
+   * Buscar transfers (autos privados/compartidos/taxis)
+   */
+  async searchTransfers(params: {
+    startLocationCode: string
+    endLocationCode: string
+    transferDate: string
+    transferTime: string
+    passengers: number
+    transferType?: string
+  }): Promise<SearchResult[]> {
+    try {
+      console.log('🚗 Searching transfers with Amadeus...')
+
+      const results = await this.amadeusTransfers.search({
+        startLocationCode: params.startLocationCode,
+        endLocationCode: params.endLocationCode,
+        transferDate: params.transferDate,
+        transferTime: params.transferTime,
+        passengers: params.passengers,
+        transferType: params.transferType
+      })
+
+      console.log(`✅ Found ${results.length} transfer options`)
+
+      return results.sort((a, b) => a.price - b.price)
+
+    } catch (error) {
+      console.error('❌ Error searching transfers:', error)
+      return []
+    }
+  }
+
+  /**
+   * Buscar actividades y tours
+   */
+  async searchActivities(params: {
+    latitude: number
+    longitude: number
+    radius?: number
+  }): Promise<SearchResult[]> {
+    try {
+      console.log('🎭 Searching activities with Amadeus...')
+
+      const results = await this.amadeusActivities.search({
+        latitude: params.latitude,
+        longitude: params.longitude,
+        radius: params.radius || 20
+      })
+
+      console.log(`✅ Found ${results.length} activities`)
+
+      return results.sort((a, b) => a.price - b.price)
+
+    } catch (error) {
+      console.error('❌ Error searching activities:', error)
+      return []
+    }
+  }
+
+  /**
+   * Obtener código IATA de ciudad a partir del nombre
+   */
+  private async getCityCode(cityName: string): Promise<string | null> {
+    const cityMapping: Record<string, string> = {
+      'cancun': 'CUN',
+      'cancún': 'CUN',
+      'ciudad de mexico': 'MEX',
+      'cdmx': 'MEX',
+      'mexico city': 'MEX',
+      'guadalajara': 'GDL',
+      'monterrey': 'MTY',
+      'cabo': 'SJD',
+      'los cabos': 'SJD',
+      'puerto vallarta': 'PVR',
+      'vallarta': 'PVR',
+      'paris': 'PAR',
+      'london': 'LON',
+      'londres': 'LON',
+      'new york': 'NYC',
+      'nueva york': 'NYC',
+      'madrid': 'MAD',
+      'barcelona': 'BCN',
+      'rome': 'ROM',
+      'roma': 'ROM',
+      'miami': 'MIA',
+      'los angeles': 'LAX'
     }
 
-    return results
+    const normalized = cityName.toLowerCase().trim()
+    return cityMapping[normalized] || null
+  }
+
+  /**
+   * Merge y deduplicar resultados de múltiples proveedores
+   */
+  private mergeAndDeduplicateHotels(
+    amadeusResults: SearchResult[],
+    bookingResults: SearchResult[]
+  ): SearchResult[] {
+    const allResults = [...amadeusResults, ...bookingResults]
+    const seen = new Set<string>()
+    const unique: SearchResult[] = []
+
+    for (const result of allResults) {
+      // Crear clave única basada en nombre del hotel y ubicación
+      const key = `${result.details.hotelName}-${result.details.location?.latitude}-${result.details.location?.longitude}`
+
+      if (!seen.has(key)) {
+        seen.add(key)
+        unique.push(result)
+      }
+    }
+
+    return unique.sort((a, b) => a.price - b.price)
   }
 
   /**

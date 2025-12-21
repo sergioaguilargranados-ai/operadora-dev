@@ -41,6 +41,17 @@ export default function Home() {
   const [selectedAirlines, setSelectedAirlines] = useState<string[]>([])
   const [airlineMode, setAirlineMode] = useState<'include' | 'exclude'>('include')
 
+  // Estados para búsqueda de transfers
+  const [transferOrigin, setTransferOrigin] = useState("")
+  const [transferDestination, setTransferDestination] = useState("")
+  const [transferDate, setTransferDate] = useState("")
+  const [transferTime, setTransferTime] = useState("10:00")
+  const [transferPassengers, setTransferPassengers] = useState(2)
+
+  // Estados para búsqueda de actividades
+  const [activityCity, setActivityCity] = useState("")
+  const [activityRadius, setActivityRadius] = useState(20)
+
   // Estados para contenido dinámico
   const [promotions, setPromotions] = useState<any[]>([])
   const [featuredHero, setFeaturedHero] = useState<any>(null)
@@ -176,6 +187,37 @@ export default function Home() {
       localStorage.setItem('searchResults', JSON.stringify(response))
       router.push(`/resultados?type=flight`)
     }
+  }
+
+  const handleSearchTransfers = async () => {
+    if (!transferOrigin || !transferDestination || !transferDate) {
+      alert('Por favor completa todos los campos')
+      return
+    }
+
+    const params = new URLSearchParams({
+      from: transferOrigin,
+      to: transferDestination,
+      date: transferDate,
+      time: transferTime,
+      passengers: transferPassengers.toString()
+    })
+
+    router.push(`/resultados/transfers?${params.toString()}`)
+  }
+
+  const handleSearchActivities = async () => {
+    if (!activityCity) {
+      alert('Por favor ingresa una ciudad')
+      return
+    }
+
+    const params = new URLSearchParams({
+      city: activityCity,
+      radius: activityRadius.toString()
+    })
+
+    router.push(`/resultados/activities?${params.toString()}`)
   }
 
   const handleLogout = () => {
@@ -612,9 +654,95 @@ export default function Home() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="cars">
-                  <div className="text-center py-8">
-                    <p className="text-gray-700">Búsqueda de autos próximamente...</p>
+                <TabsContent value="cars" className="mt-6">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                      {/* Origen */}
+                      <div className="md:col-span-1">
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Desde</label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
+                          <Input
+                            placeholder="Aeropuerto/Dirección"
+                            value={transferOrigin}
+                            onChange={(e) => setTransferOrigin(e.target.value)}
+                            className="pl-10 h-12 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Destino */}
+                      <div className="md:col-span-1">
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Hasta</label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
+                          <Input
+                            placeholder="Hotel/Dirección"
+                            value={transferDestination}
+                            onChange={(e) => setTransferDestination(e.target.value)}
+                            className="pl-10 h-12 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Fecha y Hora */}
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Fecha y Hora</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            type="date"
+                            value={transferDate}
+                            onChange={(e) => setTransferDate(e.target.value)}
+                            className="h-12 bg-white"
+                          />
+                          <Input
+                            type="time"
+                            value={transferTime}
+                            onChange={(e) => setTransferTime(e.target.value)}
+                            className="h-12 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Botón Buscar */}
+                      <div className="md:col-span-1 flex items-end">
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full"
+                        >
+                          <Button
+                            className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                            onClick={handleSearchTransfers}
+                            disabled={loading}
+                          >
+                            {loading ? (
+                              <>
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                Buscando...
+                              </>
+                            ) : (
+                              <>
+                                <Search className="w-5 h-5 mr-2" />
+                                Buscar
+                              </>
+                            )}
+                          </Button>
+                        </motion.div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-gray-900">
+                      <label className="font-medium">Pasajeros:</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="8"
+                        value={transferPassengers}
+                        onChange={(e) => setTransferPassengers(parseInt(e.target.value))}
+                        className="w-16 px-2 py-1 border rounded bg-white"
+                      />
+                    </div>
                   </div>
                 </TabsContent>
 
@@ -624,9 +752,65 @@ export default function Home() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="things">
-                  <div className="text-center py-8">
-                    <p className="text-gray-700">Búsqueda de actividades próximamente...</p>
+                <TabsContent value="things" className="mt-6">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                      {/* Ciudad */}
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-2 text-gray-900">¿Dónde?</label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
+                          <Input
+                            placeholder="Ciudad o destino"
+                            value={activityCity}
+                            onChange={(e) => setActivityCity(e.target.value)}
+                            className="pl-10 h-12 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Radio de búsqueda */}
+                      <div className="md:col-span-1">
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Radio (km)</label>
+                        <select
+                          value={activityRadius}
+                          onChange={(e) => setActivityRadius(parseInt(e.target.value))}
+                          className="w-full h-12 px-3 border rounded bg-white"
+                        >
+                          <option value="5">5 km</option>
+                          <option value="10">10 km</option>
+                          <option value="20">20 km</option>
+                          <option value="50">50 km</option>
+                        </select>
+                      </div>
+
+                      {/* Botón Buscar */}
+                      <div className="md:col-span-1 flex items-end">
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full"
+                        >
+                          <Button
+                            className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                            onClick={handleSearchActivities}
+                            disabled={loading}
+                          >
+                            {loading ? (
+                              <>
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                Buscando...
+                              </>
+                            ) : (
+                              <>
+                                <Search className="w-5 h-5 mr-2" />
+                                Buscar
+                              </>
+                            )}
+                          </Button>
+                        </motion.div>
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
 
