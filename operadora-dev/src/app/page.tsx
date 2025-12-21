@@ -351,300 +351,312 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Search Section con animación */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="backdrop-blur-xl bg-white/90 rounded-3xl shadow-hard p-8 mb-8 border border-white/20"
+      {/* Hero Section with Background Image and Filters */}
+      <main className="relative">
+        {/* Background Image Section */}
+        <div
+          className="relative min-h-[600px] bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: featuredHero
+              ? `url(${featuredHero.image_url})`
+              : 'url(https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1600&h=900&fit=crop)'
+          }}
         >
-          <Tabs defaultValue="stays" className="w-full">
-            <TabsList className="mb-6 bg-transparent border-b rounded-none h-auto p-0 w-full justify-center">
-              <TabsTrigger
-                value="stays"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 flex items-center gap-3 text-lg"
-              >
-                <Hotel className="w-8 h-8" />
-                Estadías
-              </TabsTrigger>
-              <TabsTrigger
-                value="flights"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 flex items-center gap-3 text-lg"
-              >
-                <Plane className="w-8 h-8" />
-                Vuelos
-              </TabsTrigger>
-              <TabsTrigger
-                value="cars"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 flex items-center gap-3 text-lg"
-              >
-                <Car className="w-8 h-8" />
-                Autos
-              </TabsTrigger>
-              <TabsTrigger
-                value="packages"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 flex items-center gap-3 text-lg"
-              >
-                <Package className="w-8 h-8" />
-                Paquetes
-              </TabsTrigger>
-              <TabsTrigger
-                value="things"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 flex items-center gap-3 text-lg"
-              >
-                <Activity className="w-8 h-8" />
-                Cosas que hacer
-              </TabsTrigger>
-              <TabsTrigger
-                value="cruises"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 flex items-center gap-3 text-lg"
-              >
-                <Compass className="w-8 h-8" />
-                Cruceros
-              </TabsTrigger>
-              <TabsTrigger
-                value="ashome"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 flex items-center gap-3 text-lg"
-              >
-                <HomeIcon className="w-8 h-8" />
-                ASHome
-              </TabsTrigger>
-            </TabsList>
+          {/* Overlay oscuro para mejor contraste */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40" />
 
-            <TabsContent value="stays" className="mt-6">
-              <div className="space-y-4">
-                {/* Buscador en una sola fila - todo junto */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  {/* Destino */}
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium mb-2">¿A dónde?</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
-                      <Input
-                        placeholder="Introduce tu destino"
-                        className="pl-10 h-12"
-                        value={destination}
-                        onChange={(e) => setDestination(e.target.value)}
-                      />
+          {/* Container con filtros encima */}
+          <div className="relative container mx-auto px-4 py-12 max-w-6xl">
+            {/* Search Section con glassmorphism sobre la imagen */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="backdrop-blur-xl bg-white/85 rounded-3xl shadow-2xl p-8 border border-white/30"
+            >
+              <Tabs defaultValue="stays" className="w-full">
+                <TabsList className="mb-6 bg-white/50 backdrop-blur-md border-b rounded-lg h-auto p-0 w-full justify-center">
+                  <TabsTrigger
+                    value="stays"
+                    className="rounded-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-white/80 px-4 md:px-6 py-3 flex items-center gap-2 text-base"
+                  >
+                    <Hotel className="w-6 h-6" />
+                    <span className="hidden md:inline">Estadías</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="flights"
+                    className="rounded-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-white/80 px-4 md:px-6 py-3 flex items-center gap-2 text-base"
+                  >
+                    <Plane className="w-6 h-6" />
+                    <span className="hidden md:inline">Vuelos</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="cars"
+                    className="rounded-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-white/80 px-4 md:px-6 py-3 flex items-center gap-2 text-base"
+                  >
+                    <Car className="w-6 h-6" />
+                    <span className="hidden md:inline">Autos</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="packages"
+                    className="rounded-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-white/80 px-4 md:px-6 py-3 flex items-center gap-2 text-base"
+                  >
+                    <Package className="w-6 h-6" />
+                    <span className="hidden md:inline">Paquetes</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="things"
+                    className="rounded-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-white/80 px-4 md:px-6 py-3 flex items-center gap-2 text-base"
+                  >
+                    <Activity className="w-6 h-6" />
+                    <span className="hidden md:inline">Actividades</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="cruises"
+                    className="rounded-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-white/80 px-4 md:px-6 py-3 flex items-center gap-2 text-base"
+                  >
+                    <Compass className="w-6 h-6" />
+                    <span className="hidden md:inline">Cruceros</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="ashome"
+                    className="rounded-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-white/80 px-4 md:px-6 py-3 flex items-center gap-2 text-base"
+                  >
+                    <HomeIcon className="w-6 h-6" />
+                    <span className="hidden md:inline">ASHome</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="stays" className="mt-6">
+                  <div className="space-y-4">
+                    {/* Buscador en una sola fila */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                      {/* Destino */}
+                      <div className="md:col-span-1">
+                        <label className="block text-sm font-medium mb-2 text-gray-900">¿A dónde?</label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
+                          <Input
+                            placeholder="Introduce tu destino"
+                            className="pl-10 h-12 bg-white"
+                            value={destination}
+                            onChange={(e) => setDestination(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Fechas */}
+                      <div className="md:col-span-1">
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Fechas</label>
+                        <DateRangePicker />
+                      </div>
+
+                      {/* Viajeros */}
+                      <div className="md:col-span-1">
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Viajeros</label>
+                        <GuestSelector />
+                      </div>
+
+                      {/* Botón Buscar */}
+                      <div className="md:col-span-1 flex items-end">
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full"
+                        >
+                          <Button
+                            className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                            onClick={handleSearchHotels}
+                            disabled={loading}
+                          >
+                            {loading ? (
+                              <>
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                Buscando...
+                              </>
+                            ) : (
+                              <>
+                                <Search className="w-5 h-5 mr-2" />
+                                Buscar
+                              </>
+                            )}
+                          </Button>
+                        </motion.div>
+                      </div>
+                    </div>
+
+                    {/* Checkboxes */}
+                    <div className="flex gap-4 pt-2">
+                      <label className="flex items-center gap-2 cursor-pointer text-gray-900">
+                        <input type="checkbox" className="w-4 h-4 accent-primary" />
+                        <span className="text-sm font-medium">Agregar un vuelo</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer text-gray-900">
+                        <input type="checkbox" className="w-4 h-4 accent-primary" />
+                        <span className="text-sm font-medium">Agregar un auto</span>
+                      </label>
                     </div>
                   </div>
+                </TabsContent>
 
-                  {/* Fechas */}
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium mb-2">Fechas</label>
-                    <DateRangePicker />
-                  </div>
+                <TabsContent value="flights" className="mt-6">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                      {/* Origen */}
+                      <div className="md:col-span-1">
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Origen</label>
+                        <div className="relative">
+                          <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
+                          <Input
+                            placeholder="MEX - Ciudad de México"
+                            className="pl-10 h-12 bg-white"
+                            value={origin}
+                            onChange={(e) => setOrigin(e.target.value.toUpperCase())}
+                          />
+                        </div>
+                      </div>
 
-                  {/* Viajeros */}
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium mb-2">Viajeros</label>
-                    <GuestSelector />
-                  </div>
+                      {/* Destino */}
+                      <div className="md:col-span-1">
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Destino</label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
+                          <Input
+                            placeholder="CUN - Cancún"
+                            className="pl-10 h-12 bg-white"
+                            value={flightDestination}
+                            onChange={(e) => setFlightDestination(e.target.value.toUpperCase())}
+                          />
+                        </div>
+                      </div>
 
-                  {/* Botón Buscar con gradiente */}
-                  <div className="md:col-span-1 flex items-end">
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full"
-                    >
-                      <Button
-                        className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-medium hover:shadow-hard transition-all duration-200"
-                        onClick={handleSearchHotels}
-                        disabled={loading}
-                      >
-                        {loading ? (
-                          <>
-                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                            Buscando...
-                          </>
-                        ) : (
-                          <>
-                            <Search className="w-5 h-5 mr-2" />
-                            Buscar
-                          </>
-                        )}
-                      </Button>
-                    </motion.div>
-                  </div>
-                </div>
+                      {/* Fechas */}
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Fechas</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            type="date"
+                            className="h-12 bg-white"
+                            value={departureDate}
+                            onChange={(e) => setDepartureDate(e.target.value)}
+                          />
+                          <Input
+                            type="date"
+                            className="h-12 bg-white"
+                            placeholder="Retorno"
+                            value={returnDate}
+                            onChange={(e) => setReturnDate(e.target.value)}
+                          />
+                        </div>
+                      </div>
 
-                <div className="flex gap-4 pt-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="w-4 h-4 accent-primary" />
-                    <span className="text-sm">Agregar un vuelo</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="w-4 h-4 accent-primary" />
-                    <span className="text-sm">Agregar un auto</span>
-                  </label>
-                </div>
-              </div>
-            </TabsContent>
+                      {/* Botón Buscar */}
+                      <div className="md:col-span-1 flex items-end">
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full"
+                        >
+                          <Button
+                            className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                            onClick={handleSearchFlights}
+                            disabled={loading}
+                          >
+                            {loading ? (
+                              <>
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                Buscando...
+                              </>
+                            ) : (
+                              <>
+                                <Search className="w-5 h-5 mr-2" />
+                                Buscar
+                              </>
+                            )}
+                          </Button>
+                        </motion.div>
+                      </div>
+                    </div>
 
-            <TabsContent value="flights" className="mt-6">
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                  {/* Origen */}
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium mb-2">Origen</label>
-                    <div className="relative">
-                      <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
-                      <Input
-                        placeholder="MEX - Ciudad de México"
-                        className="pl-10 h-12"
-                        value={origin}
-                        onChange={(e) => setOrigin(e.target.value.toUpperCase())}
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-900">
+                        <label className="font-medium">Adultos:</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="9"
+                          value={adults}
+                          onChange={(e) => setAdults(parseInt(e.target.value))}
+                          className="w-16 px-2 py-1 border rounded bg-white"
+                        />
+                        <label className="ml-4 font-medium">Niños:</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="9"
+                          value={children}
+                          onChange={(e) => setChildren(parseInt(e.target.value))}
+                          className="w-16 px-2 py-1 border rounded bg-white"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Aerolíneas preferidas (opcional)</label>
+                        <AirlineSelector
+                          value={selectedAirlines}
+                          onChange={setSelectedAirlines}
+                          mode={airlineMode}
+                        />
+                      </div>
                     </div>
                   </div>
+                </TabsContent>
 
-                  {/* Destino */}
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium mb-2">Destino</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
-                      <Input
-                        placeholder="CUN - Cancún"
-                        className="pl-10 h-12"
-                        value={flightDestination}
-                        onChange={(e) => setFlightDestination(e.target.value.toUpperCase())}
-                      />
-                    </div>
+                <TabsContent value="cars">
+                  <div className="text-center py-8">
+                    <p className="text-gray-700">Búsqueda de autos próximamente...</p>
                   </div>
+                </TabsContent>
 
-                  {/* Fechas */}
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium mb-2">Fechas</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        type="date"
-                        className="h-12"
-                        value={departureDate}
-                        onChange={(e) => setDepartureDate(e.target.value)}
-                      />
-                      <Input
-                        type="date"
-                        className="h-12"
-                        placeholder="Retorno"
-                        value={returnDate}
-                        onChange={(e) => setReturnDate(e.target.value)}
-                      />
-                    </div>
+                <TabsContent value="packages">
+                  <div className="text-center py-8">
+                    <p className="text-gray-700">Búsqueda de paquetes próximamente...</p>
                   </div>
+                </TabsContent>
 
-                  {/* Botón Buscar con gradiente */}
-                  <div className="md:col-span-1 flex items-end">
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full"
-                    >
-                      <Button
-                        className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-medium hover:shadow-hard transition-all duration-200"
-                        onClick={handleSearchFlights}
-                        disabled={loading}
-                      >
-                        {loading ? (
-                          <>
-                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                            Buscando...
-                          </>
-                        ) : (
-                          <>
-                            <Search className="w-5 h-5 mr-2" />
-                            Buscar
-                          </>
-                        )}
-                      </Button>
-                    </motion.div>
+                <TabsContent value="things">
+                  <div className="text-center py-8">
+                    <p className="text-gray-700">Búsqueda de actividades próximamente...</p>
                   </div>
-                </div>
+                </TabsContent>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <label>Adultos:</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="9"
-                      value={adults}
-                      onChange={(e) => setAdults(parseInt(e.target.value))}
-                      className="w-16 px-2 py-1 border rounded"
-                    />
-                    <label className="ml-4">Niños:</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="9"
-                      value={children}
-                      onChange={(e) => setChildren(parseInt(e.target.value))}
-                      className="w-16 px-2 py-1 border rounded"
-                    />
+                <TabsContent value="cruises">
+                  <div className="text-center py-8">
+                    <Compass className="w-16 h-16 mx-auto mb-3 text-blue-500" />
+                    <h3 className="text-xl font-bold mb-2">Cruceros</h3>
+                    <p className="text-gray-700">Próximamente...</p>
                   </div>
+                </TabsContent>
 
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium mb-2">Aerolíneas preferidas (opcional)</label>
-                    <AirlineSelector
-                      value={selectedAirlines}
-                      onChange={setSelectedAirlines}
-                      mode={airlineMode}
-                    />
+                <TabsContent value="ashome">
+                  <div className="text-center py-8">
+                    <HomeIcon className="w-16 h-16 mx-auto mb-3 text-blue-500" />
+                    <h3 className="text-xl font-bold mb-2">ASHome</h3>
+                    <p className="text-gray-700">Próximamente...</p>
                   </div>
-                </div>
-              </div>
-            </TabsContent>
+                </TabsContent>
+              </Tabs>
+            </motion.div>
 
-            <TabsContent value="cars">
-              <p className="text-muted-foreground">Búsqueda de autos próximamente...</p>
-            </TabsContent>
-
-            <TabsContent value="packages">
-              <p className="text-muted-foreground">Búsqueda de paquetes próximamente...</p>
-            </TabsContent>
-
-            <TabsContent value="things">
-              <p className="text-muted-foreground">Búsqueda de actividades próximamente...</p>
-            </TabsContent>
-
-            <TabsContent value="cruises">
-              <div className="text-center py-12">
-                <Compass className="w-20 h-20 mx-auto mb-4 text-blue-500" />
-                <h3 className="text-2xl font-bold mb-2">Cruceros</h3>
-                <p className="text-muted-foreground text-lg">Próximamente...</p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="ashome">
-              <div className="text-center py-12">
-                <HomeIcon className="w-20 h-20 mx-auto mb-4 text-blue-500" />
-                <h3 className="text-2xl font-bold mb-2">ASHome</h3>
-                <p className="text-muted-foreground text-lg">Próximamente...</p>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </motion.div>
-
-        {/* Featured Destination - Movido arriba */}
-        {featuredHero && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="mb-8"
-          >
-            <div className="relative h-[300px] rounded-2xl overflow-hidden shadow-medium">
-              <img
-                src={featuredHero.image_url}
-                alt={featuredHero.title}
-                className="w-full h-full object-cover"
-              />
-              {/* Overlay translúcido con glassmorphism */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                <div className="backdrop-blur-xl bg-white/90 rounded-2xl p-6 md:p-8 shadow-hard max-w-2xl">
+            {/* Información del destino destacado en la parte inferior */}
+            {featuredHero && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="mt-8"
+              >
+                <div className="backdrop-blur-xl bg-white/90 rounded-2xl p-6 md:p-8 shadow-2xl max-w-2xl border border-white/30">
                   <div className="flex items-center gap-2 mb-3">
                     <Compass className="w-5 h-5 text-blue-600" />
                     <span className="text-sm font-semibold text-blue-600 uppercase tracking-wide">
@@ -658,16 +670,19 @@ export default function Home() {
                     {featuredHero.description}
                   </p>
                 </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
+              </motion.div>
+            )}
+          </div>
+        </div>
+
+      {/* Resto del contenido */}
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
 
         {/* Member Benefits con gradiente moderno */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
         >
           <Card className="relative overflow-hidden bg-gradient-to-r from-blue-900 to-blue-700 text-white p-8 mb-8 shadow-hard border-0">
             {/* Imagen de fondo */}
@@ -723,7 +738,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
             whileHover={{ y: -4, transition: { duration: 0.2 } }}
           >
             <Card className="relative overflow-hidden bg-gradient-to-br from-yellow-400 to-amber-400 border-none shadow-medium hover:shadow-hard transition-shadow duration-300 cursor-pointer"
@@ -757,7 +772,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
             whileHover={{ y: -4, transition: { duration: 0.2 } }}
           >
             <Card className="relative overflow-hidden bg-gradient-to-br from-yellow-400 to-amber-400 border-none shadow-medium hover:shadow-hard transition-shadow duration-300 cursor-pointer"
