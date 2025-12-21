@@ -51,14 +51,14 @@ export async function GET(request: NextRequest) {
         )
       }
     } else if (city) {
-      // Geocoding simple de ciudades principales
-      const coordinates = getCityCoordinates(city)
+      // Buscar coordenadas en BD primero, luego fallback a mapeo estático
+      const coordinates = await getCityCoordinatesFromDB(city)
 
       if (!coordinates) {
         return NextResponse.json(
           {
             success: false,
-            error: 'City not found. Please provide latitude and longitude instead.'
+            error: 'City not found. Please provide latitude and longitude instead or try a different city.'
           },
           { status: 400 }
         )
@@ -127,9 +127,43 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Geocoding simple de ciudades principales
+ * Obtener coordenadas de ciudad desde BD (método principal)
  */
-function getCityCoordinates(city: string): { latitude: number; longitude: number } | null {
+async function getCityCoordinatesFromDB(city: string): Promise<{ latitude: number; longitude: number } | null> {
+  try {
+    const { queryOne } = await import('@/lib/db')
+
+    // Normalizar nombre de ciudad
+    const normalizedCity = city
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+
+    const result = await queryOne(
+      'SELECT latitude, longitude FROM cities WHERE normalized_name = $1 AND latitude IS NOT NULL AND longitude IS NOT NULL LIMIT 1',
+      [normalizedCity]
+    )
+
+    if (result && result.latitude && result.longitude) {
+      return {
+        latitude: parseFloat(result.latitude),
+        longitude: parseFloat(result.longitude)
+      }
+    }
+
+    // Fallback a mapeo estático
+    return getCityCoordinatesStatic(city)
+  } catch (error) {
+    console.error('Error fetching coordinates from DB:', error)
+    return getCityCoordinatesStatic(city)
+  }
+}
+
+/**
+ * Geocoding simple de ciudades principales (fallback estático)
+ */
+function getCityCoordinatesStatic(city: string): { latitude: number; longitude: number } | null {
   const cityCoords: Record<string, { latitude: number; longitude: number }> = {
     // México
     'cancun': { latitude: 21.1619, longitude: -86.8515 },

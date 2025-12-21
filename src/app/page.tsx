@@ -195,6 +195,16 @@ export default function Home() {
       return
     }
 
+    // Validar que la fecha no sea en el pasado
+    const selectedDate = new Date(transferDate)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (selectedDate < today) {
+      alert('La fecha de transfer no puede ser en el pasado')
+      return
+    }
+
     const params = new URLSearchParams({
       from: transferOrigin,
       to: transferDestination,
@@ -693,6 +703,7 @@ export default function Home() {
                             type="date"
                             value={transferDate}
                             onChange={(e) => setTransferDate(e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
                             className="h-12 bg-white"
                           />
                           <Input
