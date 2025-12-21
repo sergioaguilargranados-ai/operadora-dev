@@ -24,7 +24,7 @@ export interface SearchResult {
   price: number
   currency: string
   details: any
-  cached: boolean
+  cached?: boolean
 }
 
 class SearchService {
