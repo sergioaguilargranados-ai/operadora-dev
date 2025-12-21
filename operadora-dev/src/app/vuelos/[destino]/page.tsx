@@ -21,7 +21,8 @@ import {
 export default function VuelosDestinoPage() {
   const router = useRouter()
   const params = useParams()
-  const destino = (params.destino as string)?.toUpperCase() || "CUN"
+  // Decodificar URL encoding (ej: CANC%C3%BAN → CANCÚN)
+  const destino = decodeURIComponent((params.destino as string) || "CUN").toUpperCase()
 
   const [tipoViaje, setTipoViaje] = useState<'ida-vuelta' | 'sencillo' | 'multidestino'>('ida-vuelta')
   const [mostrarFiltros, setMostrarFiltros] = useState(true)
@@ -363,7 +364,7 @@ export default function VuelosDestinoPage() {
                 />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground mb-1">Hacia</Label>
+                <Label className="text-xs text-muted-foreground mb-1">Destino</Label>
                 <Input
                   value={formData.destino}
                   onChange={(e) => setFormData({...formData, destino: e.target.value})}
@@ -421,7 +422,7 @@ export default function VuelosDestinoPage() {
                 />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground mb-1">Hacia</Label>
+                <Label className="text-xs text-muted-foreground mb-1">Destino</Label>
                 <Input
                   value={formData.destino}
                   onChange={(e) => setFormData({...formData, destino: e.target.value})}
@@ -531,7 +532,7 @@ export default function VuelosDestinoPage() {
           </TabsContent>
           </Tabs>
 
-          <Button className="mt-3 bg-blue-600 hover:bg-blue-700 w-full md:w-auto">
+          <Button className="mt-3 bg-blue-600 hover:bg-blue-700 text-white w-full md:w-auto">
             <Search className="w-4 h-4 mr-2" />
             Buscar vuelos
           </Button>
@@ -904,7 +905,7 @@ export default function VuelosDestinoPage() {
                             <p className="text-xs text-muted-foreground">MXN {tipoViaje === 'sencillo' ? 'sencillo' : 'ida y vuelta'}</p>
                           </div>
                           <Button
-                            className="w-full bg-blue-600 hover:bg-blue-700"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                             onClick={() => {
                               localStorage.setItem('reserva_temp', JSON.stringify({
                                 servicio: {

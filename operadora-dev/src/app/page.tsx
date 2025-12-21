@@ -839,29 +839,29 @@ export default function Home() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="backdrop-blur-xl bg-gradient-to-r from-blue-900 to-blue-700 rounded-2xl p-6 shadow-2xl border border-white/30"
+                className="backdrop-blur-xl bg-white/70 rounded-2xl p-6 shadow-2xl border border-gray-200/50"
               >
                 <div className="flex flex-col h-full justify-between">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                      <Package className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 bg-blue-600/10 rounded-full flex items-center justify-center">
+                      <Package className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
                       {isAuthenticated ? (
                         <>
-                          <h3 className="font-bold text-white text-lg">
+                          <h3 className="font-bold text-gray-900 text-lg">
                             ¡Bienvenido, {user?.name.split(' ')[0]}!
                           </h3>
-                          <p className="text-sm text-white/90">
+                          <p className="text-sm text-gray-700">
                             Disfruta beneficios exclusivos
                           </p>
                         </>
                       ) : (
                         <>
-                          <h3 className="font-bold text-white text-lg">
+                          <h3 className="font-bold text-gray-900 text-lg">
                             Únete a AS Club
                           </h3>
-                          <p className="text-sm text-white/90">
+                          <p className="text-sm text-gray-700">
                             Beneficios exclusivos
                           </p>
                         </>
@@ -870,7 +870,7 @@ export default function Home() {
                   </div>
                   {!isAuthenticated && (
                     <Link href="/login">
-                      <Button className="w-full bg-white text-blue-900 hover:bg-blue-50 font-semibold mt-4">
+                      <Button className="w-full bg-blue-600 text-white hover:bg-blue-700 font-semibold mt-4">
                         Iniciar sesión
                       </Button>
                     </Link>
@@ -883,25 +883,18 @@ export default function Home() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
-                className="relative overflow-hidden backdrop-blur-xl bg-gradient-to-br from-yellow-400 to-amber-400 rounded-2xl shadow-2xl border border-white/30 cursor-pointer"
+                className="backdrop-blur-xl bg-white/70 rounded-2xl p-6 shadow-2xl border border-gray-200/50 cursor-pointer"
                 onClick={() => router.push('/notificaciones')}
               >
-                <div className="absolute inset-0 opacity-30">
-                  <img
-                    src="https://images.unsplash.com/photo-1607827448387-a67db1383b59?w=800&h=400&fit=crop"
-                    alt="Alerta de precios"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="relative z-10 p-6 h-full flex flex-col justify-between">
+                <div className="flex flex-col h-full justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-[#1A1F29] mb-2">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">
                       Recibe alertas si bajan los precios
                     </h3>
                   </div>
                   <Button
                     variant="link"
-                    className="text-[#1A1F29] font-semibold p-0 h-auto justify-start hover:no-underline group"
+                    className="text-blue-600 font-semibold p-0 h-auto justify-start hover:no-underline group"
                   >
                     Configurar alertas
                     <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
@@ -916,25 +909,18 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
-                className="relative overflow-hidden backdrop-blur-xl bg-gradient-to-br from-yellow-400 to-amber-400 rounded-2xl shadow-2xl border border-white/30 cursor-pointer"
+                className="backdrop-blur-xl bg-white/70 rounded-2xl p-6 shadow-2xl border border-gray-200/50 cursor-pointer"
                 onClick={() => router.push('/resultados?type=package')}
               >
-                <div className="absolute inset-0 opacity-30">
-                  <img
-                    src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600&h=300&fit=crop"
-                    alt="Paquetes"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="relative z-10 p-6 flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xl font-bold text-[#1A1F29] mb-2">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
                       Puedes ahorrar cuando juntas vuelo + hotel
                     </h3>
                   </div>
                   <Button
                     variant="link"
-                    className="text-[#1A1F29] font-semibold p-0 h-auto justify-start hover:no-underline group"
+                    className="text-blue-600 font-semibold p-0 h-auto justify-start hover:no-underline group"
                   >
                     Ver paquetes
                     <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
@@ -1143,7 +1129,7 @@ export default function Home() {
                         ${Number(pkg.price).toLocaleString()} {pkg.currency}
                       </p>
                     </div>
-                    <Button size="sm" className="bg-[#0066FF] hover:bg-[#0052CC]">
+                    <Button size="sm" className="bg-[#0066FF] hover:bg-[#0052CC] text-white">
                       Ver paquete
                     </Button>
                   </div>

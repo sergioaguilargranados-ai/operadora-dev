@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Logo } from "@/components/Logo"
 import { ArrowLeft, Calendar, Tag, MapPin } from "lucide-react"
 
 export default function OfertaDetallePage() {
@@ -56,6 +58,15 @@ export default function OfertaDetallePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+      {/* Header translúcido */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
+        <div className="container mx-auto px-4 py-4">
+          <Link href="/">
+            <Logo className="py-2" />
+          </Link>
+        </div>
+      </header>
+
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <Button variant="ghost" onClick={() => router.back()} className="mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
