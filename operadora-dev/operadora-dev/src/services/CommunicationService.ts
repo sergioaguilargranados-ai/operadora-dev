@@ -428,7 +428,7 @@ export class CommunicationService {
     tenantId: number
   ): Promise<void> {
     // Obtener mensaje y preferencias del destinatario
-    const message = await queryOne<Message>(
+    const message = await queryOne<Message & { client_id: number }>(
       `SELECT m.*, t.client_id
        FROM messages m
        JOIN communication_threads t ON m.thread_id = t.id

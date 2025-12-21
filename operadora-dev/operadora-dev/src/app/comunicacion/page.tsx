@@ -28,7 +28,7 @@ export default function ComunicacionPage() {
 
   // Usuario actual (TODO: obtener de auth)
   const currentUserId = 1
-  const userType = 'client' // 'client' | 'agent'
+  const userType = 'client' as 'client' | 'agent'
   const tenantId = 1
 
   useEffect(() => {
