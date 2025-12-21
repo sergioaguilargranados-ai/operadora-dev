@@ -4,7 +4,7 @@ import { query } from '@/lib/db'
 export async function GET(request: NextRequest) {
   try {
     const result = await query(
-      `SELECT * FROM homepage_hero WHERE is_active = true AND tenant_id = 1 LIMIT 1`
+      `SELECT * FROM featured_hero WHERE is_active = true ORDER BY id DESC LIMIT 1`
     )
 
     return NextResponse.json({
@@ -26,13 +26,13 @@ export async function PUT(request: NextRequest) {
     const { image_url, title, subtitle, description } = body
 
     const result = await query(
-      `UPDATE homepage_hero
+      `UPDATE featured_hero
        SET image_url = COALESCE($1, image_url),
            title = COALESCE($2, title),
            subtitle = COALESCE($3, subtitle),
            description = COALESCE($4, description),
            updated_at = CURRENT_TIMESTAMP
-       WHERE tenant_id = 1
+       WHERE is_active = true
        RETURNING *`,
       [image_url, title, subtitle, description]
     )
