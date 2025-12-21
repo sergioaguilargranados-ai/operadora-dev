@@ -1,6 +1,47 @@
 # TODOs - AS OPERADORA
-**Última actualización: 21 Diciembre 2025 - 05:45 CST**
-**Versión: v2.149 - Integración Amadeus Completa + Build Fixes ✅**
+**Última actualización: 21 Diciembre 2025 - 09:30 CST**
+**Versión: v2.151 - Sistema de Ciudades con Auto-Creación ✅**
+
+---
+
+## ✅ CIUDADES AUTO-CREACIÓN (21 Dic 2025 - 09:30 CST)
+
+### 🎯 Problema Resuelto: Error 500 en búsquedas de hoteles
+
+**Antes:**
+- Usuario busca ciudad no registrada → Error 500
+- SearchService retorna array vacío
+- API truena sin resultados
+
+**Ahora:**
+- ✅ Migración 012: Tabla `cities` con normalización automática
+- ✅ 55 ciudades populadas (MX, USA, EU, ASIA, LATAM)
+- ✅ SearchService con 3 niveles de búsqueda:
+  1. Buscar en BD (más rápido)
+  2. Fallback a mapeo estático (legacy)
+  3. **Auto-crear** ciudad con código genérico
+- ✅ Función `normalize_city_name()` (sin acentos, lowercase)
+- ✅ Trigger automático para mantener normalized_name
+
+**Resultado:**
+```typescript
+// Ejemplo: Usuario busca "Tulum" (no existe en BD)
+1. Busca en BD → No encontrado
+2. Busca en mapeo estático → No encontrado
+3. Auto-crea: { name: "Tulum", city_code: "TUL", ... }
+4. Continúa búsqueda sin error ✓
+```
+
+**Archivos:**
+- `migrations/012_cities_table.sql` - Migración BD
+- `scripts/populate-cities.js` - 55 ciudades iniciales
+- `scripts/run-migration-012.js` - Ejecutor migración
+- `src/services/SearchService.ts` - Lógica auto-creación
+
+**Commit:**
+- Hash: d7d87a6
+- Push a GitHub: ✅ Exitoso
+- Vercel deploy: ⏳ Automático en proceso
 
 ---
 
@@ -570,7 +611,7 @@ Activities: Amadeus (único, con deep links)
 - [ ] Integrar con mismo modelo del chatbot
 
 ### **Búsqueda de Estadías**
-- [ ] Corregir error 500 en /api/search?type=hotel
+- [x] Corregir error 500 en /api/search?type=hotel - v2.151 ✅
 
 ### **Búsqueda de Vuelos**
 - [x] Botón "Nueva búsqueda" debe mantener filtros - Guarda en localStorage
