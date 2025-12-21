@@ -1,0 +1,11 @@
+name,email,role,department,cost_center,manager_email
+Juan Pérez,juan.perez@empresa.com,employee,Ventas,CC-VENTAS,ana.martinez@empresa.com
+María López,maria.lopez@empresa.com,employee,Marketing,CC-MKT,carlos.ruiz@empresa.com
+Carlos Ruiz,carlos.ruiz@empresa.com,manager,Marketing,CC-MKT,
+Ana Martínez,ana.martinez@empresa.com,manager,Ventas,CC-VENTAS,
+Pedro Gómez,pedro.gomez@empresa.com,employee,IT,CC-IT,luis.torres@empresa.com
+Luis Torres,luis.torres@empresa.com,manager,IT,CC-IT,
+Sofía Ramírez,sofia.ramirez@empresa.com,employee,Finanzas,CC-FIN,
+Diego Sánchez,diego.sanchez@empresa.com,employee,RH,CC-RH,
+Laura Méndez,laura.mendez@empresa.com,employee,Ventas,CC-VENTAS,ana.martinez@empresa.com
+Roberto Flores,roberto.flores@empresa.com,employee,Marketing,CC-MKT,carlos.ruiz@empresa.com
