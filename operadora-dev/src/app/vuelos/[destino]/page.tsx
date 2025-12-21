@@ -308,7 +308,7 @@ export default function VuelosDestinoPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50 shadow-sm">
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
         <div className="container mx-auto px-4 py-3">
           <Link href="/">
             <Logo className="py-2" />
@@ -349,10 +349,9 @@ export default function VuelosDestinoPage() {
                 Multidestino
               </TabsTrigger>
             </TabsList>
-          </Tabs>
 
-          {/* Formularios según tipo de viaje */}
-          <TabsContent value="ida-vuelta" className="mt-0">
+            {/* Formularios según tipo de viaje */}
+            <TabsContent value="ida-vuelta" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3 p-4 bg-gray-50 rounded-lg border">
               <div>
                 <Label className="text-xs text-muted-foreground mb-1">Saliendo de</Label>
@@ -530,6 +529,7 @@ export default function VuelosDestinoPage() {
               </Button>
             </div>
           </TabsContent>
+          </Tabs>
 
           <Button className="mt-3 bg-blue-600 hover:bg-blue-700 w-full md:w-auto">
             <Search className="w-4 h-4 mr-2" />

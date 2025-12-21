@@ -151,7 +151,7 @@ function ConfirmarReservaContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
         <div className="container mx-auto px-4 py-4">
           <Link href="/">
             <Logo className="py-2" />
@@ -294,7 +294,7 @@ function ConfirmarReservaContent() {
               </div>
 
               <Button
-                className="w-full mt-6 bg-blue-600 hover:bg-blue-700"
+                className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white"
                 size="lg"
                 onClick={handleSubmit}
                 disabled={loading}

@@ -965,7 +965,7 @@ export default function Home() {
                 whileHover={{ y: -8, transition: { duration: 0.2 } }}
               >
                 <Card
-                  className="overflow-hidden group cursor-pointer border-none shadow-soft hover:shadow-hard transition-all duration-300"
+                  className="overflow-hidden group cursor-pointer border-none shadow-soft hover:shadow-hard transition-all duration-300 rounded-3xl"
                   onClick={() => router.push(`/oferta/${promo.id}`)}
                 >
                   <div className="relative h-48 overflow-hidden">
@@ -1015,7 +1015,7 @@ export default function Home() {
             {flightDestinations.map((dest) => (
               <Card
                 key={dest.id}
-                className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all"
+                className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
                 onClick={() => router.push(`/vuelos/${dest.city.toLowerCase().replace(/\s+/g, '-')}`)}
               >
                 <div className="relative h-32 overflow-hidden">
@@ -1044,7 +1044,7 @@ export default function Home() {
             {accommodationFavorites.map((item) => (
               <Card
                 key={item.id}
-                className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-shadow"
+                className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-shadow rounded-3xl"
                 onClick={() => router.push(`/hospedaje/${item.id}`)}
               >
                 <div className="relative h-48 overflow-hidden">
@@ -1073,7 +1073,7 @@ export default function Home() {
             {weekendDeals.map((deal) => (
               <Card
                 key={deal.id}
-                className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all"
+                className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
                 onClick={() => router.push(`/hospedaje/${deal.id}`)}
               >
                 <div className="relative h-36 overflow-hidden">
@@ -1115,7 +1115,7 @@ export default function Home() {
             {vacationPackages.map((pkg) => (
               <Card
                 key={pkg.id}
-                className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all"
+                className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
                 onClick={() => router.push(`/paquete/${pkg.id}`)}
               >
                 <div className="relative h-52 overflow-hidden">
@@ -1160,7 +1160,7 @@ export default function Home() {
             {uniqueStays.map((unique) => (
               <Card
                 key={unique.id}
-                className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-shadow"
+                className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-shadow rounded-3xl"
                 onClick={() => router.push(`/hospedaje/${unique.id}`)}
               >
                 <div className="relative h-44 overflow-hidden">
@@ -1199,7 +1199,7 @@ export default function Home() {
             {exploreDestinations.map((dest) => (
               <Card
                 key={dest.id}
-                className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all"
+                className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
                 onClick={() => router.push(`/destino/${dest.city_code || dest.destination}`)}
               >
                 <div className="relative h-24 overflow-hidden">
