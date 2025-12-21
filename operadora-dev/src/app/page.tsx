@@ -1,6 +1,6 @@
 "use client"
 
-// Build: 21 Dec 2025 - v2.149 - Amadeus Integration Complete (3 Phases) - PRODUCTION
+// Build: 21 Dec 2025 - v2.150 - OAuth Social + UI Reorganization - PRODUCTION
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -832,161 +832,121 @@ export default function Home() {
               </Tabs>
             </motion.div>
 
-            {/* Información del destino destacado en la parte inferior */}
-            {featuredHero && (
+            {/* AS Club y Alertas - Dos recuadros lado a lado (mitad del tamaño de filtros) */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-6xl mx-auto">
+              {/* AS Club */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="backdrop-blur-xl bg-gradient-to-r from-blue-900 to-blue-700 rounded-2xl p-6 shadow-2xl border border-white/30"
+              >
+                <div className="flex flex-col h-full justify-between">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                      <Package className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      {isAuthenticated ? (
+                        <>
+                          <h3 className="font-bold text-white text-lg">
+                            ¡Bienvenido, {user?.name.split(' ')[0]}!
+                          </h3>
+                          <p className="text-sm text-white/90">
+                            Disfruta beneficios exclusivos
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <h3 className="font-bold text-white text-lg">
+                            Únete a AS Club
+                          </h3>
+                          <p className="text-sm text-white/90">
+                            Beneficios exclusivos
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {!isAuthenticated && (
+                    <Link href="/login">
+                      <Button className="w-full bg-white text-blue-900 hover:bg-blue-50 font-semibold mt-4">
+                        Iniciar sesión
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              </motion.div>
+
+              {/* Alertas de precio */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="relative overflow-hidden backdrop-blur-xl bg-gradient-to-br from-yellow-400 to-amber-400 rounded-2xl shadow-2xl border border-white/30 cursor-pointer"
+                onClick={() => router.push('/notificaciones')}
+              >
+                <div className="absolute inset-0 opacity-30">
+                  <img
+                    src="https://images.unsplash.com/photo-1607827448387-a67db1383b59?w=800&h=400&fit=crop"
+                    alt="Alerta de precios"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="relative z-10 p-6 h-full flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-[#1A1F29] mb-2">
+                      Recibe alertas si bajan los precios
+                    </h3>
+                  </div>
+                  <Button
+                    variant="link"
+                    className="text-[#1A1F29] font-semibold p-0 h-auto justify-start hover:no-underline group"
+                  >
+                    Configurar alertas
+                    <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Ahorra con vuelo + hotel - Ancho completo */}
+            <div className="mt-4 max-w-6xl mx-auto">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="mt-8"
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="relative overflow-hidden backdrop-blur-xl bg-gradient-to-br from-yellow-400 to-amber-400 rounded-2xl shadow-2xl border border-white/30 cursor-pointer"
+                onClick={() => router.push('/resultados?type=package')}
               >
-                <div className="backdrop-blur-xl bg-white/90 rounded-2xl p-6 md:p-8 shadow-2xl max-w-2xl border border-white/30">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Compass className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm font-semibold text-blue-600 uppercase tracking-wide">
-                      {featuredHero.subtitle || 'DESTINO DESTACADO'}
-                    </span>
+                <div className="absolute inset-0 opacity-30">
+                  <img
+                    src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600&h=300&fit=crop"
+                    alt="Paquetes"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="relative z-10 p-6 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold text-[#1A1F29] mb-2">
+                      Puedes ahorrar cuando juntas vuelo + hotel
+                    </h3>
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-2 text-gray-900">
-                    {featuredHero.title}
-                  </h2>
-                  <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    {featuredHero.description}
-                  </p>
+                  <Button
+                    variant="link"
+                    className="text-[#1A1F29] font-semibold p-0 h-auto justify-start hover:no-underline group"
+                  >
+                    Ver paquetes
+                    <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  </Button>
                 </div>
               </motion.div>
-            )}
+            </div>
           </div>
         </div>
 
       {/* Resto del contenido */}
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-
-        {/* Member Benefits con gradiente moderno */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <Card className="relative overflow-hidden bg-gradient-to-r from-blue-900 to-blue-700 text-white p-8 mb-8 shadow-hard border-0">
-            {/* Imagen de fondo */}
-            <div className="absolute inset-0 opacity-30">
-              <img
-                src="https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200&h=400&fit=crop"
-                alt="AS Club - Playa"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <Package className="w-6 h-6" />
-              </div>
-              <div>
-                {isAuthenticated ? (
-                  <>
-                    <h3 className="font-semibold text-lg mb-1">
-                      ¡Bienvenido a AS Club, {user?.name.split(' ')[0]}!
-                    </h3>
-                    <p className="text-sm text-white/90">
-                      Disfruta de descuentos exclusivos y acumula puntos en cada reserva
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="font-semibold text-lg mb-1">
-                      Únete a AS Club y obtén beneficios exclusivos
-                    </h3>
-                    <p className="text-sm text-white/90">
-                      Descuentos especiales, acumulación de puntos y más
-                    </p>
-                  </>
-                )}
-              </div>
-            </div>
-            {!isAuthenticated && (
-              <Link href="/login">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button className="bg-white text-blue-900 hover:bg-blue-50 whitespace-nowrap shadow-medium font-semibold">
-                    Iniciar sesión
-                  </Button>
-                </motion.div>
-              </Link>
-            )}
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Promo Cards con animación */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            whileHover={{ y: -4, transition: { duration: 0.2 } }}
-          >
-            <Card className="relative overflow-hidden bg-gradient-to-br from-yellow-400 to-amber-400 border-none shadow-medium hover:shadow-hard transition-shadow duration-300 cursor-pointer"
-              onClick={() => router.push('/notificaciones')}
-            >
-              {/* Imagen de fondo */}
-              <div className="absolute inset-0 opacity-40">
-                <img
-                  src="https://images.unsplash.com/photo-1607827448387-a67db1383b59?w=800&h=400&fit=crop"
-                  alt="Alerta de precios"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="relative z-10 p-4 h-full flex flex-col justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-[#1A1F29] mb-2">
-                  Recibe alertas si bajan los precios de los vuelos
-                </h3>
-              </div>
-              <Button
-                variant="link"
-                className="text-[#1A1F29] font-semibold p-0 h-auto justify-start hover:no-underline group text-sm"
-              >
-                Configurar alertas
-                <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </div>
-          </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            whileHover={{ y: -4, transition: { duration: 0.2 } }}
-          >
-            <Card className="relative overflow-hidden bg-gradient-to-br from-yellow-400 to-amber-400 border-none shadow-medium hover:shadow-hard transition-shadow duration-300 cursor-pointer"
-              onClick={() => router.push('/resultados?type=package')}
-            >
-              {/* Imagen de fondo */}
-              <div className="absolute inset-0 opacity-40">
-                <img
-                  src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&h=400&fit=crop"
-                  alt="Paquetes"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="relative z-10 p-4 h-full flex flex-col justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-[#1A1F29] mb-2">
-                  Puedes ahorrar cuando juntas vuelo + hotel
-                </h3>
-              </div>
-              <Button
-                variant="link"
-                className="text-[#1A1F29] font-semibold p-0 h-auto justify-start hover:no-underline group text-sm"
-              >
-                Ver paquetes
-                <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </div>
-          </Card>
-          </motion.div>
-        </div>
 
         {/* Ofertas Especiales y Descuentos */}
         <div className="mb-12">
@@ -1301,7 +1261,7 @@ export default function Home() {
             <p>© 2024 AS Operadora de Viajes y Eventos. Todos los derechos reservados.</p>
             <p className="text-xs mt-1">Experiencias que inspiran</p>
             <p className="text-xs mt-2 opacity-50">
-              v2.149 | Build: 21 Dec 2025, 04:30 CST | Live: app.asoperadora.com ✅ | Amadeus Integration Complete
+              v2.150 | Build: 21 Dec 2025, 07:00 CST | Live: app.asoperadora.com ✅ | OAuth Social + UI Reorganized
             </p>
             {dbInfo && (
               <div className="text-xs mt-3 opacity-70 bg-slate-100 p-3 rounded inline-block">
