@@ -627,6 +627,42 @@ export default function Home() {
           </Tabs>
         </motion.div>
 
+        {/* Featured Destination - Movido arriba */}
+        {featuredHero && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="mb-8"
+          >
+            <div className="relative h-[300px] rounded-2xl overflow-hidden shadow-medium">
+              <img
+                src={featuredHero.image_url}
+                alt={featuredHero.title}
+                className="w-full h-full object-cover"
+              />
+              {/* Overlay translúcido con glassmorphism */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                <div className="backdrop-blur-xl bg-white/90 rounded-2xl p-6 md:p-8 shadow-hard max-w-2xl">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Compass className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-semibold text-blue-600 uppercase tracking-wide">
+                      {featuredHero.subtitle || 'DESTINO DESTACADO'}
+                    </span>
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-2 text-gray-900">
+                    {featuredHero.title}
+                  </h2>
+                  <p className="text-sm md:text-base text-gray-700 leading-relaxed">
+                    {featuredHero.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Member Benefits con gradiente moderno */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -811,29 +847,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Featured Destination */}
-        {featuredHero && (
-          <div className="mb-12">
-            <div className="relative h-[400px] rounded-lg overflow-hidden mb-8">
-              <img
-                src={featuredHero.image_url}
-                alt={featuredHero.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
-              <div className="absolute bottom-0 left-0 p-8 text-white">
-                <div className="flex items-center gap-2 mb-2">
-                  <Compass className="w-6 h-6" />
-                  <span className="text-sm font-medium">{featuredHero.subtitle || 'DESTINO DESTACADO'}</span>
-                </div>
-                <h2 className="text-4xl font-bold mb-3">{featuredHero.title}</h2>
-                <p className="text-lg mb-4 max-w-xl">
-                  {featuredHero.description}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+
 
         {/* Descubre vuelos a destinos favoritos */}
         <div className="mb-12">
