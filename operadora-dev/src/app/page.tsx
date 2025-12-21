@@ -1,6 +1,6 @@
 "use client"
 
-// Build: 18 Dec 2025 - v2.126 - Quotes & Itineraries UIs + Menu links - PRODUCTION
+// Build: 21 Dec 2025 - v2.149 - Amadeus Integration Complete (3 Phases) - PRODUCTION
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -1301,7 +1301,7 @@ export default function Home() {
             <p>© 2024 AS Operadora de Viajes y Eventos. Todos los derechos reservados.</p>
             <p className="text-xs mt-1">Experiencias que inspiran</p>
             <p className="text-xs mt-2 opacity-50">
-              v2.126 | Build: 18 Dec 2025, 08:45 CST | Live: app.asoperadora.com ✅
+              v2.149 | Build: 21 Dec 2025, 04:30 CST | Live: app.asoperadora.com ✅ | Amadeus Integration Complete
             </p>
             {dbInfo && (
               <div className="text-xs mt-3 opacity-70 bg-slate-100 p-3 rounded inline-block">
