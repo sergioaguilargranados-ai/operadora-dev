@@ -1,6 +1,41 @@
 # TODOs - AS OPERADORA
-**Última actualización: 20 Diciembre 2025 - 22:00 CST**
-**Versión: v2.144 - Centro de Comunicación Completo ✅**
+**Última actualización: 21 Diciembre 2025 - 01:00 CST**
+**Versión: v2.145 - Hero Section Fusionado ✅**
+
+## 🎉 VERSIÓN v2.145 - HERO SECTION FUSIONADO (21 Dic 2025)
+
+### ✅ Rediseño de Homepage - Filtros sobre Imagen
+
+**🎨 Cambios de Diseño:**
+1. ✅ Hero section fusionado con imagen tropical de fondo
+2. ✅ Filtros de búsqueda con glassmorphism (`bg-white/85` + `backdrop-blur-xl`)
+3. ✅ Tabs responsivos con fondo translúcido
+4. ✅ Checkboxes integrados dentro del hero section
+5. ✅ Información del destino destacado movida a la parte inferior
+6. ✅ Overlay oscuro para mejor contraste de texto
+7. ✅ Optimización de animaciones y transiciones
+
+**📐 Estructura Nueva:**
+```
+┌─────────────────────────────────────┐
+│  Imagen Tropical (Background)       │
+│  ┌───────────────────────────────┐  │
+│  │ Tabs (Estadías, Vuelos, etc.) │  │
+│  │ Filtros de búsqueda            │  │ ← Glassmorphism
+│  │ Checkboxes (Vuelo + Auto)      │  │
+│  └───────────────────────────────┘  │
+│  ┌───────────────────────────────┐  │
+│  │ DESTINO DESTACADO              │  │ ← Info del destino
+│  └───────────────────────────────┘  │
+└─────────────────────────────────────┘
+```
+
+**🚀 Deploy:**
+- Push exitoso a GitHub
+- Deploy automático a Vercel en proceso
+- URL: https://app.asoperadora.com
+
+---
 
 ## 🎉 VERSIÓN v2.144 - CENTRO DE COMUNICACIÓN COMPLETO (20 Dic 2025)
 
