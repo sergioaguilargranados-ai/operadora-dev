@@ -66,6 +66,13 @@ function ResultadosContent() {
   const [selectedStars, setSelectedStars] = useState<number[]>([])
   const [maxPrice, setMaxPrice] = useState<number>(100000)
 
+  // Filtros avanzados de hoteles
+  const [searchHotelName, setSearchHotelName] = useState<string>('')
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
+  const [freeCancellation, setFreeCancellation] = useState<boolean>(false)
+  const [propertyTypes, setPropertyTypes] = useState<string[]>([])
+  const [breakfastIncluded, setBreakfastIncluded] = useState<boolean>(false)
+
   // Paginación
   const [currentPage, setCurrentPage] = useState<number>(1)
   const itemsPerPage = 10
@@ -75,7 +82,7 @@ function ResultadosContent() {
   const [showFlightDetails, setShowFlightDetails] = useState<boolean>(false)
 
   useEffect(() => {
-    const type = searchParams.get('type') as 'flight' | 'hotel' || 'hotel'
+    const type = (searchParams.get('type') as 'flight' | 'hotel') || 'hotel'
     setSearchType(type)
 
     // Intentar leer de localStorage primero
@@ -141,6 +148,35 @@ function ResultadosContent() {
       filtered = filtered.filter(r => selectedStars.includes(r.details?.starRating || 0))
     }
 
+    // Filtro por nombre de hotel (filtro avanzado)
+    if (searchType === 'hotel' && searchHotelName.trim() !== '') {
+      const lowerName = searchHotelName.toLowerCase()
+      filtered = filtered.filter(r => (r.details?.name || '').toLowerCase().includes(lowerName))
+    }
+
+    // Filtro por amenities (filtro avanzado)
+    if (searchType === 'hotel' && selectedAmenities.length > 0) {
+      filtered = filtered.filter(r => {
+        const amenities: string[] = r.details?.amenities || []
+        return selectedAmenities.every(a => amenities.includes(a))
+      })
+    }
+
+    // Filtro por cancelación gratuita (filtro avanzado)
+    if (searchType === 'hotel' && freeCancellation) {
+      filtered = filtered.filter(r => r.details?.freeCancellation === true)
+    }
+
+    // Filtro por tipo de propiedad (filtro avanzado)
+    if (searchType === 'hotel' && propertyTypes.length > 0) {
+      filtered = filtered.filter(r => propertyTypes.includes(r.details?.propertyType || ''))
+    }
+
+    // Filtro por desayuno incluido (filtro avanzado)
+    if (searchType === 'hotel' && breakfastIncluded) {
+      filtered = filtered.filter(r => r.details?.breakfastIncluded === true)
+    }
+
     // 🔥 ORDENAR POR CUMPLIMIENTO DE POLÍTICA PRIMERO
     // Los que cumplen política van primero, luego los que requieren aprobación
     filtered.sort((a, b) => {
@@ -179,7 +215,7 @@ function ResultadosContent() {
     setFilteredResults(filtered)
     // Resetear a página 1 cuando cambian los filtros
     setCurrentPage(1)
-  }, [results, priceRange, minRating, sortBy, selectedStars, searchType])
+  }, [results, priceRange, minRating, sortBy, selectedStars, searchType, searchHotelName, selectedAmenities, freeCancellation, propertyTypes, breakfastIncluded])
 
   // Calcular resultados paginados
   const totalPages = Math.ceil(filteredResults.length / itemsPerPage)
@@ -291,7 +327,7 @@ function ResultadosContent() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar de Filtros */}
           <aside className={`md:col-span-1 ${showFilters ? 'block' : 'hidden md:block'}`}>
-            <Card className="p-4 sticky top-24">
+            <Card className="p-4 sticky top-24 space-y-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold">Filtros</h2>
                 <Button
@@ -302,6 +338,11 @@ function ResultadosContent() {
                     setMinRating(0)
                     setSelectedStars([])
                     setSortBy('price_asc')
+                    setSearchHotelName('')
+                    setSelectedAmenities([])
+                    setFreeCancellation(false)
+                    setPropertyTypes([])
+                    setBreakfastIncluded(false)
                   }}
                   className="text-xs text-primary"
                 >
@@ -310,7 +351,7 @@ function ResultadosContent() {
               </div>
 
               {/* Ordenar por */}
-              <div className="mb-6">
+              <div>
                 <label className="text-sm font-medium mb-2 block">Ordenar por</label>
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger>
@@ -325,7 +366,7 @@ function ResultadosContent() {
               </div>
 
               {/* Precio */}
-              <div className="mb-6">
+              <div>
                 <label className="text-sm font-medium mb-2 block">
                   Precio por noche
                 </label>
@@ -344,10 +385,97 @@ function ResultadosContent() {
                 </div>
               </div>
 
-              {/* Rating mínimo (solo hoteles) */}
+              {/* Filtros avanzados solo para hoteles */}
               {searchType === 'hotel' && (
                 <>
-                  <div className="mb-6">
+                  {/* Nombre del hotel */}
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Buscar por nombre</label>
+                    <input
+                      type="text"
+                      value={searchHotelName}
+                      onChange={(e) => setSearchHotelName(e.target.value)}
+                      placeholder="Nombre del hotel"
+                      className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                    />
+                  </div>
+
+                  {/* Amenities */}
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Amenities</label>
+                    <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
+                      {['WiFi', 'Piscina', 'Gimnasio', 'Spa', 'Estacionamiento', 'Aire acondicionado'].map((amenity) => (
+                        <label key={amenity} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedAmenities.includes(amenity)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedAmenities([...selectedAmenities, amenity])
+                              } else {
+                                setSelectedAmenities(selectedAmenities.filter(a => a !== amenity))
+                              }
+                            }}
+                            className="accent-primary"
+                          />
+                          <span className="text-sm">{amenity}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Cancelación gratuita */}
+                  <div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={freeCancellation}
+                        onChange={(e) => setFreeCancellation(e.target.checked)}
+                        className="accent-primary"
+                      />
+                      <span className="text-sm">Cancelación gratuita</span>
+                    </label>
+                  </div>
+
+                  {/* Tipo de propiedad */}
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Tipo de propiedad</label>
+                    <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
+                      {['Hotel', 'Hostal', 'Apartamento', 'Resort', 'Bed & Breakfast'].map((type) => (
+                        <label key={type} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={propertyTypes.includes(type)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setPropertyTypes([...propertyTypes, type])
+                              } else {
+                                setPropertyTypes(propertyTypes.filter(t => t !== type))
+                              }
+                            }}
+                            className="accent-primary"
+                          />
+                          <span className="text-sm">{type}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Desayuno incluido */}
+                  <div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={breakfastIncluded}
+                        onChange={(e) => setBreakfastIncluded(e.target.checked)}
+                        className="accent-primary"
+                      />
+                      <span className="text-sm">Desayuno incluido</span>
+                    </label>
+                  </div>
+
+                  {/* Rating mínimo */}
+                  <div>
                     <label className="text-sm font-medium mb-2 block">
                       Valoración mínima
                     </label>
@@ -376,7 +504,7 @@ function ResultadosContent() {
                   </div>
 
                   {/* Categoría del hotel (estrellas) */}
-                  <div className="mb-6">
+                  <div>
                     <label className="text-sm font-medium mb-2 block">
                       Categoría del hotel
                     </label>
@@ -428,295 +556,295 @@ function ResultadosContent() {
                 {searchType === 'flight' ? (
                   // Flight Results
                   paginatedResults.map((result) => (
-                <Card key={result.id} className="p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex flex-col md:flex-row justify-between gap-6">
-                    <div className="flex-1">
-                      {/* Outbound Flight */}
-                      <div className="mb-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Plane className="w-5 h-5 text-primary" />
-                          <span className="font-semibold">Ida</span>
-                          <span className="text-sm text-muted-foreground">
-                            • {result.details?.airline}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-2xl font-bold">
-                              {result.details?.outbound?.departureTime
-                                ? new Date(result.details.outbound.departureTime).toLocaleTimeString('es-MX', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })
-                                : '--:--'}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {result.details?.outbound?.origin}
-                            </p>
-                          </div>
-                          <div className="text-center px-4">
-                            <p className="text-sm text-muted-foreground">
-                              {result.details?.outbound?.duration || 'N/A'}
-                            </p>
-                            <div className="w-24 h-px bg-gray-300 my-2"></div>
-                            <p className="text-xs text-muted-foreground">
-                              {result.details?.outbound?.stops === 0
-                                ? 'Directo'
-                                : `${result.details?.outbound?.stops} escala(s)`}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold">
-                              {result.details?.outbound?.arrivalTime
-                                ? new Date(result.details.outbound.arrivalTime).toLocaleTimeString('es-MX', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })
-                                : '--:--'}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {result.details?.outbound?.destination}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Return Flight (if exists) */}
-                      {result.details?.inbound && (
-                        <div className="mt-4 pt-4 border-t">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Plane className="w-5 h-5 text-primary rotate-180" />
-                            <span className="font-semibold">Regreso</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-2xl font-bold">
-                                {result.details.inbound.departureTime
-                                  ? new Date(result.details.inbound.departureTime).toLocaleTimeString('es-MX', {
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })
-                                  : '--:--'}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {result.details.inbound.origin}
-                              </p>
+                    <Card key={result.id} className="p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex flex-col md:flex-row justify-between gap-6">
+                        <div className="flex-1">
+                          {/* Outbound Flight */}
+                          <div className="mb-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Plane className="w-5 h-5 text-primary" />
+                              <span className="font-semibold">Ida</span>
+                              <span className="text-sm text-muted-foreground">
+                                • {result.details?.airline}
+                              </span>
                             </div>
-                            <div className="text-center px-4">
-                              <p className="text-sm text-muted-foreground">
-                                {result.details.inbound.duration || 'N/A'}
-                              </p>
-                              <div className="w-24 h-px bg-gray-300 my-2"></div>
-                              <p className="text-xs text-muted-foreground">
-                                {result.details.inbound.stops === 0
-                                  ? 'Directo'
-                                  : `${result.details.inbound.stops} escala(s)`}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-2xl font-bold">
-                                {result.details.inbound.arrivalTime
-                                  ? new Date(result.details.inbound.arrivalTime).toLocaleTimeString('es-MX', {
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })
-                                  : '--:--'}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {result.details.inbound.destination}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col justify-between items-end">
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          desde
-                        </p>
-                        <p className="text-3xl font-bold text-primary">
-                          {formatPrice(result.price, result.currency)}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          vía {result.provider}
-                        </p>
-
-                        {/* Policy Badge */}
-                        {result.policyValidation && (
-                          <div className="mt-3">
-                            <PolicyBadge
-                              withinPolicy={result.withinPolicy || false}
-                              requiresApproval={result.requiresApproval || false}
-                              violations={result.policyValidation?.violations}
-                              warnings={result.policyValidation?.warnings}
-                              showDetails={false}
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        className="w-full md:w-auto mt-4 bg-blue-600 hover:bg-blue-700 text-white"
-                        onClick={() => {
-                          // Guardar vuelo en localStorage
-                          localStorage.setItem('selected_service', JSON.stringify({
-                            type: 'flight',
-                            service: result,
-                            searchParams: {
-                              origin: result.details?.outbound?.origin,
-                              destination: result.details?.outbound?.destination,
-                              adults: 1,
-                              departureDate: result.details?.outbound?.departureTime
-                            }
-                          }))
-                          router.push('/confirmar-reserva?type=flight')
-                        }}
-                      >
-                        Seleccionar vuelo
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Policy Alert - Expandible details */}
-                  {result.policyValidation &&
-                   (result.policyValidation.violations?.length > 0 ||
-                    result.policyValidation.warnings?.length > 0) && (
-                    <div className="mt-4 pt-4 border-t">
-                      <PolicyAlert
-                        violations={result.policyValidation.violations || []}
-                        warnings={result.policyValidation.warnings || []}
-                      />
-                    </div>
-                  )}
-                </Card>
-              ))
-            ) : (
-              // Hotel Results
-              paginatedResults.map((result) => (
-                <Card key={result.id} className="p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex flex-col md:flex-row gap-6">
-                    {/* Hotel Image */}
-                    <div className="w-full md:w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center">
-                      <Hotel className="w-12 h-12 text-gray-400" />
-                    </div>
-
-                    {/* Hotel Details */}
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="text-xl font-semibold mb-1">
-                            {result.details?.name || 'Hotel'}
-                          </h3>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                            {result.details?.starRating && (
-                              <div className="flex items-center gap-1">
-                                {Array.from({ length: result.details.starRating }).map((_, i) => (
-                                  <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                ))}
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-2xl font-bold">
+                                  {result.details?.outbound?.departureTime
+                                    ? new Date(result.details.outbound.departureTime).toLocaleTimeString('es-MX', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })
+                                    : '--:--'}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {result.details?.outbound?.origin}
+                                </p>
                               </div>
-                            )}
-                            <MapPin className="w-4 h-4" />
-                            <span>{result.details?.city || result.details?.address}</span>
+                              <div className="text-center px-4">
+                                <p className="text-sm text-muted-foreground">
+                                  {result.details?.outbound?.duration || 'N/A'}
+                                </p>
+                                <div className="w-24 h-px bg-gray-300 my-2"></div>
+                                <p className="text-xs text-muted-foreground">
+                                  {result.details?.outbound?.stops === 0
+                                    ? 'Directo'
+                                    : `${result.details?.outbound?.stops} escala(s)`}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-2xl font-bold">
+                                  {result.details?.outbound?.arrivalTime
+                                    ? new Date(result.details.outbound.arrivalTime).toLocaleTimeString('es-MX', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })
+                                    : '--:--'}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {result.details?.outbound?.destination}
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                          {result.details?.rating && (
-                            <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 rounded">
-                              <span className="font-semibold text-primary">
-                                {result.details.rating}
-                              </span>
-                              <span className="text-sm">
-                                ({result.details.reviewCount || 0} reseñas)
-                              </span>
+
+                          {/* Return Flight (if exists) */}
+                          {result.details?.inbound && (
+                            <div className="mt-4 pt-4 border-t">
+                              <div className="flex items-center gap-2 mb-3">
+                                <Plane className="w-5 h-5 text-primary rotate-180" />
+                                <span className="font-semibold">Regreso</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-2xl font-bold">
+                                    {result.details.inbound.departureTime
+                                      ? new Date(result.details.inbound.departureTime).toLocaleTimeString('es-MX', {
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })
+                                      : '--:--'}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {result.details.inbound.origin}
+                                  </p>
+                                </div>
+                                <div className="text-center px-4">
+                                  <p className="text-sm text-muted-foreground">
+                                    {result.details.inbound.duration || 'N/A'}
+                                  </p>
+                                  <div className="w-24 h-px bg-gray-300 my-2"></div>
+                                  <p className="text-xs text-muted-foreground">
+                                    {result.details.inbound.stops === 0
+                                      ? 'Directo'
+                                      : `${result.details.inbound.stops} escala(s)`}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-2xl font-bold">
+                                    {result.details.inbound.arrivalTime
+                                      ? new Date(result.details.inbound.arrivalTime).toLocaleTimeString('es-MX', {
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })
+                                      : '--:--'}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {result.details.inbound.destination}
+                                  </p>
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
+
+                        <div className="flex flex-col justify-between items-end">
+                          <div className="text-right">
+                            <p className="text-sm text-muted-foreground mb-1">
+                              desde
+                            </p>
+                            <p className="text-3xl font-bold text-primary">
+                              {formatPrice(result.price, result.currency)}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              vía {result.provider}
+                            </p>
+
+                            {/* Policy Badge */}
+                            {result.policyValidation && (
+                              <div className="mt-3">
+                                <PolicyBadge
+                                  withinPolicy={result.withinPolicy || false}
+                                  requiresApproval={result.requiresApproval || false}
+                                  violations={result.policyValidation?.violations}
+                                  warnings={result.policyValidation?.warnings}
+                                  showDetails={false}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <Button
+                            className="w-full md:w-auto mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+                            onClick={() => {
+                              // Guardar vuelo en localStorage
+                              localStorage.setItem('selected_service', JSON.stringify({
+                                type: 'flight',
+                                service: result,
+                                searchParams: {
+                                  origin: result.details?.outbound?.origin,
+                                  destination: result.details?.outbound?.destination,
+                                  adults: 1,
+                                  departureDate: result.details?.outbound?.departureTime
+                                }
+                              }))
+                              router.push('/confirmar-reserva?type=flight')
+                            }}
+                          >
+                            Seleccionar vuelo
+                          </Button>
+                        </div>
                       </div>
 
-                      {result.details?.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
-                          {result.details.description}
-                        </p>
-                      )}
-
-                      {result.details?.facilities && result.details.facilities.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {result.details.facilities.slice(0, 4).map((facility: string, i: number) => (
-                            <span
-                              key={i}
-                              className="text-xs bg-gray-100 px-2 py-1 rounded"
-                            >
-                              {facility}
-                            </span>
-                          ))}
+                      {/* Policy Alert - Expandible details */}
+                      {result.policyValidation &&
+                       (result.policyValidation.violations?.length > 0 ||
+                        result.policyValidation.warnings?.length > 0) && (
+                        <div className="mt-4 pt-4 border-t">
+                          <PolicyAlert
+                            violations={result.policyValidation.violations || []}
+                            warnings={result.policyValidation.warnings || []}
+                          />
                         </div>
                       )}
-                    </div>
+                    </Card>
+                  ))
+                ) : (
+                  // Hotel Results
+                  paginatedResults.map((result) => (
+                    <Card key={result.id} className="p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex flex-col md:flex-row gap-6">
+                        {/* Hotel Image */}
+                        <div className="w-full md:w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <Hotel className="w-12 h-12 text-gray-400" />
+                        </div>
 
-                    {/* Price */}
-                    <div className="flex flex-col justify-between items-end">
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          desde
-                        </p>
-                        <p className="text-3xl font-bold text-primary">
-                          {formatPrice(result.price, result.currency)}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          por noche
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          vía {result.provider}
-                        </p>
-
-                        {/* Policy Badge */}
-                        {result.policyValidation && (
-                          <div className="mt-3">
-                            <PolicyBadge
-                              withinPolicy={result.withinPolicy || false}
-                              requiresApproval={result.requiresApproval || false}
-                              violations={result.policyValidation?.violations}
-                              warnings={result.policyValidation?.warnings}
-                              showDetails={false}
-                            />
+                        {/* Hotel Details */}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h3 className="text-xl font-semibold mb-1">
+                                {result.details?.name || 'Hotel'}
+                              </h3>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                                {result.details?.starRating && (
+                                  <div className="flex items-center gap-1">
+                                    {Array.from({ length: result.details.starRating }).map((_, i) => (
+                                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                    ))}
+                                  </div>
+                                )}
+                                <MapPin className="w-4 h-4" />
+                                <span>{result.details?.city || result.details?.address}</span>
+                              </div>
+                              {result.details?.rating && (
+                                <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 rounded">
+                                  <span className="font-semibold text-primary">
+                                    {result.details.rating}
+                                  </span>
+                                  <span className="text-sm">
+                                    ({result.details.reviewCount || 0} reseñas)
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                      <Button
-                        className="w-full md:w-auto mt-4 bg-blue-600 hover:bg-blue-700 text-white"
-                        onClick={() => {
-                          // Guardar hotel en localStorage
-                          localStorage.setItem('selected_service', JSON.stringify({
-                            type: 'hotel',
-                            service: result,
-                            searchParams: {
-                              city: result.details?.city,
-                              checkin: result.check_in_date,
-                              guests: 2,
-                              rooms: 1
-                            }
-                          }))
-                          router.push('/confirmar-reserva?type=hotel')
-                        }}
-                      >
-                        Seleccionar hotel
-                      </Button>
-                    </div>
-                  </div>
 
-                  {/* Policy Alert - Expandible details */}
-                  {result.policyValidation &&
-                   (result.policyValidation.violations?.length > 0 ||
-                    result.policyValidation.warnings?.length > 0) && (
-                    <div className="mt-4 pt-4 border-t">
-                      <PolicyAlert
-                        violations={result.policyValidation.violations || []}
-                        warnings={result.policyValidation.warnings || []}
-                      />
-                    </div>
-                  )}
-                </Card>
-              ))
-            )}
+                          {result.details?.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
+                              {result.details.description}
+                            </p>
+                          )}
+
+                          {result.details?.facilities && result.details.facilities.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {result.details.facilities.slice(0, 4).map((facility: string, i: number) => (
+                                <span
+                                  key={i}
+                                  className="text-xs bg-gray-100 px-2 py-1 rounded"
+                                >
+                                  {facility}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Price */}
+                        <div className="flex flex-col justify-between items-end">
+                          <div className="text-right">
+                            <p className="text-sm text-muted-foreground mb-1">
+                              desde
+                            </p>
+                            <p className="text-3xl font-bold text-primary">
+                              {formatPrice(result.price, result.currency)}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              por noche
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              vía {result.provider}
+                            </p>
+
+                            {/* Policy Badge */}
+                            {result.policyValidation && (
+                              <div className="mt-3">
+                                <PolicyBadge
+                                  withinPolicy={result.withinPolicy || false}
+                                  requiresApproval={result.requiresApproval || false}
+                                  violations={result.policyValidation?.violations}
+                                  warnings={result.policyValidation?.warnings}
+                                  showDetails={false}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <Button
+                            className="w-full md:w-auto mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+                            onClick={() => {
+                              // Guardar hotel en localStorage
+                              localStorage.setItem('selected_service', JSON.stringify({
+                                type: 'hotel',
+                                service: result,
+                                searchParams: {
+                                  city: result.details?.city,
+                                  checkin: result.check_in_date,
+                                  guests: 2,
+                                  rooms: 1
+                                }
+                              }))
+                              router.push('/confirmar-reserva?type=hotel')
+                            }}
+                          >
+                            Seleccionar hotel
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Policy Alert - Expandible details */}
+                      {result.policyValidation &&
+                       (result.policyValidation.violations?.length > 0 ||
+                        result.policyValidation.warnings?.length > 0) && (
+                        <div className="mt-4 pt-4 border-t">
+                          <PolicyAlert
+                            violations={result.policyValidation.violations || []}
+                            warnings={result.policyValidation.warnings || []}
+                          />
+                        </div>
+                      )}
+                    </Card>
+                  ))
+                )}
 
                 {/* Paginación */}
                 {totalPages > 1 && (
