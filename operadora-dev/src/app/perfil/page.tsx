@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { PageHeader } from "@/components/PageHeader"
 import { ArrowLeft, User, Mail, Phone, MapPin, Lock, DollarSign } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -126,16 +127,9 @@ export default function PerfilPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver
-        </Button>
+      <PageHeader showBackButton={true} backButtonHref="/" />
 
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         <h1 className="text-3xl font-bold mb-8">Mi Perfil</h1>
 
         <div className="grid gap-6">

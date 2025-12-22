@@ -4,8 +4,11 @@ import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { PageHeader } from '@/components/PageHeader'
 import { Card } from "@/components/ui/card"
+import { PageHeader } from '@/components/PageHeader'
 import { Logo } from "@/components/Logo"
+import { PageHeader } from '@/components/PageHeader'
 import { MapPin, Plane, Hotel, Car, Calendar, Users, ChevronLeft, Check } from "lucide-react"
 
 export default function PaqueteDetailPage() {
@@ -73,27 +76,9 @@ export default function PaqueteDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <Link href="/">
-            <Logo className="py-2" />
-          </Link>
-        </div>
-      </header>
+      <PageHeader showBackButton={true} backButtonHref="/" />
 
-      {/* Back Button */}
-      <div className="container mx-auto px-4 py-4">
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="gap-2"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Volver
-        </Button>
-      </div>
-
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">Detalle de tu paquete</h1>
       </div>
 

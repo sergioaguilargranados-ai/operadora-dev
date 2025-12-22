@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { PageHeader } from '@/components/PageHeader'
 import { useToast } from '@/hooks/use-toast'
 import StripeCheckoutForm from '@/components/StripeCheckoutForm'
 
@@ -197,13 +198,16 @@ export default function CheckoutPage({
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Checkout</h1>
-          <p className="text-gray-600">Completa tu pago para confirmar la reserva</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+      <PageHeader showBackButton={true} backButtonHref="/" />
+
+      <div className="container mx-auto py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Checkout</h1>
+            <p className="text-gray-600">Completa tu pago para confirmar la reserva</p>
+          </div>
 
         <div className="grid md:grid-cols-3 gap-6">
           {/* Resumen de la reserva */}
@@ -349,6 +353,7 @@ export default function CheckoutPage({
           </div>
         </div>
       </div>
+    </div>
     </div>
   )
 }

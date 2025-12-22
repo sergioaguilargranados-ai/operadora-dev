@@ -1,17 +1,14 @@
 "use client"
-import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ArrowLeft, Mail, Phone, MapPin } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { PageHeader } from "@/components/PageHeader"
+import { Mail, Phone, MapPin } from "lucide-react"
 
 export default function ContactoPage() {
-  const router = useRouter()
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+      <PageHeader showBackButton={true} backButtonHref="/" />
+
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Button variant="ghost" onClick={() => router.back()} className="mb-6">
-          <ArrowLeft className="w-4 h-4 mr-2" />Volver
-        </Button>
         <h1 className="text-4xl font-bold mb-6">Contacto</h1>
         <div className="grid md:grid-cols-3 gap-4">
           <Card className="p-6 text-center">

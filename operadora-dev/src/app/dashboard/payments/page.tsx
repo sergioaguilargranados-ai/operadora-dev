@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/PageHeader'
 import { ArrowLeft } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { exportToExcel } from '@/utils/exportHelpers'
@@ -243,15 +244,7 @@ export default function PaymentsDashboardPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      {/* Botón Volver */}
-      <Button
-        variant="ghost"
-        onClick={() => router.push('/')}
-        className="mb-6"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Volver
-      </Button>
+      <PageHeader showBackButton={true} backButtonHref="/dashboard" />
 
       {/* Header */}
       <div className="mb-8">

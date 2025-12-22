@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/PageHeader'
 import {
   Plane,
   Hotel,
@@ -130,24 +131,22 @@ export default function MisReservasPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Mis Reservas</h1>
-              <p className="text-sm text-muted-foreground">
-                {bookings.length} reserva{bookings.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => router.push('/')}
-            >
-              Buscar viajes
-            </Button>
+      <PageHeader showBackButton={true} backButtonHref="/">
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-xl font-bold">Mis Reservas</h1>
+            <p className="text-sm text-muted-foreground">
+              {bookings.length} reserva{bookings.length !== 1 ? 's' : ''}
+            </p>
           </div>
+          <Button
+            variant="outline"
+            onClick={() => router.push('/')}
+          >
+            Buscar viajes
+          </Button>
         </div>
-      </header>
+      </PageHeader>
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Filtros */}

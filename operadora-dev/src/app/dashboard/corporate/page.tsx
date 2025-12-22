@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/PageHeader'
 import {
   Briefcase,
   DollarSign,
@@ -182,14 +183,7 @@ export default function CorporateDashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Botón Volver */}
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/')}
-          className="mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver
-        </Button>
+        <PageHeader showBackButton={true} backButtonHref="/dashboard" />
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

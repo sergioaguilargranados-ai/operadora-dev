@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PageHeader } from '@/components/PageHeader'
 import {
   ArrowLeft,
   MapPin,
@@ -179,17 +180,9 @@ export default function CiudadDetallePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-      {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => router.back()}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver
-          </Button>
-        </div>
-      </div>
+      <PageHeader showBackButton={true} backButtonHref="/" />
 
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Hero Section */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">
@@ -446,7 +439,7 @@ export default function CiudadDetallePage() {
             </Button>
           </div>
         </Card>
-      </div>
+      </main>
     </div>
   )
 }

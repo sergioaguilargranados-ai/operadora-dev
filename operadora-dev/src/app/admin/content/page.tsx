@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PageHeader } from "@/components/PageHeader"
 import { Logo } from "@/components/Logo"
 import { useAuth } from "@/contexts/AuthContext"
 import { ContentModal } from "@/components/admin/ContentModal"
@@ -340,20 +341,7 @@ export default function AdminContentPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/">
-            <Logo className="py-2" />
-          </Link>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">Admin: {user?.name}</span>
-            <Button variant="outline" size="sm" onClick={() => router.push('/')}>
-              Ver sitio
-            </Button>
-          </div>
-        </div>
-      </header>
+      <PageHeader showBackButton={true} backButtonHref="/dashboard" />
 
       {/* Toast */}
       {toast && (

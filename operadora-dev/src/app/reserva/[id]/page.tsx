@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { PageHeader } from '@/components/PageHeader'
 import {
   ArrowLeft,
   Download,
@@ -213,41 +214,29 @@ export default function BookingDetailsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+      <PageHeader showBackButton={true} backButtonHref="/">
+        <div className="flex gap-2">
+          {booking.status === 'confirmed' && (
             <Button
-              variant="ghost"
-              onClick={() => router.back()}
+              onClick={handleDownloadVoucher}
+              disabled={generatingPDF}
               className="gap-2"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Volver
-            </Button>
-            <div className="flex gap-2">
-              {booking.status === 'confirmed' && (
-                <Button
-                  onClick={handleDownloadVoucher}
-                  disabled={generatingPDF}
-                  className="gap-2"
-                >
-                  {generatingPDF ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Generando...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4" />
-                      Descargar Voucher
-                    </>
-                  )}
-                </Button>
+              {generatingPDF ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Generando...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  Descargar Voucher
+                </>
               )}
-            </div>
-          </div>
+            </Button>
+          )}
         </div>
-      </header>
+      </PageHeader>
 
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Título y Status */}

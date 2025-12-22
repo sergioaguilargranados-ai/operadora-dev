@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { PageHeader } from "@/components/PageHeader"
 import { ArrowLeft, MessageCircle, Phone, Mail, HelpCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -30,16 +31,9 @@ export default function AyudaPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver
-        </Button>
+      <PageHeader showBackButton={true} backButtonHref="/" />
 
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         <h1 className="text-3xl font-bold mb-8">Centro de Ayuda</h1>
 
         {/* Chatbot destacado */}

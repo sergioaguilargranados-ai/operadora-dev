@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/PageHeader'
 import { Logo } from '@/components/Logo'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -291,27 +292,8 @@ export default function ItinerariesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Logo />
-            <div>
-              <h1 className="text-xl font-bold">Creador de Itinerarios</h1>
-              <p className="text-sm text-muted-foreground">Planea viajes día por día</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">{user?.name}</span>
-            <Button variant="ghost" onClick={() => router.push('/dashboard')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Dashboard
-            </Button>
-          </div>
-        </div>
-      </header>
+      <PageHeader showBackButton={true} backButtonHref="/dashboard" />
 
-      {/* Main Content */}
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
