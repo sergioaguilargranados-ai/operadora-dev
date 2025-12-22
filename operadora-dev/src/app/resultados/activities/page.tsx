@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Loader2, Activity, Star, MapPin, ArrowLeft, ExternalLink, Clock } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { PageHeader } from '@/components/PageHeader'
 
 interface ActivityResult {
   id: string
@@ -114,18 +115,12 @@ function ActivitiesResultsPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <PageHeader showBackButton={true} backButtonHref="/" />
+
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/')}
-              className="mb-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Nueva búsqueda
-            </Button>
             <h1 className="text-3xl font-bold">Tours y Actividades</h1>
             <p className="text-gray-600 mt-2">
               En <span className="font-semibold">{searchParams.get('city')}</span>
@@ -232,7 +227,7 @@ function ActivitiesResultsPageContent() {
                       </div>
                       <Button
                         onClick={() => handleBooking(activity.details.bookingLink)}
-                        className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+                        className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                       >
                         Reservar
                         <ExternalLink className="w-4 h-4" />

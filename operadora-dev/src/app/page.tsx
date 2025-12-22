@@ -1197,7 +1197,7 @@ export default function Home() {
               <Card
                 key={dest.id}
                 className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
-                onClick={() => router.push(`/destino/${dest.city_code || dest.destination}`)}
+                onClick={() => router.push(`/resultados/activities?city=${encodeURIComponent(dest.destination)}&radius=20`)}
               >
                 <div className="relative h-24 overflow-hidden">
                   <img
