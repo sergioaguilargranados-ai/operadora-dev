@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { PolicyBadge, PolicyAlert } from '@/components/PolicyBadge'
+import { HotelFilters, HotelFiltersState } from '@/components/HotelFilters'
 
 interface SearchResult {
   id: string
@@ -60,19 +61,42 @@ function ResultadosContent() {
   const [searchType, setSearchType] = useState<'flight' | 'hotel'>('hotel')
   const [showFilters, setShowFilters] = useState(false)
 
-  // Filtros
+  // Filtros legacy (para vuelos)
   const [priceRange, setPriceRange] = useState<number[]>([0, 100000])
   const [minRating, setMinRating] = useState<number>(0)
   const [sortBy, setSortBy] = useState<string>('price_asc')
   const [selectedStars, setSelectedStars] = useState<number[]>([])
   const [maxPrice, setMaxPrice] = useState<number>(100000)
 
-  // Filtros avanzados de hoteles
+  // Filtros avanzados de hoteles (legacy)
   const [searchHotelName, setSearchHotelName] = useState<string>('')
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
   const [freeCancellation, setFreeCancellation] = useState<boolean>(false)
   const [propertyTypes, setPropertyTypes] = useState<string[]>([])
   const [breakfastIncluded, setBreakfastIncluded] = useState<boolean>(false)
+
+  // Nuevo estado de filtros de hoteles estilo Expedia
+  const [hotelFilters, setHotelFilters] = useState<HotelFiltersState>({
+    searchName: '',
+    priceRange: [0, 100000],
+    maxPrice: 100000,
+    breakfastIncluded: false,
+    freeCancellation: false,
+    payLater: false,
+    payAtProperty: false,
+    beachfront: false,
+    allInclusive: false,
+    minRating: 0,
+    selectedStars: [],
+    propertyTypes: [],
+    amenities: [],
+    paymentOptions: [],
+    zones: [],
+    hotelChains: [],
+    accessibility: [],
+    views: [],
+    sortBy: 'recommended',
+  })
 
   // Paginación
   const [currentPage, setCurrentPage] = useState<number>(1)
@@ -121,8 +145,16 @@ function ResultadosContent() {
           // Calcular precio máximo
           const prices = data.map(r => r.price)
           const max = prices.length > 0 ? Math.max(...prices) : 100000
-          setMaxPrice(Math.ceil(max / 100) * 100)
-          setPriceRange([0, Math.ceil(max / 100) * 100])
+          const calculatedMax = Math.ceil(max / 100) * 100
+          setMaxPrice(calculatedMax)
+          setPriceRange([0, calculatedMax])
+
+          // Actualizar filtros de hotel con precio máximo
+          setHotelFilters(prev => ({
+            ...prev,
+            maxPrice: calculatedMax,
+            priceRange: [0, calculatedMax]
+          }))
 
           // Limpiar localStorage después de leer
           localStorage.removeItem('searchResults')
@@ -142,8 +174,16 @@ function ResultadosContent() {
             // Calcular precio máximo
             const prices = data.map(r => r.price)
             const max = prices.length > 0 ? Math.max(...prices) : 100000
-            setMaxPrice(Math.ceil(max / 100) * 100)
-            setPriceRange([0, Math.ceil(max / 100) * 100])
+            const calculatedMax = Math.ceil(max / 100) * 100
+            setMaxPrice(calculatedMax)
+            setPriceRange([0, calculatedMax])
+
+            // Actualizar filtros de hotel con precio máximo
+            setHotelFilters(prev => ({
+              ...prev,
+              maxPrice: calculatedMax,
+              priceRange: [0, calculatedMax]
+            }))
           } catch (error) {
             console.error('Error parsing results from URL:', error)
           }
@@ -158,87 +198,167 @@ function ResultadosContent() {
   useEffect(() => {
     let filtered = [...results]
 
-    // Filtro por precio
-    filtered = filtered.filter(r => r.price >= priceRange[0] && r.price <= priceRange[1])
+    if (searchType === 'hotel') {
+      // Usar nuevos filtros de hotel estilo Expedia
 
-    // Filtro por rating (hoteles)
-    if (searchType === 'hotel' && minRating > 0) {
-      filtered = filtered.filter(r => (r.details?.rating || 0) >= minRating)
-    }
+      // Filtro por precio
+      filtered = filtered.filter(r =>
+        r.price >= hotelFilters.priceRange[0] && r.price <= hotelFilters.priceRange[1]
+      )
 
-    // Filtro por estrellas (hoteles)
-    if (searchType === 'hotel' && selectedStars.length > 0) {
-      filtered = filtered.filter(r => selectedStars.includes(r.details?.starRating || 0))
-    }
+      // Filtro por nombre
+      if (hotelFilters.searchName.trim() !== '') {
+        const lowerName = hotelFilters.searchName.toLowerCase()
+        filtered = filtered.filter(r =>
+          (r.details?.name || '').toLowerCase().includes(lowerName) ||
+          (r.details?.chain || '').toLowerCase().includes(lowerName)
+        )
+      }
 
-    // Filtro por nombre de hotel (filtro avanzado)
-    if (searchType === 'hotel' && searchHotelName.trim() !== '') {
-      const lowerName = searchHotelName.toLowerCase()
-      filtered = filtered.filter(r => (r.details?.name || '').toLowerCase().includes(lowerName))
-    }
+      // Filtro por rating
+      if (hotelFilters.minRating > 0) {
+        filtered = filtered.filter(r => (r.details?.rating || 0) >= hotelFilters.minRating)
+      }
 
-    // Filtro por amenities (filtro avanzado)
-    if (searchType === 'hotel' && selectedAmenities.length > 0) {
-      filtered = filtered.filter(r => {
-        const amenities: string[] = r.details?.amenities || []
-        return selectedAmenities.every(a => amenities.includes(a))
-      })
-    }
+      // Filtro por estrellas
+      if (hotelFilters.selectedStars.length > 0) {
+        filtered = filtered.filter(r => hotelFilters.selectedStars.includes(r.details?.starRating || 0))
+      }
 
-    // Filtro por cancelación gratuita (filtro avanzado)
-    if (searchType === 'hotel' && freeCancellation) {
-      filtered = filtered.filter(r => r.details?.freeCancellation === true)
-    }
+      // Filtro por desayuno incluido
+      if (hotelFilters.breakfastIncluded) {
+        filtered = filtered.filter(r => r.details?.breakfastIncluded === true)
+      }
 
-    // Filtro por tipo de propiedad (filtro avanzado)
-    if (searchType === 'hotel' && propertyTypes.length > 0) {
-      filtered = filtered.filter(r => propertyTypes.includes(r.details?.propertyType || ''))
-    }
+      // Filtro por cancelación gratuita
+      if (hotelFilters.freeCancellation) {
+        filtered = filtered.filter(r => r.details?.freeCancellation === true)
+      }
 
-    // Filtro por desayuno incluido (filtro avanzado)
-    if (searchType === 'hotel' && breakfastIncluded) {
-      filtered = filtered.filter(r => r.details?.breakfastIncluded === true)
-    }
+      // Filtro por pago después
+      if (hotelFilters.payLater) {
+        filtered = filtered.filter(r => r.details?.payLater === true)
+      }
 
-    // 🔥 ORDENAR POR CUMPLIMIENTO DE POLÍTICA PRIMERO
-    // Los que cumplen política van primero, luego los que requieren aprobación
-    filtered.sort((a, b) => {
-      // Primero: Dentro de política
-      if (a.withinPolicy && !b.withinPolicy) return -1
-      if (!a.withinPolicy && b.withinPolicy) return 1
+      // Filtro por pago en hotel
+      if (hotelFilters.payAtProperty) {
+        filtered = filtered.filter(r => r.details?.payAtProperty === true)
+      }
 
-      // Si ambos están en mismo estado de política, aplicar ordenamiento secundario
-      return 0
-    })
+      // Filtro por playa/frente al mar
+      if (hotelFilters.beachfront) {
+        filtered = filtered.filter(r => r.details?.beachfront === true)
+      }
 
-    // Ordenar (respetando el ordenamiento de política)
-    if (sortBy === 'price_asc') {
+      // Filtro por todo incluido
+      if (hotelFilters.allInclusive) {
+        filtered = filtered.filter(r => r.details?.allInclusive === true)
+      }
+
+      // Filtro por tipo de propiedad
+      if (hotelFilters.propertyTypes.length > 0) {
+        filtered = filtered.filter(r =>
+          hotelFilters.propertyTypes.includes(r.details?.propertyType?.toLowerCase() || 'hotel')
+        )
+      }
+
+      // Filtro por amenities
+      if (hotelFilters.amenities.length > 0) {
+        filtered = filtered.filter(r => {
+          const amenities: string[] = (r.details?.amenities || []).map((a: string) => a.toLowerCase())
+          return hotelFilters.amenities.some(a =>
+            amenities.some(am => am.includes(a) || a.includes(am))
+          )
+        })
+      }
+
+      // Filtro por zona
+      if (hotelFilters.zones.length > 0) {
+        filtered = filtered.filter(r => {
+          const zone = (r.details?.zone || r.details?.area || '').toLowerCase()
+          return hotelFilters.zones.some(z => zone.includes(z.replace('-', ' ')))
+        })
+      }
+
+      // Filtro por cadena hotelera
+      if (hotelFilters.hotelChains.length > 0) {
+        filtered = filtered.filter(r => {
+          const chain = (r.details?.chain || r.details?.brand || '').toLowerCase()
+          return hotelFilters.hotelChains.some(c => chain.includes(c))
+        })
+      }
+
+      // Filtro por vistas
+      if (hotelFilters.views.length > 0) {
+        filtered = filtered.filter(r => {
+          const views: string[] = r.details?.views || []
+          return hotelFilters.views.some(v => views.some((rv: string) => rv.toLowerCase().includes(v.replace('-', ' '))))
+        })
+      }
+
+      // Filtro por accesibilidad
+      if (hotelFilters.accessibility.length > 0) {
+        filtered = filtered.filter(r => {
+          const accessibility: string[] = r.details?.accessibility || []
+          return hotelFilters.accessibility.some(a => accessibility.includes(a))
+        })
+      }
+
+      // Ordenar hoteles
+      const currentSort = hotelFilters.sortBy
+      if (currentSort === 'price_asc') {
+        filtered.sort((a, b) => a.price - b.price)
+      } else if (currentSort === 'price_desc') {
+        filtered.sort((a, b) => b.price - a.price)
+      } else if (currentSort === 'rating') {
+        filtered.sort((a, b) => (b.details?.rating || 0) - (a.details?.rating || 0))
+      } else if (currentSort === 'stars_desc') {
+        filtered.sort((a, b) => (b.details?.starRating || 0) - (a.details?.starRating || 0))
+      }
+      // 'recommended' mantiene el orden original
+
+    } else {
+      // Filtros legacy para vuelos
+
+      // Filtro por precio
+      filtered = filtered.filter(r => r.price >= priceRange[0] && r.price <= priceRange[1])
+
+      // 🔥 ORDENAR POR CUMPLIMIENTO DE POLÍTICA PRIMERO
       filtered.sort((a, b) => {
-        if (a.withinPolicy !== b.withinPolicy) {
-          return a.withinPolicy ? -1 : 1
-        }
-        return a.price - b.price
+        if (a.withinPolicy && !b.withinPolicy) return -1
+        if (!a.withinPolicy && b.withinPolicy) return 1
+        return 0
       })
-    } else if (sortBy === 'price_desc') {
-      filtered.sort((a, b) => {
-        if (a.withinPolicy !== b.withinPolicy) {
-          return a.withinPolicy ? -1 : 1
-        }
-        return b.price - a.price
-      })
-    } else if (sortBy === 'rating') {
-      filtered.sort((a, b) => {
-        if (a.withinPolicy !== b.withinPolicy) {
-          return a.withinPolicy ? -1 : 1
-        }
-        return (b.details?.rating || 0) - (a.details?.rating || 0)
-      })
+
+      // Ordenar (respetando el ordenamiento de política)
+      if (sortBy === 'price_asc') {
+        filtered.sort((a, b) => {
+          if (a.withinPolicy !== b.withinPolicy) {
+            return a.withinPolicy ? -1 : 1
+          }
+          return a.price - b.price
+        })
+      } else if (sortBy === 'price_desc') {
+        filtered.sort((a, b) => {
+          if (a.withinPolicy !== b.withinPolicy) {
+            return a.withinPolicy ? -1 : 1
+          }
+          return b.price - a.price
+        })
+      } else if (sortBy === 'rating') {
+        filtered.sort((a, b) => {
+          if (a.withinPolicy !== b.withinPolicy) {
+            return a.withinPolicy ? -1 : 1
+          }
+          return (b.details?.rating || 0) - (a.details?.rating || 0)
+        })
+      }
     }
 
     setFilteredResults(filtered)
     // Resetear a página 1 cuando cambian los filtros
     setCurrentPage(1)
-  }, [results, priceRange, minRating, sortBy, selectedStars, searchType, searchHotelName, selectedAmenities, freeCancellation, propertyTypes, breakfastIncluded])
+  }, [results, priceRange, minRating, sortBy, selectedStars, searchType, searchHotelName, selectedAmenities, freeCancellation, propertyTypes, breakfastIncluded, hotelFilters])
 
   // Calcular resultados paginados
   const totalPages = Math.ceil(filteredResults.length / itemsPerPage)
@@ -396,217 +516,68 @@ function ResultadosContent() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar de Filtros */}
           <aside className={`md:col-span-1 ${showFilters ? 'block' : 'hidden md:block'}`}>
-            <Card className="p-4 sticky top-24 space-y-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold">Filtros</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setPriceRange([0, maxPrice])
-                    setMinRating(0)
-                    setSelectedStars([])
-                    setSortBy('price_asc')
-                    setSearchHotelName('')
-                    setSelectedAmenities([])
-                    setFreeCancellation(false)
-                    setPropertyTypes([])
-                    setBreakfastIncluded(false)
-                  }}
-                  className="text-xs text-primary"
-                >
-                  Limpiar
-                </Button>
-              </div>
+            {searchType === 'hotel' ? (
+              /* Nuevos filtros estilo Expedia para hoteles */
+              <HotelFilters
+                filters={hotelFilters}
+                onFiltersChange={setHotelFilters}
+                totalResults={results.length}
+                filteredCount={filteredResults.length}
+              />
+            ) : (
+              /* Filtros legacy para vuelos */
+              <Card className="p-4 sticky top-24 space-y-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-semibold">Filtros</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setPriceRange([0, maxPrice])
+                      setSortBy('price_asc')
+                    }}
+                    className="text-xs text-primary"
+                  >
+                    Limpiar
+                  </Button>
+                </div>
 
-              {/* Ordenar por */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Ordenar por</label>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="price_asc">Precio: menor a mayor</SelectItem>
-                    <SelectItem value="price_desc">Precio: mayor a menor</SelectItem>
-                    <SelectItem value="rating">Mejor valorados</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                {/* Ordenar por */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Ordenar por</label>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="price_asc">Precio: menor a mayor</SelectItem>
+                      <SelectItem value="price_desc">Precio: mayor a menor</SelectItem>
+                      <SelectItem value="rating">Mejor valorados</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* Precio */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Precio por noche
-                </label>
-                <div className="px-1">
-                  <Slider
-                    value={priceRange}
-                    onValueChange={setPriceRange}
-                    max={maxPrice}
-                    step={100}
-                    className="mb-2"
-                  />
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>${priceRange[0].toLocaleString()}</span>
-                    <span>${priceRange[1].toLocaleString()}</span>
+                {/* Precio */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    Precio
+                  </label>
+                  <div className="px-1">
+                    <Slider
+                      value={priceRange}
+                      onValueChange={setPriceRange}
+                      max={maxPrice}
+                      step={100}
+                      className="mb-2"
+                    />
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>${priceRange[0].toLocaleString()}</span>
+                      <span>${priceRange[1].toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Filtros avanzados solo para hoteles */}
-              {searchType === 'hotel' && (
-                <>
-                  {/* Nombre del hotel */}
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Buscar por nombre</label>
-                    <input
-                      type="text"
-                      value={searchHotelName}
-                      onChange={(e) => setSearchHotelName(e.target.value)}
-                      placeholder="Nombre del hotel"
-                      className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                    />
-                  </div>
-
-                  {/* Amenities */}
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Amenities</label>
-                    <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
-                      {['WiFi', 'Piscina', 'Gimnasio', 'Spa', 'Estacionamiento', 'Aire acondicionado'].map((amenity) => (
-                        <label key={amenity} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={selectedAmenities.includes(amenity)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedAmenities([...selectedAmenities, amenity])
-                              } else {
-                                setSelectedAmenities(selectedAmenities.filter(a => a !== amenity))
-                              }
-                            }}
-                            className="accent-primary"
-                          />
-                          <span className="text-sm">{amenity}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Cancelación gratuita */}
-                  <div>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={freeCancellation}
-                        onChange={(e) => setFreeCancellation(e.target.checked)}
-                        className="accent-primary"
-                      />
-                      <span className="text-sm">Cancelación gratuita</span>
-                    </label>
-                  </div>
-
-                  {/* Tipo de propiedad */}
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Tipo de propiedad</label>
-                    <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
-                      {['Hotel', 'Hostal', 'Apartamento', 'Resort', 'Bed & Breakfast'].map((type) => (
-                        <label key={type} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={propertyTypes.includes(type)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setPropertyTypes([...propertyTypes, type])
-                              } else {
-                                setPropertyTypes(propertyTypes.filter(t => t !== type))
-                              }
-                            }}
-                            className="accent-primary"
-                          />
-                          <span className="text-sm">{type}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Desayuno incluido */}
-                  <div>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={breakfastIncluded}
-                        onChange={(e) => setBreakfastIncluded(e.target.checked)}
-                        className="accent-primary"
-                      />
-                      <span className="text-sm">Desayuno incluido</span>
-                    </label>
-                  </div>
-
-                  {/* Rating mínimo */}
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      Valoración mínima
-                    </label>
-                    <div className="space-y-2">
-                      {[4.5, 4.0, 3.5, 3.0, 0].map((rating) => (
-                        <label
-                          key={rating}
-                          className="flex items-center gap-2 cursor-pointer"
-                        >
-                          <input
-                            type="radio"
-                            name="rating"
-                            checked={minRating === rating}
-                            onChange={() => setMinRating(rating)}
-                            className="accent-primary"
-                          />
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm">
-                              {rating === 0 ? 'Cualquiera' : `${rating}+`}
-                            </span>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Categoría del hotel (estrellas) */}
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      Categoría del hotel
-                    </label>
-                    <div className="space-y-2">
-                      {[5, 4, 3].map((stars) => (
-                        <label
-                          key={stars}
-                          className="flex items-center gap-2 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedStars.includes(stars)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedStars([...selectedStars, stars])
-                              } else {
-                                setSelectedStars(selectedStars.filter(s => s !== stars))
-                              }
-                            }}
-                            className="accent-primary"
-                          />
-                          <div className="flex items-center gap-1">
-                            {Array.from({ length: stars }).map((_, i) => (
-                              <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            ))}
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-            </Card>
+              </Card>
+            )}
           </aside>
 
           {/* Lista de Resultados */}

@@ -1,6 +1,6 @@
 "use client"
 
-// Build: 05 Jan 2026 - v2.175 - Ciudades expandidas + Logos reales aerolíneas + Fix APIs 500
+// Build: 04 Jan 2026 - v2.177 - Filtros Expedia para Hoteles + Ciudades + Logos aerolíneas
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -1336,7 +1336,7 @@ export default function Home() {
             <p>© 2024 AS Operadora de Viajes y Eventos. Todos los derechos reservados.</p>
             <p className="text-xs mt-1">Experiencias que inspiran</p>
             <p className="text-xs mt-2 opacity-50">
-              v2.175 | Build: 05 Ene 2026, 00:15 CST | Live: app.asoperadora.com ✅ | +70 Ciudades + Logos Reales
+              v2.177 | Build: 04 Ene 2026, 09:30 CST | Live: app.asoperadora.com | Filtros Expedia Hoteles
             </p>
             {dbInfo && (
               <div className="text-xs mt-3 opacity-70 bg-slate-100 p-3 rounded inline-block">
