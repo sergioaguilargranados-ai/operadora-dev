@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 48 100% 50%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 220 13% 91%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 220 13% 91%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 220 13% 91%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 48 100% 50%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 48 100% 50%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 48 100% 50%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ========================================
+   Calendar Range Picker Styles (react-day-picker v9)
+   ======================================== */
+
+/* Contenedor del calendario */
+.rdp-calendar {
+  --rdp-cell-size: 36px;
+  --rdp-accent-color: rgb(37, 99, 235);
+  --rdp-background-color: rgb(219, 234, 254);
+}
+
+/* Día de inicio del rango - círculo azul */
+.rdp-calendar button[data-range-start],
+.rdp-calendar button[data-selected][data-range-start] {
+  background-color: rgb(37, 99, 235) !important;
+  color: white !important;
+  border-radius: 9999px !important;
+  font-weight: 600;
+}
+
+/* Día de fin del rango - círculo azul */
+.rdp-calendar button[data-range-end],
+.rdp-calendar button[data-selected][data-range-end] {
+  background-color: rgb(37, 99, 235) !important;
+  color: white !important;
+  border-radius: 9999px !important;
+  font-weight: 600;
+}
+
+/* Días en medio del rango - barra azul claro continua */
+.rdp-calendar button[data-range-middle] {
+  background-color: rgb(219, 234, 254) !important;
+  color: rgb(30, 64, 175) !important;
+  border-radius: 0 !important;
+}
+
+/* Celda con día en medio del rango - fondo azul para barra continua */
+.rdp-calendar td:has(button[data-range-middle]) {
+  background-color: rgb(219, 234, 254);
+}
+
+/* Celda con inicio de rango - redondeo izquierdo */
+.rdp-calendar td:has(button[data-range-start]) {
+  background-color: rgb(219, 234, 254);
+  border-radius: 9999px 0 0 9999px;
+}
+
+/* Celda con fin de rango - redondeo derecho */
+.rdp-calendar td:has(button[data-range-end]) {
+  background-color: rgb(219, 234, 254);
+  border-radius: 0 9999px 9999px 0;
+}
+
+/* Celda con inicio y fin iguales (un solo día) */
+.rdp-calendar td:has(button[data-range-start][data-range-end]) {
+  background-color: transparent;
+  border-radius: 9999px;
+}
+
+/* Fechas pasadas (deshabilitadas) - gris claro con línea */
+.rdp-calendar button[data-disabled] {
+  color: rgb(156, 163, 175) !important;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  text-decoration: line-through;
+}
+
+/* Día de hoy */
+.rdp-calendar button[data-today]:not([data-selected]) {
+  background-color: rgb(229, 231, 235) !important;
+  font-weight: 700;
+}
+
+/* Días fuera del mes - más claros */
+.rdp-calendar button[data-outside] {
+  color: rgb(156, 163, 175) !important;
+  opacity: 0.4 !important;
+}
+
+/* Hover en días normales */
+.rdp-calendar button:not([data-disabled]):not([data-selected]):hover {
+  background-color: rgb(243, 244, 246) !important;
+}
