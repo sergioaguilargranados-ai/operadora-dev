@@ -1,5 +1,8 @@
 # Files to ignore during Vercel deployment
 
+# Mobile App
+operadora-mobile/
+
 # Tests
 tests/
 *.test.ts
