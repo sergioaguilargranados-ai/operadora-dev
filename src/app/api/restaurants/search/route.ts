@@ -72,7 +72,8 @@ const MOCK_RESTAURANTS = [
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('query')
-    const apiKey = process.env.GOOGLE_PLACES_API_KEY
+    // Buscar en variables de entorno estándar (Server) o públicas (Client/Server)
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY
 
     // Si no hay API Key o es una búsqueda de prueba específica, devolvemos Mocks
     if (!apiKey || query?.toLowerCase().includes('demo') || query?.toLowerCase().includes('mock')) {

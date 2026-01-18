@@ -2601,7 +2601,7 @@ export default function Home() {
                 </p>
                 <p className="font-mono mt-1">
                   👥 Usuarios: <span className="font-bold">{dbInfo.totalUsers}</span> |
-                  📦 Versión: <span className="font-bold">v2.225</span>
+                  📦 Versión: <span className="font-bold">v2.226</span>
                 </p>
               </div>
             )}

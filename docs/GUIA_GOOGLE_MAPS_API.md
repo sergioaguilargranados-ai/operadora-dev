@@ -17,10 +17,10 @@ Para que el módulo de Restaurantes funcione con datos reales y mapas interactiv
 ## Configuración en el Proyecto
 
 1. Abre el archivo `.env` en la raíz del proyecto.
-2. Agrega la siguiente línea (si no existe, créala):
+2. Agrega la siguiente línea (si no existe, créala). Es importante usar el prefijo `NEXT_PUBLIC_` para que el mapa funcione en el navegador:
 
 ```env
-GOOGLE_PLACES_API_KEY=AIzaSy... (Tu clave aquí)
+NEXT_PUBLIC_GOOGLE_PLACES_API_KEY=AIzaSy... (Tu clave aquí)
 ```
 
 ## Restricciones (Recomendado)

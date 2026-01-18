@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Logo } from '@/components/Logo'
 import { ArrowLeft, MapPin, Calendar, Users, Search, Loader2, Star, Clock, Utensils } from 'lucide-react'
 import { RestaurantFilters, RestaurantFiltersState } from '@/components/restaurants/RestaurantFilters'
+import { RestaurantMap } from '@/components/restaurants/RestaurantMap'
 
 // Tipo para resultados de restaurantes
 interface Restaurant {
@@ -198,11 +199,18 @@ function RestaurantResultsContent() {
                                         {/* Foto */}
                                         <div className="w-32 h-32 md:w-40 md:h-auto relative bg-gray-200 flex-shrink-0">
                                             {restaurant.photos?.[0] ? (
-                                                // En producción usaríamos la API de fotos de Google
                                                 <img
-                                                    src={`https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80`} // Placeholder pro
+                                                    src={
+                                                        restaurant.photos[0].photo_reference.startsWith('mock_') || !process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY
+                                                            ? 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80'
+                                                            : `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${restaurant.photos[0].photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}`
+                                                    }
                                                     alt={restaurant.name}
                                                     className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80';
+                                                    }}
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -265,30 +273,13 @@ function RestaurantResultsContent() {
 
                     {/* Mapa (4 columnas) */}
                     <aside className="hidden lg:block lg:col-span-4 sticky top-24 h-[calc(100vh-120px)]">
-                        <div className="bg-gray-200 w-full h-full rounded-xl overflow-hidden shadow-inner border relative">
-                            {/* Aquí iría el componente de Google Maps Real */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 bg-gray-100 p-6 text-center">
-                                <MapPin className="w-12 h-12 mb-3 text-gray-400" />
-                                <p className="font-semibold mb-2">Mapa Interactivo</p>
-                                <p className="text-sm mb-4">Visualiza la ubicación exacta de los {filteredResults.length} restaurantes encontrados.</p>
-                                <div className="bg-white px-4 py-2 rounded shadow-sm text-xs border">
-                                    Vista previa del mapa
-                                </div>
-                            </div>
-
-                            {/* Puntos simulados en el mapa fake */}
-                            {filteredResults.slice(0, 5).map((r, i) => (
-                                <div
-                                    key={r.place_id}
-                                    className="absolute w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-md transform hover:scale-150 transition-transform"
-                                    style={{
-                                        top: `${30 + (i * 10)}%`,
-                                        left: `${20 + (i * 15)}%`
-                                    }}
-                                    title={r.name}
-                                />
-                            ))}
-                        </div>
+                        <RestaurantMap
+                            restaurants={filteredResults}
+                            onMarkerClick={(r) => {
+                                // Opcional: Scroll to card or highlight
+                                console.log("Marker clicked:", r.name)
+                            }}
+                        />
                     </aside>
                 </div>
             </div>

@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
 **Última actualización:** 17 de Enero de 2026 - 02:05 CST  
-**Versión actual:** v2.225  
+**Versión actual:** v2.226  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Registro cronológico de todos los cambios del proyecto
 
@@ -34,6 +34,25 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.226 - 18 de Enero de 2026 - 15:30 CST
+
+**Cambios:**
+- **Mapa Interactivo Real:**
+  - Implementación de Google Maps JavaScript API.
+  - Carga dinámica del script sin dependencias externas (usa script tag).
+  - Marcadores interactivos para restaurantes.
+- **Validación de API Key:**
+  - Soporte para `NEXT_PUBLIC_GOOGLE_PLACES_API_KEY`.
+  - Backend Proxy actualizado para aceptar ambas variaciones de entorno.
+- **Fotos Reales:**
+  - Lógica para consumir Google Places Photo API en tarjetas de resultados.
+  - Fallback automático si no hay Key o es mock data.
+
+**Cifra de Control:**
+- T: 54 | C: 541
+
+---
 
 ### v2.225 - 18 de Enero de 2026 - 15:00 CST
 
