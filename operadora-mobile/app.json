@@ -1,0 +1,50 @@
+{
+    "expo": {
+        "name": "AS Operadora",
+        "slug": "as-operadora",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "userInterfaceStyle": "automatic",
+        "scheme": "asoperadora",
+        "splash": {
+            "image": "./assets/splash.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#1E40AF"
+        },
+        "assetBundlePatterns": [
+            "**/*"
+        ],
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.asoperadora.app"
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#1E40AF"
+            },
+            "package": "com.asoperadora.app",
+            "permissions": [
+                "NOTIFICATIONS"
+            ]
+        },
+        "web": {
+            "favicon": "./assets/favicon.png",
+            "bundler": "metro"
+        },
+        "plugins": [
+            "expo-router",
+            [
+                "expo-notifications",
+                {
+                    "icon": "./assets/notification-icon.png",
+                    "color": "#1E40AF"
+                }
+            ]
+        ],
+        "experiments": {
+            "typedRoutes": true
+        }
+    }
+}

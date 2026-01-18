@@ -1,0 +1,45 @@
+## 📚 HISTORIAL DE VERSIONES
+
+### **v2.78 - 15 Dic 2025** ✅ ACTUAL 🎉
+- Sistema corporativo 100% completo
+- GAP #3: API DELETE empleado
+- Validación de reservas activas
+- Progreso general 90%
+
+### **v2.77 - 15 Dic 2025** ✅
+- GAP #2: Centro de costo en reservas
+- Componente CostCenterSelector
+- Auto-asignación por departamento
+- Progreso general 89%
+
+### **v2.76 - 15 Dic 2025** ✅
+- GAP #1: Validación en búsqueda
+- PolicyBadge y PolicyAlert
+- Ordenamiento por política
+- Progreso general 88%
+
+### **v2.75 - 15 Dic 2025**
+- Revisión exhaustiva completa
+- 3 gaps identificados
+- Sistema corporativo 94%
+- Progreso general 87%
+
+### **v2.70 - 15 Dic 2025**
+- Centro de costos completo
+- Exportación Excel/PDF
+- Migración SQL aplicada
+
+### **v2.65 - 14 Dic 2025**
+- Reportes corporativos
+- Políticas de viaje
+- Validación de políticas
+
+### **v2.62 - 14 Dic 2025**
+- Gestión de empleados
+- Import CSV
+- Exportación Excel
+
+### **v2.60 - 14 Dic 2025**
+- Dashboard corporativo
+- Workflow de aprobaciones
+- Notificaciones email
