@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Logo } from '@/components/Logo'
 import { Utensils, Calendar, Users, CheckCircle2, MapPin, Clock } from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
 export default function RestaurantBookingPage() {
     const router = useRouter()
