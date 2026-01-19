@@ -50,14 +50,15 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 - **API Restaurantes:**
   - **BREAKING CHANGE / HOTFIX:** Migración total de la API Legacy `textsearch` (desactivada por Google) a la nueva `Places API (New) v1`.
   - Endpoint actualizado a `https://places.googleapis.com/v1/places:searchText`.
-  - Implementación de `POST` body y `FieldMask` para optimizar costos y evitar errores `REQUEST_DENIED`.
+  - **HOTFIX FOTOS:** Se corrigió la construcción de URLs de imágenes. La API v1 devuelve referencias `places/...` incompatibles con el endpoint legacy `maps.googleapis.com`. Se implementó el nuevo endpoint `photos.media` para resolver errores 403.
   - Agregado soporte fallback para `NEXT_PUBLIC_GOOGLE_PLACES_API_KEY`.
-  - Fallback a Mock Data si falla la conexión v1.
+- **UI Confirmación:**
+  - Botón "Confirmar Reserva" con texto blanco explícito `text-white font-bold` para asegurar legibilidad.
 - **API Cookie Consent:**
-  - **HOTFIX:** Se eliminó el error 500 bloqueante cuando la base de datos no es accesible, permitiendo que la navegación continúe sin interrupciones.
+  - **HOTFIX:** Se eliminó el error 500 bloqueante cuando la base de datos no es accesible.
 
 **Cifra de Control:**
-- T: 56 | C: 544
+- T: 57 | C: 545
 
 ---
 

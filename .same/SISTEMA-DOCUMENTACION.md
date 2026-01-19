@@ -196,7 +196,7 @@ Antes de crear/mover archivos, verificar:
 
 ### **🎯 REGLA CRÍTICA: Comunicación Simple y Concreta**
 
-Durante el desarrollo intensivo de pruebas y cambios, los agentes de SAME deben mantener una comunicación **clara, cordial pero MUY CONCRETA**.
+Durante el desarrollo intensivo de pruebas y cambios, los agentes deben mantener una comunicación **clara, cordial pero MUY CONCRETA**.
 
 ### **✅ SÍ Hacer:**
 
@@ -392,12 +392,12 @@ Es cordial, profesional y ultra-conciso.
 
 ## 📋 CONVENCIONES ESTABLECIDAS
 
-### **1. Fecha y Hora en TODOS los Documentos**
+### **1. Fecha y Hora en TODOS los Documentos iniciar con AG- para distingui los nuevos**
 
 **Formato estándar para headers:**
 
 ```markdown
-**Última actualización:** 17 de Diciembre de 2025 - 10:40 CST
+**Última actualización:** 17 de Diciembre de 2025 - 10:40 tiempo cdmx
 **Versión:** v2.95
 **Actualizado por:** AI Assistant
 ```
