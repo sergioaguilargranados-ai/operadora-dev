@@ -44,16 +44,17 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 - **UI Traslados:**
   - Se habilitó la etiqueta dinámica "Fecha de regreso" cuando se selecciona viaje redondo.
   - Se corrigió la validación de fecha de regreso.
-  - **HOTFIX:** Se corrigió el componente `CounterSelector` para permitir la edición manual de pasajeros sin bloqueo, mejorando la sincronización de estado y agregando selección automática al enfoque.
+  - **HOTFIX:** Se corrigió el componente `CounterSelector` para permitir la edición manual sin bloqueos y se forzó el color de texto a `text-gray-900` para corregir invisibilidad sobre fondo blanco.
 - **UI AS Home:**
   - Selector de huéspedes simplificado (sin botones rápidos 1,2,5...), solo +/- hasta 20 personas.
 - **API Restaurantes:**
   - Agregado soporte fallback para `NEXT_PUBLIC_GOOGLE_PLACES_API_KEY` en `route.ts`.
-  - **HOTFIX:** Se implementó una lógica de fallback automática a Mock Data si el API de Google falla (error 500) o si faltan las credenciales, asegurando que el módulo siempre muestre resultados.
-  - Logging mejorado para depurar errores 500 en Vercel (Key presence, query, URL).
+  - **HOTFIX:** Se implementó una lógica de fallback automática a Mock Data si el API de Google falla (error 500) o faltan credenciales.
+- **API Cookie Consent:**
+  - **HOTFIX:** Se eliminó el error 500 bloqueante cuando la base de datos no es accesible, permitiendo que la navegación continúe sin interrupciones.
 
 **Cifra de Control:**
-- T: 54 | C: 542
+- T: 55 | C: 543
 
 ---
 
