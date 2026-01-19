@@ -180,13 +180,30 @@ export default function RestaurantBookingPage() {
 
                             {/* Info Restaurante */}
                             <div className="mb-6">
-                                {/* Imagen Placeholder */}
                                 <div className="h-32 bg-gray-200 rounded-lg mb-3 overflow-hidden">
-                                    <img
-                                        src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80"
-                                        alt="Restaurante"
-                                        className="w-full h-full object-cover"
-                                    />
+                                    {bookingData.restaurant.photos?.[0] ? (
+                                        <img
+                                            src={
+                                                bookingData.restaurant.photos[0].photo_reference.startsWith('mock_')
+                                                    ? 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80'
+                                                    : bookingData.restaurant.photos[0].photo_reference.includes('places/')
+                                                        // Google Places API (New) Image URL
+                                                        ? `https://places.googleapis.com/v1/${bookingData.restaurant.photos[0].photo_reference}/media?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&maxWidthPx=400`
+                                                        // Legacy API Image URL
+                                                        : `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${bookingData.restaurant.photos[0].photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}`
+                                            }
+                                            alt={bookingData.restaurant.name}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80';
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                                            <Utensils className="w-8 h-8" />
+                                        </div>
+                                    )}
                                 </div>
                                 <h4 className="font-bold text-xl">{bookingData.restaurant.name}</h4>
                                 <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
