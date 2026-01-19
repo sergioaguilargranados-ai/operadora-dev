@@ -48,13 +48,16 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 - **UI AS Home:**
   - Selector de huéspedes simplificado (sin botones rápidos 1,2,5...), solo +/- hasta 20 personas.
 - **API Restaurantes:**
-  - Agregado soporte fallback para `NEXT_PUBLIC_GOOGLE_PLACES_API_KEY` en `route.ts`.
-  - **HOTFIX:** Se implementó una lógica de fallback automática a Mock Data si el API de Google falla (error 500) o faltan credenciales.
+  - **BREAKING CHANGE / HOTFIX:** Migración total de la API Legacy `textsearch` (desactivada por Google) a la nueva `Places API (New) v1`.
+  - Endpoint actualizado a `https://places.googleapis.com/v1/places:searchText`.
+  - Implementación de `POST` body y `FieldMask` para optimizar costos y evitar errores `REQUEST_DENIED`.
+  - Agregado soporte fallback para `NEXT_PUBLIC_GOOGLE_PLACES_API_KEY`.
+  - Fallback a Mock Data si falla la conexión v1.
 - **API Cookie Consent:**
   - **HOTFIX:** Se eliminó el error 500 bloqueante cuando la base de datos no es accesible, permitiendo que la navegación continúe sin interrupciones.
 
 **Cifra de Control:**
-- T: 55 | C: 543
+- T: 56 | C: 544
 
 ---
 
