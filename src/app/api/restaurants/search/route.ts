@@ -71,10 +71,14 @@ const MOCK_RESTAURANTS = [
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
-    const query = searchParams.get('query')
+    const query = searchParams.get('query') || searchParams.get('city') // Support 'city' param too
 
     // API KEY del servidor (segura)
-    const apiKey = process.env.GOOGLE_PLACES_API_KEY
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY
+
+    // Log para depuración
+    console.log(`[API Restaurants] Search Query: ${query}`)
+    console.log(`[API Restaurants] API Key configured: ${!!apiKey}`)
 
     // Si no hay API Key, advertimos pero intentamos fallback a mock solo si es explícito el modo test
     if (!apiKey) {
@@ -90,6 +94,9 @@ export async function GET(request: Request) {
         const searchText = query ? `restaurantes en ${query}` : 'restaurantes populares'
         const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchText)}&key=${apiKey}&language=es`
 
+        // Log URL (sin key)
+        console.log(`[API Restaurants] Fetching from Google: ${url.replace(apiKey, 'HIDDEN_KEY')}`)
+
         const response = await fetch(url)
         const data = await response.json()
 
@@ -100,7 +107,7 @@ export async function GET(request: Request) {
 
         // Mapear resultados al formato de nuestra app
         // Nota: TextSearch devuelve geometry, name, photos, price_level, rating, user_ratings_total
-        const results = data.results.map((place: any) => ({
+        const results = (data.results || []).map((place: any) => ({
             place_id: place.place_id,
             name: place.name,
             photos: place.photos,
@@ -114,6 +121,8 @@ export async function GET(request: Request) {
             // Enriquecimiento manual simple para cuisine si no viene explícito
             cuisine: place.types
         }))
+
+        console.log(`[API Restaurants] Found ${results.length} results`)
 
         return NextResponse.json({
             results: results,

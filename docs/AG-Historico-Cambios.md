@@ -35,19 +35,15 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 
 ## 📅 HISTORIAL DE CAMBIOS
 
-### v2.226 - 18 de Enero de 2026 - 15:30 CST
+### v2.228 - 18 de Enero de 2026 - 17:45 CST
 
 **Cambios:**
-- **Mapa Interactivo Real:**
-  - Implementación de Google Maps JavaScript API.
-  - Carga dinámica del script sin dependencias externas (usa script tag).
-  - Marcadores interactivos para restaurantes.
-- **Validación de API Key:**
-  - Soporte para `NEXT_PUBLIC_GOOGLE_PLACES_API_KEY`.
-  - Backend Proxy actualizado para aceptar ambas variaciones de entorno.
-- **Fotos Reales:**
-  - Lógica para consumir Google Places Photo API en tarjetas de resultados.
-  - Fallback automático si no hay Key o es mock data.
+- **Fix Build Vercel:**
+  - Corrección de importación errónea en `src/app/confirmar-reserva/restaurante/page.tsx`.
+  - Se cambió `import ... from '@/components/ui/use-toast'` a `import ... from '@/hooks/use-toast'`.
+
+**Lecciones Aprendidas:**
+- Verificar ubicación de hooks siempre.
 
 **Cifra de Control:**
 - T: 54 | C: 541
@@ -59,22 +55,31 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 **Cambios:**
 - **Integración Mega Travel (PoC):**
   - Implementación de `MegaTravelAdapter.ts` para ingerir paquetes.
-  - Base de datos interna simulada con paquetes populares (Europa, Turquía, etc.).
-  - Lógica de precios "Neto + Margen" (User-defined margin).
-  - Enriquecimiento automático de paquetes (Flight, Hotel, Transfer, Activities).
+  - Base de datos interna simulada con paquetes populares.
   - Integración transparente en buscador `/api/packages/search`.
 - **Restaurantes Finalizado:**
   - Despliegue de Google Maps con API Key segura (Server-side) y pública (Client-side).
-  - Validación de variables de entorno en Vercel.
 
 **Lecciones Aprendidas:**
-- Para integraciones donde la fuente original usa Client-Side Rendering (CSR) agresivo, un adaptador con base de datos interna o headless browser es necesario.
-- La gestión de API Keys duales (Backend vs Frontend) es crítica para servicios híbridos como Google Maps.
+- Gestión de API Keys duales es crítica.
 
 **Cifra de Control:**
-- T: 54 | C: 541 (Sin cambios BD)
+- T: 54 | C: 541
 
 ---
+
+### v2.226 - 18 de Enero de 2026 - 15:30 CST
+
+**Cambios:**
+- **Mapa Interactivo Real:**
+  - Implementación de Google Maps JavaScript API sin dependencias externas.
+- **Validación de API Key:**
+  - Soporte para `NEXT_PUBLIC_GOOGLE_PLACES_API_KEY`.
+- **Fotos Reales:**
+  - Lógica para consumir Google Places Photo API.
+
+**Cifra de Control:**
+- T: 54 | C: 541
 
 ### v2.225 - 18 de Enero de 2026 - 15:00 CST
 

@@ -1351,7 +1351,9 @@ export default function Home() {
 
                       {/* Fecha y Hora */}
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-2 text-gray-900">Fecha y Hora</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-900">
+                          {transferType === 'roundtrip' ? 'Fecha de ida' : 'Fecha y Hora'}
+                        </label>
                         <div className="grid grid-cols-2 gap-2">
                           <Input
                             type="date"
@@ -1368,21 +1370,24 @@ export default function Home() {
                           />
                         </div>
                         {transferType === 'roundtrip' && (
-                          <div className="grid grid-cols-2 gap-2 mt-2">
-                            <Input
-                              type="date"
-                              placeholder="F. Regreso"
-                              value={transferReturnDate}
-                              onChange={(e) => setTransferReturnDate(e.target.value)}
-                              min={transferDate || new Date().toISOString().split('T')[0]}
-                              className="h-12 bg-white"
-                            />
-                            <Input
-                              type="time"
-                              value={transferReturnTime}
-                              onChange={(e) => setTransferReturnTime(e.target.value)}
-                              className="h-12 bg-white"
-                            />
+                          <div className="mt-2">
+                            <label className="block text-sm font-medium mb-2 text-gray-900">Fecha de regreso</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                type="date"
+                                placeholder="F. Regreso"
+                                value={transferReturnDate}
+                                onChange={(e) => setTransferReturnDate(e.target.value)}
+                                min={transferDate || new Date().toISOString().split('T')[0]}
+                                className="h-12 bg-white"
+                              />
+                              <Input
+                                type="time"
+                                value={transferReturnTime}
+                                onChange={(e) => setTransferReturnTime(e.target.value)}
+                                className="h-12 bg-white"
+                              />
+                            </div>
                           </div>
                         )}
                       </div>
@@ -2002,7 +2007,7 @@ export default function Home() {
                             onChange={setGuests}
                             min={1}
                             max={20}
-                            showQuickButtons={true}
+                            showQuickButtons={false}
                           />
                         </div>
                       </div>
@@ -2113,7 +2118,22 @@ export default function Home() {
                             className="pl-10 h-12 bg-white"
                             value={restaurantCity}
                             onChange={(e) => setRestaurantCity(e.target.value)}
+                            list="restaurant-cities"
                           />
+                          <datalist id="restaurant-cities">
+                            <option value="Ciudad de México, CDMX" />
+                            <option value="Cancún, Quintana Roo" />
+                            <option value="Guadalajara, Jalisco" />
+                            <option value="Monterrey, Nuevo León" />
+                            <option value="Mérida, Yucatán" />
+                            <option value="Puebla, Puebla" />
+                            <option value="Querétaro, Querétaro" />
+                            <option value="Playa del Carmen, Quintana Roo" />
+                            <option value="Los Cabos, Baja California Sur" />
+                            <option value="Puerto Vallarta, Jalisco" />
+                            <option value="Oaxaca, Oaxaca" />
+                            <option value="San Miguel de Allende, Guanajuato" />
+                          </datalist>
                         </div>
                       </div>
                       <div>
