@@ -53,6 +53,7 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
   - **HOTFIX FOTOS:** Se corrigió la construcción de URLs de imágenes. La API v1 devuelve referencias `places/...` incompatibles con el endpoint legacy `maps.googleapis.com`. Se implementó el nuevo endpoint `photos.media` para resolver errores 403.
   - Agregado soporte fallback para `NEXT_PUBLIC_GOOGLE_PLACES_API_KEY`.
 - **UI Confirmación:**
+  - **HOTFIX:** Visualización dinámica de la foto del restaurante seleccionado (soporte v1/Legacy/Mock), reemplazando el placeholder estático.
   - Botón "Confirmar Reserva" con texto blanco explícito `text-white font-bold` para asegurar legibilidad.
 - **API Cookie Consent:**
   - **HOTFIX:** Se eliminó el error 500 bloqueante cuando la base de datos no es accesible.
