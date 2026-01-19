@@ -40,9 +40,36 @@ function RestaurantResultsContent() {
     const [filteredResults, setFilteredResults] = useState<Restaurant[]>([])
 
     // Estados de búsqueda
-    const [city, setCity] = useState(searchParams.get('destination') || '')
+    // Estados de búsqueda (inicializar con varios posibles nombres de param)
+    const [city, setCity] = useState(searchParams.get('city') || searchParams.get('destination') || '')
     const [date, setDate] = useState(searchParams.get('date') || '')
     const [diners, setDiners] = useState(parseInt(searchParams.get('diners') || '2'))
+
+    // Estados temporales para los inputs del header (para no disparar búsqueda en cada tecla)
+    const [tempCity, setTempCity] = useState(city)
+    const [tempDate, setTempDate] = useState(date)
+    const [tempDiners, setTempDiners] = useState(diners)
+
+    // Sincronizar temp states cuando cambian los reales (por navegación externa)
+    useEffect(() => {
+        setTempCity(city)
+        setTempDate(date)
+        setTempDiners(diners)
+    }, [city, date, diners])
+
+    const handleHeaderSearch = () => {
+        setCity(tempCity)
+        setDate(tempDate)
+        setDiners(tempDiners)
+
+        // Actualizar URL
+        const params = new URLSearchParams(searchParams.toString())
+        if (tempCity) params.set('destination', tempCity)
+        if (tempCity) params.set('city', tempCity) // Set both to be safe
+        if (tempDate) params.set('date', tempDate)
+        params.set('diners', tempDiners.toString())
+        router.push(`/resultados/restaurantes?${params.toString()}`)
+    }
 
     // Estado de filtros
     const [filters, setFilters] = useState<RestaurantFiltersState>({
@@ -57,7 +84,17 @@ function RestaurantResultsContent() {
         const fetchRestaurants = async () => {
             setLoading(true)
             try {
-                const query = city || 'restaurantes'
+                // Prioritize 'city' param if available, otherwise 'destination'
+                const locationParam = searchParams.get('city') || searchParams.get('destination') || ''
+                if (locationParam && locationParam !== city) {
+                    setCity(locationParam)
+                }
+
+                // Construct a more specific query to avoid global results
+                // If we have a city, search for "restaurantes en [city]"
+                // If the user typed a specific query in the home page (e.g. "Sushi"), we should ideally capture that too.
+                // But for now, let's assume 'city' contains the location.
+                const query = city ? `restaurantes en ${city}` : 'restaurantes'
                 const res = await fetch(`/api/restaurants/search?query=${encodeURIComponent(query)}`)
                 const data = await res.json()
 
@@ -132,7 +169,7 @@ function RestaurantResultsContent() {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
+            <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b shadow-sm">
                 <div className="container mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Button
@@ -145,21 +182,44 @@ function RestaurantResultsContent() {
                         <Logo />
                     </div>
 
-                    {/* Buscador Resumen */}
-                    <div className="hidden md:flex items-center gap-2 bg-gray-100 p-1.5 rounded-full border">
-                        <div className="px-3 flex items-center gap-2 border-r border-gray-300">
+                    {/* Buscador Interactivo en Header */}
+                    <div className="hidden md:flex items-center gap-2 bg-gray-100 p-1 rounded-full border border-gray-200 transition-all hover:border-gray-300 hover:shadow-sm">
+                        <div className="flex items-center gap-2 px-3 border-r border-gray-300">
                             <MapPin className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm font-medium text-gray-700">{city || "Ubicación"}</span>
+                            <input
+                                className="bg-transparent border-none text-sm font-medium text-gray-700 outline-none w-32 placeholder:text-gray-400"
+                                placeholder="Ciudad o zona"
+                                value={tempCity}
+                                onChange={(e) => setTempCity(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleHeaderSearch()}
+                            />
                         </div>
-                        <div className="px-3 flex items-center gap-2 border-r border-gray-300">
+                        <div className="flex items-center gap-2 px-3 border-r border-gray-300">
                             <Calendar className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-700">{date || "Fecha"}</span>
+                            <input
+                                type="date"
+                                className="bg-transparent border-none text-sm text-gray-700 outline-none w-auto max-w-[130px]"
+                                value={tempDate}
+                                onChange={(e) => setTempDate(e.target.value)}
+                            />
                         </div>
-                        <div className="px-3 flex items-center gap-2">
+                        <div className="flex items-center gap-2 px-3">
                             <Users className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-700">{diners} personas</span>
+                            <select
+                                className="bg-transparent border-none text-sm text-gray-700 outline-none cursor-pointer"
+                                value={tempDiners}
+                                onChange={(e) => setTempDiners(parseInt(e.target.value))}
+                            >
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20].map(n => (
+                                    <option key={n} value={n}>{n} personas</option>
+                                ))}
+                            </select>
                         </div>
-                        <Button size="sm" className="rounded-full h-8 w-8 p-0 ml-1">
+                        <Button
+                            size="sm"
+                            className="rounded-full h-8 w-8 p-0 ml-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                            onClick={handleHeaderSearch}
+                        >
                             <Search className="w-4 h-4" />
                         </Button>
                     </div>

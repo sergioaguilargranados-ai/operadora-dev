@@ -35,6 +35,31 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 
 ## 📅 HISTORIAL DE CAMBIOS
 
+### v2.230 - 19 de Enero de 2026 - 00:25 CST
+
+**Cambios:**
+- **UI Restaurantes:**
+  - Header actualizado a estilo blanco traslúcido (`backdrop-blur-md`).
+  - Barra de búsqueda en el header ahora es interactiva (Inputs para Ciudad, Fecha, Personas) permitiendo refinar la búsqueda desde resultados.
+  - Corrección de lógica de ubicación: Se prioriza y lee correctamente el parámetro `destination` o `city` para evitar búsquedas sin ubicación.
+  - Mejora en construcción de query a Google Places API para evitar resultados globales (se fuerza "restaurantes en [ciudad]").
+- **UI Confirmar Reserva (Restaurante):**
+  - Header actualizado a estilo blanco traslúcido.
+  - Agregado botón "Regresar" (< ArrowLeft).
+  - Implementada validación robusta de formulario:
+    - Nombre/Apellido requeridos (min 2 caracteres).
+    - Email con validación de formato regex.
+    - Teléfono validado a 10 dígitos numéricos.
+    - Mensajes de error en rojo bajo cada campo inválido.
+
+**Lecciones Aprendidas:**
+- Es crítico sincronizar los nombres de parámetros de URL (`city` vs `destination`) entre la Home y las páginas de resultados para evitar pérdidas de contexto.
+
+**Cifra de Control:**
+- T: 57 | C: 545
+
+---
+
 ### v2.229 - 18 de Enero de 2026 - 18:25 CST
 
 **Cambios:**

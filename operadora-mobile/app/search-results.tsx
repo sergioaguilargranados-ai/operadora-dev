@@ -4,9 +4,13 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router'
 import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/theme'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useState, useEffect } from 'react'
+import HotelsService from '../services/hotels.service'
+
+import FlightsService from '../services/flights.service'
 
 // Mock Data
 const MOCK_HOTELS = [
+    // ... Mock data for hotels only if service fails or for fallback visualization
     {
         id: '1',
         name: 'Grand Velas Riviera Maya',
@@ -36,33 +40,6 @@ const MOCK_HOTELS = [
     },
 ]
 
-const MOCK_FLIGHTS = [
-    {
-        id: '1',
-        airline: 'Aeroméxico',
-        code: 'AM 502',
-        origin: 'MEX',
-        destination: 'CUN',
-        departure: '08:00',
-        arrival: '10:30',
-        price: 3500,
-        duration: '2h 30m',
-        logo: 'https://source.unsplash.com/100x100/?logo,airline',
-    },
-    {
-        id: '2',
-        airline: 'Volaris',
-        code: 'Y4 720',
-        origin: 'MEX',
-        destination: 'CUN',
-        departure: '14:00',
-        arrival: '16:35',
-        price: 2800,
-        duration: '2h 35m',
-        logo: 'https://source.unsplash.com/100x100/?plane,logo',
-    },
-]
-
 export default function SearchResultsScreen() {
     const params = useLocalSearchParams()
     const router = useRouter()
@@ -72,19 +49,77 @@ export default function SearchResultsScreen() {
     const searchType = params.type || 'hotels'
 
     useEffect(() => {
-        // Simulate API call
-        setTimeout(() => {
-            if (searchType === 'hotels') {
-                setResults(MOCK_HOTELS)
-            } else if (searchType === 'flights') {
-                setResults(MOCK_FLIGHTS)
+        const fetchResults = async () => {
+            setLoading(true)
+            try {
+                if (searchType === 'hotels') {
+                    // Call real API
+                    const searchParams = {
+                        destination: (params.destination as string) || '',
+                        checkIn: (params.dates as string)?.split(' - ')[0] || '', // Simple parsing assumption
+                        checkOut: (params.dates as string)?.split(' - ')[1] || '',
+                        guests: 2 // Default for now
+                    }
+
+                    const hotels = await HotelsService.search(searchParams)
+                    // Fallback to mock if API returns empty (only for demo purposes)
+                    setResults(hotels.length > 0 ? hotels : MOCK_HOTELS)
+                } else if (searchType === 'flights') {
+                    setLoading(true)
+                    try {
+                        const flightParams = {
+                            origin: 'MEX', // Hardcoded for now, should come from params
+                            destination: (params.destination as string) || 'CUN',
+                            date: (params.dates as string) || '2026-02-20'
+                        }
+                        const flights = await FlightsService.search(flightParams)
+                        setResults(flights)
+                    } catch (error) {
+                        console.error('Error fetching flights:', error)
+                        setResults([])
+                    }
+                } else if (searchType === 'autos') {
+                    // Autos Logic
+                    const autoParams = {
+                        pickup: (params.destination as string) || 'MEX',
+                        dropoff: (params.destination as string) || 'MEX',
+                        pickupDate: (params.dates as string)?.split(' - ')[0] || '2026-02-20',
+                        dropoffDate: (params.dates as string)?.split(' - ')[1] || '2026-02-25'
+                    }
+                    // If no dates provided, use defaults to avoid API error
+                    const autos = await AutosService.search(autoParams)
+                    setResults(autos)
+                }
+            } catch (error) {
+                console.error('Search error:', error)
+                // TODO: Show error toast/alert
+                // Use fallback mock only on error to prevent empty screen during demo
+                if (searchType === 'hotels') setResults(MOCK_HOTELS)
+                else setResults([])
+            } finally {
+                setLoading(false)
             }
-            setLoading(false)
-        }, 1500)
-    }, [searchType])
+        }
+
+        fetchResults()
+    }, [searchType, params])
+
+    const handleBook = (item: any) => {
+        // Normalize type for backend (hotels -> hotel)
+        const normalizedType = searchType.slice(0, -1)
+
+        router.push({
+            pathname: '/checkout',
+            params: {
+                type: normalizedType,
+                item: JSON.stringify(item),
+                dates: params.dates || '20 Ene - 25 Ene' // Fallback for demo
+            }
+        })
+    }
 
     const renderHotelItem = ({ item }: { item: any }) => (
-        <Card style={styles.card} onPress={() => console.log('Press hotel', item.id)}>
+        <Card style={styles.card} onPress={() => handleBook(item)}>
             <Card.Cover source={{ uri: item.image }} style={styles.cardImage} />
             <Card.Content style={styles.cardContent}>
                 <View style={styles.rowBetween}>
@@ -107,12 +142,13 @@ export default function SearchResultsScreen() {
                     <Text style={styles.priceLabel}>Por noche desde</Text>
                     <Text style={styles.price}>${item.price.toLocaleString()}</Text>
                 </View>
+                <Button mode="contained" onPress={() => handleBook(item)} style={{ marginTop: 8 }}>Reservar Ahora</Button>
             </Card.Content>
         </Card>
     )
 
     const renderFlightItem = ({ item }: { item: any }) => (
-        <Card style={styles.card} onPress={() => console.log('Press flight', item.id)}>
+        <Card style={styles.card} onPress={() => handleBook(item)}>
             <Card.Content style={styles.cardContent}>
                 <View style={styles.rowBetween}>
                     <View style={styles.airlineInfo}>
@@ -142,6 +178,32 @@ export default function SearchResultsScreen() {
                         <Text style={styles.airport}>{item.destination}</Text>
                     </View>
                 </View>
+                <Button mode="contained" onPress={() => handleBook(item)} style={{ marginTop: 16 }}>Seleccionar Vuelo</Button>
+            </Card.Content>
+        </Card>
+    )
+
+    const renderAutoItem = ({ item }: { item: any }) => (
+        <Card style={styles.card} onPress={() => handleBook(item)}>
+            <Card.Cover source={{ uri: item.image }} style={styles.cardImage} />
+            <Card.Content style={styles.cardContent}>
+                <View style={styles.rowBetween}>
+                    <Text style={styles.hotelName}>{item.name}</Text>
+                    <Chip compact>{item.type}</Chip>
+                </View>
+                <Text style={styles.location}>{item.provider}</Text>
+
+                <View style={styles.amenitiesRow}>
+                    <Chip icon="car-shift-pattern" style={styles.chip} textStyle={styles.chipText} compact>{item.transmission}</Chip>
+                    <Chip icon="account-group" style={styles.chip} textStyle={styles.chipText} compact>{item.passengers} Pasajeros</Chip>
+                    <Chip icon="bag-suitcase" style={styles.chip} textStyle={styles.chipText} compact>{item.bags} Maletas</Chip>
+                </View>
+
+                <View style={styles.priceRow}>
+                    <Text style={styles.priceLabel}>Total desde</Text>
+                    <Text style={styles.price}>${item.price.toLocaleString()} {item.currency}</Text>
+                </View>
+                <Button mode="contained" onPress={() => handleBook(item)} style={{ marginTop: 8 }}>Rentar Auto</Button>
             </Card.Content>
         </Card>
     )
@@ -151,23 +213,46 @@ export default function SearchResultsScreen() {
             <Stack.Screen
                 options={{
                     headerShown: true,
-                    title: searchType === 'hotels' ? 'Resultados de Hoteles' : 'Vuelos Disponibles',
+                    title: searchType === 'hotels' ? 'Resultados de Hoteles' : searchType === 'flights' ? 'Vuelos Disponibles' : 'Autos Disponibles',
                     headerTintColor: Colors.primary,
                     headerShadowVisible: false,
                 }}
             />
 
             {loading ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={Colors.primary} />
-                    <Text style={styles.loadingText}>Buscando mejores opciones...</Text>
+                <View style={styles.listContent}>
+                    {[1, 2, 3].map(i => (
+                        <Card key={i} style={[styles.card, { opacity: 0.7 }]}>
+                            <View style={{ height: 150, backgroundColor: '#E0E0E0' }} />
+                            <Card.Content style={styles.cardContent}>
+                                <View style={{ height: 20, width: '60%', backgroundColor: '#E0E0E0', marginBottom: 8 }} />
+                                <View style={{ height: 14, width: '40%', backgroundColor: '#E0E0E0', marginBottom: 16 }} />
+                                <View style={{ height: 24, width: '30%', backgroundColor: '#E0E0E0' }} />
+                            </Card.Content>
+                        </Card>
+                    ))}
+                    <Text style={[styles.loadingText, { textAlign: 'center' }]}>Buscando las mejores ofertas...</Text>
                 </View>
             ) : (
                 <FlatList
                     data={results}
-                    renderItem={searchType === 'hotels' ? renderHotelItem : renderFlightItem}
+                    renderItem={
+                        searchType === 'hotels' ? renderHotelItem :
+                            searchType === 'flights' ? renderFlightItem :
+                                renderAutoItem
+                    }
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.listContent}
+                    ListEmptyComponent={
+                        <View style={styles.emptyContainer}>
+                            <Image
+                                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/7486/7486777.png' }}
+                                style={{ width: 100, height: 100, marginBottom: 16, opacity: 0.5 }}
+                            />
+                            <Text style={styles.emptyText}>No encontramos resultados para tu búsqueda.</Text>
+                            <Button mode="text" onPress={() => router.back()}>Intentar con otras fechas</Button>
+                        </View>
+                    }
                 />
             )}
         </SafeAreaView>

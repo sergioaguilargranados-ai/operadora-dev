@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Logo } from '@/components/Logo'
-import { Utensils, Calendar, Users, CheckCircle2, MapPin, Clock } from 'lucide-react'
+import { Utensils, Calendar, Users, CheckCircle2, MapPin, Clock, ArrowLeft } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 export default function RestaurantBookingPage() {
@@ -38,8 +38,46 @@ export default function RestaurantBookingPage() {
         }
     }, [router])
 
+    // Estado de errores
+    const [errors, setErrors] = useState<{ [key: string]: string }>({})
+
+    const validateForm = () => {
+        const newErrors: { [key: string]: string } = {}
+
+        // Validar Nombre
+        if (!formData.firstName.trim()) newErrors.firstName = "El nombre es obligatorio"
+        else if (formData.firstName.length < 2) newErrors.firstName = "El nombre es muy corto"
+
+        // Validar Apellido
+        if (!formData.lastName.trim()) newErrors.lastName = "El apellido es obligatorio"
+
+        // Validar Email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!formData.email.trim()) newErrors.email = "El correo es obligatorio"
+        else if (!emailRegex.test(formData.email)) newErrors.email = "Ingresa un correo válido"
+
+        // Validar Teléfono (Min 10 dígitos)
+        const phoneRegex = /^\d{10,}$/
+        const cleanPhone = formData.phone.replace(/\D/g, '')
+        if (!formData.phone.trim()) newErrors.phone = "El teléfono es obligatorio"
+        else if (!phoneRegex.test(cleanPhone)) newErrors.phone = "Ingresa un número válido de 10 dígitos"
+
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (!validateForm()) {
+            toast({
+                title: "Error en el formulario",
+                description: "Por favor revisa los campos marcados en rojo.",
+                variant: "destructive"
+            })
+            return
+        }
+
         setLoading(true)
 
         // Simular envío a API / Guardado en DB
@@ -85,10 +123,21 @@ export default function RestaurantBookingPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <header className="bg-white border-b py-4">
+            <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b shadow-sm py-4">
                 <div className="container mx-auto px-4 flex justify-between items-center">
-                    <Logo />
-                    <div className="text-sm font-medium text-gray-500">Reserva de Restaurante</div>
+                    <div className="flex items-center gap-4">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-600 gap-2"
+                            onClick={() => router.back()}
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            Regresar
+                        </Button>
+                        <Logo />
+                    </div>
+                    <div className="text-sm font-medium text-gray-500 hidden md:block">Reserva de Restaurante</div>
                 </div>
             </header>
 
@@ -106,45 +155,50 @@ export default function RestaurantBookingPage() {
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="firstName">Nombre</Label>
+                                        <Label htmlFor="firstName" className={errors.firstName ? "text-red-500" : ""}>Nombre</Label>
                                         <Input
                                             id="firstName"
-                                            required
                                             value={formData.firstName}
                                             onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                            className={errors.firstName ? "border-red-500 ring-red-500" : ""}
                                         />
+                                        {errors.firstName && <p className="text-xs text-red-500">{errors.firstName}</p>}
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="lastName">Apellido</Label>
+                                        <Label htmlFor="lastName" className={errors.lastName ? "text-red-500" : ""}>Apellido</Label>
                                         <Input
                                             id="lastName"
-                                            required
                                             value={formData.lastName}
                                             onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                            className={errors.lastName ? "border-red-500 ring-red-500" : ""}
                                         />
+                                        {errors.lastName && <p className="text-xs text-red-500">{errors.lastName}</p>}
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="email">Correo electrónico</Label>
+                                        <Label htmlFor="email" className={errors.email ? "text-red-500" : ""}>Correo electrónico</Label>
                                         <Input
                                             id="email"
                                             type="email"
-                                            required
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            className={errors.email ? "border-red-500 ring-red-500" : ""}
                                         />
+                                        {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="phone">Teléfono de contacto</Label>
+                                        <Label htmlFor="phone" className={errors.phone ? "text-red-500" : ""}>Teléfono de contacto</Label>
                                         <Input
                                             id="phone"
                                             type="tel"
-                                            required
+                                            placeholder="10 dígitos"
                                             value={formData.phone}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            className={errors.phone ? "border-red-500 ring-red-500" : ""}
                                         />
+                                        {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
                                     </div>
                                 </div>
 

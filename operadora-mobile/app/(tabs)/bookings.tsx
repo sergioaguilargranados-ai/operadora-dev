@@ -1,53 +1,48 @@
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native'
-import { Text, Card, SegmentedButtons, Chip, Button } from 'react-native-paper'
+import { Text, Card, SegmentedButtons, Chip, Button, Avatar } from 'react-native-paper'
 import { useState } from 'react'
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-// Mock Data
-const UPCOMING_BOOKINGS = [
-    {
-        id: '1',
-        type: 'flight',
-        title: 'Vuelo a Cancún',
-        date: '20 Ene 2026',
-        status: 'confirmed',
-        details: 'Aeroméxico • AM 502',
-        image: 'https://source.unsplash.com/800x600/?plane,sky',
-    },
-    {
-        id: '2',
-        type: 'hotel',
-        title: 'Grand Velas Riviera',
-        date: '20 Ene - 25 Ene',
-        status: 'confirmed',
-        details: '2 Adultos • All Inclusive',
-        image: 'https://source.unsplash.com/800x600/?hotel,luxury',
-    },
-]
-
-const PAST_BOOKINGS = [
-    {
-        id: '3',
-        type: 'hotel',
-        title: 'Hilton Reforma',
-        date: '15 Dic 2025',
-        status: 'completed',
-        details: '1 Noche • Negocios',
-        image: 'https://source.unsplash.com/800x600/?hotel,city',
-    },
-]
+import BookingsService, { Booking } from '../../services/bookings.service'
 
 export default function BookingsScreen() {
     const [view, setView] = useState('upcoming')
     const [refreshing, setRefreshing] = useState(false)
+    const [bookings, setBookings] = useState<Booking[]>([])
+    const [loading, setLoading] = useState(true)
 
-    const bookings = view === 'upcoming' ? UPCOMING_BOOKINGS : PAST_BOOKINGS
+    const fetchBookings = async () => {
+        try {
+            const data = await BookingsService.getMyBookings()
+            setBookings(data)
+        } catch (error) {
+            console.error('Error loading bookings:', error)
+            // Optionally show user feedback here
+        } finally {
+            setLoading(false)
+            setRefreshing(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchBookings()
+    }, [])
 
     const onRefresh = () => {
         setRefreshing(true)
-        setTimeout(() => setRefreshing(false), 2000)
+        fetchBookings()
     }
+
+    // Filter bookings based on view (simplistic logic for now)
+    const filteredBookings = bookings.filter(b => {
+        if (view === 'upcoming') return b.status === 'confirmed' || b.status === 'pending'
+        return b.status === 'completed' || b.status === 'cancelled'
+    })
+
+    // If no real data yet, fallback to UI test if empty? 
+    // For now, let's trust the service or show empty state.
+    const displayBookings = filteredBookings
 
     const renderBookingItem = ({ item }: { item: any }) => (
         <Card style={styles.card}>
@@ -72,7 +67,12 @@ export default function BookingsScreen() {
 
             </Card.Content>
             <Card.Actions style={styles.cardActions}>
-                <Button mode="text" onPress={() => { }}>Ver Detalles</Button>
+                <Button
+                    mode="text"
+                    onPress={() => router.push(`/booking-details/${item.id}`)}
+                >
+                    Ver Detalles
+                </Button>
             </Card.Actions>
         </Card>
     )
@@ -101,7 +101,7 @@ export default function BookingsScreen() {
                 />
 
                 <FlatList
-                    data={bookings}
+                    data={filteredBookings}
                     renderItem={renderBookingItem}
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.listContent}
@@ -110,7 +110,11 @@ export default function BookingsScreen() {
                     }
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
+                            <Avatar.Icon size={64} icon="airplane-off" style={{ backgroundColor: Colors.background }} color={Colors.textSecondary} />
                             <Text style={styles.emptyText}>No tienes reservas {view === 'upcoming' ? 'próximas' : 'pasadas'}</Text>
+                            <Button mode="contained" onPress={() => router.push('/(tabs)/search')} style={{ marginTop: Spacing.md }}>
+                                Buscar Viajes
+                            </Button>
                         </View>
                     }
                 />
