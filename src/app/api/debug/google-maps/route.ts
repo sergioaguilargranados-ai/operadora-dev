@@ -9,18 +9,36 @@ export async function GET(request: Request) {
     }
 
     try {
-        // Hacemos una llamada de prueba "Text Search" simple
+        // v1 New API Test
         const query = 'restaurantes en CDMX'
-        const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}&language=es`
+        const url = 'https://places.googleapis.com/v1/places:searchText'
 
-        const response = await fetch(url)
+        const requestBody = {
+            textQuery: query,
+            languageCode: 'es',
+            maxResultCount: 5
+        }
+
+        const fieldMask = 'places.displayName,places.formattedAddress,places.priceLevel'
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Goog-Api-Key': apiKey,
+                'X-Goog-FieldMask': fieldMask
+            },
+            body: JSON.stringify(requestBody)
+        })
+
         const data = await response.json()
 
         return NextResponse.json({
-            status: data.status,
-            error_message: data.error_message || 'None',
-            result_count: data.results?.length || 0,
-            full_response: data // Devolvemos la respuesta cruda de Google
+            endpoint: 'places.googleapis.com/v1/places:searchText',
+            status_code: response.status,
+            ok: response.ok,
+            result_count: data.places?.length || 0,
+            full_response: data // Raw google response
         })
 
     } catch (error) {
