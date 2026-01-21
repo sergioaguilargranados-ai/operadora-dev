@@ -151,3 +151,31 @@
 .rdp-calendar button:not([data-disabled]):not([data-selected]):hover {
   background-color: rgb(243, 244, 246) !important;
 }
+
+/* ========================================
+   FIX ALINEACIÓN CALENDARIO
+   ======================================== */
+
+/* Forzar tabla a usar layout fijo */
+.rdp-calendar table {
+  table-layout: fixed !important;
+  width: 100% !important;
+}
+
+/* Forzar todas las celdas (encabezados y días) al mismo ancho */
+.rdp-calendar thead tr th,
+.rdp-calendar tbody tr td {
+  width: 14.28571% !important; /* 100% / 7 días = 14.28571% */
+  text-align: center !important;
+  padding: 0.5rem 0 !important;
+}
+
+/* Asegurar que los botones de días ocupen todo el espacio */
+.rdp-calendar tbody tr td button {
+  width: 36px !important;
+  height: 36px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
