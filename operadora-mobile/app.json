@@ -17,7 +17,15 @@
         ],
         "ios": {
             "supportsTablet": true,
-            "bundleIdentifier": "com.asoperadora.app"
+            "bundleIdentifier": "com.asoperadora.app",
+            "infoPlist": {
+                "NSFaceIDUsageDescription": "Usamos Face ID para que puedas iniciar sesión de forma rápida y segura.",
+                "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrarte hoteles y servicios cercanos.",
+                "NSLocationAlwaysAndWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrarte hoteles y servicios cercanos."
+            },
+            "config": {
+                "googleMapsApiKey": "YOUR_IOS_GOOGLE_MAPS_API_KEY"
+            }
         },
         "android": {
             "adaptiveIcon": {
@@ -26,8 +34,17 @@
             },
             "package": "com.asoperadora.app",
             "permissions": [
-                "NOTIFICATIONS"
-            ]
+                "NOTIFICATIONS",
+                "USE_BIOMETRIC",
+                "USE_FINGERPRINT",
+                "ACCESS_FINE_LOCATION",
+                "ACCESS_COARSE_LOCATION"
+            ],
+            "config": {
+                "googleMaps": {
+                    "apiKey": "YOUR_ANDROID_GOOGLE_MAPS_API_KEY"
+                }
+            }
         },
         "web": {
             "favicon": "./assets/favicon.png",
@@ -35,11 +52,19 @@
         },
         "plugins": [
             "expo-router",
+            "expo-secure-store",
+            "expo-local-authentication",
             [
                 "expo-notifications",
                 {
                     "icon": "./assets/notification-icon.png",
                     "color": "#1E40AF"
+                }
+            ],
+            [
+                "expo-location",
+                {
+                    "locationAlwaysAndWhenInUsePermission": "Permitir que $(PRODUCT_NAME) use tu ubicación para mostrarte servicios cercanos."
                 }
             ]
         ],

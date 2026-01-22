@@ -1,4 +1,5 @@
 import api from './api'
+import OfflineService from './offline.service'
 
 export interface Flight {
     id: string
@@ -16,25 +17,24 @@ export interface Flight {
 const FlightsService = {
     search: async (params: { origin: string, destination: string, date: string }): Promise<Flight[]> => {
         try {
-            // Mapeo de parámetros para la API
+            // Intentar búsqueda en red
             const queryParams = {
                 originLocationCode: params.origin,
                 destinationLocationCode: params.destination,
-                departureDate: params.date, // Formato YYYY-MM-DD
-                adults: 1 // Default
+                departureDate: params.date,
+                adults: 1
             }
 
             const { data } = await api.get('/flights/search', { params: queryParams })
 
             if (data.success && data.data) {
-                // Mapear respuesta de Amadeus API al modelo móvil
-                return data.data.map((flight: any) => {
+                const flights = data.data.map((flight: any) => {
                     const segment = flight.itineraries[0].segments[0]
                     const airlineCode = segment.carrierCode
 
                     return {
                         id: flight.id,
-                        airline: mapAirlineName(airlineCode), // Helper function needed or use code
+                        airline: mapAirlineName(airlineCode),
                         code: `${airlineCode} ${segment.number}`,
                         origin: segment.departure.iataCode,
                         destination: segment.arrival.iataCode,
@@ -45,10 +45,32 @@ const FlightsService = {
                         logo: `https://content.r9cdn.net/rimg/provider-logos/airlines/v/${airlineCode}.png`
                     }
                 })
+
+                // Cachear resultados
+                await OfflineService.cacheFlights(params, flights)
+
+                // Guardar en historial de búsquedas
+                await OfflineService.saveSearchHistory({
+                    type: 'flight',
+                    ...params,
+                    timestamp: new Date().toISOString()
+                })
+
+                return flights
             }
             return []
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error searching flights:', error)
+
+            // Si hay error de red, intentar obtener del cache
+            if (error.message === 'Network Error' || !error.response) {
+                console.log('Network error, loading flights from cache...')
+                const cached = await OfflineService.getCachedFlights(params)
+                if (cached) {
+                    return cached
+                }
+            }
+
             throw error
         }
     }

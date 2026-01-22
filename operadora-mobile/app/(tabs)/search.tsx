@@ -1,205 +1,195 @@
-import { View, StyleSheet, ScrollView, Platform } from 'react-native'
-import { Text, TextInput, Button, SegmentedButtons, HelperText, useTheme } from 'react-native-paper'
-import { useState } from 'react'
-import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { router } from 'expo-router'
-
-type SearchType = 'hotels' | 'flights' | 'autos' | 'tours'
+import React, { useState } from 'react'
+import { View, StyleSheet, ScrollView, Dimensions } from 'react-native'
+import { Text, Searchbar, SegmentedButtons, Card, Button } from 'react-native-paper'
+import { Colors, Spacing, FontSizes } from '../../constants/theme'
+import HotelMap from '../../components/HotelMap'
+import { Hotel } from '../../services/hotels.service'
 
 export default function SearchScreen() {
-    const [searchType, setSearchType] = useState<SearchType>('hotels')
-    const theme = useTheme()
+    const [searchQuery, setSearchQuery] = useState('')
+    const [viewMode, setViewMode] = useState('list')
 
-    // Form States - Hotels
-    const [destination, setDestination] = useState('')
-    const [dates, setDates] = useState('')
-    const [guests, setGuests] = useState('2 Adultos')
+    // Datos de ejemplo (en producción vendrían de una búsqueda real)
+    const sampleHotels: Hotel[] = [
+        {
+            id: '1',
+            name: 'Hotel Fiesta Americana',
+            location: 'Cancún, México',
+            price: 2500,
+            rating: 4.5,
+            image: 'https://source.unsplash.com/800x600/?hotel,luxury',
+            amenities: ['WiFi', 'Piscina', 'Spa'],
+            latitude: 21.1619,
+            longitude: -86.8515,
+        },
+        {
+            id: '2',
+            name: 'Grand Palladium',
+            location: 'Riviera Maya, México',
+            price: 3200,
+            rating: 4.8,
+            image: 'https://source.unsplash.com/800x600/?resort,beach',
+            amenities: ['Todo Incluido', 'Playa', 'Restaurantes'],
+            latitude: 20.7214,
+            longitude: -87.0739,
+        },
+        {
+            id: '3',
+            name: 'Hyatt Ziva',
+            location: 'Cancún, México',
+            price: 2800,
+            rating: 4.6,
+            image: 'https://source.unsplash.com/800x600/?hotel,pool',
+            amenities: ['WiFi', 'Gimnasio', 'Bar'],
+            latitude: 21.0877,
+            longitude: -86.7750,
+        },
+    ]
 
-    // Form States - Flights
-    const [origin, setOrigin] = useState('')
-    const [flightDestination, setFlightDestination] = useState('')
-    const [flightDates, setFlightDates] = useState('')
-
-    const handleSearch = () => {
-        // Navigate to results with search params
-        router.push({
-            pathname: '/search-results',
-            params: {
-                type: searchType,
-                destination: searchType === 'hotels' ? destination : flightDestination,
-                dates: searchType === 'hotels' ? dates : flightDates
-            }
-        })
+    const handleHotelPress = (hotel: Hotel) => {
+        console.log('Hotel seleccionado:', hotel.name)
+        // Aquí navegarías a la pantalla de detalles del hotel
     }
 
-    const renderHotelForm = () => (
-        <View style={styles.formContainer}>
-            <TextInput
-                label="¿A dónde vas?"
-                value={destination}
-                onChangeText={setDestination}
-                mode="outlined"
-                style={styles.input}
-                left={<TextInput.Icon icon="map-marker" />}
-            />
-
-            <TextInput
-                label="Fechas (Ej: 20 Ene - 25 Ene)"
-                value={dates}
-                onChangeText={setDates}
-                mode="outlined"
-                style={styles.input}
-                left={<TextInput.Icon icon="calendar" />}
-            />
-
-            <TextInput
-                label="Huéspedes"
-                value={guests}
-                onChangeText={setGuests}
-                mode="outlined"
-                style={styles.input}
-                left={<TextInput.Icon icon="account-group" />}
-            />
-        </View>
-    )
-
-    const renderFlightForm = () => (
-        <View style={styles.formContainer}>
-            <TextInput
-                label="Origen (Ej: CDMX)"
-                value={origin}
-                onChangeText={setOrigin}
-                mode="outlined"
-                style={styles.input}
-                left={<TextInput.Icon icon="airplane-takeoff" />}
-            />
-
-            <TextInput
-                label="Destino (Ej: Cancún)"
-                value={flightDestination}
-                onChangeText={setFlightDestination}
-                mode="outlined"
-                style={styles.input}
-                left={<TextInput.Icon icon="airplane-landing" />}
-            />
-
-            <TextInput
-                label="Fechas de Viaje"
-                value={flightDates}
-                onChangeText={setFlightDates}
-                mode="outlined"
-                style={styles.input}
-                left={<TextInput.Icon icon="calendar" />}
-            />
-        </View>
-    )
-
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-                <Text style={styles.title}>Buscar Viaje</Text>
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.title}>Buscar Servicios</Text>
 
-                <SegmentedButtons
-                    value={searchType}
-                    onValueChange={(val) => setSearchType(val as SearchType)}
-                    buttons={[
-                        {
-                            value: 'hotels',
-                            label: 'Hoteles',
-                            icon: 'bed',
-                        },
-                        {
-                            value: 'flights',
-                            label: 'Vuelos',
-                            icon: 'airplane',
-                        },
-                        {
-                            value: 'autos',
-                            label: 'Autos',
-                            icon: 'car',
-                        },
-                    ]}
-                    style={styles.tabs}
+                <Searchbar
+                    placeholder="Buscar hoteles, vuelos, autos..."
+                    onChangeText={setSearchQuery}
+                    value={searchQuery}
+                    style={styles.searchBar}
                 />
 
-                <View style={styles.card}>
-                    {searchType === 'hotels' && renderHotelForm()}
-                    {searchType === 'flights' && renderFlightForm()}
-                    {searchType === 'autos' && (
-                        <View style={styles.placeholderContainer}>
-                            <Text>Búsqueda de autos próximamente</Text>
-                        </View>
-                    )}
+                <SegmentedButtons
+                    value={viewMode}
+                    onValueChange={setViewMode}
+                    buttons={[
+                        { value: 'list', label: 'Lista', icon: 'view-list' },
+                        { value: 'map', label: 'Mapa', icon: 'map' },
+                    ]}
+                    style={styles.segmentedButtons}
+                />
+            </View>
 
-                    <Button
-                        mode="contained"
-                        onPress={handleSearch}
-                        style={styles.searchButton}
-                        contentStyle={styles.searchButtonContent}
-                        labelStyle={styles.searchButtonLabel}
-                    >
-                        Buscar {searchType === 'hotels' ? 'Hoteles' : searchType === 'flights' ? 'Vuelos' : 'Autos'}
-                    </Button>
-                </View>
+            {viewMode === 'list' ? (
+                <ScrollView style={styles.listContainer}>
+                    <Text style={styles.sectionTitle}>Hoteles Destacados</Text>
 
-            </ScrollView>
-        </SafeAreaView>
+                    {sampleHotels.map((hotel) => (
+                        <Card key={hotel.id} style={styles.hotelCard} onPress={() => handleHotelPress(hotel)}>
+                            <Card.Cover source={{ uri: hotel.image }} />
+                            <Card.Content style={styles.cardContent}>
+                                <Text style={styles.hotelName}>{hotel.name}</Text>
+                                <Text style={styles.hotelLocation}>{hotel.location}</Text>
+                                <View style={styles.cardRow}>
+                                    <Text style={styles.rating}>⭐ {hotel.rating}</Text>
+                                    <Text style={styles.price}>${hotel.price}/noche</Text>
+                                </View>
+                                <View style={styles.amenitiesContainer}>
+                                    {hotel.amenities.map((amenity, index) => (
+                                        <Text key={index} style={styles.amenity}>• {amenity}</Text>
+                                    ))}
+                                </View>
+                            </Card.Content>
+                            <Card.Actions>
+                                <Button mode="contained">Ver Detalles</Button>
+                            </Card.Actions>
+                        </Card>
+                    ))}
+                </ScrollView>
+            ) : (
+                <HotelMap
+                    hotels={sampleHotels}
+                    onHotelPress={handleHotelPress}
+                    initialRegion={{
+                        latitude: 21.1619,
+                        longitude: -86.8515,
+                        latitudeDelta: 0.5,
+                        longitudeDelta: 0.5,
+                    }}
+                />
+            )}
+        </View>
     )
 }
 
 const styles = StyleSheet.create({
-    safeArea: {
+    container: {
         flex: 1,
         backgroundColor: Colors.background,
     },
-    container: {
-        flex: 1,
-    },
-    contentContainer: {
+    header: {
         padding: Spacing.md,
+        paddingTop: Spacing.xxl,
+        backgroundColor: Colors.white,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
     },
     title: {
         fontSize: FontSizes.xxl,
         fontWeight: 'bold',
-        color: Colors.primary,
-        marginBottom: Spacing.lg,
-        marginTop: Spacing.sm,
+        color: Colors.text,
+        marginBottom: Spacing.md,
     },
-    tabs: {
-        marginBottom: Spacing.lg,
+    searchBar: {
+        marginBottom: Spacing.md,
     },
-    card: {
-        backgroundColor: Colors.white,
+    segmentedButtons: {
+        marginBottom: Spacing.sm,
+    },
+    listContainer: {
+        flex: 1,
         padding: Spacing.md,
-        borderRadius: BorderRadius.lg,
-        elevation: 2, // Android shadow
-        shadowColor: '#000', // iOS shadow
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
     },
-    formContainer: {
-        marginBottom: Spacing.md,
-    },
-    input: {
-        marginBottom: Spacing.md,
-        backgroundColor: Colors.white,
-    },
-    placeholderContainer: {
-        padding: Spacing.xl,
-        alignItems: 'center',
-    },
-    searchButton: {
-        marginTop: Spacing.sm,
-        backgroundColor: Colors.secondary,
-        borderRadius: BorderRadius.full,
-    },
-    searchButtonContent: {
-        paddingVertical: Spacing.xs,
-    },
-    searchButtonLabel: {
+    sectionTitle: {
         fontSize: FontSizes.lg,
         fontWeight: 'bold',
+        color: Colors.text,
+        marginBottom: Spacing.md,
+    },
+    hotelCard: {
+        marginBottom: Spacing.md,
+        backgroundColor: Colors.white,
+    },
+    cardContent: {
+        paddingTop: Spacing.md,
+    },
+    hotelName: {
+        fontSize: FontSizes.lg,
+        fontWeight: 'bold',
+        color: Colors.text,
+        marginBottom: 4,
+    },
+    hotelLocation: {
+        fontSize: FontSizes.sm,
+        color: Colors.textSecondary,
+        marginBottom: Spacing.sm,
+    },
+    cardRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: Spacing.sm,
+    },
+    rating: {
+        fontSize: FontSizes.sm,
+        color: Colors.text,
+    },
+    price: {
+        fontSize: FontSizes.md,
+        fontWeight: 'bold',
+        color: Colors.primary,
+    },
+    amenitiesContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    amenity: {
+        fontSize: FontSizes.xs,
+        color: Colors.textSecondary,
     },
 })

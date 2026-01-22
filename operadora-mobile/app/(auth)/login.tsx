@@ -1,19 +1,36 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native'
-import { Text, TextInput, Button, Divider } from 'react-native-paper'
+import { Text, TextInput, Button, Divider, IconButton } from 'react-native-paper'
 import { useRouter, Link } from 'expo-router'
 import { useAuthStore } from '../../store/auth.store'
 import { Colors, Spacing, FontSizes } from '../../constants/theme'
+import BiometricService from '../../services/biometric.service'
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
+    const [biometricAvailable, setBiometricAvailable] = useState(false)
+    const [biometricType, setBiometricType] = useState('Biometría')
 
     const login = useAuthStore((state) => state.login)
     const error = useAuthStore((state) => state.error)
     const clearError = useAuthStore((state) => state.clearError)
     const router = useRouter()
+
+    useEffect(() => {
+        checkBiometric()
+    }, [])
+
+    const checkBiometric = async () => {
+        const available = await BiometricService.isAvailable()
+        setBiometricAvailable(available)
+
+        if (available) {
+            const type = await BiometricService.getBiometricType()
+            setBiometricType(type)
+        }
+    }
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -26,9 +43,44 @@ export default function LoginScreen() {
 
         try {
             await login({ email, password })
-            // La navegación se maneja automáticamente en _layout.tsx
+
+            // Preguntar si quiere habilitar biometría
+            if (biometricAvailable) {
+                Alert.alert(
+                    'Habilitar Biometría',
+                    `¿Quieres usar ${biometricType} para iniciar sesión más rápido?`,
+                    [
+                        { text: 'No', style: 'cancel' },
+                        {
+                            text: 'Sí',
+                            onPress: async () => {
+                                await BiometricService.saveCredentials(email, password)
+                            },
+                        },
+                    ]
+                )
+            }
         } catch (err) {
             Alert.alert('Error', error || 'Error al iniciar sesión')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleBiometricLogin = async () => {
+        setLoading(true)
+        clearError()
+
+        try {
+            const credentials = await BiometricService.loginWithBiometric()
+
+            if (credentials) {
+                await login(credentials)
+            } else {
+                Alert.alert('Cancelado', 'Autenticación biométrica cancelada')
+            }
+        } catch (err) {
+            Alert.alert('Error', 'Error al iniciar sesión con biometría')
         } finally {
             setLoading(false)
         }
@@ -77,6 +129,26 @@ export default function LoginScreen() {
                     >
                         Iniciar Sesión
                     </Button>
+
+                    {biometricAvailable && (
+                        <>
+                            <Divider style={styles.divider} />
+
+                            <View style={styles.biometricContainer}>
+                                <Text style={styles.biometricText}>
+                                    O inicia sesión con {biometricType}
+                                </Text>
+                                <IconButton
+                                    icon={Platform.OS === 'ios' ? 'face-recognition' : 'fingerprint'}
+                                    size={48}
+                                    iconColor={Colors.primary}
+                                    onPress={handleBiometricLogin}
+                                    disabled={loading}
+                                    style={styles.biometricButton}
+                                />
+                            </View>
+                        </>
+                    )}
 
                     <Divider style={styles.divider} />
 
@@ -131,6 +203,18 @@ const styles = StyleSheet.create({
     },
     divider: {
         marginVertical: Spacing.lg,
+    },
+    biometricContainer: {
+        alignItems: 'center',
+        marginVertical: Spacing.md,
+    },
+    biometricText: {
+        color: Colors.textSecondary,
+        fontSize: FontSizes.sm,
+        marginBottom: Spacing.sm,
+    },
+    biometricButton: {
+        backgroundColor: Colors.primaryLight,
     },
     registerContainer: {
         flexDirection: 'row',

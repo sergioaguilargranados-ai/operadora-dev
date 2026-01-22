@@ -57,3 +57,7 @@ temp/
 
 # Uploads (user generated)
 uploads/
+
+# Drive temp files
+.tmp.drive*
+

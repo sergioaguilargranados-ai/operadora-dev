@@ -1,17 +1,20 @@
-import { View, StyleSheet, ScrollView } from 'react-native'
+import { View, StyleSheet, ScrollView, Alert } from 'react-native'
 import { Text, Button, Divider, Card, Chip, Surface } from 'react-native-paper'
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router'
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useEffect, useState } from 'react'
 import BookingsService, { Booking } from '../../services/bookings.service'
+import WalletService from '../../services/wallet.service'
 import QRCode from 'react-native-qrcode-svg'
+import { Platform } from 'react-native'
 
 export default function BookingDetailsScreen() {
     const { id } = useLocalSearchParams()
     const router = useRouter()
     const [booking, setBooking] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const [walletAvailable, setWalletAvailable] = useState(false)
 
     useEffect(() => {
         const loadDetails = async () => {
@@ -19,6 +22,10 @@ export default function BookingDetailsScreen() {
             try {
                 const data = await BookingsService.getBookingDetails(id)
                 setBooking(data)
+
+                // Verificar disponibilidad de Wallet
+                const available = await WalletService.isWalletAvailable()
+                setWalletAvailable(available)
             } catch (error) {
                 console.error("Error loading booking details", error)
             } finally {
@@ -27,6 +34,61 @@ export default function BookingDetailsScreen() {
         }
         loadDetails()
     }, [id])
+
+    const handleAddToWallet = async () => {
+        if (!booking) return
+
+        // Datos del boarding pass (adaptar según tu estructura)
+        const passData = {
+            passengerName: `${booking.holder_name?.first_name} ${booking.holder_name?.last_name}`,
+            flightNumber: booking.service_name || 'N/A',
+            airline: 'AS Operadora',
+            origin: booking.booking_details?.origin || 'MEX',
+            destination: booking.booking_details?.destination || 'CUN',
+            departureTime: booking.booking_details?.departure || '10:00',
+            arrivalTime: booking.booking_details?.arrival || '12:00',
+            seat: booking.booking_details?.seat || 'N/A',
+            gate: booking.booking_details?.gate || 'TBD',
+            boardingTime: booking.booking_details?.boarding || '09:30',
+            confirmationCode: booking.booking_reference || 'NO-REF',
+        }
+
+        // En producción, estas URLs vendrían del backend
+        const passUrl = `https://api.asoperadora.com/bookings/${id}/boarding-pass.pkpass`
+        const jwtToken = 'JWT_TOKEN_FROM_BACKEND' // Para Google Pay
+
+        await WalletService.showBoardingPassOptions(
+            passData,
+            id as string,
+            'https://api.asoperadora.com',
+            passUrl,
+            jwtToken
+        )
+    }
+
+    const handleDownloadVoucher = () => {
+        if (!booking) return
+
+        Alert.alert(
+            'Descargar Voucher',
+            '¿Qué formato prefieres?',
+            [
+                {
+                    text: 'PDF',
+                    onPress: async () => {
+                        await WalletService.downloadBoardingPassPdf(
+                            id as string,
+                            'https://api.asoperadora.com'
+                        )
+                    },
+                },
+                {
+                    text: 'Cancelar',
+                    style: 'cancel',
+                },
+            ]
+        )
+    }
 
     if (loading || !booking) {
         return (
@@ -37,6 +99,8 @@ export default function BookingDetailsScreen() {
             </SafeAreaView>
         )
     }
+
+    const isFlightBooking = booking.type === 'flight' || booking.service_type === 'flight'
 
     return (
         <SafeAreaView style={styles.container}>
@@ -73,7 +137,9 @@ export default function BookingDetailsScreen() {
                                 value={booking.booking_reference || 'NO-REF'}
                                 size={150}
                             />
-                            <Text style={styles.qrLabel}>Escanea este código en recepción</Text>
+                            <Text style={styles.qrLabel}>
+                                {isFlightBooking ? 'Código de confirmación' : 'Escanea este código en recepción'}
+                            </Text>
                         </View>
                     </Card.Content>
                 </Card>
@@ -90,9 +156,21 @@ export default function BookingDetailsScreen() {
 
                 {/* Actions */}
                 <View style={styles.actions}>
-                    <Button mode="contained" icon="download" style={styles.button} onPress={() => { }}>
+                    {isFlightBooking && walletAvailable && (
+                        <Button
+                            mode="contained"
+                            icon={Platform.OS === 'ios' ? 'wallet' : 'google'}
+                            style={styles.button}
+                            onPress={handleAddToWallet}
+                        >
+                            Agregar a {Platform.OS === 'ios' ? 'Apple Wallet' : 'Google Pay'}
+                        </Button>
+                    )}
+
+                    <Button mode="contained" icon="download" style={styles.button} onPress={handleDownloadVoucher}>
                         Descargar Voucher PDF
                     </Button>
+
                     <Button mode="outlined" icon="help-circle" style={styles.button} onPress={() => { }}>
                         Ayuda / Soporte
                     </Button>

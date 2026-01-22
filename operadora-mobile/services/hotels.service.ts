@@ -1,4 +1,5 @@
 import api from './api'
+import OfflineService from './offline.service'
 
 export interface HotelSearchParams {
     destination: string
@@ -10,12 +11,14 @@ export interface HotelSearchParams {
 export interface Hotel {
     id: string
     name: string
-    location: string // Mapped from city
-    price: number // Mapped from min_price
+    location: string
+    price: number
     rating: number
     image: string
     amenities: string[]
     description?: string
+    latitude?: number
+    longitude?: number
 }
 
 const HotelsService = {
@@ -27,15 +30,13 @@ const HotelsService = {
                 checkIn: params.checkIn,
                 checkOut: params.checkOut,
                 adults: params.guests,
-                // Default API params
                 rooms: 1,
             }
 
             const { data } = await api.get('/hotels/search', { params: queryParams })
 
             if (data.success && data.data) {
-                // Map API response to mobile model
-                return data.data.map((hotel: any) => ({
+                const hotels = data.data.map((hotel: any) => ({
                     id: hotel.id,
                     name: hotel.name,
                     location: hotel.city,
@@ -43,12 +44,36 @@ const HotelsService = {
                     rating: hotel.rating || 0,
                     image: hotel.images?.[0] || 'https://via.placeholder.com/300x200?text=No+Image',
                     amenities: hotel.amenities ? hotel.amenities.slice(0, 3) : [],
+                    latitude: hotel.latitude,
+                    longitude: hotel.longitude,
                 }))
+
+                // Cachear resultados
+                await OfflineService.cacheHotels(params, hotels)
+
+                // Guardar en historial de búsquedas
+                await OfflineService.saveSearchHistory({
+                    type: 'hotel',
+                    ...params,
+                    timestamp: new Date().toISOString()
+                })
+
+                return hotels
             }
 
             return []
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error searching hotels:', error)
+
+            // Si hay error de red, intentar obtener del cache
+            if (error.message === 'Network Error' || !error.response) {
+                console.log('Network error, loading hotels from cache...')
+                const cached = await OfflineService.getCachedHotels(params)
+                if (cached) {
+                    return cached
+                }
+            }
+
             throw error
         }
     },

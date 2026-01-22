@@ -1,7 +1,7 @@
 const ENV = {
     dev: {
-        apiUrl: 'http://192.168.1.7:3000/api',
-        webUrl: 'http://192.168.1.7:3000',
+        apiUrl: 'http://192.168.100.8:3000/api',
+        webUrl: 'http://192.168.100.8:3000',
     },
     staging: {
         apiUrl: 'https://operadora-dev-preview.vercel.app/api',

@@ -420,6 +420,7 @@ class SearchService {
       'monterrey': 'MTY',
       'cabo': 'SJD',
       'los cabos': 'SJD',
+      'san jose del cabo': 'SJD',
       'puerto vallarta': 'PVR',
       'vallarta': 'PVR',
       'paris': 'PAR',
@@ -435,7 +436,25 @@ class SearchService {
       'los angeles': 'LAX'
     }
 
-    const normalized = cityName.toLowerCase().trim()
+    // Normalizar entrada: 'Cancún, Quintana Roo - México' -> 'cancun'
+    let normalized = cityName.toLowerCase().trim()
+
+    // Si tiene coma (ej. "Cancún, México"), tomar solo la primera parte
+    if (normalized.includes(',')) {
+      normalized = normalized.split(',')[0].trim()
+    }
+
+    // Si tiene guión (ej. "Cancún - Zona Hotelera"), tomar solo la primera parte
+    if (normalized.includes('-')) {
+      normalized = normalized.split('-')[0].trim()
+    }
+
+    // Quitar acentos para búsqueda más robusta si la primera falla
+    if (!cityMapping[normalized]) {
+      const noAccents = normalized.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      if (cityMapping[noAccents]) return cityMapping[noAccents]
+    }
+
     return cityMapping[normalized] || null
   }
 
