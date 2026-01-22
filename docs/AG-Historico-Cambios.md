@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 21 de Enero de 2026 - 19:30 CST  
-**Versión actual:** v2.231  
+**Última actualización:** 21 de Enero de 2026 - 19:50 CST  
+**Versión actual:** v2.232  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,20 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.232 - 21 de Enero de 2026 - 19:50 CST
+
+**Cambios UI:**
+- **Calendario (Hotfix):**
+  - Se restauró la funcionalidad visual para deshabilitar fechas pasadas (estilo tenue/tachado).
+  - Se restauró y mejoró la visualización de rangos seleccionados (highlight azul continuo).
+  - Se conservó la corrección de alineación de columnas.
+  - Corrección de mapeo de clases para modificadores en `react-day-picker` v9 (`day_disabled` -> `disabled`, etc.).
+
+**Cifra de Control:**
+- T: 57 | C: 545
+
+---
 
 ### v2.231 - 21 de Enero de 2026 - 19:30 CST
 
