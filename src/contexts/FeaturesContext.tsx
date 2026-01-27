@@ -17,7 +17,7 @@ interface FeaturesContextType {
 const FeaturesContext = createContext<FeaturesContextType | null>(null);
 
 export function FeaturesProvider({ children }: { children: ReactNode }) {
-    const { isAuthenticated, user, accessToken } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [features, setFeatures] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [loginRequired, setLoginRequired] = useState(false);
@@ -30,8 +30,12 @@ export function FeaturesProvider({ children }: { children: ReactNode }) {
                 'Content-Type': 'application/json'
             };
 
-            if (accessToken) {
-                headers['Authorization'] = `Bearer ${accessToken}`;
+            // Obtener token del localStorage
+            if (typeof window !== 'undefined') {
+                const token = localStorage.getItem('as_token');
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
             }
 
             const response = await fetch('/api/features/user?platform=web', { headers });
@@ -50,7 +54,7 @@ export function FeaturesProvider({ children }: { children: ReactNode }) {
         } finally {
             setLoading(false);
         }
-    }, [accessToken]);
+    }, []);
 
     // Cargar features al montar y cuando cambie la autenticación
     useEffect(() => {
