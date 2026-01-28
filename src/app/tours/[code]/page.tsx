@@ -198,7 +198,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
             {/* Header traslúcido - mismo tamaño que la principal */}
             <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
-                <div className="container mx-auto px-4 py-5">
+                <div className="container mx-auto px-4 py-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <button
@@ -555,8 +555,8 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                     <div className="grid md:grid-cols-4 gap-8 mb-8">
                         {/* Logo y descripción */}
                         <div>
-                            <Logo className="h-10 mb-4" />
-                            <p className="text-gray-600 text-sm mt-2">
+                            <Logo className="h-12 mb-6" />
+                            <p className="text-gray-600 text-sm">
                                 Tu agencia de viajes de confianza. Más de 10 años creando experiencias inolvidables.
                             </p>
                         </div>

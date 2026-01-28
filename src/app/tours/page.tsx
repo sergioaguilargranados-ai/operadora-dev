@@ -201,7 +201,7 @@ function ToursContent() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
             {/* Header traslúcido - mismo tamaño que la principal */}
             <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
-                <div className="container mx-auto px-4 py-5">
+                <div className="container mx-auto px-4 py-6">
                     <div className="flex items-center justify-between">
                         {/* Logo y botón regresar */}
                         <div className="flex items-center gap-4">
@@ -239,10 +239,10 @@ function ToursContent() {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={handleWhatsApp}
-                                className="text-gray-600 hover:text-green-600"
+                                onClick={() => router.push('/ayuda')}
+                                className="text-gray-600 hover:text-blue-600"
                             >
-                                <MessageCircle className="w-5 h-5" />
+                                <HelpCircle className="w-5 h-5" />
                                 <span className="hidden md:inline ml-2">Ayuda</span>
                             </Button>
                             <Button
@@ -536,8 +536,8 @@ function ToursContent() {
                     <div className="grid md:grid-cols-4 gap-8 mb-8">
                         {/* Logo y descripción */}
                         <div>
-                            <Logo className="h-10 mb-4" />
-                            <p className="text-gray-600 text-sm mt-2">
+                            <Logo className="h-12 mb-6" />
+                            <p className="text-gray-600 text-sm">
                                 Tu agencia de viajes de confianza. Más de 10 años creando experiencias inolvidables.
                             </p>
                         </div>

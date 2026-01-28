@@ -2152,10 +2152,11 @@ export default function Home() {
                     <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden mb-6">
                       {toursVideoUrl.includes('youtube') || toursVideoUrl.includes('vimeo') ? (
                         <iframe
-                          src={toursVideoUrl + '?autoplay=1&mute=1&loop=1&controls=0'}
+                          src={toursVideoUrl + '?autoplay=1&mute=1&loop=1&controls=0&playlist=' + toursVideoUrl.split('/').pop()}
                           className="w-full h-full"
-                          allow="autoplay; muted; loop"
-                          style={{ pointerEvents: 'none' }}
+                          allow="autoplay; encrypted-media"
+                          style={{ pointerEvents: 'none', border: 'none' }}
+                          title="Video promocional"
                         />
                       ) : (
                         <img
