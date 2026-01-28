@@ -1,5 +1,5 @@
 // Página de detalle de Tour
-// Build: 27 Ene 2026 - v2.235 - Sistema Híbrido MegaTravel
+// Build: 28 Ene 2026 - v2.237 - Carrusel automático, footer completo
 
 'use client'
 
@@ -7,35 +7,35 @@ import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
     ArrowLeft,
     MapPin,
-    Calendar,
     Users,
     Plane,
     Star,
     Clock,
     CheckCircle,
     XCircle,
-    ChevronRight,
     Phone,
     Mail,
     MessageCircle,
-    Share2,
-    Heart,
     Hotel,
     Utensils,
     Globe,
     Loader2,
     Tag,
-    Info,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    ChevronLeft,
+    ChevronRight,
+    HelpCircle
 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
+
+const WHATSAPP_NUMBER = '+525512345678' // Número de pruebas
 
 interface TourDetail {
     id: string
@@ -98,13 +98,26 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
     const router = useRouter()
     const [tour, setTour] = useState<TourDetail | null>(null)
     const [loading, setLoading] = useState(true)
-    const [selectedImage, setSelectedImage] = useState(0)
+    const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [showFullIncludes, setShowFullIncludes] = useState(false)
     const [showFullOptionalTours, setShowFullOptionalTours] = useState(false)
 
     useEffect(() => {
         fetchTourDetail()
     }, [resolvedParams.code])
+
+    // Carrusel automático
+    useEffect(() => {
+        if (!tour) return
+        const allImages = [tour.images.main, ...(tour.images.gallery || [])].filter(Boolean)
+        if (allImages.length <= 1) return
+
+        const interval = setInterval(() => {
+            setCurrentImageIndex(prev => (prev + 1) % allImages.length)
+        }, 5000) // Cambiar cada 5 segundos
+
+        return () => clearInterval(interval)
+    }, [tour])
 
     const fetchTourDetail = async () => {
         setLoading(true)
@@ -138,7 +151,19 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
             `Precio: $${formatPrice(tour?.pricing.totalPrice || 0)} USD. ` +
             `¿Me pueden dar más información?`
         )
-        window.open(`https://wa.me/+525553509000?text=${message}`, '_blank')
+        window.open(`https://wa.me/${WHATSAPP_NUMBER.replace(/\s+/g, '')}?text=${message}`, '_blank')
+    }
+
+    const nextImage = () => {
+        if (!tour) return
+        const allImages = [tour.images.main, ...(tour.images.gallery || [])].filter(Boolean)
+        setCurrentImageIndex(prev => (prev + 1) % allImages.length)
+    }
+
+    const prevImage = () => {
+        if (!tour) return
+        const allImages = [tour.images.main, ...(tour.images.gallery || [])].filter(Boolean)
+        setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length)
     }
 
     if (loading) {
@@ -173,7 +198,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
             {/* Header traslúcido */}
             <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-white/20 shadow-sm">
-                <div className="container mx-auto px-4 py-3">
+                <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <button
@@ -181,18 +206,26 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                 className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
                             >
                                 <ArrowLeft className="w-5 h-5" />
-                                <span className="hidden sm:inline">Volver</span>
+                                <span className="hidden sm:inline text-sm font-medium">Volver</span>
                             </button>
                             <Link href="/" className="flex items-center">
-                                <Logo className="h-8" />
+                                <Logo className="h-10" />
                             </Link>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
-                                variant="outline"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => router.push('/ayuda')}
+                                className="text-gray-600"
+                            >
+                                <HelpCircle className="w-5 h-5" />
+                                <span className="hidden md:inline ml-2">Ayuda</span>
+                            </Button>
+                            <Button
                                 size="sm"
                                 onClick={handleWhatsApp}
-                                className="bg-green-500 text-white border-0 hover:bg-green-600"
+                                className="bg-green-500 text-white hover:bg-green-600"
                             >
                                 <MessageCircle className="w-4 h-4 mr-2" />
                                 <span className="hidden sm:inline">WhatsApp</span>
@@ -202,29 +235,63 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                 </div>
             </header>
 
-            {/* Hero con imagen */}
-            <section className="relative h-[40vh] md:h-[50vh] overflow-hidden">
-                <Image
-                    src={allImages[selectedImage] || '/placeholder.jpg'}
-                    alt={tour.name}
-                    fill
-                    className="object-cover"
-                    priority
-                />
+            {/* Hero con carrusel de imágenes */}
+            <section className="relative h-[45vh] md:h-[55vh] overflow-hidden">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={currentImageIndex}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute inset-0"
+                    >
+                        <Image
+                            src={allImages[currentImageIndex] || '/placeholder.jpg'}
+                            alt={tour.name}
+                            fill
+                            className="object-cover"
+                            priority
+                        />
+                    </motion.div>
+                </AnimatePresence>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-                {/* Badges */}
-                <div className="absolute top-4 left-4 flex gap-2">
-                    {tour.isFeatured && (
-                        <span className="px-3 py-1 bg-yellow-500 text-white text-sm font-bold rounded-full flex items-center gap-1">
-                            <Star className="w-4 h-4" /> Destacado
-                        </span>
-                    )}
-                    {tour.isOffer && (
-                        <span className="px-3 py-1 bg-red-500 text-white text-sm font-bold rounded-full flex items-center gap-1">
-                            <Tag className="w-4 h-4" /> Oferta
-                        </span>
-                    )}
+                {/* Controles del carrusel */}
+                {allImages.length > 1 && (
+                    <>
+                        <button
+                            onClick={prevImage}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-colors"
+                        >
+                            <ChevronLeft className="w-6 h-6" />
+                        </button>
+                        <button
+                            onClick={nextImage}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-colors"
+                        >
+                            <ChevronRight className="w-6 h-6" />
+                        </button>
+
+                        {/* Indicadores */}
+                        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2">
+                            {allImages.map((_, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => setCurrentImageIndex(i)}
+                                    className={`w-2 h-2 rounded-full transition-all ${i === currentImageIndex ? 'bg-white w-6' : 'bg-white/50'
+                                        }`}
+                                />
+                            ))}
+                        </div>
+                    </>
+                )}
+
+                {/* Badge OFERTA */}
+                <div className="absolute top-4 left-4">
+                    <span className="px-4 py-2 bg-red-500 text-white text-sm font-bold rounded-full flex items-center gap-2 shadow-lg">
+                        <Tag className="w-4 h-4" /> OFERTA ESPECIAL
+                    </span>
                 </div>
 
                 {/* Info superpuesta */}
@@ -254,22 +321,6 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                         </div>
                     </div>
                 </div>
-
-                {/* Galería miniaturas */}
-                {allImages.length > 1 && (
-                    <div className="absolute bottom-4 right-4 flex gap-2">
-                        {allImages.slice(0, 4).map((img, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setSelectedImage(i)}
-                                className={`w-16 h-12 rounded-lg overflow-hidden border-2 transition-all ${selectedImage === i ? 'border-white scale-110' : 'border-white/50 opacity-70'
-                                    }`}
-                            >
-                                <Image src={img} alt="" fill className="object-cover" />
-                            </button>
-                        ))}
-                    </div>
-                )}
             </section>
 
             {/* Contenido principal */}
@@ -277,7 +328,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                 <div className="container mx-auto px-4">
                     <div className="grid lg:grid-cols-3 gap-8">
                         {/* Columna izquierda - Detalles */}
-                        <div className="lg:col-span-2 space-y-8">
+                        <div className="lg:col-span-2 space-y-6">
                             {/* Descripción */}
                             <Card className="p-6">
                                 <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
@@ -391,19 +442,6 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                     )}
                                 </Card>
                             )}
-
-                            {/* Notas importantes */}
-                            {tour.tipsAmount && (
-                                <Card className="p-6 bg-amber-50 border-amber-200">
-                                    <h2 className="text-xl font-bold mb-3 flex items-center gap-2 text-amber-800">
-                                        <Info className="w-5 h-5" />
-                                        Información importante
-                                    </h2>
-                                    <p className="text-amber-700">
-                                        <strong>Propinas sugeridas:</strong> {tour.tipsAmount} (se pagan en destino)
-                                    </p>
-                                </Card>
-                            )}
                         </div>
 
                         {/* Columna derecha - Precio y reserva */}
@@ -443,7 +481,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                         onClick={handleWhatsApp}
                                     >
                                         <MessageCircle className="w-5 h-5 mr-2" />
-                                        Consultar por WhatsApp
+                                        Reservar por WhatsApp
                                     </Button>
                                 </Card>
 
@@ -470,11 +508,11 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                     <h4 className="font-semibold mb-3">¿Necesitas ayuda?</h4>
                                     <div className="space-y-2 text-sm">
                                         <a
-                                            href="tel:+525553509000"
+                                            href={`tel:${WHATSAPP_NUMBER}`}
                                             className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
                                         >
                                             <Phone className="w-4 h-4" />
-                                            +52 55 5350 9000
+                                            {WHATSAPP_NUMBER}
                                         </a>
                                         <a
                                             href="mailto:viajes@asoperadora.com"
@@ -483,6 +521,13 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                             <Mail className="w-4 h-4" />
                                             viajes@asoperadora.com
                                         </a>
+                                        <button
+                                            onClick={handleWhatsApp}
+                                            className="flex items-center gap-2 text-green-600 hover:text-green-700"
+                                        >
+                                            <MessageCircle className="w-4 h-4" />
+                                            WhatsApp
+                                        </button>
                                     </div>
                                 </Card>
 
@@ -504,18 +549,67 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="bg-gray-900 text-white py-8">
+            {/* Footer completo */}
+            <footer className="bg-gray-900 text-white py-10">
                 <div className="container mx-auto px-4">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div className="flex items-center gap-2">
-                            <Logo className="h-6 brightness-0 invert" />
-                            <span className="text-gray-400">|</span>
-                            <span className="text-sm text-gray-400">Tours y Viajes Grupales</span>
+                    <div className="grid md:grid-cols-4 gap-8 mb-8">
+                        {/* Logo */}
+                        <div>
+                            <Logo className="h-10 brightness-0 invert mb-4" />
+                            <p className="text-gray-400 text-sm">
+                                Tu agencia de viajes de confianza. Más de 10 años creando experiencias inolvidables.
+                            </p>
                         </div>
-                        <div className="text-sm text-gray-400">
-                            © 2026 AS Operadora. Todos los derechos reservados. v2.235
+
+                        {/* Contacto */}
+                        <div>
+                            <h4 className="font-bold mb-4">Contacto</h4>
+                            <div className="space-y-2 text-sm text-gray-400">
+                                <a href={`tel:${WHATSAPP_NUMBER}`} className="flex items-center gap-2 hover:text-white">
+                                    <Phone className="w-4 h-4" />
+                                    {WHATSAPP_NUMBER}
+                                </a>
+                                <a href="mailto:viajes@asoperadora.com" className="flex items-center gap-2 hover:text-white">
+                                    <Mail className="w-4 h-4" />
+                                    viajes@asoperadora.com
+                                </a>
+                                <button onClick={handleWhatsApp} className="flex items-center gap-2 hover:text-green-400">
+                                    <MessageCircle className="w-4 h-4" />
+                                    WhatsApp
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Ayuda */}
+                        <div>
+                            <h4 className="font-bold mb-4">Ayuda</h4>
+                            <div className="space-y-2 text-sm text-gray-400">
+                                <Link href="/preguntas-frecuentes" className="block hover:text-white">Preguntas frecuentes</Link>
+                                <Link href="/terminos" className="block hover:text-white">Términos y condiciones</Link>
+                                <Link href="/privacidad" className="block hover:text-white">Política de privacidad</Link>
+                                <Link href="/contacto" className="block hover:text-white">Contáctanos</Link>
+                            </div>
+                        </div>
+
+                        {/* Tours */}
+                        <div>
+                            <h4 className="font-bold mb-4">Tours</h4>
+                            <div className="space-y-2 text-sm text-gray-400">
+                                <Link href="/tours?cat=ofertas" className="block hover:text-white">🔥 Ofertas Especiales</Link>
+                                <Link href="/tours?cat=bloqueos" className="block hover:text-white">🎯 Bloqueos</Link>
+                                <Link href="/tours?cat=semana-santa" className="block hover:text-white">🌴 Semana Santa</Link>
+                                <Link href="/tours?cat=favoritos" className="block hover:text-white">⭐ Favoritos</Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-gray-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <p className="text-sm text-gray-400">
+                            © 2026 AS Operadora de Viajes y Eventos. Todos los derechos reservados.
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            v2.237 | Build: 28 Ene 2026
+                        </p>
                     </div>
                 </div>
             </footer>

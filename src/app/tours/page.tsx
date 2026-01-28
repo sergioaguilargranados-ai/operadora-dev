@@ -1,5 +1,5 @@
 // Catálogo de Tours y Viajes Grupales
-// Build: 27 Ene 2026 - v2.236 - Fix Suspense boundary
+// Build: 28 Ene 2026 - v2.237 - Rediseño completo con navegación por categorías
 
 'use client'
 
@@ -7,7 +7,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,10 +18,18 @@ import {
     Plane,
     Star,
     ArrowRight,
+    ArrowLeft,
     Globe,
     Clock,
     Tag,
-    Loader2
+    Loader2,
+    Phone,
+    Mail,
+    MessageCircle,
+    HelpCircle,
+    Sparkles,
+    Calendar,
+    Heart
 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 
@@ -68,18 +76,16 @@ interface TourPackage {
     isOffer: boolean
 }
 
-const REGIONS = [
-    { code: 'all', name: 'Todos', icon: '🌍' },
-    { code: 'Europa', name: 'Europa', icon: '🇪🇺' },
-    { code: 'Medio Oriente', name: 'Medio Oriente', icon: '🕌' },
-    { code: 'Asia', name: 'Asia', icon: '🌏' },
-    { code: 'Norte América', name: 'Norteamérica', icon: '🇺🇸' },
-    { code: 'Sudamérica', name: 'Sudamérica', icon: '🌎' },
-    { code: 'Caribe', name: 'Caribe', icon: '🏝️' },
-    { code: 'Cruceros', name: 'Cruceros', icon: '🚢' },
+// Categorías de navegación
+const CATEGORIES = [
+    { code: 'ofertas', name: 'OFERTAS Especiales', icon: '🔥', filter: 'offer' },
+    { code: 'bloqueos', name: 'Bloqueos, aparta tu lugar', icon: '🎯', filter: 'featured' },
+    { code: 'semana-santa', name: 'Ofertas de Semana Santa', icon: '🌴', filter: 'semana-santa' },
+    { code: 'favoritos', name: 'Favoritos, los imperdibles', icon: '⭐', filter: 'featured' },
 ]
 
-// Componente interno que usa useSearchParams
+const WHATSAPP_NUMBER = '+5255 1234 5678' // Número de pruebas
+
 function ToursContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -87,19 +93,39 @@ function ToursContent() {
     const [packages, setPackages] = useState<TourPackage[]>([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState(searchParams?.get('search') || '')
-    const [selectedRegion, setSelectedRegion] = useState(searchParams?.get('region') || 'all')
+    const [selectedCategory, setSelectedCategory] = useState(searchParams?.get('cat') || 'ofertas')
+    const [videoUrl, setVideoUrl] = useState('https://images.unsplash.com/photo-1499856871958-5b9337606a3e?w=1600')
 
     useEffect(() => {
         fetchPackages()
-    }, [selectedRegion])
+        fetchSettings()
+    }, [selectedCategory])
+
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch('/api/settings?key=TOURS_PROMO_VIDEO_URL')
+            const data = await res.json()
+            if (data.success && data.value) {
+                setVideoUrl(data.value)
+            }
+        } catch (error) {
+            console.error('Error fetching settings:', error)
+        }
+    }
 
     const fetchPackages = async () => {
         setLoading(true)
         try {
             let url = '/api/groups?'
-            if (selectedRegion && selectedRegion !== 'all') {
-                url += `region=${encodeURIComponent(selectedRegion)}&`
+
+            // Filtrar según categoría
+            const cat = CATEGORIES.find(c => c.code === selectedCategory)
+            if (cat?.filter === 'offer') {
+                url += 'offer=true&'
+            } else if (cat?.filter === 'featured') {
+                url += 'featured=true&'
             }
+
             if (search) {
                 url += `search=${encodeURIComponent(search)}&`
             }
@@ -129,60 +155,128 @@ function ToursContent() {
         }).format(price)
     }
 
+    const handleWhatsApp = () => {
+        const message = encodeURIComponent(
+            `Hola, estoy interesado en los tours y viajes grupales. ¿Me pueden dar más información?`
+        )
+        window.open(`https://wa.me/${WHATSAPP_NUMBER.replace(/\s+/g, '')}?text=${message}`, '_blank')
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-            {/* Header traslúcido */}
+            {/* Header traslúcido - mismo tamaño que la principal */}
             <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-white/20 shadow-sm">
-                <div className="container mx-auto px-4 py-3">
+                <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2">
-                            <Logo className="h-8" />
-                        </Link>
-                        <nav className="hidden md:flex items-center gap-6">
-                            <Link href="/" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
-                                Inicio
+                        {/* Logo y botón regresar */}
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => router.push('/')}
+                                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
+                            >
+                                <ArrowLeft className="w-5 h-5" />
+                                <span className="hidden sm:inline text-sm font-medium">Regresar</span>
+                            </button>
+                            <Link href="/" className="flex items-center">
+                                <Logo className="h-10" />
                             </Link>
-                            <Link href="/tours" className="text-sm font-medium text-blue-600">
-                                Tours
-                            </Link>
-                            <Link href="/viajes-grupales" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
-                                Cotización Grupal
-                            </Link>
+                        </div>
+
+                        {/* Navegación por categorías */}
+                        <nav className="hidden lg:flex items-center gap-1">
+                            {CATEGORIES.map((cat) => (
+                                <button
+                                    key={cat.code}
+                                    onClick={() => setSelectedCategory(cat.code)}
+                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat.code
+                                            ? 'bg-blue-600 text-white shadow-lg'
+                                            : 'text-gray-700 hover:bg-gray-100'
+                                        }`}
+                                >
+                                    <span className="mr-1">{cat.icon}</span>
+                                    {cat.name}
+                                </button>
+                            ))}
                         </nav>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => router.push('/viajes-grupales')}
-                            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 hover:from-blue-700 hover:to-indigo-700"
-                        >
-                            <Users className="w-4 h-4 mr-2" />
-                            Cotizar Grupo
-                        </Button>
+
+                        {/* Ayuda y contacto */}
+                        <div className="flex items-center gap-3">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleWhatsApp}
+                                className="text-gray-600 hover:text-green-600"
+                            >
+                                <MessageCircle className="w-5 h-5" />
+                                <span className="hidden md:inline ml-2">Ayuda</span>
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={() => router.push('/viajes-grupales')}
+                                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 hover:from-blue-700 hover:to-indigo-700"
+                            >
+                                <Users className="w-4 h-4 mr-2" />
+                                <span className="hidden sm:inline">Cotizar Grupo</span>
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Navegación móvil */}
+                    <div className="lg:hidden mt-3 overflow-x-auto pb-2 scrollbar-hide">
+                        <div className="flex gap-2">
+                            {CATEGORIES.map((cat) => (
+                                <button
+                                    key={cat.code}
+                                    onClick={() => setSelectedCategory(cat.code)}
+                                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${selectedCategory === cat.code
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-100 text-gray-700'
+                                        }`}
+                                >
+                                    {cat.icon} {cat.name}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </header>
 
-            {/* Hero Section */}
-            <section className="relative py-16 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 to-indigo-700/90">
-                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1499856871958-5b9337606a3e?w=1600')] bg-cover bg-center opacity-30" />
+            {/* Hero Section con video/imagen de fondo */}
+            <section className="relative py-12 md:py-16 overflow-hidden">
+                {/* Fondo - video o imagen parametrizable */}
+                <div className="absolute inset-0">
+                    {videoUrl.includes('youtube') || videoUrl.includes('vimeo') ? (
+                        <iframe
+                            src={videoUrl}
+                            className="w-full h-full object-cover"
+                            allow="autoplay; muted; loop"
+                            style={{ pointerEvents: 'none' }}
+                        />
+                    ) : (
+                        <div
+                            className="absolute inset-0 bg-cover bg-center"
+                            style={{ backgroundImage: `url(${videoUrl})` }}
+                        />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/85 to-indigo-700/85" />
                 </div>
+
                 <div className="container mx-auto px-4 relative z-10">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="text-center text-white"
                     >
-                        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                            Tours y Viajes Grupales
+                        <h1 className="text-3xl md:text-5xl font-bold mb-4">
+                            {CATEGORIES.find(c => c.code === selectedCategory)?.icon} {CATEGORIES.find(c => c.code === selectedCategory)?.name}
                         </h1>
-                        <p className="text-lg md:text-xl opacity-90 mb-8 max-w-2xl mx-auto">
+                        <p className="text-lg md:text-xl opacity-90 mb-6 max-w-2xl mx-auto">
                             Descubre el mundo con nuestros paquetes todo incluido.
                             Europa, Asia, Medio Oriente y más destinos te esperan.
                         </p>
 
                         {/* Barra de búsqueda */}
-                        <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+                        <form onSubmit={handleSearch} className="max-w-xl mx-auto">
                             <div className="flex gap-2 bg-white/10 backdrop-blur-sm rounded-xl p-2">
                                 <div className="relative flex-1">
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
@@ -205,195 +299,234 @@ function ToursContent() {
                 </div>
             </section>
 
-            {/* Filtros por región */}
-            <section className="py-6 bg-white border-b">
-                <div className="container mx-auto px-4">
-                    <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                        {REGIONS.map((region) => (
-                            <button
-                                key={region.code}
-                                onClick={() => setSelectedRegion(region.code)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${selectedRegion === region.code
-                                        ? 'bg-blue-600 text-white shadow-lg'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                    }`}
-                            >
-                                <span>{region.icon}</span>
-                                <span className="font-medium">{region.name}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
             {/* Lista de paquetes */}
-            <section className="py-12">
+            <section className="py-8 md:py-12">
                 <div className="container mx-auto px-4">
-                    {loading ? (
-                        <div className="flex items-center justify-center py-20">
-                            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                            <span className="ml-3 text-gray-600">Cargando tours...</span>
-                        </div>
-                    ) : packages.length === 0 ? (
-                        <div className="text-center py-20">
-                            <Globe className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                            <h3 className="text-xl font-semibold text-gray-600 mb-2">No encontramos tours</h3>
-                            <p className="text-gray-500">Intenta con otro destino o región</p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold text-gray-800">
-                                    {packages.length} {packages.length === 1 ? 'Tour disponible' : 'Tours disponibles'}
-                                </h2>
-                            </div>
+                    <AnimatePresence mode="wait">
+                        {loading ? (
+                            <motion.div
+                                key="loading"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="flex items-center justify-center py-20"
+                            >
+                                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                                <span className="ml-3 text-gray-600">Cargando tours...</span>
+                            </motion.div>
+                        ) : packages.length === 0 ? (
+                            <motion.div
+                                key="empty"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-center py-20"
+                            >
+                                <Globe className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                                <h3 className="text-xl font-semibold text-gray-600 mb-2">No encontramos tours</h3>
+                                <p className="text-gray-500">Intenta con otra categoría o búsqueda</p>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="results"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                            >
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-2xl font-bold text-gray-800">
+                                        {packages.length} {packages.length === 1 ? 'Tour disponible' : 'Tours disponibles'}
+                                    </h2>
+                                </div>
 
-                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {packages.map((pkg, index) => (
-                                    <motion.div
-                                        key={pkg.id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.05 }}
-                                    >
-                                        <Link href={`/tours/${pkg.id}`}>
-                                            <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer h-full">
-                                                {/* Imagen */}
-                                                <div className="relative h-52 overflow-hidden">
-                                                    <Image
-                                                        src={pkg.images.main || '/placeholder.jpg'}
-                                                        alt={pkg.name}
-                                                        fill
-                                                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                                                    />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                                <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                    {packages.map((pkg, index) => (
+                                        <motion.div
+                                            key={pkg.id}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.05 }}
+                                            whileHover={{ y: -5 }}
+                                        >
+                                            <Link href={`/tours/${pkg.id}`}>
+                                                <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer h-full rounded-2xl border-0 shadow-md">
+                                                    {/* Imagen */}
+                                                    <div className="relative h-48 overflow-hidden">
+                                                        <Image
+                                                            src={pkg.images.main || '/placeholder.jpg'}
+                                                            alt={pkg.name}
+                                                            fill
+                                                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                                                    {/* Badges */}
-                                                    <div className="absolute top-3 left-3 flex gap-2">
-                                                        {pkg.isFeatured && (
-                                                            <span className="px-2 py-1 bg-yellow-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
-                                                                <Star className="w-3 h-3" /> Destacado
+                                                        {/* Badge OFERTA - siempre visible */}
+                                                        <div className="absolute top-3 left-3">
+                                                            <span className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center gap-1 shadow-lg">
+                                                                <Tag className="w-3 h-3" /> OFERTA
                                                             </span>
-                                                        )}
-                                                        {pkg.isOffer && (
-                                                            <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
-                                                                <Tag className="w-3 h-3" /> Oferta
-                                                            </span>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Duración */}
-                                                    <div className="absolute bottom-3 left-3 flex items-center gap-2 text-white text-sm">
-                                                        <Clock className="w-4 h-4" />
-                                                        <span>{pkg.duration}</span>
-                                                    </div>
-
-                                                    {/* Vuelo incluido */}
-                                                    {pkg.flight.included && (
-                                                        <div className="absolute bottom-3 right-3 flex items-center gap-1 text-white text-xs bg-blue-600/80 px-2 py-1 rounded-full">
-                                                            <Plane className="w-3 h-3" />
-                                                            <span>Vuelo incluido</span>
                                                         </div>
-                                                    )}
-                                                </div>
 
-                                                {/* Contenido */}
-                                                <div className="p-4">
-                                                    <div className="flex items-start justify-between mb-2">
-                                                        <div>
-                                                            <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">
-                                                                {pkg.region}
-                                                            </span>
-                                                            <h3 className="font-bold text-lg text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2">
-                                                                {pkg.name}
-                                                            </h3>
+                                                        {/* Duración */}
+                                                        <div className="absolute bottom-3 left-3 flex items-center gap-2 text-white text-sm">
+                                                            <Clock className="w-4 h-4" />
+                                                            <span>{pkg.duration}</span>
                                                         </div>
-                                                    </div>
 
-                                                    {/* Ciudades */}
-                                                    <div className="flex items-center gap-1 text-gray-500 text-sm mb-3">
-                                                        <MapPin className="w-4 h-4 flex-shrink-0" />
-                                                        <span className="line-clamp-1">
-                                                            {pkg.cities.slice(0, 3).join(', ')}
-                                                            {pkg.cities.length > 3 && ` +${pkg.cities.length - 3}`}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Incluye */}
-                                                    <div className="flex flex-wrap gap-1 mb-4">
-                                                        {pkg.includes.slice(0, 2).map((item, i) => (
-                                                            <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                                                {item.length > 20 ? item.substring(0, 20) + '...' : item}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-
-                                                    {/* Precio */}
-                                                    <div className="border-t pt-3">
-                                                        <div className="flex items-end justify-between">
-                                                            <div>
-                                                                <span className="text-xs text-gray-500">Desde</span>
-                                                                <div className="flex items-baseline gap-1">
-                                                                    <span className="text-2xl font-bold text-blue-600">
-                                                                        ${formatPrice(pkg.pricing.totalPrice)}
-                                                                    </span>
-                                                                    <span className="text-sm text-gray-500">USD</span>
-                                                                </div>
-                                                                <span className="text-xs text-gray-400">{pkg.pricing.priceType}</span>
+                                                        {/* Vuelo incluido */}
+                                                        {pkg.flight.included && (
+                                                            <div className="absolute bottom-3 right-3 flex items-center gap-1 text-white text-xs bg-blue-600/80 px-2 py-1 rounded-full">
+                                                                <Plane className="w-3 h-3" />
+                                                                <span>Vuelo</span>
                                                             </div>
-                                                            <Button
-                                                                size="sm"
-                                                                className="bg-blue-600 hover:bg-blue-700 text-white"
-                                                            >
-                                                                Ver más
-                                                                <ArrowRight className="w-4 h-4 ml-1" />
-                                                            </Button>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Contenido */}
+                                                    <div className="p-4">
+                                                        <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">
+                                                            {pkg.region}
+                                                        </span>
+                                                        <h3 className="font-bold text-lg text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2 mt-1">
+                                                            {pkg.name}
+                                                        </h3>
+
+                                                        {/* Ciudades */}
+                                                        <div className="flex items-center gap-1 text-gray-500 text-sm mt-2">
+                                                            <MapPin className="w-4 h-4 flex-shrink-0" />
+                                                            <span className="line-clamp-1">
+                                                                {pkg.cities.slice(0, 2).join(', ')}
+                                                                {pkg.cities.length > 2 && ` +${pkg.cities.length - 2}`}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Precio */}
+                                                        <div className="border-t pt-3 mt-3">
+                                                            <div className="flex items-end justify-between">
+                                                                <div>
+                                                                    <span className="text-xs text-gray-500">Desde</span>
+                                                                    <div className="flex items-baseline gap-1">
+                                                                        <span className="text-2xl font-bold text-blue-600">
+                                                                            ${formatPrice(pkg.pricing.totalPrice)}
+                                                                        </span>
+                                                                        <span className="text-sm text-gray-500">USD</span>
+                                                                    </div>
+                                                                </div>
+                                                                <Button
+                                                                    size="sm"
+                                                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                                                >
+                                                                    Ver
+                                                                    <ArrowRight className="w-4 h-4 ml-1" />
+                                                                </Button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </Card>
-                                        </Link>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </>
-                    )}
+                                                </Card>
+                                            </Link>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </section>
 
             {/* CTA Cotización grupal */}
-            <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-700">
+            <section className="py-12 bg-gradient-to-r from-blue-600 to-indigo-700">
                 <div className="container mx-auto px-4 text-center">
-                    <h2 className="text-3xl font-bold text-white mb-4">
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
                         ¿Viajan más de 10 personas?
                     </h2>
-                    <p className="text-white/80 mb-8 max-w-xl mx-auto">
+                    <p className="text-white/80 mb-6 max-w-xl mx-auto">
                         Obtén una cotización personalizada con descuentos especiales para grupos.
-                        Nuestro equipo te ayudará a planear el viaje perfecto.
                     </p>
-                    <Button
-                        size="lg"
-                        onClick={() => router.push('/viajes-grupales')}
-                        className="bg-white text-blue-600 hover:bg-white/90 font-semibold px-8"
-                    >
-                        <Users className="w-5 h-5 mr-2" />
-                        Solicitar Cotización Grupal
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <Button
+                            size="lg"
+                            onClick={() => router.push('/viajes-grupales')}
+                            className="bg-white text-blue-600 hover:bg-white/90 font-semibold px-8"
+                        >
+                            <Users className="w-5 h-5 mr-2" />
+                            Solicitar Cotización
+                        </Button>
+                        <Button
+                            size="lg"
+                            variant="outline"
+                            onClick={handleWhatsApp}
+                            className="border-white text-white hover:bg-white/10 font-semibold px-8"
+                        >
+                            <MessageCircle className="w-5 h-5 mr-2" />
+                            WhatsApp
+                        </Button>
+                    </div>
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="bg-gray-900 text-white py-8">
+            {/* Footer completo */}
+            <footer className="bg-gray-900 text-white py-10">
                 <div className="container mx-auto px-4">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div className="flex items-center gap-2">
-                            <Logo className="h-6 brightness-0 invert" />
-                            <span className="text-gray-400">|</span>
-                            <span className="text-sm text-gray-400">Tours y Viajes Grupales</span>
+                    <div className="grid md:grid-cols-4 gap-8 mb-8">
+                        {/* Logo */}
+                        <div>
+                            <Logo className="h-10 brightness-0 invert mb-4" />
+                            <p className="text-gray-400 text-sm">
+                                Tu agencia de viajes de confianza. Más de 10 años creando experiencias inolvidables.
+                            </p>
                         </div>
-                        <div className="text-sm text-gray-400">
-                            © 2026 AS Operadora. Todos los derechos reservados. v2.236
+
+                        {/* Contacto */}
+                        <div>
+                            <h4 className="font-bold mb-4">Contacto</h4>
+                            <div className="space-y-2 text-sm text-gray-400">
+                                <a href={`tel:${WHATSAPP_NUMBER}`} className="flex items-center gap-2 hover:text-white">
+                                    <Phone className="w-4 h-4" />
+                                    {WHATSAPP_NUMBER}
+                                </a>
+                                <a href="mailto:viajes@asoperadora.com" className="flex items-center gap-2 hover:text-white">
+                                    <Mail className="w-4 h-4" />
+                                    viajes@asoperadora.com
+                                </a>
+                                <button onClick={handleWhatsApp} className="flex items-center gap-2 hover:text-green-400">
+                                    <MessageCircle className="w-4 h-4" />
+                                    WhatsApp
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Ayuda */}
+                        <div>
+                            <h4 className="font-bold mb-4">Ayuda</h4>
+                            <div className="space-y-2 text-sm text-gray-400">
+                                <Link href="/preguntas-frecuentes" className="block hover:text-white">Preguntas frecuentes</Link>
+                                <Link href="/terminos" className="block hover:text-white">Términos y condiciones</Link>
+                                <Link href="/privacidad" className="block hover:text-white">Política de privacidad</Link>
+                            </div>
+                        </div>
+
+                        {/* Categorías */}
+                        <div>
+                            <h4 className="font-bold mb-4">Categorías</h4>
+                            <div className="space-y-2 text-sm text-gray-400">
+                                {CATEGORIES.map(cat => (
+                                    <button
+                                        key={cat.code}
+                                        onClick={() => setSelectedCategory(cat.code)}
+                                        className="block hover:text-white"
+                                    >
+                                        {cat.icon} {cat.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-gray-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <p className="text-sm text-gray-400">
+                            © 2026 AS Operadora de Viajes y Eventos. Todos los derechos reservados.
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            v2.237 | Build: 28 Ene 2026
+                        </p>
                     </div>
                 </div>
             </footer>

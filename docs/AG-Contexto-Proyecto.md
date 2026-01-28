@@ -1,7 +1,7 @@
 # 🎯 AG-Contexto-Proyecto - AS Operadora
 
-**Última actualización:** 27 de Enero de 2026 - 18:20 CST  
-**Versión actual:** v2.235  
+**Última actualización:** 28 de Enero de 2026 - 10:30 CST  
+**Versión actual:** v2.237  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -19,7 +19,7 @@ Sergio Aguilar Granados
 Sistema completo de gestión de viajes corporativos con búsqueda, reservas, aprobaciones, pagos, reportes y dashboard ejecutivo. Competir con plataformas como Expedia con funcionalidades superiores.
 
 ### Estado Actual
-- **Versión:** v2.235
+- **Versión:** v2.237
 - **Progreso:** 98% completo
 - **Ambiente:** Desarrollo activo con usuarios en UAT
 - **Deploy:** Automático vía Git → Vercel
