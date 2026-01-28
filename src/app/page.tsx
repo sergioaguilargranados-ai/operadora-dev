@@ -1,6 +1,6 @@
 "use client"
 
-// Build: 27 Ene 2026 - v2.233 - Sistema de Administración Granular de Funciones
+// Build: 27 Ene 2026 - v2.235 - Tours y Viajes Grupales MegaTravel
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, MapPin, Plane, Package, Compass, ChevronRight, Percent, Tag, Loader2, Bell, HelpCircle, Hotel, Car, Activity, Home as HomeIcon, FileText, Calendar, MessageCircle, Shield, Users, Star, Smartphone, Bus, Sparkles, Utensils } from "lucide-react"
+import { Search, MapPin, Plane, Package, Compass, ChevronRight, Percent, Tag, Loader2, Bell, HelpCircle, Hotel, Car, Activity, Home as HomeIcon, FileText, Calendar, MessageCircle, Shield, Users, Star, Smartphone, Bus, Sparkles, Utensils, Globe } from "lucide-react"
 import { DateRangePicker } from "@/components/DateRangePicker"
 import { GuestSelector } from "@/components/GuestSelector"
 import { AirlineSelector } from "@/components/AirlineSelector"
@@ -311,6 +311,8 @@ export default function Home() {
   const [vacationPackages, setVacationPackages] = useState<VacationPackage[]>([])
   const [uniqueStays, setUniqueStays] = useState<UniqueStay[]>([])
   const [exploreDestinations, setExploreDestinations] = useState<ExploreDestination[]>([])
+  const [groupTours, setGroupTours] = useState<any[]>([])
+  const [loadingTours, setLoadingTours] = useState(false)
 
   // Estado para info de BD
   const [dbInfo, setDbInfo] = useState<DbInfo | null>(null)
@@ -378,6 +380,23 @@ export default function Home() {
     }
 
     fetchDynamicContent()
+
+    // Cargar tours grupales por separado
+    const fetchGroupTours = async () => {
+      setLoadingTours(true)
+      try {
+        const res = await fetch('/api/groups?featured=true&limit=4')
+        const data = await res.json()
+        if (data.success && data.data.packages) {
+          setGroupTours(data.data.packages)
+        }
+      } catch (error) {
+        console.error('Error loading group tours:', error)
+      } finally {
+        setLoadingTours(false)
+      }
+    }
+    fetchGroupTours()
   }, [])
 
   const handleSearchHotels = async () => {
@@ -2087,16 +2106,83 @@ export default function Home() {
 
                 {/* Viajes Grupales */}
                 <TabsContent value="groups" className="mt-6">
-                  <div className="text-center py-6">
-                    <Users className="w-12 h-12 mx-auto mb-3 text-blue-500" />
-                    <h3 className="text-xl font-bold mb-2">Viajes Grupales</h3>
-                    <p className="text-gray-600 mb-4">Cotización personalizada para grupos</p>
-                    <Button
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => router.push('/viajes-grupales')}
-                    >
-                      Solicitar cotización grupal
-                    </Button>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-bold text-gray-900">Tours y Viajes Grupales</h3>
+                      <Button
+                        variant="link"
+                        className="text-blue-600 font-semibold"
+                        onClick={() => router.push('/tours')}
+                      >
+                        Ver todos los tours
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </div>
+
+                    {loadingTours ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-blue-600 mr-2" />
+                        <span className="text-gray-600">Cargando tours...</span>
+                      </div>
+                    ) : groupTours.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {groupTours.slice(0, 4).map((tour: any) => (
+                          <Card
+                            key={tour.id}
+                            className="overflow-hidden cursor-pointer hover:shadow-lg transition-all group"
+                            onClick={() => router.push(`/tours/${tour.id}`)}
+                          >
+                            <div className="relative h-32">
+                              <img
+                                src={tour.images?.main || '/placeholder.jpg'}
+                                alt={tour.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                              <div className="absolute bottom-2 left-2 right-2">
+                                <span className="text-xs text-white/80">{tour.region}</span>
+                                <h4 className="font-bold text-white text-sm line-clamp-1">{tour.name}</h4>
+                              </div>
+                            </div>
+                            <div className="p-3">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <span className="text-xs text-gray-500">{tour.duration}</span>
+                                  <div className="font-bold text-blue-600">
+                                    ${new Intl.NumberFormat('es-MX').format(tour.pricing?.totalPrice || 0)} USD
+                                  </div>
+                                </div>
+                                {tour.flight?.included && (
+                                  <Plane className="w-4 h-4 text-gray-400" />
+                                )}
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-6 text-gray-500">
+                        No hay tours disponibles en este momento
+                      </div>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                      <Button
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                        onClick={() => router.push('/tours')}
+                      >
+                        <Globe className="w-5 h-5 mr-2" />
+                        Ver catálogo completo
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50"
+                        onClick={() => router.push('/viajes-grupales')}
+                      >
+                        <Users className="w-5 h-5 mr-2" />
+                        Cotización para grupos (+10 personas)
+                      </Button>
+                    </div>
                   </div>
                 </TabsContent>
 
@@ -2324,6 +2410,127 @@ export default function Home() {
 
         {/* Resto del contenido */}
         <div className="container mx-auto px-4 py-8 max-w-6xl">
+
+          {/* NUEVA SECCIÓN: Tours y Viajes Grupales */}
+          {groupTours.length > 0 && (
+            <div className="mb-12">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-3xl font-bold">Tours y Viajes Grupales</h2>
+                  <p className="text-gray-600 mt-1">Descubre el mundo con nuestros paquetes todo incluido</p>
+                </div>
+                <Button
+                  variant="link"
+                  className="text-[#0066FF] font-semibold"
+                  onClick={() => router.push('/tours')}
+                >
+                  Ver todos los tours
+                  <ChevronRight className="w-5 h-5 ml-1" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {groupTours.slice(0, 4).map((tour: any, index) => (
+                  <motion.div
+                    key={tour.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                  >
+                    <Card
+                      className="overflow-hidden group cursor-pointer border-none shadow-soft hover:shadow-hard transition-all duration-300 rounded-3xl h-full"
+                      onClick={() => router.push(`/tours/${tour.id}`)}
+                    >
+                      <div className="relative h-44 overflow-hidden">
+                        <motion.img
+                          whileHover={{ scale: 1.1 }}
+                          transition={{ duration: 0.5 }}
+                          src={tour.images?.main || 'https://images.unsplash.com/photo-1499856871958-5b9337606a3e?w=800'}
+                          alt={tour.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+
+                        {/* Badges */}
+                        <div className="absolute top-3 left-3 flex gap-2">
+                          {tour.isFeatured && (
+                            <span className="px-2 py-1 bg-yellow-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                              <Star className="w-3 h-3" /> Destacado
+                            </span>
+                          )}
+                          {tour.isOffer && (
+                            <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
+                              Oferta
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Info en imagen */}
+                        <div className="absolute bottom-3 left-3 right-3 text-white">
+                          <span className="text-xs opacity-80">{tour.region}</span>
+                          <h3 className="font-bold text-lg line-clamp-1">{tour.name}</h3>
+                          <div className="flex items-center gap-2 text-sm opacity-80">
+                            <Calendar className="w-4 h-4" />
+                            <span>{tour.duration}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4">
+                        <div className="flex items-center gap-1 text-gray-500 text-sm mb-2">
+                          <MapPin className="w-4 h-4" />
+                          <span className="line-clamp-1">
+                            {tour.cities?.slice(0, 2).join(', ')}
+                            {tour.cities?.length > 2 && ` +${tour.cities.length - 2}`}
+                          </span>
+                        </div>
+
+                        <div className="flex items-end justify-between pt-2 border-t border-gray-100">
+                          <div>
+                            <span className="text-xs text-gray-500">Desde</span>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-2xl font-bold text-blue-600">
+                                ${new Intl.NumberFormat('es-MX').format(tour.pricing?.totalPrice || 0)}
+                              </span>
+                              <span className="text-sm text-gray-500">USD</span>
+                            </div>
+                          </div>
+                          {tour.flight?.included && (
+                            <div className="flex items-center gap-1 text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
+                              <Plane className="w-3 h-3" />
+                              <span>Vuelo incluido</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* CTA adicional */}
+              <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8"
+                  onClick={() => router.push('/tours')}
+                >
+                  <Globe className="w-5 h-5 mr-2" />
+                  Explorar todos los tours
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8"
+                  onClick={() => router.push('/viajes-grupales')}
+                >
+                  <Users className="w-5 h-5 mr-2" />
+                  Cotización para grupos (+10 personas)
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Ofertas Especiales y Descuentos */}
           <div className="mb-12">
@@ -2656,7 +2863,7 @@ export default function Home() {
             <p>© 2024 AS Operadora de Viajes y Eventos. Todos los derechos reservados.</p>
             <p className="text-xs mt-1">AS Viajando</p>
             <p className="text-xs mt-2 opacity-50">
-              v2.233 | Build: 27 Ene 2026, 11:15 CST
+              v2.235 | Build: 27 Ene 2026, 18:15 CST
             </p>
             {dbInfo && (
               <div className="text-xs mt-3 opacity-70 bg-slate-100 p-3 rounded inline-block">
@@ -2666,7 +2873,7 @@ export default function Home() {
                 </p>
                 <p className="font-mono mt-1">
                   👥 Usuarios: <span className="font-bold">{dbInfo.totalUsers}</span> |
-                  📦 Versión: <span className="font-bold">v2.233</span>
+                  📦 Versión: <span className="font-bold">v2.235</span>
                 </p>
               </div>
             )}
