@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
         // Verificar autenticación
         const authHeader = request.headers.get('authorization');
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            console.log('[Admin Features] No auth header');
             return NextResponse.json(
                 { success: false, error: { code: 'UNAUTHORIZED', message: 'Token requerido' } },
                 { status: 401 }
@@ -22,9 +23,24 @@ export async function GET(request: NextRequest) {
         const token = authHeader.split(' ')[1];
         const decoded = await verifyToken(token);
 
-        if (!decoded || !['SUPER_ADMIN', 'ADMIN'].includes(decoded.role)) {
+        console.log('[Admin Features] Decoded token:', decoded);
+
+        if (!decoded) {
+            console.log('[Admin Features] Token inválido o expirado');
             return NextResponse.json(
-                { success: false, error: { code: 'FORBIDDEN', message: 'Acceso denegado' } },
+                { success: false, error: { code: 'UNAUTHORIZED', message: 'Token inválido o expirado' } },
+                { status: 401 }
+            );
+        }
+
+        // Verificar rol (aceptar varios formatos)
+        const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'super_admin', 'admin'];
+        const userRole = decoded.role?.toUpperCase() || '';
+
+        if (!allowedRoles.map(r => r.toUpperCase()).includes(userRole)) {
+            console.log('[Admin Features] Rol no autorizado:', decoded.role);
+            return NextResponse.json(
+                { success: false, error: { code: 'FORBIDDEN', message: 'Acceso denegado - Rol insuficiente' } },
                 { status: 403 }
             );
         }
