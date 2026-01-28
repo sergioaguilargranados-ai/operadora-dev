@@ -199,9 +199,9 @@ function ToursContent() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-            {/* Header traslúcido - más alto */}
+            {/* Header - exactamente igual a la principal */}
             <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
-                <div className="container mx-auto px-4 py-8">
+                <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
                         {/* Logo y botón regresar */}
                         <div className="flex items-center gap-4">
@@ -213,7 +213,7 @@ function ToursContent() {
                                 <span className="hidden sm:inline text-sm font-medium">Regresar</span>
                             </button>
                             <Link href="/" className="flex items-center">
-                                <Logo className="h-10" />
+                                <Logo className="py-2" />
                             </Link>
                         </div>
 

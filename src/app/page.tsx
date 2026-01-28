@@ -2149,19 +2149,23 @@ export default function Home() {
                       </Button>
                     </div>
                     {/* Video promocional */}
-                    <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden mb-6">
+                    <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden mb-6 bg-gray-900">
                       {toursVideoUrl.includes('youtube') || toursVideoUrl.includes('vimeo') ? (
                         <iframe
-                          src={(() => {
-                            // Extraer video ID de la URL
-                            const videoId = toursVideoUrl.split('/').pop()?.split('?')[0] || '';
-                            const separator = toursVideoUrl.includes('?') ? '&' : '?';
-                            return `${toursVideoUrl}${separator}autoplay=1&mute=1&loop=1&controls=0&playlist=${videoId}`;
-                          })()}
+                          src={toursVideoUrl.replace('watch?v=', 'embed/')}
                           className="w-full h-full"
-                          allow="autoplay; encrypted-media"
-                          style={{ pointerEvents: 'none', border: 'none' }}
-                          title="Video promocional"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          title="Video promocional de tours"
+                        />
+                      ) : toursVideoUrl.includes('.mp4') || toursVideoUrl.includes('.webm') ? (
+                        <video
+                          src={toursVideoUrl}
+                          className="w-full h-full object-cover"
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
                         />
                       ) : (
                         <img
