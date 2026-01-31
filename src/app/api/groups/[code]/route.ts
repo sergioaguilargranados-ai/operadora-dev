@@ -1,5 +1,5 @@
 // API de Viajes Grupales - Detalle de paquete individual
-// Build: 27 Ene 2026 - v2.234 - Sistema Híbrido MegaTravel
+// Build: 31 Ene 2026 - v2.256 - Todos los campos MegaTravel completos
 
 import { NextRequest, NextResponse } from 'next/server';
 import { MegaTravelSyncService } from '@/services/MegaTravelSyncService';
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 savings: pkg.savings_usd,
                 currency: pkg.currency || 'USD',
                 priceType: pkg.price_per_person_type || 'Por persona en habitación Doble',
-                variants: pkg.price_variants || {},
+                priceVariants: pkg.price_variants || {},
                 // Desglose para mostrar al cliente
                 breakdown: {
                     netPrice: pkg.sale_price_usd,
@@ -99,19 +99,38 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             itinerary: pkg.itinerary || [],
             itinerarySummary: pkg.itinerary_summary,
 
-            // Tours opcionales
+            // Tours opcionales - COMPLETOS con todos los campos
             optionalTours: (pkg.optional_tours || []).map((tour: any) => ({
+                code: tour.code,
                 name: tour.name,
                 description: tour.description,
                 price: tour.price_usd ? {
                     amount: tour.price_usd,
                     currency: 'USD'
-                } : null
+                } : null,
+                valid_dates: tour.valid_dates,
+                activities: tour.activities,
+                conditions: tour.conditions
             })),
 
             // Fechas de salida
             departures: pkg.departures || [],
             seasonPrices: pkg.season_prices || {},
+
+            // NUEVOS CAMPOS
+            detailedHotels: pkg.detailed_hotels || [],
+            supplements: pkg.supplements || [],
+            visaRequirements: pkg.visa_requirements ?
+                (typeof pkg.visa_requirements === 'string' ?
+                    JSON.parse(pkg.visa_requirements) :
+                    pkg.visa_requirements) :
+                [],
+            importantNotes: pkg.important_notes ?
+                (typeof pkg.important_notes === 'string' ?
+                    [pkg.important_notes] :
+                    pkg.important_notes) :
+                [],
+            mapImage: pkg.map_image,
 
             // Imágenes
             images: {
@@ -126,9 +145,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             isOffer: pkg.is_offer,
             offerEndDate: pkg.offer_end_date,
 
-            // Información importante
-            importantNotes: pkg.important_notes,
-            visaRequirements: pkg.visa_requirements,
+            // Información importante (legacy)
             tipsAmount: pkg.tips_amount,
 
             // Metadata
