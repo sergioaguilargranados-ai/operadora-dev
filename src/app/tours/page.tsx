@@ -1,5 +1,5 @@
 // Catálogo de Tours y Viajes Grupales
-// Build: 31 Ene 2026 - v2.252 - Overlay ajustado y texto negro sobre video
+// Build: 31 Ene 2026 - v2.253 - Overlay más blanco para mejor legibilidad
 
 'use client'
 
@@ -304,8 +304,8 @@ function ToursContent() {
                             style={{ backgroundImage: `url(${videoUrl})` }}
                         />
                     )}
-                    {/* Overlay un poco menos transparente para mejor legibilidad */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/25 via-white/15 to-white/40" />
+                    {/* Overlay blanco para mejor legibilidad del texto negro */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/35 via-white/25 to-white/50" />
                 </div>
 
                 <div className="container mx-auto px-4 relative z-10">
@@ -605,7 +605,7 @@ function ToursContent() {
                             © 2026 AS Operadora de Viajes y Eventos. Todos los derechos reservados.
                         </p>
                         <p className="text-sm text-gray-500">
-                            v2.252 | Build: 31 Ene 2026
+                            v2.253 | Build: 31 Ene 2026
                         </p>
                     </div>
                 </div>
