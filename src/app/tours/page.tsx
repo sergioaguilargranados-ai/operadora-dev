@@ -1,5 +1,5 @@
 // Catálogo de Tours y Viajes Grupales
-// Build: 30 Ene 2026 - v2.247 - Fix autoplay de video YouTube en hero
+// Build: 31 Ene 2026 - v2.250 - Hero section blanco traslúcido estilo AS Operadora
 
 'use client'
 
@@ -304,38 +304,38 @@ function ToursContent() {
                             style={{ backgroundImage: `url(${videoUrl})` }}
                         />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/85 to-indigo-700/85" />
+                    <div className="absolute inset-0 bg-white/90 backdrop-blur-sm" />
                 </div>
 
                 <div className="container mx-auto px-4 relative z-10">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-center text-white"
+                        className="text-center text-gray-900"
                     >
-                        <h1 className="text-3xl md:text-5xl font-bold mb-4">
+                        <h1 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900">
                             {CATEGORIES.find(c => c.code === selectedCategory)?.icon} {CATEGORIES.find(c => c.code === selectedCategory)?.name}
                         </h1>
-                        <p className="text-lg md:text-xl opacity-90 mb-6 max-w-2xl mx-auto">
+                        <p className="text-lg md:text-xl text-gray-700 mb-6 max-w-2xl mx-auto">
                             Descubre el mundo con nuestros paquetes todo incluido.
                             Europa, Asia, Medio Oriente y más destinos te esperan.
                         </p>
 
                         {/* Barra de búsqueda */}
                         <form onSubmit={handleSearch} className="max-w-xl mx-auto">
-                            <div className="flex gap-2 bg-white/10 backdrop-blur-sm rounded-xl p-2">
+                            <div className="flex gap-2 bg-white/80 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-gray-200">
                                 <div className="relative flex-1">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                     <Input
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                         placeholder="Buscar destino, país o tour..."
-                                        className="pl-12 h-12 bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:bg-white/30"
+                                        className="pl-12 h-12 bg-white border-gray-200 text-gray-900 placeholder:text-gray-500"
                                     />
                                 </div>
                                 <Button
                                     type="submit"
-                                    className="h-12 px-6 bg-white text-blue-600 hover:bg-white/90"
+                                    className="h-12 px-6 bg-blue-600 text-white hover:bg-blue-700"
                                 >
                                     Buscar
                                 </Button>
@@ -604,7 +604,7 @@ function ToursContent() {
                             © 2026 AS Operadora de Viajes y Eventos. Todos los derechos reservados.
                         </p>
                         <p className="text-sm text-gray-500">
-                            v2.241 | Build: 28 Ene 2026
+                            v2.250 | Build: 31 Ene 2026
                         </p>
                     </div>
                 </div>

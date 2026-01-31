@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 27 de Enero de 2026 - 11:15 CST  
-**Versión actual:** v2.233  
+**Última actualización:** 31 de Enero de 2026 - 14:10 CST  
+**Versión actual:** v2.250  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,74 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.250 - 31 de Enero de 2026 - 14:10 CST
+
+**🎨 Mejoras de Diseño y Nuevo Módulo de Cotizaciones**
+
+**Cambios UI/UX:**
+- **Tours - Hero Section:** Cambiado de fondo morado/azul transparente a blanco traslúcido con texto oscuro, siguiendo el estilo AS Operadora.
+  - Fondo: `bg-white/90 backdrop-blur-sm`
+  - Texto: Cambiado de blanco a `text-gray-900` y `text-gray-700`
+  - Barra de búsqueda: Fondo blanco con bordes grises, mejor contraste
+  - Botón de búsqueda: Azul sólido con texto blanco
+
+**Nuevo Módulo de Cotizaciones:**
+- **Página `/cotizar-tour`:** Formulario completo de cotización que pre-llena datos del tour seleccionado
+  - Datos pre-llenados: Tour ID, nombre, precio, región, duración, ciudades
+  - Formulario de cliente: Nombre, apellido, correo, teléfono, número de personas, comentarios
+  - Selector de método de notificación: WhatsApp, Email, o Ambos
+  - Resumen visual del tour en sidebar
+  - Página de confirmación con detalles de la cotización
+- **Página `/cotizacion/[folio]`:** Seguimiento de cotización con estados
+  - Estados: Pendiente, Contactado, Cotización Enviada, Confirmado, Cancelado
+  - Visualización de detalles del tour y contacto
+  - Resumen de precios y opciones de contacto directo
+  - Diseño responsive con información clara
+
+**Cambios Backend:**
+- **API `/api/tours/quote` (POST):** Crear cotización de tour
+  - Genera folio único: `TOUR-timestamp-random`
+  - Calcula precio total basado en número de personas
+  - Guarda en BD con todos los detalles
+  - Genera URL de seguimiento
+  - Prepara mensajes de WhatsApp y Email (logs por ahora, pendiente integración real)
+- **API `/api/tours/quote/[folio]` (GET):** Obtener cotización por folio
+- **Migración 016:** Nueva tabla `tour_quotes`
+  - 21 campos incluyendo folio, datos del tour, contacto, precios, estado
+  - Índices para búsquedas rápidas (folio, email, status, created_at)
+  - Trigger para updated_at automático
+  - Estados: pending, contacted, quoted, confirmed, cancelled
+
+**Cambios en Tours:**
+- **Detalle de Tour:** Botón "Reservar por WhatsApp" reemplazado por "Cotizar Tour"
+  - Redirige a `/cotizar-tour` con parámetros del tour en URL
+  - Mejor flujo para captura de datos del cliente
+  - Permite seguimiento de cotizaciones
+
+**Archivos Nuevos:**
+- `src/app/cotizar-tour/page.tsx`
+- `src/app/cotizacion/[folio]/page.tsx`
+- `src/app/api/tours/quote/route.ts`
+- `src/app/api/tours/quote/[folio]/route.ts`
+- `migrations/016_create_tour_quotes_table.sql`
+- `scripts/run-migration-016.js`
+
+**Archivos Modificados:**
+- `src/app/tours/page.tsx` (hero section con nuevo diseño)
+- `src/app/tours/[code]/page.tsx` (botón cotizar + import Send)
+
+**Lecciones Aprendidas:**
+- El diseño con fondo blanco traslúcido y texto oscuro proporciona mejor legibilidad y se alinea mejor con la identidad visual de AS Operadora
+- Pre-llenar formularios con datos del contexto mejora significativamente la UX y reduce fricción
+- Ofrecer múltiples métodos de notificación (WhatsApp/Email/Ambos) da flexibilidad al cliente
+
+**Cifra de Control:**
+- T: 58 | C: 566 (1 tabla nueva: tour_quotes con 21 campos)
+
+---
+
+### v2.233 - 27 de Enero de 2026 - 11:15 CST
 
 ### v2.233 - 27 de Enero de 2026 - 11:15 CST
 

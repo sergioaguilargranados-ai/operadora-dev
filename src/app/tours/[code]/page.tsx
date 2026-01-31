@@ -31,7 +31,8 @@ import {
     ChevronUp,
     ChevronLeft,
     ChevronRight,
-    HelpCircle
+    HelpCircle,
+    Send
 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 
@@ -477,11 +478,21 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
 
                                     <Button
                                         size="lg"
-                                        className="w-full bg-white text-blue-600 hover:bg-white/90 font-bold"
-                                        onClick={handleWhatsApp}
+                                        className="w-full bg-blue-600 text-white hover:bg-blue-700 font-bold"
+                                        onClick={() => {
+                                            const params = new URLSearchParams({
+                                                tourId: tour.id,
+                                                tourName: tour.name,
+                                                price: tour.pricing.totalPrice.toString(),
+                                                region: tour.region,
+                                                duration: tour.duration,
+                                                cities: tour.cities.join(',')
+                                            })
+                                            router.push(`/cotizar-tour?${params.toString()}`)
+                                        }}
                                     >
-                                        <MessageCircle className="w-5 h-5 mr-2" />
-                                        Reservar por WhatsApp
+                                        <Send className="w-5 h-5 mr-2" />
+                                        Cotizar Tour
                                     </Button>
                                 </Card>
 
