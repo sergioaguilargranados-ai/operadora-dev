@@ -836,7 +836,12 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-600">Impuestos:</span>
-                                        <span className="font-semibold">${formatPrice(tour.pricing.taxes)} USD</span>
+                                        <span className="font-semibold">${formatPrice(tour.pricing.taxes || 0)} USD</span>
+                                    </div>
+                                    <div className="mt-2 pt-2 border-t border-gray-100">
+                                        <p className="text-xs text-gray-500 italic">
+                                            * Precio incluye margen de servicio AS Operadora
+                                        </p>
                                     </div>
                                 </div>
 
@@ -844,7 +849,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                 <div className="flex justify-between items-center mb-6 pb-6 border-b">
                                     <span className="text-lg font-bold text-gray-900">Total:</span>
                                     <span className="text-2xl font-bold text-blue-600">
-                                        ${formatPrice(tour.pricing.basePrice + tour.pricing.taxes)} USD
+                                        ${formatPrice(tour.pricing.totalPrice || (tour.pricing.basePrice + (tour.pricing.taxes || 0)))} USD
                                     </span>
                                 </div>
 
