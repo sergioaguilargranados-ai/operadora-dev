@@ -441,12 +441,33 @@ function CotizarTourContent() {
                                             <div className="text-gray-900">{tourData.cities.join(', ')}</div>
                                         </div>
                                     )}
+
+                                    {/* Precio base */}
                                     <div className="border-t pt-3 mt-3">
                                         <div className="text-gray-600 mb-1">Precio base</div>
                                         <div className="text-2xl font-bold text-blue-600">
                                             ${tourData.price?.toLocaleString('es-MX')} USD
                                         </div>
                                         <div className="text-xs text-gray-500">por persona</div>
+
+                                        {/* Cálculo del total según número de personas */}
+                                        {parseInt(formData.numPersonas) > 0 && (
+                                            <div className="mt-4 pt-4 border-t border-blue-200 bg-blue-50/50 -mx-4 px-4 py-3 rounded-b-lg">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-sm text-gray-600">Personas:</span>
+                                                    <span className="font-semibold">{formData.numPersonas}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-sm font-semibold text-gray-900">Total estimado:</span>
+                                                    <span className="text-xl font-bold text-blue-700">
+                                                        ${((tourData.price || 0) * parseInt(formData.numPersonas)).toLocaleString('es-MX')} USD
+                                                    </span>
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-1 italic">
+                                                    * Cotización final puede variar según fechas y disponibilidad
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </Card>

@@ -475,37 +475,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                             </div>
                         </Card>
 
-                        {/* NUEVO: Botón de Cotización */}
-                        <Card className="p-8 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200">
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                                <div className="flex-1">
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                                        ¿Interesado en este tour?
-                                    </h3>
-                                    <p className="text-gray-700">
-                                        Solicita una cotización personalizada y uno de nuestros agentes te contactará
-                                    </p>
-                                </div>
-                                <Button
-                                    size="lg"
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
-                                    onClick={() => {
-                                        const params = new URLSearchParams({
-                                            tourId: tour.id,
-                                            tourName: tour.name,
-                                            tourPrice: tour.pricing.basePrice.toString(),
-                                            tourRegion: tour.region,
-                                            tourDays: tour.days.toString(),
-                                            tourCities: tour.cities.join(', ')
-                                        })
-                                        window.location.href = `/cotizar-tour?${params.toString()}`
-                                    }}
-                                >
-                                    <Send className="w-5 h-5 mr-2" />
-                                    Cotizar Tour
-                                </Button>
-                            </div>
-                        </Card>
+
 
                         {/* NUEVO: Hoteles Detallados */}
                         {tour.detailedHotels && tour.detailedHotels.length > 0 && (
