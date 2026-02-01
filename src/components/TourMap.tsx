@@ -27,7 +27,7 @@ export function TourMap({ cities, countries, mainCountry, tourName }: TourMapPro
     useEffect(() => {
         // Cargar Google Maps API
         const loadGoogleMaps = () => {
-            if (typeof window.google !== 'undefined') {
+            if (typeof (window as any).google !== 'undefined') {
                 initMap()
                 return
             }
@@ -42,6 +42,9 @@ export function TourMap({ cities, countries, mainCountry, tourName }: TourMapPro
 
         const initMap = async () => {
             if (!mapRef.current) return
+
+            const google = (window as any).google
+            if (!google) return
 
             // Geocodificar las ciudades para obtener coordenadas
             const geocoder = new google.maps.Geocoder()
@@ -123,9 +126,9 @@ export function TourMap({ cities, countries, mainCountry, tourName }: TourMapPro
             }
         }
 
-        const geocodeLocation = (geocoder: google.maps.Geocoder, address: string): Promise<google.maps.LatLng> => {
+        const geocodeLocation = (geocoder: any, address: string): Promise<any> => {
             return new Promise((resolve, reject) => {
-                geocoder.geocode({ address }, (results, status) => {
+                geocoder.geocode({ address }, (results: any, status: any) => {
                     if (status === 'OK' && results && results[0]) {
                         resolve(results[0].geometry.location)
                     } else {
