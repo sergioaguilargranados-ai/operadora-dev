@@ -396,7 +396,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                 </h2>
                                 <div className="relative h-96 bg-gray-100 rounded-xl overflow-hidden">
                                     <iframe
-                                        src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&q=${encodeURIComponent(tour.mainCountry || tour.countries?.[0] || 'World')}&zoom=6`}
+                                        src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(tour.mainCountry || tour.countries?.[0] || 'World')}&zoom=6`}
                                         width="100%"
                                         height="100%"
                                         style={{ border: 0 }}
@@ -407,6 +407,76 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                 </div>
                             </Card>
                         )}
+
+                        {/* NUEVO: Itinerario del Tour */}
+                        <Card className="p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-2xl font-bold flex items-center gap-2">
+                                    <Calendar className="w-6 h-6 text-blue-600" />
+                                    Itinerario
+                                </h2>
+                                <Button
+                                    variant="link"
+                                    className="text-blue-600 hover:text-blue-700"
+                                    onClick={() => {
+                                        // TODO: Implementar modal de itinerario completo
+                                        alert('Ver itinerario completo - Por implementar')
+                                    }}
+                                >
+                                    Ver itinerario completo
+                                </Button>
+                            </div>
+
+                            {/* Itinerario resumido - primeros 3 días */}
+                            <div className="space-y-4">
+                                {/* Día 1 */}
+                                <div className="border-l-4 border-blue-600 pl-4 py-2">
+                                    <h3 className="font-bold text-lg text-gray-900">DÍA 01. MÉXICO → ESTAMBUL</h3>
+                                    <p className="text-gray-600 mt-1">
+                                        Cita en el aeropuerto de la Ciudad de México para abordar vuelo con destino a Estambul.
+                                        Vía Cancún. Noche a bordo.
+                                    </p>
+                                </div>
+
+                                {/* Día 2 */}
+                                <div className="border-l-4 border-blue-600 pl-4 py-2">
+                                    <h3 className="font-bold text-lg text-gray-900">DÍA 02. ESTAMBUL → EL CAIRO</h3>
+                                    <p className="text-gray-600 mt-1">
+                                        Llegada y tiempo de espera para tomar el siguiente vuelo con destino a El Cairo. Llegada,
+                                        recepción en el aeropuerto y traslado al hotel. Por la noche sugerimos realizar opcional
+                                        (con costo adicional) ESPECTÁCULO DE LUZ Y SONIDO CON CENA EN LAS PIRÁMIDES. Alojamiento.
+                                    </p>
+                                </div>
+
+                                {/* Día 3 */}
+                                <div className="border-l-4 border-blue-600 pl-4 py-2">
+                                    <h3 className="font-bold text-lg text-gray-900">DÍA 03. EL CAIRO</h3>
+                                    <p className="text-gray-600 mt-1">
+                                        Desayuno. Por la mañana visita a las pirámides de Giza, complejo funerario formado por
+                                        las pirámides de Keops, una de las siete maravillas del Mundo, Kefrén, Mikerinos, la Esfinge
+                                        de Kefrén y el Templo del Valle. Posibilidad de...
+                                    </p>
+                                </div>
+
+                                {/* Indicador de más días */}
+                                <div className="text-center pt-4">
+                                    <p className="text-gray-500 text-sm">
+                                        ... y {tour.days - 3} días más
+                                    </p>
+                                    <Button
+                                        variant="outline"
+                                        className="mt-2"
+                                        onClick={() => {
+                                            // TODO: Implementar modal de itinerario completo
+                                            alert('Ver itinerario completo - Por implementar')
+                                        }}
+                                    >
+                                        Ver itinerario completo
+                                    </Button>
+                                </div>
+                            </div>
+                        </Card>
+
 
                         {/* NUEVO: Hoteles Detallados */}
                         {tour.detailedHotels && tour.detailedHotels.length > 0 && (
