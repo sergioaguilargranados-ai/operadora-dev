@@ -46,7 +46,7 @@ export default function Home() {
   const [checkOut, setCheckOut] = useState("")
   const [guests, setGuests] = useState(2)
   const [rooms, setRooms] = useState(1)
-  const [tourSearch, setTourSearch] = useState("")
+
 
   // Destinos organizados por país con tipo (playa, ciudad, pueblo mágico)
   const allDestinations = [
@@ -2552,35 +2552,8 @@ export default function Home() {
                 </Button>
               </div>
 
-              {/* Buscador de Tours */}
-              <div className="max-w-2xl">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    placeholder="Buscar destino, país o tour..."
-                    value={tourSearch}
-                    onChange={(e) => setTourSearch(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter' && tourSearch.trim()) {
-                        router.push(`/tours?search=${encodeURIComponent(tourSearch)}`)
-                      }
-                    }}
-                    className="pl-12 pr-32 py-6 text-lg rounded-full border-2 border-gray-200 focus:border-blue-500 bg-white"
-                  />
-                  <Button
-                    onClick={() => {
-                      if (tourSearch.trim()) {
-                        router.push(`/tours?search=${encodeURIComponent(tourSearch)}`)
-                      }
-                    }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-8 py-5 bg-blue-600 hover:bg-blue-700"
-                  >
-                    Buscar
-                  </Button>
-                </div>
-              </div>
             </div>
+
 
             {/* Grid de tours - solo si hay tours */}
             {groupTours.length > 0 && (
@@ -2656,8 +2629,8 @@ export default function Home() {
                   </motion.div>
                 ))}
               </div>
-              )}
-              {/* CTA adicional */}
+            )}
+            {/* CTA adicional */}
             <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"

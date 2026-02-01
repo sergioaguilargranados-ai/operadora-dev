@@ -835,7 +835,20 @@ export class MegaTravelSyncService {
 
         if (filters?.search) {
             paramCount++;
-            query += ` AND (p.name ILIKE $${paramCount} OR p.description ILIKE $${paramCount} OR $${paramCount} = ANY(p.cities))`;
+            query += ` AND (
+                p.name ILIKE $${paramCount} 
+                OR p.description ILIKE $${paramCount}
+                OR p.destination_region ILIKE $${paramCount}
+                OR p.main_country ILIKE $${paramCount}
+                OR EXISTS (
+                    SELECT 1 FROM unnest(p.cities) AS city 
+                    WHERE city ILIKE $${paramCount}
+                )
+                OR EXISTS (
+                    SELECT 1 FROM unnest(p.countries) AS country 
+                    WHERE country ILIKE $${paramCount}
+                )
+            )`;
             params.push(`%${filters.search}%`);
         }
 
