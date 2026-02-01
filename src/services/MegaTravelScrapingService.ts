@@ -77,6 +77,124 @@ export interface OptionalTourExtended {
 export class MegaTravelScrapingService {
 
     /**
+     * DESCUBRIR TODOS LOS TOURS desde las páginas de categorías
+     */
+    static async discoverAllTours(): Promise<Array<{
+        mt_code: string;
+        mt_url: string;
+        name: string;
+        category: string;
+        price_usd?: number;
+    }>> {
+        console.log('🔍 Descubriendo todos los tours de MegaTravel...\n');
+
+        const CATEGORY_URLS = [
+            { url: 'https://www.megatravel.com.mx/viajes-europa', category: 'Europa' },
+            { url: 'https://www.megatravel.com.mx/viaje-a-turquia', category: 'Turquía' },
+            { url: 'https://www.megatravel.com.mx/viajes-asia', category: 'Asia' },
+            { url: 'https://www.megatravel.com.mx/viaje-a-japon', category: 'Japón' },
+            { url: 'https://www.megatravel.com.mx/viajes-medio-oriente', category: 'Medio Oriente' },
+            { url: 'https://www.megatravel.com.mx/viajes-estados-unidos', category: 'Estados Unidos' },
+            { url: 'https://www.megatravel.com.mx/viajes-canada', category: 'Canadá' },
+            { url: 'https://www.megatravel.com.mx/viajes-sudamerica', category: 'Sudamérica' },
+            { url: 'https://www.megatravel.com.mx/cruceros', category: 'Cruceros' },
+        ];
+
+        const allTours: Array<{
+            mt_code: string;
+            mt_url: string;
+            name: string;
+            category: string;
+            price_usd?: number;
+        }> = [];
+
+        try {
+            const browser = await puppeteer.launch({
+                headless: true,
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+            });
+
+            for (const categoryInfo of CATEGORY_URLS) {
+                try {
+                    console.log(`📂 Explorando: ${categoryInfo.category}...`);
+
+                    const page = await browser.newPage();
+                    await page.setViewport({ width: 1920, height: 1080 });
+
+                    await page.goto(categoryInfo.url, {
+                        waitUntil: 'networkidle2',
+                        timeout: 60000
+                    });
+
+                    await page.waitForSelector('body', { timeout: 10000 });
+                    const html = await page.content();
+                    const $ = cheerio.load(html);
+
+                    // Buscar links a tours individuales
+                    // Patrones: /viaje/nombre-tour-12345.html
+                    const tourLinks = new Set<string>();
+
+                    $('a[href*="/viaje/"]').each((i, elem) => {
+                        const href = $(elem).attr('href');
+                        if (href && href.includes('.html')) {
+                            const fullUrl = href.startsWith('http')
+                                ? href
+                                : `https://www.megatravel.com.mx${href}`;
+                            tourLinks.add(fullUrl);
+                        }
+                    });
+
+                    console.log(`   ✅ Encontrados ${tourLinks.size} tours en ${categoryInfo.category}`);
+
+                    // Extraer información básica de cada tour
+                    for (const url of tourLinks) {
+                        // Extraer código MT desde la URL
+                        // Ejemplo: /viaje/mega-turquia-y-dubai-20043.html → MT-20043
+                        const codeMatch = url.match(/\/viaje\/.*-(\d+)\.html/);
+                        const mtCode = codeMatch ? `MT-${codeMatch[1]}` : `MT-${Date.now()}`;
+
+                        // Extraer nombre desde URL (temporal, se actualizará con scraping completo)
+                        const nameMatch = url.match(/\/viaje\/(.+)-\d+\.html/);
+                        const name = nameMatch
+                            ? nameMatch[1].split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                            : 'Tour sin nombre';
+
+                        allTours.push({
+                            mt_code: mtCode,
+                            mt_url: url,
+                            name: name,
+                            category: categoryInfo.category
+                        });
+                    }
+
+                    await page.close();
+
+                    // Esperar 1 segundo entre categorías para no sobrecargar
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                } catch (error) {
+                    console.error(`   ❌ Error en categoría ${categoryInfo.category}:`, error);
+                }
+            }
+
+            await browser.close();
+
+            // Eliminar duplicados por mt_code
+            const uniqueTours = Array.from(
+                new Map(allTours.map(t => [t.mt_code, t])).values()
+            );
+
+            console.log(`\n✅ TOTAL DESCUBIERTO: ${uniqueTours.length} tours únicos\n`);
+
+            return uniqueTours;
+
+        } catch (error) {
+            console.error('❌ Error en descubrimiento de tours:', error);
+            return [];
+        }
+    }
+
+    /**
      * Scraping completo de un tour específico
      */
     static async scrapeTourComplete(tourUrl: string, packageId: number): Promise<{
@@ -460,9 +578,11 @@ export class MegaTravelScrapingService {
             departures: Departure[];
             policies: Policies;
             additionalInfo: AdditionalInfo;
-        }
+        },
+        customPool?: any  // Pool personalizado opcional (para scripts)
     ): Promise<void> {
-        const client = await pool.connect();
+        const dbPool = customPool || pool;  // Usar custom pool si se proporciona
+        const client = await dbPool.connect();
 
         try {
             await client.query('BEGIN');
