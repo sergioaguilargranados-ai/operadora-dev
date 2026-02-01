@@ -1,6 +1,6 @@
 "use client"
 
-// Build: 31 Ene 2026 - v2.251 - Versión actualizada en footer
+// Build: 31 Ene 2026 - v2.257 - Buscador de tours + Mapa interactivo
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -3022,7 +3022,7 @@ export default function Home() {
             <p>© 2024 AS Operadora de Viajes y Eventos. Todos los derechos reservados.</p>
             <p className="text-xs mt-1">AS Viajando</p>
             <p className="text-xs mt-2 opacity-50">
-              v2.251 | Build: 31 Ene 2026, 14:50 CST
+              v2.257 | Build: 31 Ene 2026, 19:15 CST
             </p>
             {dbInfo && (
               <div className="text-xs mt-3 opacity-70 bg-slate-100 p-3 rounded inline-block">

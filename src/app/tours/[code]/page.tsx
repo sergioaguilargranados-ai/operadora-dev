@@ -44,6 +44,7 @@ import {
 import { Logo } from '@/components/Logo'
 
 const WHATSAPP_NUMBER = '+525621486939' // Número oficial AS Operadora
+const GOOGLE_MAPS_API_KEY = 'AIzaSyDc8NB8nvcbY2OTv6Dcvzm7AwAbV7tPgF0' // Google Maps API Key
 
 interface TourDetail {
     id: string
@@ -232,7 +233,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
             {/* Header - exactamente igual a la principal */}
             <header className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-                <div className="container mx-auto px-6 py-6">
+                <div className="container mx-auto px-6 py-8">
                     <div className="flex items-center justify-between">
                         <Link href="/" className="flex items-center gap-3">
                             <Logo className="h-10 w-auto" />
