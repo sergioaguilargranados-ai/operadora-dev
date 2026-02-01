@@ -35,6 +35,99 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 
 ## 📅 HISTORIAL DE CAMBIOS
 
+### v2.261 - 31 de Enero de 2026 - 22:15 CST
+
+**🚀 Fase 1: Migraciones para Scraping Completo de MegaTravel**
+
+**Objetivo:** Preparar la base de datos para almacenar TODA la información de MegaTravel (itinerario, fechas, políticas, info adicional)
+
+**Cambios:**
+- ✅ **Creadas 4 nuevas tablas:**
+  - `megatravel_itinerary` - Itinerario día por día (day_number, title, description, meals, hotel, city, activities)
+  - `megatravel_departures` - Fechas de salida (departure_date, price_usd, availability, status, passengers)
+  - `megatravel_policies` - Políticas y requisitos (cancellation, payment, visa, documents)
+  - `megatravel_additional_info` - Información adicional (notes, climate, currency, emergency_contacts)
+- ✅ **Script de migración:** `scripts/run-megatravel-migrations.js`
+- ✅ **Migraciones ejecutadas** exitosamente en base de datos
+- ✅ **Documentación completa:**
+  - `docs/AG-Plan-Scraping-Completo-MegaTravel.md` - Plan detallado
+  - `docs/AG-Progreso-Scraping-MegaTravel.md` - Estado actual
+
+**Archivos creados:**
+- `migrations/020_create_megatravel_itinerary.sql`
+- `migrations/021_create_megatravel_departures.sql`
+- `migrations/022_create_megatravel_policies.sql`
+- `migrations/023_create_megatravel_additional_info.sql`
+- `scripts/run-megatravel-migrations.js`
+- `docs/AG-Plan-Scraping-Completo-MegaTravel.md`
+- `docs/AG-Progreso-Scraping-MegaTravel.md`
+
+**Próximos pasos (Fase 2):**
+- ⏳ Modificar `MegaTravelSyncService.ts` para agregar scraping de itinerario, fechas, políticas
+- ⏳ Probar scraping con tours reales
+- ⏳ Crear componentes de frontend para mostrar nuevos datos
+
+**Cifra de Control:**
+- T: 62 | C: 620 (+4 tablas, +54 campos)
+
+---
+
+### v2.260 - 31 de Enero de 2026 - 22:00 CST
+
+**🔧 Pre-rellenar Datos en Cotización + Buscador en Tab de Grupos**
+
+**Cambios:**
+- ✅ **Corregidos parámetros de URL** en botón "Cotizar Tour":
+  - `tourPrice` → `price`
+  - `tourRegion` → `region`
+  - `tourDays` → `duration` (ahora envía "X días / Y noches")
+  - `tourCities` → `cities`
+- ✅ **Página `/cotizar-tour` ahora muestra datos correctos:**
+  - Nombre del tour
+  - Región
+  - Duración
+  - Ciudades
+  - **Precio base correcto** (ya no $0 USD)
+- ✅ **Buscador movido al lugar correcto:**
+  - Ubicación anterior: Sección inferior de página principal
+  - Ubicación nueva: Tab "Viajes Grupales" del hero
+  - Posición: Entre video "Descubre el Mundo" y grid de tours
+
+**Archivos modificados:**
+- `src/app/tours/[code]/page.tsx` - Corregidos parámetros de URL
+- `src/app/page.tsx` - Movido buscador al tab de grupos
+
+**Cifra de Control:**
+- T: 58 | C: 566 (Sin cambios en BD)
+
+---
+
+### v2.259 - 31 de Enero de 2026 - 21:50 CST
+
+**🎨 Sidebar de Precios con Botón "Cotizar Tour"**
+
+**Cambios:**
+- ✅ **Agregado sidebar de precios** en columna derecha de `/tours/[code]`:
+  - Precio principal grande ($2,148 USD)
+  - Desglose de precios (Precio base + Impuestos)
+  - Total calculado
+  - Botón azul "Cotizar Tour" (reemplaza el verde de WhatsApp)
+  - Sticky (se queda fijo al hacer scroll)
+  - Mensaje "Respuesta inmediata • Asesoría personalizada"
+- ✅ **Funcionalidad del botón:**
+  - Redirige a `/cotizar-tour` con parámetros del tour
+  - Pre-llena información del tour en la página de cotización
+
+**Archivos modificados:**
+- `src/app/tours/[code]/page.tsx` - Agregado sidebar de precios
+- `docs/AG-Historico-Cambios.md` - Nueva entrada v2.258
+- `docs/AG-Contexto-Proyecto.md` - Lecciones aprendidas
+
+**Cifra de Control:**
+- T: 58 | C: 566 (Sin cambios en BD)
+
+---
+
 ### v2.258 - 31 de Enero de 2026 - 21:40 CST
 
 **🔧 Restauración de Funcionalidad Perdida + Mapa Interactivo**
