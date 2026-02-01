@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 01 de Febrero de 2026 - 10:45 CST  
-**Versión actual:** v2.262  
+**Última actualización:** 01 de Febrero de 2026 - 14:16 CST  
+**Versión actual:** v2.263  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,58 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.263 - 01 de Febrero de 2026 - 14:16 CST
+
+**🐛 Fix: Sidebar Duplicado en Tour Detail + Script Sincronización MegaTravel**
+
+**Cambios:**
+
+1. **✅ Corrección Tour Detail Page (`app/tours/[code]/page.tsx`)**
+   - **Problema:** Dos sidebars duplicados (verde con WhatsApp + azul con Cotizar Tour)
+   - **Precios incorrectos:** Sidebar verde mostraba `totalPrice`, sidebar azul mostraba cálculo correcto
+   - **Solución:** Eliminado sidebar duplicado (líneas 816-914)
+   - **Resultado:** Solo queda sidebar correcto con:
+     - Precios calculados correctamente: `basePrice + taxes`
+     - Botón "Cotizar Tour" que envía params correctos a `/cotizar-tour`
+     - Información de contacto y tags
+
+2. **✅ Script de Sincronización Completa (`scripts/sync-all-megatravel.ts`)**
+   - Script autónomo para sincronizar TODOS los tours de MegaTravel
+   - **FASE 1:** `discoverAllTours()` - Descubre URLs de 9 categorías (~325 tours)
+   - **FASE 2:** Scraping individual con Puppeteer + Cheerio
+   - Features:
+     - Pool de PostgreSQL con SSL configurado para Neon
+     - Carga `.env.local` correctamente
+     - Rate limiting (2 seg entre tours)
+     - Error handling no-bloqueante
+     - Log completo a `sync-progress.log`
+     - Resumen final con estadísticas
+   - **Status:** ✅ Ejecutándose en background (~2-3 horas)
+
+3. **✅ Mejoras `MegaTravelScrapingService.ts`**
+   - Agregado parámetro opcional `customPool` a `saveScrapedData()`
+   - Permite usar pool personalizado con SSL en scripts standalone
+   - Resuelve error: `SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string`
+
+4. **✅ Documentación**
+   - `AG-Sync-En-Progreso-01Feb.md` - Guía de monitoreo y troubleshooting
+   - `AG-Progreso-Sync-MegaTravel-01Feb.md` - Timeline y métricas esperadas
+
+**Dependencias:**
+- `tsx` instalado para ejecutar TypeScript directamente
+
+**Despliegue:**
+- ✅ Commit: `4981698`
+- ✅ Push a `main`
+- ⏳ Vercel deployment automático
+
+**Próximos Pasos:**
+1. Monitorear progreso de sincronización (cada 30 min)
+2. Verificar datos en Neon cuando termine sync
+3. Frontend: mostrar itinerarios completos con datos nuevos
+
+---
 
 ### v2.262 - 01 de Febrero de 2026 - 10:45 CST
 
