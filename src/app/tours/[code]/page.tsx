@@ -233,7 +233,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
             {/* Header - exactamente igual a la principal */}
             <header className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-                <div className="container mx-auto px-6 py-8">
+                <div className="container mx-auto px-6 py-10">
                     <div className="flex items-center justify-between">
                         <Link href="/" className="flex items-center gap-3">
                             <Logo className="h-10 w-auto" />
