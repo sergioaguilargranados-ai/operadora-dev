@@ -569,6 +569,15 @@ export class MegaTravelScrapingService {
     }
 
     /**
+     * HELPER: Truncar string a longitud máxima
+     */
+    private static truncateString(str: string | null | undefined, maxLength: number = 500): string | null {
+        if (!str) return null;
+        if (str.length <= maxLength) return str;
+        return str.substring(0, maxLength - 3) + '...';
+    }
+
+    /**
      * GUARDAR DATOS EN LA BASE DE DATOS
      */
     static async saveScrapedData(
@@ -603,9 +612,15 @@ export class MegaTravelScrapingService {
                         highlights = EXCLUDED.highlights,
                         updated_at = NOW()
                 `, [
-                    packageId, day.day_number, day.title, day.description,
-                    day.meals || null, day.hotel || null, day.city || null,
-                    day.activities || [], day.highlights || []
+                    packageId,
+                    day.day_number,
+                    this.truncateString(day.title, 500),
+                    day.description,  // description es TEXT, no necesita truncate
+                    this.truncateString(day.meals, 200),
+                    this.truncateString(day.hotel, 500),
+                    this.truncateString(day.city, 200),
+                    day.activities || [],
+                    day.highlights || []
                 ]);
             }
 
