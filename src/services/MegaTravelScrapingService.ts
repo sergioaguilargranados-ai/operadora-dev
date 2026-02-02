@@ -815,6 +815,22 @@ export class MegaTravelScrapingService {
             // Buscar el precio en el texto
             // Formato: "Desde 1,699 USD + 799 IMP"
             const bodyText = $('body').text();
+            const bodyHtml = $('body').html() || '';
+
+            // Estrategia 1: Buscar "Tarifa Base" e "Impuestos" en el HTML
+            const tarifaBaseMatch = bodyHtml.match(/Tarifa\s+Base[\s\S]{0,200}?\$?\s*([0-9,]+)/i);
+            if (tarifaBaseMatch) {
+                price_usd = parseFloat(tarifaBaseMatch[1].replace(/,/g, ''));
+                console.log(`   💰 Precio encontrado (Tarifa Base): $${price_usd} USD`);
+            }
+
+            const impuestosMatch = bodyHtml.match(/Impuestos[\s\S]{0,200}?\$?\s*([0-9,]+)/i);
+            if (impuestosMatch) {
+                taxes_usd = parseFloat(impuestosMatch[1].replace(/,/g, ''));
+                console.log(`   💰 Impuestos encontrados: $${taxes_usd} USD`);
+            }
+
+            // Estrategia 2: Si no encontramos, buscar patrón alternativo
 
             // Patrón 1: "Desde X,XXX USD + XXX IMP"
             const pricePattern1 = /Desde\s+([\d,]+)\s*USD\s*\+\s*([\d,]+)\s*IMP/i;
@@ -825,8 +841,8 @@ export class MegaTravelScrapingService {
                 taxes_usd = parseFloat(match1[2].replace(/,/g, ''));
                 console.log(`   💰 Precio encontrado: $${price_usd} USD + $${taxes_usd} IMP`);
             } else {
-                // Patrón 2: Solo precio sin impuestos
-                const pricePattern2 = /Desde\s+([\d,]+)\s*USD/i;
+                // Patrón 3: Solo precio sin impuestos
+                const pricePattern2 = /Desde\s+([0-9,]+)\s*USD/i;
                 const match2 = bodyText.match(pricePattern2);
 
                 if (match2) {
