@@ -1,5 +1,5 @@
 // Catálogo de Tours y Viajes Grupales
-// Build: 01 Feb 2026 - v2.293 - Consultar precio + Modal itinerario completo
+// Build: 01 Feb 2026 - v2.294 - Fix filtro regiones dinámicas desde DB
 
 'use client'
 
@@ -102,11 +102,6 @@ const EVENT_CATEGORIES = [
 ]
 
 // Lista fija de regiones/destinos (siempre mostrar todas)
-const ALL_REGIONS = [
-    'Europa', 'Asia', 'Medio Oriente', 'Norte América', 'Centro América',
-    'Sudamérica', 'Caribe', 'África', 'Oceanía', 'México'
-]
-
 // Meses para filtro de fechas
 const MONTHS = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -689,7 +684,7 @@ function ToursContent() {
                                             >
                                                 Todos ({allPackages.length})
                                             </button>
-                                            {ALL_REGIONS.map(region => {
+                                            {regions.sort().map(region => {
                                                 const count = allPackages.filter(p => p.destination_region === region).length
                                                 return (
                                                     <button

@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 01 de Febrero de 2026 - 23:00 CST  
-**Versión actual:** v2.293  
+**Última actualización:** 01 de Febrero de 2026 - 23:05 CST  
+**Versión actual:** v2.294  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,48 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.294 - 01 de Febrero de 2026 - 23:05 CST
+
+**🐛 FIX CRÍTICO - Filtro de Regiones**
+
+**Problema Reportado:**
+- Al seleccionar "Europa" (o cualquier región) no mostraba ningún tour
+- Solo "Todos" mostraba resultados
+
+**Causa Raíz:**
+- Se usaba `ALL_REGIONS` hardcodeado con valores como `'Europa'`
+- La base de datos tiene valores diferentes (ej: `'EUROPA'`, `'Europe'`, etc.)
+- La comparación exacta (`===`) no coincidía
+
+**Solución:**
+1. ✅ Reemplazar `ALL_REGIONS` hardcodeado por `regions` dinámico
+2. ✅ `regions` se extrae directamente de `destination_region` en DB
+3. ✅ Ahora muestra las regiones exactas que existen en la base de datos
+4. ✅ Eliminada constante `ALL_REGIONS` (ya no necesaria)
+5. ✅ Agregado `.sort()` para ordenar alfabéticamente
+
+**Archivos Modificados:**
+- `src/app/tours/page.tsx` - Usar `regions` dinámico + eliminar `ALL_REGIONS`
+- `src/app/page.tsx` - Footer v2.294
+- `docs/AG-Historico-Cambios.md` - v2.294
+
+**Resultado:**
+- ✅ Filtro de regiones ahora funcional
+- ✅ Muestra conteos correctos
+- ✅ Filtrado funciona correctamente
+
+**Lección Aprendida:**
+- Nunca usar valores hardcodeados cuando se pueden extraer dinámicamente de la DB
+- Siempre verificar que los valores de filtro coincidan exactamente con los de la DB
+
+**Cifra de Control:** (Sin cambios)
+- **Tablas:** 48
+- **Campos:** 624
+
+---
+
+### v2.293 - 01 de Febrero de 2026 - 23:00 CST
 
 ### v2.293 - 01 de Febrero de 2026 - 23:00 CST
 
