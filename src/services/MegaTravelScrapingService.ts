@@ -916,30 +916,42 @@ export class MegaTravelScrapingService {
             const includes: string[] = [];
             const not_includes: string[] = [];
 
-            // Estrategia: Buscar secciones por texto
-            const bodyHtml = $('body').html() || '';
-
-            // Buscar "El viaje incluye" y extraer lista
-            const includesMatch = bodyHtml.match(/El viaje incluye([\s\S]*?)(?=El viaje no incluye|Itinerario|Mapa del tour|$)/i);
-            if (includesMatch) {
-                const includesHtml = includesMatch[1];
-                const $includes = cheerio.load(includesHtml);
-
-                // Extraer items de lista
-                $includes('li, p').each((i, elem) => {
+            // Estrategia 1: Buscar por ID #linkincluye
+            const includesSection = $('#linkincluye');
+            if (includesSection.length > 0) {
+                // Buscar todos los <li> dentro de la sección
+                includesSection.find('ul li').each((i, elem) => {
                     const text = $(elem).text().trim();
-                    if (text && text.length > 3 && !text.startsWith('El viaje')) {
-                        // Limpiar bullets y caracteres especiales
-                        const cleanText = text.replace(/^[-•*]\s*/, '').trim();
-                        if (cleanText) {
-                            includes.push(cleanText);
-                        }
+                    if (text && text.length > 3) {
+                        includes.push(text);
                     }
                 });
             }
 
-            // Buscar "El viaje no incluye" y extraer lista
-            const notIncludesMatch = bodyHtml.match(/El viaje no incluye([\s\S]*?)(?=Itinerario|Mapa del tour|Tours opcionales|$)/i);
+            // Estrategia 2: Si no encontró por ID, buscar por texto "El viaje incluye"
+            if (includes.length === 0) {
+                const bodyHtml = $('body').html() || '';
+                const includesMatch = bodyHtml.match(/El viaje incluye([\s\S]*?)(?=El viaje no incluye|Itinerario|Mapa del tour|$)/i);
+                if (includesMatch) {
+                    const includesHtml = includesMatch[1];
+                    const $includes = cheerio.load(includesHtml);
+
+                    // Extraer items de lista
+                    $includes('li, p').each((i, elem) => {
+                        const text = $(elem).text().trim();
+                        if (text && text.length > 3 && !text.startsWith('El viaje')) {
+                            const cleanText = text.replace(/^[-•*]\s*/, '').trim();
+                            if (cleanText) {
+                                includes.push(cleanText);
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Buscar "El viaje no incluye" - primero intentar por patrón de texto
+            const bodyHtml = $('body').html() || '';
+            const notIncludesMatch = bodyHtml.match(/El viaje no incluye([\s\S]*?)(?=Itinerario|Mapa del tour|Tours opcionales|Información adicional|$)/i);
             if (notIncludesMatch) {
                 const notIncludesHtml = notIncludesMatch[1];
                 const $notIncludes = cheerio.load(notIncludesHtml);
@@ -948,7 +960,6 @@ export class MegaTravelScrapingService {
                 $notIncludes('li, p').each((i, elem) => {
                     const text = $(elem).text().trim();
                     if (text && text.length > 3 && !text.startsWith('El viaje')) {
-                        // Limpiar bullets y caracteres especiales
                         const cleanText = text.replace(/^[-•*]\s*/, '').trim();
                         if (cleanText) {
                             not_includes.push(cleanText);
