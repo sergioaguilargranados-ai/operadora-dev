@@ -5,7 +5,7 @@
 // - Cheerio para datos estáticos (HTML simple)
 // - Puppeteer para datos dinámicos (JavaScript rendering)
 
-import puppeteer from 'puppeteer';
+import puppeteer, { Page } from 'puppeteer';
 import * as cheerio from 'cheerio';
 import { pool } from '@/lib/db';
 
@@ -240,7 +240,24 @@ export class MegaTravelScrapingService {
             // Esperar a que cargue el contenido
             await page.waitForSelector('body', { timeout: 30000 });
 
-            // Obtener HTML completo
+            // NUEVO: Esperar a que se cargue la tabla de fechas/precios (si existe)
+            // Esta tabla se carga dinámicamente con JavaScript
+            console.log('   ⏳ Esperando tabla de fechas/precios...');
+            try {
+                await page.waitForSelector('.table, table, [class*="fecha"], [class*="salida"]', {
+                    timeout: 10000
+                });
+                // Esperar un poco más para que termine de cargar
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                console.log('   ✅ Tabla de fechas cargada');
+            } catch (e) {
+                console.log('   ⚠️  No se encontró tabla de fechas (puede ser normal)');
+            }
+
+            // NUEVO: Extraer precios dinámicos ANTES de cerrar el navegador
+            const dynamicPricing = await this.scrapeDynamicPricing(page);
+
+            // Obtener HTML completo DESPUÉS de que todo se haya cargado
             const html = await page.content();
 
             // Cerrar navegador
@@ -250,7 +267,7 @@ export class MegaTravelScrapingService {
             const $ = cheerio.load(html);
 
             // Extraer cada tipo de dato
-            const itinerary = await this.scrapeItinerary($, page, tourUrl);
+            const itinerary = await this.scrapeItinerary($, null, tourUrl); // page ya está cerrado
             const departures = await this.scrapeDepartures($);
             const policies = await this.scrapePolicies($);
             const additionalInfo = await this.scrapeAdditionalInfo($);
@@ -258,8 +275,12 @@ export class MegaTravelScrapingService {
             const images = await this.scrapeImages($);
             const tags = await this.scrapeClassifications($);
 
-            // NUEVOS: Extraer precios e includes
-            const pricing = await this.scrapePricing($);
+            // Extraer precios estáticos (fallback si no hay dinámicos)
+            const staticPricing = await this.scrapePricing($);
+
+            // Usar precios dinámicos si están disponibles, sino usar estáticos
+            const pricing = dynamicPricing.price_usd !== null ? dynamicPricing : staticPricing;
+
             const { includes, not_includes } = await this.scrapeIncludesNotIncludes($);
 
             // Extraer código del tour para obtener itinerario completo
@@ -791,6 +812,89 @@ export class MegaTravelScrapingService {
                 main: null,
                 gallery: [],
                 map: null
+            };
+        }
+    }
+
+    /**
+     * 6A. SCRAPING DE PRECIOS DINÁMICOS (desde tabla de fechas)
+     * Esta función extrae precios de la tabla de fechas que se carga con JavaScript
+     */
+    static async scrapeDynamicPricing(page: Page): Promise<{
+        price_usd: number | null;
+        taxes_usd: number | null;
+        currency: string;
+        price_per_person_type: string;
+        price_variants: Record<string, number>;
+    }> {
+        try {
+            console.log('   💰 Extrayendo precios dinámicos de tabla de fechas...');
+
+            let price_usd: number | null = null;
+            let taxes_usd: number | null = null;
+            let currency = 'USD';
+            let price_per_person_type = 'Por persona en habitación Doble';
+            const price_variants: Record<string, number> = {};
+
+            // Buscar en la tabla de fechas
+            // Formato esperado: "5,199 USD + 899 IMP" o similar
+            const priceData = await page.evaluate(() => {
+                // Buscar todas las celdas de tabla que contengan precios
+                const cells = Array.from(document.querySelectorAll('td, .price, [class*="precio"], [class*="tarifa"]'));
+
+                for (const cell of cells) {
+                    const text = cell.textContent || '';
+
+                    // Patrón 1: "X,XXX USD + XXX IMP"
+                    const match1 = text.match(/([0-9,]+)\s*USD\s*\+\s*([0-9,]+)\s*IMP/i);
+                    if (match1) {
+                        return {
+                            price: match1[1].replace(/,/g, ''),
+                            taxes: match1[2].replace(/,/g, ''),
+                            found: true
+                        };
+                    }
+
+                    // Patrón 2: "Desde X,XXX USD"
+                    const match2 = text.match(/Desde\s+([0-9,]+)\s*USD/i);
+                    if (match2) {
+                        return {
+                            price: match2[1].replace(/,/g, ''),
+                            taxes: null,
+                            found: true
+                        };
+                    }
+                }
+
+                return { found: false };
+            });
+
+            if (priceData.found && priceData.price) {
+                price_usd = parseFloat(priceData.price);
+                if (priceData.taxes) {
+                    taxes_usd = parseFloat(priceData.taxes);
+                }
+                console.log(`   ✅ Precio dinámico encontrado: $${price_usd} USD${taxes_usd ? ` + $${taxes_usd} IMP` : ''}`);
+            } else {
+                console.log('   ⚠️  No se encontraron precios en tabla dinámica');
+            }
+
+            return {
+                price_usd,
+                taxes_usd,
+                currency,
+                price_per_person_type,
+                price_variants
+            };
+
+        } catch (error) {
+            console.error('   ❌ Error extrayendo precios dinámicos:', error);
+            return {
+                price_usd: null,
+                taxes_usd: null,
+                currency: 'USD',
+                price_per_person_type: 'Por persona en habitación Doble',
+                price_variants: {}
             };
         }
     }

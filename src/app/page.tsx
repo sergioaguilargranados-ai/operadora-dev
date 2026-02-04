@@ -1,6 +1,6 @@
 ﻿"use client"
 
-// Build: 01 Feb 2026 - v2.267 - Integración Cotizaciones Tours + Centro Comunicación
+// Build: 03 Feb 2026 - v2.295 - Integración Civitatis (Modelo Afiliado)
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -859,13 +859,13 @@ export default function Home() {
                       </TabsTrigger>
                     </FeatureGate>
                     <FeatureGate feature="SEARCH_ACTIVITIES">
-                      <TabsTrigger
-                        value="things"
-                        className="rounded-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-white/80 px-3 md:px-4 py-2 flex items-center gap-1.5 text-sm"
+                      <button
+                        onClick={() => router.push('/actividades')}
+                        className="rounded-lg border-b-2 border-transparent hover:border-primary hover:bg-white/80 px-3 md:px-4 py-2 flex items-center gap-1.5 text-sm transition-all"
                       >
                         <Activity className="w-4 h-4" />
                         <span>Actividades</span>
-                      </TabsTrigger>
+                      </button>
                     </FeatureGate>
                     <FeatureGate feature="SEARCH_INSURANCE">
                       <TabsTrigger
@@ -3043,7 +3043,7 @@ export default function Home() {
                 </p>
                 <p className="font-mono mt-1">
                   👥 Usuarios: <span className="font-bold">{dbInfo.totalUsers}</span> |
-                  📦 Versión: <span className="font-bold">v2.248</span>
+                  📦 Versión: <span className="font-bold">v2.295</span>
                 </p>
               </div>
             )}

@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 01 de Febrero de 2026 - 23:05 CST  
-**Versión actual:** v2.294  
+**Última actualización:** 03 de Febrero de 2026 - 23:45 CST  
+**Versión actual:** v2.295  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,84 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.295 - 03 de Febrero de 2026 - 23:45 CST
+
+**🌍 NUEVA INTEGRACIÓN - Civitatis (Modelo Afiliado)**
+
+**Objetivo:**
+Integrar Civitatis como proveedor de tours y actividades usando el modelo de afiliados con enlaces personalizados.
+
+**Cambios Implementados:**
+
+1. **✅ Nueva Página `/actividades`**
+   - Hero section con imagen de fondo y buscador
+   - Grid de 8 destinos principales (Roma, París, Madrid, Barcelona, NY, Londres, Cancún, CDMX)
+   - Cada destino con imagen, descripción, número de actividades y rating
+   - Botón "Ver todos los destinos" para explorar catálogo completo
+   - Sección de beneficios (Mejor Precio, Cancelación Gratuita, Guías en Español)
+   - Diseño responsive con header traslúcido estilo AS Operadora
+
+2. **✅ Migración 024 - Configuración Civitatis**
+   - Nueva entrada en `app_settings`: `CIVITATIS_AGENCY_ID = '67114'`
+   - Categoría: `integrations`
+   - Script de migración: `scripts/run-migration-024.js`
+
+3. **✅ Actualización Menú Principal**
+   - Botón "Actividades" en hero ahora redirige a `/actividades`
+   - Cambio de `TabsTrigger` a `button` con `onClick`
+   - Mantiene FeatureGate para control de visibilidad
+
+4. **✅ Documentación Completa**
+   - `docs/AG-Integracion-Civitatis.md` - Guía completa de integración
+   - Incluye: arquitectura, URLs, funciones, troubleshooting, próximos pasos
+
+**Modelo de Negocio:**
+- **ID de Agencia:** `67114`
+- **Comisión:** Por todas las compras del cliente durante 30 días
+- **Sin API:** Solo enlaces directos con `?ag_aid=67114`
+- **Sin modificación de precios:** Precios originales de Civitatis
+
+**Estructura de URLs:**
+```
+Principal: https://www.civitatis.com/es/?ag_aid=67114
+Destino: https://www.civitatis.com/es/madrid/?ag_aid=67114
+Búsqueda: https://www.civitatis.com/es/buscar/?q=TERMINO&ag_aid=67114
+```
+
+**Archivos Creados:**
+- `src/app/actividades/page.tsx` - Página principal de actividades
+- `migrations/024_add_civitatis_config.sql` - Migración de configuración
+- `scripts/run-migration-024.js` - Script de migración
+- `docs/AG-Integracion-Civitatis.md` - Documentación completa
+
+**Archivos Modificados:**
+- `src/app/page.tsx` - Botón Actividades + versión v2.295
+
+**Ventajas del Modelo:**
+- ✅ Sin inventario ni gestión de disponibilidad
+- ✅ Sin riesgo (solo comisión por ventas reales)
+- ✅ Civitatis maneja soporte al cliente
+- ✅ Precios y disponibilidad siempre actualizados
+- ✅ Marca líder en mercado hispanohablante
+
+**Lecciones Aprendidas:**
+- El modelo de afiliados es ideal para servicios complementarios (actividades, tours)
+- Mantener identidad visual propia (header/footer) genera más confianza
+- Enlaces en nueva pestaña evitan problemas de iframe (CORS, cookies)
+- Configuración centralizada en `app_settings` facilita cambios futuros
+
+**Próximos Pasos:**
+- [ ] Ejecutar migración 024 en Neon
+- [ ] Agregar más destinos (50+)
+- [ ] Categorías de actividades (museos, gastronomía, aventura)
+- [ ] Integrar actividades destacadas en homepage
+
+**Cifra de Control:**
+- **Tablas:** 48 (+0, migración solo agrega registro)
+- **Campos:** 624 (+0)
+
+---
 
 ### v2.294 - 01 de Febrero de 2026 - 23:05 CST
 
