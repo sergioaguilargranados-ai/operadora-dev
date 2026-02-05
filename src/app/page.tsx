@@ -2973,6 +2973,7 @@ export default function Home() {
               </div>
             )}
           </div>
+        </div>
       </main>
       <footer className="bg-[#F7F7F7] mt-16 py-12">
         <div className="container mx-auto px-4 max-w-6xl">
