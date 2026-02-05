@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { FeaturesProvider } from "@/contexts/FeaturesContext";
 import { CookieConsent } from "@/components/CookieConsent";
 import { ChatWidget } from "@/components/ChatWidget";
+import { WhatsAppWidget } from "@/components/WhatsAppWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
           <FeaturesProvider>
             <ClientBody>{children}</ClientBody>
             <CookieConsent />
+            <WhatsAppWidget />
             <ChatWidget />
           </FeaturesProvider>
         </AuthProvider>

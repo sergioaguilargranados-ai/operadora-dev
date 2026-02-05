@@ -112,9 +112,9 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
           >
             <Button
               onClick={() => setIsOpen(true)}
-              className="h-14 w-14 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg hover:shadow-xl transition-all"
+              className="h-14 w-14 rounded-full bg-[#0066FF] hover:bg-[#0052CC] shadow-lg hover:shadow-xl transition-all hover:scale-110"
             >
-              <MessageCircle className="w-6 h-6" />
+              <MessageCircle className="w-6 h-6 text-white" />
             </Button>
           </motion.div>
         )}
@@ -131,7 +131,7 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
           >
             <Card className="flex flex-col h-full overflow-hidden shadow-2xl border-2">
               {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 flex items-center justify-between">
+              <div className="bg-[#0066FF] text-white p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                     <Bot className="w-6 h-6" />
@@ -168,9 +168,8 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
                     {messages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex gap-2 ${
-                          message.role === 'user' ? 'justify-end' : 'justify-start'
-                        }`}
+                        className={`flex gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'
+                          }`}
                       >
                         {message.role === 'assistant' && (
                           <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -178,16 +177,14 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
                           </div>
                         )}
                         <div
-                          className={`max-w-[75%] rounded-2xl px-4 py-2 ${
-                            message.role === 'user'
+                          className={`max-w-[75%] rounded-2xl px-4 py-2 ${message.role === 'user'
                               ? 'bg-blue-600 text-white'
                               : 'bg-white border border-gray-200 text-gray-900'
-                          }`}
+                            }`}
                         >
                           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                          <p className={`text-xs mt-1 ${
-                            message.role === 'user' ? 'text-blue-100' : 'text-gray-400'
-                          }`}>
+                          <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-blue-100' : 'text-gray-400'
+                            }`}>
                             {message.timestamp.toLocaleTimeString('es-MX', {
                               hour: '2-digit',
                               minute: '2-digit'
