@@ -108,7 +108,7 @@ const MONTHS = [
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ]
 
-const WHATSAPP_NUMBER = '+525621486939' // Número oficial AS Operadora
+const WHATSAPP_NUMBER = '+527208156804' // Número oficial AS Operadora
 
 function ToursContent() {
     const router = useRouter()
@@ -459,13 +459,16 @@ function ToursContent() {
                         animate={{ opacity: 1, y: 0 }}
                         className="text-center"
                     >
-                        <h1 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900 drop-shadow-sm">
-                            {CATEGORIES.find(c => c.code === selectedCategory)?.icon} {CATEGORIES.find(c => c.code === selectedCategory)?.name}
-                        </h1>
-                        <p className="text-lg md:text-xl text-gray-800 drop-shadow-sm mb-6 max-w-2xl mx-auto">
-                            Descubre el mundo con nuestros paquetes todo incluido.
-                            Europa, Asia, Medio Oriente y más destinos te esperan.
-                        </p>
+                        {/* Fondo blanco translúcido para mejor legibilidad */}
+                        <div className="inline-block backdrop-blur-sm bg-white/70 rounded-2xl px-8 py-6 mb-6">
+                            <h1 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900 drop-shadow-sm">
+                                {CATEGORIES.find(c => c.code === selectedCategory)?.icon} {CATEGORIES.find(c => c.code === selectedCategory)?.name}
+                            </h1>
+                            <p className="text-lg md:text-xl text-gray-800 drop-shadow-sm max-w-2xl mx-auto">
+                                Descubre el mundo con nuestros paquetes todo incluido.
+                                Europa, Asia, Medio Oriente y más destinos te esperan.
+                            </p>
+                        </div>
 
                         {/* Barra de búsqueda */}
                         <form onSubmit={handleSearch} className="max-w-xl mx-auto">

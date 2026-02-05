@@ -46,7 +46,7 @@ import { Logo } from '@/components/Logo'
 import { TourMap } from '@/components/TourMap'
 
 
-const WHATSAPP_NUMBER = '+525621486939' // Número oficial AS Operadora
+const WHATSAPP_NUMBER = '+527208156804' // Número oficial AS Operadora
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDc8NB8nvcbY2OTv6Dcvzm7AwAbV7tPgF0' // Google Maps API Key
 
 interface TourDetail {
@@ -140,6 +140,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
     const [showFullOptionalTours, setShowFullOptionalTours] = useState(false)
     const [showFullNotes, setShowFullNotes] = useState(false)
     const [showFullItinerary, setShowFullItinerary] = useState(false)
+    const [numPersonas, setNumPersonas] = useState(1) // Selector de personas
 
     useEffect(() => {
         fetchTourDetail()
@@ -244,17 +245,14 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                         </Link>
 
                         <nav className="hidden md:flex items-center gap-6">
-                            <Link href="/#destinos" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-                                Destinos
+                            <Link href="/#obten-app" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                                Obtén la app
                             </Link>
-                            <Link href="/tours" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-                                Tours
+                            <Link href="/mis-reservas" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                                Tus Reservas
                             </Link>
-                            <Link href="/#servicios" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-                                Servicios
-                            </Link>
-                            <Link href="/#contacto" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-                                Contacto
+                            <Link href="/ayuda" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                                Ayuda
                             </Link>
                         </nav>
 
@@ -793,18 +791,33 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                         <span className="text-gray-600">Impuestos:</span>
                                         <span className="font-semibold">${formatPrice(tour.pricing.taxes || 0)} USD</span>
                                     </div>
-                                    <div className="mt-2 pt-2 border-t border-gray-100">
-                                        <p className="text-xs text-gray-500 italic">
-                                            * Precio incluye margen de servicio AS Operadora
-                                        </p>
+                                </div>
+
+                                {/* Selector de número de personas */}
+                                <div className="mb-6 pb-6 border-b">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Número de personas:</label>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => setNumPersonas(Math.max(1, numPersonas - 1))}
+                                            className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold text-lg transition-colors"
+                                        >
+                                            -
+                                        </button>
+                                        <span className="text-2xl font-bold text-blue-600 w-12 text-center">{numPersonas}</span>
+                                        <button
+                                            onClick={() => setNumPersonas(numPersonas + 1)}
+                                            className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center font-bold text-lg transition-colors"
+                                        >
+                                            +
+                                        </button>
                                     </div>
                                 </div>
 
                                 {/* Total */}
                                 <div className="flex justify-between items-center mb-6 pb-6 border-b">
-                                    <span className="text-lg font-bold text-gray-900">Total:</span>
+                                    <span className="text-lg font-bold text-gray-900">Total ({numPersonas} {numPersonas === 1 ? 'persona' : 'personas'}):</span>
                                     <span className="text-2xl font-bold text-blue-600">
-                                        ${formatPrice(tour.pricing.totalPrice || (tour.pricing.basePrice + (tour.pricing.taxes || 0)))} USD
+                                        ${formatPrice((tour.pricing.totalPrice || (tour.pricing.basePrice + (tour.pricing.taxes || 0))) * numPersonas)} USD
                                     </span>
                                 </div>
 
@@ -819,7 +832,8 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                             price: tour.pricing.basePrice.toString(),
                                             region: tour.region,
                                             duration: `${tour.days} días / ${tour.nights} noches`,
-                                            cities: tour.cities.join(', ')
+                                            cities: tour.cities.join(', '),
+                                            personas: numPersonas.toString()
                                         })
                                         window.location.href = `/cotizar-tour?${params.toString()}`
                                     }}

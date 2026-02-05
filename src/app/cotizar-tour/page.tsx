@@ -26,7 +26,7 @@ import { Logo } from '@/components/Logo'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
-const WHATSAPP_NUMBER = '+525621486939'
+const WHATSAPP_NUMBER = '+527208156804'
 
 function CotizarTourContent() {
     const router = useRouter()
@@ -54,6 +54,7 @@ function CotizarTourContent() {
         const tourRegion = searchParams?.get('region')
         const tourDuration = searchParams?.get('duration')
         const tourCities = searchParams?.get('cities')
+        const tourPersonas = searchParams?.get('personas')
 
         if (tourId && tourName) {
             setTourData({
@@ -64,6 +65,10 @@ function CotizarTourContent() {
                 duration: tourDuration ? decodeURIComponent(tourDuration) : '',
                 cities: tourCities ? decodeURIComponent(tourCities).split(',') : []
             })
+            // Actualizar número de personas si viene desde la página anterior
+            if (tourPersonas) {
+                setFormData(prev => ({ ...prev, numPersonas: tourPersonas }))
+            }
         } else {
             // Si no hay datos del tour, redirigir a tours
             router.push('/tours')
@@ -227,14 +232,17 @@ function CotizarTourContent() {
                                 <Logo className="py-2" />
                             </Link>
                         </div>
-                        <Button
-                            size="sm"
-                            onClick={handleWhatsApp}
-                            className="bg-green-500 text-white hover:bg-green-600"
-                        >
-                            <MessageCircle className="w-4 h-4 mr-2" />
-                            <span className="hidden sm:inline">WhatsApp</span>
-                        </Button>
+                        <nav className="hidden md:flex items-center gap-6">
+                            <Link href="/#obten-app" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                                Obtén la app
+                            </Link>
+                            <Link href="/mis-reservas" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                                Tus Reservas
+                            </Link>
+                            <Link href="/ayuda" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                                Ayuda
+                            </Link>
+                        </nav>
                     </div>
                 </div>
             </header>
@@ -478,26 +486,6 @@ function CotizarTourContent() {
                                     <div className="text-sm text-green-800">
                                         <strong>Respuesta rápida:</strong> Te contactaremos en menos de 24 horas con tu cotización personalizada
                                     </div>
-                                </div>
-                            </Card>
-
-                            <Card className="p-4">
-                                <h4 className="font-semibold mb-3">¿Necesitas ayuda?</h4>
-                                <div className="space-y-2 text-sm">
-                                    <a
-                                        href={`tel:${WHATSAPP_NUMBER}`}
-                                        className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
-                                    >
-                                        <Phone className="w-4 h-4" />
-                                        {WHATSAPP_NUMBER}
-                                    </a>
-                                    <button
-                                        onClick={handleWhatsApp}
-                                        className="flex items-center gap-2 text-green-600 hover:text-green-700"
-                                    >
-                                        <MessageCircle className="w-4 h-4" />
-                                        WhatsApp
-                                    </button>
                                 </div>
                             </Card>
                         </div>
