@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
 
-const WHATSAPP_NUMBER = '+525621486939'
+const WHATSAPP_NUMBER = '+527208156804' // Número oficial AS Operadora
 
 export async function POST(request: NextRequest) {
     try {

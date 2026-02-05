@@ -101,7 +101,7 @@ const ALL_REGIONS = [
     'Sudamérica', 'Caribe', 'África', 'Oceanía', 'México'
 ]
 
-const WHATSAPP_NUMBER = '+525621486939' // Número oficial AS Operadora
+const WHATSAPP_NUMBER = '+527208156804' // Número oficial AS Operadora
 
 function ToursContent() {
     const router = useRouter()

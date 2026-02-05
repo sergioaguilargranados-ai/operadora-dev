@@ -22,7 +22,7 @@ import { Logo } from '@/components/Logo'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
-const WHATSAPP_NUMBER = '+525621486939'
+const WHATSAPP_NUMBER = '+527208156804' // Número oficial AS Operadora
 
 const STATUS_CONFIG = {
     pending: {

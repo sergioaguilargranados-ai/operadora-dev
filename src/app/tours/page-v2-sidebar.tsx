@@ -64,7 +64,7 @@ interface TourPackage {
     departure_dates?: string[]  // Fechas de salida disponibles
 }
 
-const WHATSAPP_NUMBER = '+525621486939'
+const WHATSAPP_NUMBER = '+527208156804' // Número oficial AS Operadora
 
 // Meses para filtro de fechas
 const MONTHS = [
@@ -415,8 +415,8 @@ function ToursContent() {
                                                     key={month}
                                                     onClick={() => setSelectedMonth(selectedMonth === month ? null : month)}
                                                     className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedMonth === month
-                                                            ? 'bg-blue-100 text-blue-700 font-medium'
-                                                            : 'hover:bg-gray-100 text-gray-700'
+                                                        ? 'bg-blue-100 text-blue-700 font-medium'
+                                                        : 'hover:bg-gray-100 text-gray-700'
                                                         }`}
                                                 >
                                                     Salidas en {month}
