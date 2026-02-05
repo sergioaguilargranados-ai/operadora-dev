@@ -2975,11 +2975,9 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer */}
-      
-      {/* C�rculos flotantes - Chat y WhatsApp */}
+      {/* Círculos flotantes - Chat y WhatsApp */}
       <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
-        {/* Bot�n de WhatsApp */}
+        {/* Botón de WhatsApp */}
         <a
           href="https://wa.me/5215512345678"
           target="_blank"
@@ -2992,7 +2990,7 @@ export default function Home() {
           </svg>
         </a>
         
-        {/* Bot�n de Chat de Asistencia */}
+        {/* Botón de Chat de Asistencia */}
         <button
           onClick={() => router.push('/ayuda')}
           className="w-14 h-14 bg-[#0066FF] hover:bg-[#0052CC] rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group"
@@ -3003,6 +3001,8 @@ export default function Home() {
           </svg>
         </button>
       </div>
+
+      {/* C�rculos flotantes - Chat y WhatsApp */}
       <footer className="bg-[#F7F7F7] mt-16 py-12">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
