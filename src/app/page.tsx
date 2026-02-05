@@ -1,6 +1,6 @@
-"use client"
+﻿"use client"
 
-// Build: 03 Feb 2026 - v2.295 - Integraci�n Civitatis (Modelo Afiliado)
+// Build: 04 Feb 2026 - v2.298 - FIX: Restaurar acentos en destinos (encoding UTF-8)
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -38,7 +38,7 @@ export default function Home() {
   const { search, loading } = useSearch()
   const [showUserMenu, setShowUserMenu] = useState(false)
 
-  // Estados para b�squeda de hoteles
+  // Estados para búsqueda de hoteles
   const [destination, setDestination] = useState("")
   const [destinationSuggestions, setDestinationSuggestions] = useState<string[]>([])
   const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false)
@@ -49,44 +49,44 @@ export default function Home() {
   const [tourSearch, setTourSearch] = useState("")
 
 
-  // Destinos organizados por pa�s con tipo (playa, ciudad, pueblo m�gico)
+  // Destinos organizados por país con tipo (playa, ciudad, pueblo mágico)
   const allDestinations = [
-    // M�xico - Playas
-    { name: "Canc�n", region: "Quintana Roo", country: "M�xico", type: "playa" },
-    { name: "Playa del Carmen", region: "Quintana Roo", country: "M�xico", type: "playa" },
-    { name: "Tulum", region: "Quintana Roo", country: "M�xico", type: "playa" },
-    { name: "Riviera Maya", region: "Quintana Roo", country: "M�xico", type: "playa" },
-    { name: "Cozumel", region: "Quintana Roo", country: "M�xico", type: "playa" },
-    { name: "Isla Mujeres", region: "Quintana Roo", country: "M�xico", type: "playa" },
-    { name: "Los Cabos", region: "Baja California Sur", country: "M�xico", type: "playa" },
-    { name: "La Paz", region: "Baja California Sur", country: "M�xico", type: "playa" },
-    { name: "Puerto Vallarta", region: "Jalisco", country: "M�xico", type: "playa" },
-    { name: "Nuevo Vallarta", region: "Nayarit", country: "M�xico", type: "playa" },
-    { name: "Sayulita", region: "Nayarit", country: "M�xico", type: "playa" },
-    { name: "Mazatl�n", region: "Sinaloa", country: "M�xico", type: "playa" },
-    { name: "Acapulco", region: "Guerrero", country: "M�xico", type: "playa" },
-    { name: "Ixtapa-Zihuatanejo", region: "Guerrero", country: "M�xico", type: "playa" },
-    { name: "Huatulco", region: "Oaxaca", country: "M�xico", type: "playa" },
-    { name: "Puerto Escondido", region: "Oaxaca", country: "M�xico", type: "playa" },
-    // M�xico - Ciudades
-    { name: "Ciudad de M�xico", region: "CDMX", country: "M�xico", type: "ciudad" },
-    { name: "Guadalajara", region: "Jalisco", country: "M�xico", type: "ciudad" },
-    { name: "Monterrey", region: "Nuevo Le�n", country: "M�xico", type: "ciudad" },
-    { name: "M�rida", region: "Yucat�n", country: "M�xico", type: "ciudad" },
-    { name: "Oaxaca", region: "Oaxaca", country: "M�xico", type: "ciudad" },
-    { name: "Puebla", region: "Puebla", country: "M�xico", type: "ciudad" },
-    { name: "Quer�taro", region: "Quer�taro", country: "M�xico", type: "ciudad" },
-    { name: "Le�n", region: "Guanajuato", country: "M�xico", type: "ciudad" },
-    { name: "Tijuana", region: "Baja California", country: "M�xico", type: "ciudad" },
-    // M�xico - Pueblos M�gicos
-    { name: "San Miguel de Allende", region: "Guanajuato", country: "M�xico", type: "pueblo" },
-    { name: "Guanajuato", region: "Guanajuato", country: "M�xico", type: "pueblo" },
-    { name: "San Crist�bal de las Casas", region: "Chiapas", country: "M�xico", type: "pueblo" },
-    { name: "Taxco", region: "Guerrero", country: "M�xico", type: "pueblo" },
-    { name: "Valle de Bravo", region: "Estado de M�xico", country: "M�xico", type: "pueblo" },
-    { name: "Tepoztl�n", region: "Morelos", country: "M�xico", type: "pueblo" },
-    { name: "P�tzcuaro", region: "Michoac�n", country: "M�xico", type: "pueblo" },
-    { name: "Real de Catorce", region: "San Luis Potos�", country: "M�xico", type: "pueblo" },
+    // México - Playas
+    { name: "Cancún", region: "Quintana Roo", country: "México", type: "playa" },
+    { name: "Playa del Carmen", region: "Quintana Roo", country: "México", type: "playa" },
+    { name: "Tulum", region: "Quintana Roo", country: "México", type: "playa" },
+    { name: "Riviera Maya", region: "Quintana Roo", country: "México", type: "playa" },
+    { name: "Cozumel", region: "Quintana Roo", country: "México", type: "playa" },
+    { name: "Isla Mujeres", region: "Quintana Roo", country: "México", type: "playa" },
+    { name: "Los Cabos", region: "Baja California Sur", country: "México", type: "playa" },
+    { name: "La Paz", region: "Baja California Sur", country: "México", type: "playa" },
+    { name: "Puerto Vallarta", region: "Jalisco", country: "México", type: "playa" },
+    { name: "Nuevo Vallarta", region: "Nayarit", country: "México", type: "playa" },
+    { name: "Sayulita", region: "Nayarit", country: "México", type: "playa" },
+    { name: "Mazatlán", region: "Sinaloa", country: "México", type: "playa" },
+    { name: "Acapulco", region: "Guerrero", country: "México", type: "playa" },
+    { name: "Ixtapa-Zihuatanejo", region: "Guerrero", country: "México", type: "playa" },
+    { name: "Huatulco", region: "Oaxaca", country: "México", type: "playa" },
+    { name: "Puerto Escondido", region: "Oaxaca", country: "México", type: "playa" },
+    // México - Ciudades
+    { name: "Ciudad de México", region: "CDMX", country: "México", type: "ciudad" },
+    { name: "Guadalajara", region: "Jalisco", country: "México", type: "ciudad" },
+    { name: "Monterrey", region: "Nuevo León", country: "México", type: "ciudad" },
+    { name: "Mérida", region: "Yucatán", country: "México", type: "ciudad" },
+    { name: "Oaxaca", region: "Oaxaca", country: "México", type: "ciudad" },
+    { name: "Puebla", region: "Puebla", country: "México", type: "ciudad" },
+    { name: "Querétaro", region: "Querétaro", country: "México", type: "ciudad" },
+    { name: "León", region: "Guanajuato", country: "México", type: "ciudad" },
+    { name: "Tijuana", region: "Baja California", country: "México", type: "ciudad" },
+    // México - Pueblos Mágicos
+    { name: "San Miguel de Allende", region: "Guanajuato", country: "México", type: "pueblo" },
+    { name: "Guanajuato", region: "Guanajuato", country: "México", type: "pueblo" },
+    { name: "San Cristóbal de las Casas", region: "Chiapas", country: "México", type: "pueblo" },
+    { name: "Taxco", region: "Guerrero", country: "México", type: "pueblo" },
+    { name: "Valle de Bravo", region: "Estado de México", country: "México", type: "pueblo" },
+    { name: "Tepoztlán", region: "Morelos", country: "México", type: "pueblo" },
+    { name: "Pátzcuaro", region: "Michoacán", country: "México", type: "pueblo" },
+    { name: "Real de Catorce", region: "San Luis Potosí", country: "México", type: "pueblo" },
     // USA
     { name: "Miami", region: "Florida", country: "Estados Unidos", type: "playa" },
     { name: "Orlando", region: "Florida", country: "Estados Unidos", type: "ciudad" },
@@ -99,39 +99,39 @@ export default function Home() {
     { name: "San Diego", region: "California", country: "Estados Unidos", type: "playa" },
     { name: "Honolulu", region: "Hawaii", country: "Estados Unidos", type: "playa" },
     // Europa
-    { name: "Madrid", region: "Comunidad de Madrid", country: "Espa�a", type: "ciudad" },
-    { name: "Barcelona", region: "Catalu�a", country: "Espa�a", type: "ciudad" },
-    { name: "Ibiza", region: "Islas Baleares", country: "Espa�a", type: "playa" },
-    { name: "Mallorca", region: "Islas Baleares", country: "Espa�a", type: "playa" },
-    { name: "Par�s", region: "�le-de-France", country: "Francia", type: "ciudad" },
+    { name: "Madrid", region: "Comunidad de Madrid", country: "España", type: "ciudad" },
+    { name: "Barcelona", region: "Cataluña", country: "España", type: "ciudad" },
+    { name: "Ibiza", region: "Islas Baleares", country: "España", type: "playa" },
+    { name: "Mallorca", region: "Islas Baleares", country: "España", type: "playa" },
+    { name: "París", region: "Île-de-France", country: "Francia", type: "ciudad" },
     { name: "Niza", region: "Provenza", country: "Francia", type: "playa" },
     { name: "Roma", region: "Lazio", country: "Italia", type: "ciudad" },
-    { name: "Venecia", region: "V�neto", country: "Italia", type: "ciudad" },
+    { name: "Venecia", region: "Véneto", country: "Italia", type: "ciudad" },
     { name: "Florencia", region: "Toscana", country: "Italia", type: "ciudad" },
     { name: "Londres", region: "Inglaterra", country: "Reino Unido", type: "ciudad" },
-    { name: "�msterdam", region: "Holanda del Norte", country: "Pa�ses Bajos", type: "ciudad" },
+    { name: "Ámsterdam", region: "Holanda del Norte", country: "Países Bajos", type: "ciudad" },
     // Caribe
-    { name: "Punta Cana", region: "La Altagracia", country: "Rep�blica Dominicana", type: "playa" },
-    { name: "Santo Domingo", region: "Distrito Nacional", country: "Rep�blica Dominicana", type: "ciudad" },
+    { name: "Punta Cana", region: "La Altagracia", country: "República Dominicana", type: "playa" },
+    { name: "Santo Domingo", region: "Distrito Nacional", country: "República Dominicana", type: "ciudad" },
     { name: "La Habana", region: "La Habana", country: "Cuba", type: "ciudad" },
     { name: "Varadero", region: "Matanzas", country: "Cuba", type: "playa" },
     { name: "San Juan", region: "Puerto Rico", country: "Puerto Rico", type: "playa" },
     { name: "Aruba", region: "Oranjestad", country: "Aruba", type: "playa" },
-    // Centroam�rica
-    { name: "Ciudad de Panam�", region: "Panam�", country: "Panam�", type: "ciudad" },
-    { name: "San Jos�", region: "San Jos�", country: "Costa Rica", type: "ciudad" },
+    // Centroamérica
+    { name: "Ciudad de Panamá", region: "Panamá", country: "Panamá", type: "ciudad" },
+    { name: "San José", region: "San José", country: "Costa Rica", type: "ciudad" },
     { name: "Guanacaste", region: "Guanacaste", country: "Costa Rica", type: "playa" },
-    // Sudam�rica
+    // Sudamérica
     { name: "Buenos Aires", region: "Buenos Aires", country: "Argentina", type: "ciudad" },
-    { name: "R�o de Janeiro", region: "R�o de Janeiro", country: "Brasil", type: "playa" },
-    { name: "S�o Paulo", region: "S�o Paulo", country: "Brasil", type: "ciudad" },
-    { name: "Lima", region: "Lima", country: "Per�", type: "ciudad" },
-    { name: "Cusco", region: "Cusco", country: "Per�", type: "ciudad" },
-    { name: "Bogot�", region: "Cundinamarca", country: "Colombia", type: "ciudad" },
-    { name: "Cartagena", region: "Bol�var", country: "Colombia", type: "playa" },
+    { name: "Río de Janeiro", region: "Río de Janeiro", country: "Brasil", type: "playa" },
+    { name: "São Paulo", region: "São Paulo", country: "Brasil", type: "ciudad" },
+    { name: "Lima", region: "Lima", country: "Perú", type: "ciudad" },
+    { name: "Cusco", region: "Cusco", country: "Perú", type: "ciudad" },
+    { name: "Bogotá", region: "Cundinamarca", country: "Colombia", type: "ciudad" },
+    { name: "Cartagena", region: "Bolívar", country: "Colombia", type: "playa" },
   ]
 
-  // Obtener pa�ses �nicos para b�squeda por pa�s
+  // Obtener países únicos para búsqueda por país
   const countries = [...new Set(allDestinations.map(d => d.country))]
 
   // Filtrar sugerencias cuando el usuario escribe
@@ -140,7 +140,7 @@ export default function Home() {
     if (value.length >= 2) {
       const searchTerm = value.toLowerCase()
 
-      // Verificar si busca un pa�s completo
+      // Verificar si busca un país completo
       const matchingCountry = countries.find(c =>
         c.toLowerCase().includes(searchTerm) || searchTerm.includes(c.toLowerCase())
       )
@@ -148,20 +148,20 @@ export default function Home() {
       let results: string[] = []
 
       if (matchingCountry && searchTerm.length >= 3) {
-        // Si busca un pa�s, mostrar TODOS los destinos de ese pa�s con encabezado
+        // Si busca un país, mostrar TODOS los destinos de ese país con encabezado
         const countryDestinations = allDestinations
           .filter(d => d.country === matchingCountry)
           .map(d => `${d.name}, ${d.region} - ${d.country}`)
-        results = [`?? Destinos en ${matchingCountry}:`, ...countryDestinations.slice(0, 8)]
+        results = [`📍 Destinos en ${matchingCountry}:`, ...countryDestinations.slice(0, 8)]
       } else {
-        // B�squeda normal por nombre de destino, regi�n o pa�s
+        // Búsqueda normal por nombre de destino, región o país
         const filtered = allDestinations.filter(d =>
           d.name.toLowerCase().includes(searchTerm) ||
           d.region.toLowerCase().includes(searchTerm) ||
           d.country.toLowerCase().includes(searchTerm)
         )
         results = filtered.slice(0, 8).map(d => {
-          const icon = d.type === 'playa' ? '???' : d.type === 'pueblo' ? '???' : '???'
+          const icon = d.type === 'playa' ? '🏖️' : d.type === 'pueblo' ? '🏘️' : '🏙️'
           return `${icon} ${d.name}, ${d.region} - ${d.country}`
         })
       }
@@ -175,26 +175,26 @@ export default function Home() {
 
   const selectDestination = (dest: string) => {
     // Ignorar si es un encabezado
-    if (dest.startsWith('??')) return
+    if (dest.startsWith('📍')) return
     // Limpiar emojis y formatear
-    const cleanDest = dest.replace(/^[?????????]\s*/, '')
+    const cleanDest = dest.replace(/^[🏖️🏙️🏘️]\s*/, '')
     setDestination(cleanDest)
     setShowDestinationSuggestions(false)
   }
 
-  // Mostrar sugerencias populares al hacer focus en campo vac�o
+  // Mostrar sugerencias populares al hacer focus en campo vacío
   const showPopularDestinations = () => {
     if (destination.length < 2) {
       const popular = [
-        "?? Destinos Populares:",
-        "??? Canc�n, Quintana Roo - M�xico",
-        "??? Los Cabos, Baja California Sur - M�xico",
-        "??? Puerto Vallarta, Jalisco - M�xico",
-        "??? Ciudad de M�xico, CDMX - M�xico",
-        "??? Miami, Florida - Estados Unidos",
-        "??? Nueva York, New York - Estados Unidos",
-        "??? Madrid, Comunidad de Madrid - Espa�a",
-        "??? Punta Cana, La Altagracia - Rep�blica Dominicana"
+        "🔥 Destinos Populares:",
+        "🏖️ Cancún, Quintana Roo - México",
+        "🏖️ Los Cabos, Baja California Sur - México",
+        "🏖️ Puerto Vallarta, Jalisco - México",
+        "🏙️ Ciudad de México, CDMX - México",
+        "🏖️ Miami, Florida - Estados Unidos",
+        "🏙️ Nueva York, New York - Estados Unidos",
+        "🏙️ Madrid, Comunidad de Madrid - España",
+        "🏖️ Punta Cana, La Altagracia - República Dominicana"
       ]
       setDestinationSuggestions(popular)
       setShowDestinationSuggestions(true)
@@ -211,7 +211,7 @@ export default function Home() {
     }
   }
 
-  // Estados para b�squeda de vuelos
+  // Estados para búsqueda de vuelos
   const [origin, setOrigin] = useState("")
   const [flightDestination, setFlightDestination] = useState("")
   const [flightType, setFlightType] = useState<'roundtrip' | 'oneway'>('roundtrip')
@@ -224,11 +224,11 @@ export default function Home() {
   const [selectedAirlines, setSelectedAirlines] = useState<string[]>([])
   const [airlineMode, setAirlineMode] = useState<'include' | 'exclude'>('include')
 
-  // Handler para cambiar cantidad de ni�os
+  // Handler para cambiar cantidad de niños
   const handleChildrenChange = (newCount: number) => {
     setChildren(newCount)
     if (newCount > childrenAges.length) {
-      // Agregar edades por defecto (5 a�os)
+      // Agregar edades por defecto (5 años)
       const newAges = [...childrenAges]
       while (newAges.length < newCount) {
         newAges.push(5)
@@ -240,14 +240,14 @@ export default function Home() {
     }
   }
 
-  // Handler para cambiar edad de un ni�o
+  // Handler para cambiar edad de un niño
   const handleChildAgeChange = (index: number, age: number) => {
     const newAges = [...childrenAges]
     newAges[index] = age
     setChildrenAges(newAges)
   }
 
-  // Estados para b�squeda de transfers
+  // Estados para búsqueda de transfers
   const [transferOrigin, setTransferOrigin] = useState("")
   const [transferDestination, setTransferDestination] = useState("")
   const [transferType, setTransferType] = useState('airport-hotel')
@@ -257,13 +257,13 @@ export default function Home() {
   const [transferReturnTime, setTransferReturnTime] = useState("14:00")
   const [transferPassengers, setTransferPassengers] = useState(2)
 
-  // Estados para b�squeda de actividades
+  // Estados para búsqueda de actividades
   const [activityCity, setActivityCity] = useState("")
   const [activityDate, setActivityDate] = useState("")
   const [activityPersons, setActivityPersons] = useState(2)
   const [activityRadius, setActivityRadius] = useState(20)
 
-  // Estados para b�squeda de autos (rental cars)
+  // Estados para búsqueda de autos (rental cars)
   const [carPickupLocation, setCarPickupLocation] = useState("")
   const [carDropoffLocation, setCarDropoffLocation] = useState("")
   const [carSameDropoff, setCarSameDropoff] = useState(true)
@@ -273,7 +273,7 @@ export default function Home() {
   const [carDropoffTime, setCarDropoffTime] = useState("10:30")
   const [carYoungDriver, setCarYoungDriver] = useState(false)
 
-  // Estados para b�squeda de paquetes
+  // Estados para búsqueda de paquetes
   const [packageOrigin, setPackageOrigin] = useState("")
   const [packageDestination, setPackageDestination] = useState("")
   const [packageCheckIn, setPackageCheckIn] = useState("")
@@ -281,12 +281,12 @@ export default function Home() {
   const [packageGuests, setPackageGuests] = useState(2)
   const [packageRooms, setPackageRooms] = useState(1)
 
-  // Estados para b�squeda de restaurantes
+  // Estados para búsqueda de restaurantes
   const [restaurantCity, setRestaurantCity] = useState("")
   const [restaurantDate, setRestaurantDate] = useState("")
   const [restaurantDiners, setRestaurantDiners] = useState(2)
 
-  // Handler para b�squeda de paquetes
+  // Handler para búsqueda de paquetes
   const handleSearchPackages = async () => {
     if (!packageDestination) {
       alert('Por favor ingresa un destino para buscar paquetes')
@@ -304,7 +304,7 @@ export default function Home() {
     router.push(`/resultados/paquetes?${params.toString()}`)
   }
 
-  // Estados para contenido din�mico
+  // Estados para contenido dinámico
   const [promotions, setPromotions] = useState<Promotion[]>([])
   const [featuredHero, setFeaturedHero] = useState<FeaturedHero | null>(null)
   const [flightDestinations, setFlightDestinations] = useState<FlightDestination[]>([])
@@ -325,7 +325,7 @@ export default function Home() {
   const [homeHeroVideoUrl, setHomeHeroVideoUrl] = useState('')  // Video de fondo del hero
   const [groupsTabVideoUrl, setGroupsTabVideoUrl] = useState('') // Video del tab de grupos
 
-  // Cargar datos din�micos
+  // Cargar datos dinámicos
   useEffect(() => {
     const fetchDynamicContent = async () => {
       try {
@@ -472,7 +472,7 @@ export default function Home() {
       providers: ['amadeus', 'kiwi', 'expedia']
     }
 
-    // Agregar filtros de aerol�neas si hay selecci�n
+    // Agregar filtros de aerolíneas si hay selección
     if (selectedAirlines.length > 0) {
       if (airlineMode === 'include') {
         flightSearchParams.includedAirlineCodes = selectedAirlines.join(',')
@@ -572,13 +572,12 @@ export default function Home() {
             <Logo className="py-2" />
           </div>
           <div className="flex items-center gap-3 md:gap-6 text-sm">
-            {/* Bot�n "Obt�n la app" - OCULTO TEMPORALMENTE */}
-            {/* <button
+            <button
               onClick={() => router.push('/app-info')}
               className="hover:text-primary hidden md:flex items-center gap-2"
             >
-              <span>Obt�n la app</span>
-            </button> */}
+              <span>Obtén la app</span>
+            </button>
             <button
               onClick={() => router.push('/mis-reservas')}
               className="hover:text-primary font-medium"
@@ -613,8 +612,7 @@ export default function Home() {
                   </div>
                   <div className="hidden md:flex flex-col items-start">
                     <span className="text-sm font-medium">{user?.name.split(' ')[0]}</span>
-                    {/* MXN - OCULTO TEMPORALMENTE (mostramos en d�lares) */}
-                    {/* <span className="text-xs text-muted-foreground">MXN</span> */}
+                    <span className="text-xs text-muted-foreground">MXN</span>
                   </div>
                 </button>
 
@@ -652,7 +650,7 @@ export default function Home() {
                           className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3"
                         >
                           <MessageCircle className="w-4 h-4" />
-                          Centro de Comunicaci�n
+                          Centro de Comunicación
                         </button>
 
                         {/* Opciones de Admin/SuperAdmin */}
@@ -664,7 +662,7 @@ export default function Home() {
                               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3"
                             >
                               <HomeIcon className="w-4 h-4" />
-                              Gesti�n de Contenido
+                              Gestión de Contenido
                             </button>
                             <button
                               onClick={() => router.push('/dashboard/corporate')}
@@ -685,7 +683,7 @@ export default function Home() {
                               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3"
                             >
                               <Package className="w-4 h-4" />
-                              Facturaci�n y Pagos
+                              Facturación y Pagos
                             </button>
                             <button
                               onClick={() => router.push('/approvals')}
@@ -713,16 +711,7 @@ export default function Home() {
                               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-blue-600 font-medium"
                             >
                               <Shield className="w-4 h-4" />
-                              Administraci�n de Funciones
-                            </button>
-                            <button
-                              onClick={() => router.push('/admin/megatravel-scraping')}
-                              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-green-600 font-medium"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                              </svg>
-                              Scraping MegaTravel
+                              Administración de Funciones
                             </button>
                           </>
                         )}
@@ -733,7 +722,7 @@ export default function Home() {
                           className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-red-600"
                         >
                           <LogOut className="w-4 h-4" />
-                          Cerrar sesi�n
+                          Cerrar sesión
                         </button>
                       </div>
                     </div>
@@ -742,7 +731,7 @@ export default function Home() {
               </div>
             ) : (
               <Link href="/login">
-                <button className="hover:text-primary font-medium">Iniciar sesi�n</button>
+                <button className="hover:text-primary font-medium">Iniciar sesión</button>
               </Link>
             )}
           </div>
@@ -811,7 +800,7 @@ export default function Home() {
               className="backdrop-blur-xl bg-white/85 rounded-3xl shadow-2xl p-8 border border-white/30"
             >
               <Tabs defaultValue="groups" className="w-full">
-                {/* Barra de navegaci�n en 2 filas */}
+                {/* Barra de navegación en 2 filas */}
                 <div className="mb-6 bg-white/50 backdrop-blur-md rounded-xl p-2 space-y-1">
                   {/* Fila 1: Hoteles - AS Home - Vuelos - Traslados - Autos - Actividades - Seguros */}
                   <TabsList className="bg-transparent h-auto p-0 w-full justify-center flex-wrap gap-1">
@@ -861,13 +850,13 @@ export default function Home() {
                       </TabsTrigger>
                     </FeatureGate>
                     <FeatureGate feature="SEARCH_ACTIVITIES">
-                      <button
-                        onClick={() => router.push('/actividades')}
-                        className="rounded-lg border-b-2 border-transparent hover:border-primary hover:bg-white/80 px-3 md:px-4 py-2 flex items-center gap-1.5 text-sm transition-all"
+                      <TabsTrigger
+                        value="things"
+                        className="rounded-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-white/80 px-3 md:px-4 py-2 flex items-center gap-1.5 text-sm"
                       >
                         <Activity className="w-4 h-4" />
                         <span>Actividades</span>
-                      </button>
+                      </TabsTrigger>
                     </FeatureGate>
                     <FeatureGate feature="SEARCH_INSURANCE">
                       <TabsTrigger
@@ -972,7 +961,7 @@ export default function Home() {
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                         {/* Destino con Datalist (como AS Home) */}
                         <div className="md:col-span-1 relative z-30">
-                          <label className="block text-sm font-medium mb-2 text-gray-900">�A d�nde?</label>
+                          <label className="block text-sm font-medium mb-2 text-gray-900">¿A dónde?</label>
                           <div className="relative">
                             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
                             <Input
@@ -983,32 +972,32 @@ export default function Home() {
                               list="hoteles-destinations-list"
                             />
                             <datalist id="hoteles-destinations-list">
-                              <option value="Canc�n, Quintana Roo, M�xico" />
-                              <option value="Playa del Carmen, Quintana Roo, M�xico" />
-                              <option value="Tulum, Quintana Roo, M�xico" />
-                              <option value="Riviera Maya, Quintana Roo, M�xico" />
-                              <option value="Los Cabos, Baja California Sur, M�xico" />
-                              <option value="Puerto Vallarta, Jalisco, M�xico" />
-                              <option value="Ciudad de M�xico, CDMX, M�xico" />
-                              <option value="Guadalajara, Jalisco, M�xico" />
-                              <option value="Monterrey, Nuevo Le�n, M�xico" />
-                              <option value="M�rida, Yucat�n, M�xico" />
-                              <option value="Oaxaca, Oaxaca, M�xico" />
-                              <option value="San Miguel de Allende, Guanajuato, M�xico" />
-                              <option value="Valle de Bravo, Estado de M�xico, M�xico" />
-                              <option value="Acapulco, Guerrero, M�xico" />
-                              <option value="Mazatl�n, Sinaloa, M�xico" />
+                              <option value="Cancún, Quintana Roo, México" />
+                              <option value="Playa del Carmen, Quintana Roo, México" />
+                              <option value="Tulum, Quintana Roo, México" />
+                              <option value="Riviera Maya, Quintana Roo, México" />
+                              <option value="Los Cabos, Baja California Sur, México" />
+                              <option value="Puerto Vallarta, Jalisco, México" />
+                              <option value="Ciudad de México, CDMX, México" />
+                              <option value="Guadalajara, Jalisco, México" />
+                              <option value="Monterrey, Nuevo León, México" />
+                              <option value="Mérida, Yucatán, México" />
+                              <option value="Oaxaca, Oaxaca, México" />
+                              <option value="San Miguel de Allende, Guanajuato, México" />
+                              <option value="Valle de Bravo, Estado de México, México" />
+                              <option value="Acapulco, Guerrero, México" />
+                              <option value="Mazatlán, Sinaloa, México" />
                               <option value="Miami, Florida, Estados Unidos" />
                               <option value="Orlando, Florida, Estados Unidos" />
                               <option value="Nueva York, New York, Estados Unidos" />
                               <option value="Las Vegas, Nevada, Estados Unidos" />
                               <option value="Los Angeles, California, Estados Unidos" />
-                              <option value="Madrid, Espa�a" />
-                              <option value="Barcelona, Espa�a" />
-                              <option value="Par�s, Francia" />
+                              <option value="Madrid, España" />
+                              <option value="Barcelona, España" />
+                              <option value="París, Francia" />
                               <option value="Roma, Italia" />
                               <option value="Londres, Reino Unido" />
-                              <option value="Punta Cana, Rep�blica Dominicana" />
+                              <option value="Punta Cana, República Dominicana" />
                             </datalist>
                           </div>
                         </div>
@@ -1025,7 +1014,7 @@ export default function Home() {
                           <GuestSelector />
                         </div>
 
-                        {/* Bot�n Buscar */}
+                        {/* Botón Buscar */}
                         <div className="md:col-span-1 flex items-end">
                           <motion.div
                             whileHover={{ scale: 1.02 }}
@@ -1083,8 +1072,8 @@ export default function Home() {
                   ) : (
                     <div className="text-center py-12 text-gray-500">
                       <Hotel className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <h3 className="text-xl font-semibold mb-2">B�squeda de hoteles pr�ximamente</h3>
-                      <p className="text-sm">�Estamos trabajando para ofrecerte la mejor experiencia de b�squeda!</p>
+                      <h3 className="text-xl font-semibold mb-2">Búsqueda de hoteles próximamente</h3>
+                      <p className="text-sm">¡Estamos trabajando para ofrecerte la mejor experiencia de búsqueda!</p>
                       <p className="text-sm mt-2">Mientras tanto, explora nuestros <button onClick={() => router.push('/tours')} className="text-blue-600 underline">Tours y Viajes Grupales</button></p>
                     </div>
                   )}
@@ -1123,7 +1112,7 @@ export default function Home() {
                         <div className="relative">
                           <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
                           <Input
-                            placeholder="Ej: M�xico, MEX"
+                            placeholder="Ej: México, MEX"
                             className="pl-10 h-12 bg-white uppercase"
                             value={origin}
                             onChange={(e) => {
@@ -1134,20 +1123,20 @@ export default function Home() {
                           />
                           <datalist id="airports-origin">
                             {/* Principales */}
-                            <option value="MEX">Ciudad de M�xico (MEX)</option>
+                            <option value="MEX">Ciudad de México (MEX)</option>
                             <option value="GDL">Guadalajara, Jalisco (GDL)</option>
-                            <option value="MTY">Monterrey, Nuevo Le�n (MTY)</option>
-                            <option value="CUN">Canc�n, Quintana Roo (CUN)</option>
+                            <option value="MTY">Monterrey, Nuevo León (MTY)</option>
+                            <option value="CUN">Cancún, Quintana Roo (CUN)</option>
                             <option value="TIJ">Tijuana, Baja California (TIJ)</option>
                             <option value="SJD">Los Cabos, BCS (SJD)</option>
                             <option value="PVR">Puerto Vallarta, Jalisco (PVR)</option>
                             {/* Norte */}
-                            <option value="CJS">Ciudad Ju�rez, Chihuahua (CJS)</option>
+                            <option value="CJS">Ciudad Juárez, Chihuahua (CJS)</option>
                             <option value="CUU">Chihuahua, Chihuahua (CUU)</option>
                             <option value="HMO">Hermosillo, Sonora (HMO)</option>
-                            <option value="MZT">Mazatl�n, Sinaloa (MZT)</option>
-                            <option value="CUL">Culiac�n, Sinaloa (CUL)</option>
-                            <option value="SLP">San Luis Potos� (SLP)</option>
+                            <option value="MZT">Mazatlán, Sinaloa (MZT)</option>
+                            <option value="CUL">Culiacán, Sinaloa (CUL)</option>
+                            <option value="SLP">San Luis Potosí (SLP)</option>
                             <option value="AGU">Aguascalientes (AGU)</option>
                             <option value="ZCL">Zacatecas (ZCL)</option>
                             <option value="LAP">La Paz, BCS (LAP)</option>
@@ -1156,11 +1145,11 @@ export default function Home() {
                             <option value="NLD">Nuevo Laredo, Tamaulipas (NLD)</option>
                             <option value="MXL">Mexicali, Baja California (MXL)</option>
                             {/* Centro */}
-                            <option value="BJX">Le�n, Guanajuato (BJX)</option>
-                            <option value="QRO">Quer�taro (QRO)</option>
-                            <option value="MLM">Morelia, Michoac�n (MLM)</option>
+                            <option value="BJX">León, Guanajuato (BJX)</option>
+                            <option value="QRO">Querétaro (QRO)</option>
+                            <option value="MLM">Morelia, Michoacán (MLM)</option>
                             <option value="PBC">Puebla (PBC)</option>
-                            <option value="TLC">Toluca, Estado de M�xico (TLC)</option>
+                            <option value="TLC">Toluca, Estado de México (TLC)</option>
                             <option value="CVM">Ciudad Victoria, Tamaulipas (CVM)</option>
                             {/* Sur */}
                             <option value="OAX">Oaxaca (OAX)</option>
@@ -1169,9 +1158,9 @@ export default function Home() {
                             <option value="ACA">Acapulco, Guerrero (ACA)</option>
                             <option value="VSA">Villahermosa, Tabasco (VSA)</option>
                             <option value="TAP">Tapachula, Chiapas (TAP)</option>
-                            <option value="TGZ">Tuxtla Guti�rrez, Chiapas (TGZ)</option>
+                            <option value="TGZ">Tuxtla Gutiérrez, Chiapas (TGZ)</option>
                             {/* Sureste */}
-                            <option value="MID">M�rida, Yucat�n (MID)</option>
+                            <option value="MID">Mérida, Yucatán (MID)</option>
                             <option value="CME">Ciudad del Carmen, Campeche (CME)</option>
                             <option value="CZM">Cozumel, Quintana Roo (CZM)</option>
                             <option value="VER">Veracruz (VER)</option>
@@ -1185,7 +1174,7 @@ export default function Home() {
                         <div className="relative">
                           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
                           <Input
-                            placeholder="Ej: Canc�n, CUN"
+                            placeholder="Ej: Cancún, CUN"
                             className="pl-10 h-12 bg-white uppercase"
                             value={flightDestination}
                             onChange={(e) => {
@@ -1195,23 +1184,23 @@ export default function Home() {
                             list="airports-destination"
                           />
                           <datalist id="airports-destination">
-                            {/* M�xico - Playa */}
-                            <option value="CUN">Canc�n, Quintana Roo (CUN)</option>
+                            {/* México - Playa */}
+                            <option value="CUN">Cancún, Quintana Roo (CUN)</option>
                             <option value="SJD">Los Cabos, BCS (SJD)</option>
                             <option value="PVR">Puerto Vallarta, Jalisco (PVR)</option>
-                            <option value="MZT">Mazatl�n, Sinaloa (MZT)</option>
+                            <option value="MZT">Mazatlán, Sinaloa (MZT)</option>
                             <option value="HUX">Huatulco, Oaxaca (HUX)</option>
                             <option value="ZIH">Zihuatanejo, Guerrero (ZIH)</option>
                             <option value="ACA">Acapulco, Guerrero (ACA)</option>
                             <option value="CZM">Cozumel, Quintana Roo (CZM)</option>
-                            {/* M�xico - Ciudades */}
-                            <option value="MEX">Ciudad de M�xico (MEX)</option>
+                            {/* México - Ciudades */}
+                            <option value="MEX">Ciudad de México (MEX)</option>
                             <option value="GDL">Guadalajara, Jalisco (GDL)</option>
-                            <option value="MTY">Monterrey, Nuevo Le�n (MTY)</option>
+                            <option value="MTY">Monterrey, Nuevo León (MTY)</option>
                             <option value="OAX">Oaxaca (OAX)</option>
-                            <option value="MID">M�rida, Yucat�n (MID)</option>
-                            <option value="BJX">Le�n, Guanajuato (BJX)</option>
-                            <option value="QRO">Quer�taro (QRO)</option>
+                            <option value="MID">Mérida, Yucatán (MID)</option>
+                            <option value="BJX">León, Guanajuato (BJX)</option>
+                            <option value="QRO">Querétaro (QRO)</option>
                             {/* USA */}
                             <option value="MIA">Miami, Florida (MIA)</option>
                             <option value="LAX">Los Angeles, California (LAX)</option>
@@ -1224,25 +1213,25 @@ export default function Home() {
                             <option value="PHX">Phoenix, Arizona (PHX)</option>
                             <option value="DEN">Denver, Colorado (DEN)</option>
                             {/* Europa */}
-                            <option value="MAD">Madrid, Espa�a (MAD)</option>
-                            <option value="BCN">Barcelona, Espa�a (BCN)</option>
-                            <option value="CDG">Par�s, Francia (CDG)</option>
+                            <option value="MAD">Madrid, España (MAD)</option>
+                            <option value="BCN">Barcelona, España (BCN)</option>
+                            <option value="CDG">París, Francia (CDG)</option>
                             <option value="FCO">Roma, Italia (FCO)</option>
                             <option value="LHR">Londres, UK (LHR)</option>
-                            <option value="AMS">Amsterdam, Pa�ses Bajos (AMS)</option>
+                            <option value="AMS">Amsterdam, Países Bajos (AMS)</option>
                             <option value="FRA">Frankfurt, Alemania (FRA)</option>
-                            {/* Centroam�rica y Caribe */}
+                            {/* Centroamérica y Caribe */}
                             <option value="HAV">La Habana, Cuba (HAV)</option>
                             <option value="SJU">San Juan, Puerto Rico (SJU)</option>
-                            <option value="PTY">Ciudad de Panam� (PTY)</option>
-                            <option value="SJO">San Jos�, Costa Rica (SJO)</option>
+                            <option value="PTY">Ciudad de Panamá (PTY)</option>
+                            <option value="SJO">San José, Costa Rica (SJO)</option>
                             <option value="GUA">Guatemala City (GUA)</option>
-                            {/* Sudam�rica */}
-                            <option value="BOG">Bogot�, Colombia (BOG)</option>
-                            <option value="LIM">Lima, Per� (LIM)</option>
+                            {/* Sudamérica */}
+                            <option value="BOG">Bogotá, Colombia (BOG)</option>
+                            <option value="LIM">Lima, Perú (LIM)</option>
                             <option value="SCL">Santiago, Chile (SCL)</option>
                             <option value="EZE">Buenos Aires, Argentina (EZE)</option>
-                            <option value="GRU">S�o Paulo, Brasil (GRU)</option>
+                            <option value="GRU">São Paulo, Brasil (GRU)</option>
                           </datalist>
                         </div>
                       </div>
@@ -1269,7 +1258,7 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* Bot�n Buscar */}
+                      {/* Botón Buscar */}
                       <div className="md:col-span-1 flex items-end">
                         <motion.div
                           whileHover={{ scale: 1.02 }}
@@ -1312,7 +1301,7 @@ export default function Home() {
                         </div>
                         <div>
                           <CounterSelector
-                            label="Ni�os (2-11)"
+                            label="Niños (2-11)"
                             value={children}
                             onChange={handleChildrenChange}
                             min={0}
@@ -1322,7 +1311,7 @@ export default function Home() {
                         </div>
                         <div>
                           <CounterSelector
-                            label="Beb�s (0-2)"
+                            label="Bebés (0-2)"
                             value={infants}
                             onChange={setInfants}
                             min={0}
@@ -1332,9 +1321,9 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* Aerol�neas */}
+                      {/* Aerolíneas */}
                       <div className="md:col-span-2">
-                        <label className="block text-xs font-medium mb-1 text-gray-700">Aerol�neas preferidas</label>
+                        <label className="block text-xs font-medium mb-1 text-gray-700">Aerolíneas preferidas</label>
                         <AirlineSelector
                           value={selectedAirlines}
                           onChange={setSelectedAirlines}
@@ -1343,21 +1332,21 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Edades de ni�os */}
+                    {/* Edades de niños */}
                     {children > 0 && (
                       <div className="bg-gray-50 rounded-lg p-4 mt-3">
-                        <p className="text-xs font-medium text-gray-700 mb-3">Edad de los ni�os al momento del viaje:</p>
+                        <p className="text-xs font-medium text-gray-700 mb-3">Edad de los niños al momento del viaje:</p>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                           {childrenAges.map((age, index) => (
                             <div key={index} className="flex items-center gap-2">
-                              <span className="text-xs text-gray-600 whitespace-nowrap">Ni�o {index + 1}:</span>
+                              <span className="text-xs text-gray-600 whitespace-nowrap">Niño {index + 1}:</span>
                               <select
                                 value={age}
                                 onChange={(e) => handleChildAgeChange(index, parseInt(e.target.value))}
                                 className="flex-1 h-8 px-2 border rounded bg-white text-sm"
                               >
                                 {Array.from({ length: 10 }, (_, i) => i + 2).map(n => (
-                                  <option key={n} value={n}>{n} a�os</option>
+                                  <option key={n} value={n}>{n} años</option>
                                 ))}
                               </select>
                             </div>
@@ -1366,24 +1355,24 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* Nota sobre beb�s */}
+                    {/* Nota sobre bebés */}
                     {infants > 0 && (
                       <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
                         <p className="text-xs text-amber-800">
-                          <strong>Nota:</strong> Los beb�s (0-2 a�os) pueden viajar en el regazo del adulto sin costo adicional o en asiento propio con cargo. Cada adulto puede viajar con m�ximo 1 beb� en regazo.
+                          <strong>Nota:</strong> Los bebés (0-2 años) pueden viajar en el regazo del adulto sin costo adicional o en asiento propio con cargo. Cada adulto puede viajar con máximo 1 bebé en regazo.
                         </p>
                       </div>
                     )}
 
-                    {/* Pol�tica de viaje */}
+                    {/* Política de viaje */}
                     <div className="bg-blue-50 rounded-lg p-3 mt-3">
                       <div className="text-xs text-blue-700 space-y-1">
-                        <p><strong>Pol�ticas de viaje:</strong></p>
+                        <p><strong>Políticas de viaje:</strong></p>
                         <ul className="list-disc list-inside space-y-1 ml-2">
-                          <li>Ni�os de 2-11 a�os deben viajar acompa�ados de un adulto</li>
-                          <li>Beb�s menores de 2 a�os: 1 por adulto (en regazo gratis, asiento propio con cargo)</li>
-                          <li>Menores de 18 a�os sin acompa�ante requieren autorizaci�n especial</li>
-                          <li>Documentaci�n requerida: INE/Pasaporte vigente para todos los pasajeros</li>
+                          <li>Niños de 2-11 años deben viajar acompañados de un adulto</li>
+                          <li>Bebés menores de 2 años: 1 por adulto (en regazo gratis, asiento propio con cargo)</li>
+                          <li>Menores de 18 años sin acompañante requieren autorización especial</li>
+                          <li>Documentación requerida: INE/Pasaporte vigente para todos los pasajeros</li>
                         </ul>
                       </div>
                     </div>
@@ -1396,11 +1385,11 @@ export default function Home() {
                     <div className="flex flex-wrap gap-4 mb-4">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="radio" name="transferType" value="airport-hotel" checked={transferType === 'airport-hotel'} onChange={() => setTransferType('airport-hotel')} className="w-4 h-4 accent-primary" />
-                        <span className="text-sm font-medium text-gray-900">Aeropuerto ? Hotel</span>
+                        <span className="text-sm font-medium text-gray-900">Aeropuerto → Hotel</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="radio" name="transferType" value="hotel-airport" checked={transferType === 'hotel-airport'} onChange={() => setTransferType('hotel-airport')} className="w-4 h-4 accent-primary" />
-                        <span className="text-sm font-medium text-gray-900">Hotel ? Aeropuerto</span>
+                        <span className="text-sm font-medium text-gray-900">Hotel → Aeropuerto</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="radio" name="transferType" value="roundtrip" checked={transferType === 'roundtrip'} onChange={() => setTransferType('roundtrip')} className="w-4 h-4 accent-primary" />
@@ -1421,15 +1410,15 @@ export default function Home() {
                             list="transfer-airports"
                           />
                           <datalist id="transfer-airports">
-                            {/* M�xico */}
-                            <option value="Aeropuerto Internacional de la Ciudad de M�xico (MEX)" />
-                            <option value="Aeropuerto Internacional de Canc�n (CUN)" />
+                            {/* México */}
+                            <option value="Aeropuerto Internacional de la Ciudad de México (MEX)" />
+                            <option value="Aeropuerto Internacional de Cancún (CUN)" />
                             <option value="Aeropuerto Internacional de Guadalajara (GDL)" />
                             <option value="Aeropuerto Internacional de Monterrey (MTY)" />
                             <option value="Aeropuerto Internacional de Los Cabos (SJD)" />
                             <option value="Aeropuerto Internacional de Puerto Vallarta (PVR)" />
                             <option value="Aeropuerto Internacional de Tijuana (TIJ)" />
-                            <option value="Aeropuerto Internacional de M�rida (MID)" />
+                            <option value="Aeropuerto Internacional de Mérida (MID)" />
                             <option value="Aeropuerto Internacional de Oaxaca (OAX)" />
                             {/* USA */}
                             <option value="Miami International Airport (MIA)" />
@@ -1458,7 +1447,7 @@ export default function Home() {
                         <div className="relative">
                           <Hotel className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
                           <Input
-                            placeholder="Hotel o direcci�n"
+                            placeholder="Hotel o dirección"
                             value={transferDestination}
                             onChange={(e) => setTransferDestination(e.target.value)}
                             className="pl-10 h-12 bg-white"
@@ -1485,7 +1474,7 @@ export default function Home() {
                             <option value="Oasis Hotels" />
                             <option value="Palace Resorts" />
                             <option value="RIU Hotels & Resorts" />
-                            <option value="Barcel� Hotels" />
+                            <option value="Barceló Hotels" />
                             <option value="Iberostar Hotels" />
                             <option value="Grand Palladium" />
                             <option value="Hard Rock Hotels" />
@@ -1540,7 +1529,7 @@ export default function Home() {
                         )}
                       </div>
 
-                      {/* Bot�n Buscar */}
+                      {/* Botón Buscar */}
                       <div className="md:col-span-1 flex items-end">
                         <motion.div
                           whileHover={{ scale: 1.02 }}
@@ -1599,13 +1588,13 @@ export default function Home() {
                             list="car-pickup-locations"
                           />
                           <datalist id="car-pickup-locations">
-                            <option value="Aeropuerto Internacional de la Ciudad de M�xico (MEX)" />
-                            <option value="Aeropuerto de Canc�n (CUN)" />
+                            <option value="Aeropuerto Internacional de la Ciudad de México (MEX)" />
+                            <option value="Aeropuerto de Cancún (CUN)" />
                             <option value="Aeropuerto de Guadalajara (GDL)" />
                             <option value="Aeropuerto de Monterrey (MTY)" />
                             <option value="Aeropuerto de Los Cabos (SJD)" />
                             <option value="Aeropuerto de Puerto Vallarta (PVR)" />
-                            <option value="Hertz - Centro Hist�rico CDMX" />
+                            <option value="Hertz - Centro Histórico CDMX" />
                             <option value="Avis - Polanco CDMX" />
                             <option value="Enterprise - Santa Fe CDMX" />
                             <option value="Budget - Zona Rosa CDMX" />
@@ -1621,7 +1610,7 @@ export default function Home() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-900">Devoluci�n {carSameDropoff && "(igual a la entrega)"}</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Devolución {carSameDropoff && "(igual a la entrega)"}</label>
                         <div className="relative">
                           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
                           <Input
@@ -1633,8 +1622,8 @@ export default function Home() {
                             list="car-dropoff-locations"
                           />
                           <datalist id="car-dropoff-locations">
-                            <option value="Aeropuerto Internacional de la Ciudad de M�xico (MEX)" />
-                            <option value="Aeropuerto de Canc�n (CUN)" />
+                            <option value="Aeropuerto Internacional de la Ciudad de México (MEX)" />
+                            <option value="Aeropuerto de Cancún (CUN)" />
                             <option value="Aeropuerto de Guadalajara (GDL)" />
                             <option value="Aeropuerto de Monterrey (MTY)" />
                             <option value="Aeropuerto de Los Cabos (SJD)" />
@@ -1662,7 +1651,7 @@ export default function Home() {
                       <div>
                         <label className="block text-sm font-medium mb-2 text-gray-900">
                           <Calendar className="inline w-4 h-4 mr-1" />
-                          Fecha de devoluci�n
+                          Fecha de devolución
                         </label>
                         <Input
                           type="date"
@@ -1688,7 +1677,7 @@ export default function Home() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-900">Hora devoluci�n</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Hora devolución</label>
                         <select
                           className="w-full h-12 px-3 border rounded-lg bg-white text-sm"
                           value={carDropoffTime}
@@ -1722,17 +1711,17 @@ export default function Home() {
                           checked={carYoungDriver}
                           onChange={(e) => setCarYoungDriver(e.target.checked)}
                         />
-                        <span className="text-sm text-gray-700">Conductor menor de 30 o mayor de 70 a�os</span>
+                        <span className="text-sm text-gray-700">Conductor menor de 30 o mayor de 70 años</span>
                       </label>
                       {carYoungDriver && (
                         <p className="text-xs text-amber-600">Puede ser necesario un cargo extra por conductor joven o adulto mayor.</p>
                       )}
                     </div>
 
-                    {/* Link de descuento y bot�n */}
+                    {/* Link de descuento y botón */}
                     <div className="flex flex-wrap items-center justify-between gap-4">
                       <button className="text-sm text-blue-600 hover:underline flex items-center gap-1">
-                        Tengo un c�digo de descuento
+                        Tengo un código de descuento
                         <ChevronRight className="w-4 h-4" />
                       </button>
                       <Button
@@ -1844,21 +1833,21 @@ export default function Home() {
                         <div className="relative">
                           <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
                           <Input
-                            placeholder="�De d�nde sales?"
+                            placeholder="¿De dónde sales?"
                             className="pl-10 h-12 bg-white"
                             value={packageOrigin}
                             onChange={(e) => setPackageOrigin(e.target.value)}
                             list="package-origins"
                           />
                           <datalist id="package-origins">
-                            <option value="Ciudad de M�xico, CDMX, M�xico" />
-                            <option value="Guadalajara, Jalisco, M�xico" />
-                            <option value="Monterrey, Nuevo Le�n, M�xico" />
-                            <option value="Tijuana, Baja California, M�xico" />
-                            <option value="Le�n, Guanajuato, M�xico" />
-                            <option value="Quer�taro, Quer�taro, M�xico" />
-                            <option value="Puebla, Puebla, M�xico" />
-                            <option value="M�rida, Yucat�n, M�xico" />
+                            <option value="Ciudad de México, CDMX, México" />
+                            <option value="Guadalajara, Jalisco, México" />
+                            <option value="Monterrey, Nuevo León, México" />
+                            <option value="Tijuana, Baja California, México" />
+                            <option value="León, Guanajuato, México" />
+                            <option value="Querétaro, Querétaro, México" />
+                            <option value="Puebla, Puebla, México" />
+                            <option value="Mérida, Yucatán, México" />
                           </datalist>
                         </div>
                       </div>
@@ -1868,26 +1857,26 @@ export default function Home() {
                         <div className="relative">
                           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
                           <Input
-                            placeholder="�A d�nde vas?"
+                            placeholder="¿A dónde vas?"
                             className="pl-10 h-12 bg-white"
                             value={packageDestination}
                             onChange={(e) => setPackageDestination(e.target.value)}
                             list="package-destinations"
                           />
                           <datalist id="package-destinations">
-                            <option value="Canc�n, Quintana Roo, M�xico" />
-                            <option value="Playa del Carmen, Quintana Roo, M�xico" />
-                            <option value="Los Cabos, Baja California Sur, M�xico" />
-                            <option value="Puerto Vallarta, Jalisco, M�xico" />
+                            <option value="Cancún, Quintana Roo, México" />
+                            <option value="Playa del Carmen, Quintana Roo, México" />
+                            <option value="Los Cabos, Baja California Sur, México" />
+                            <option value="Puerto Vallarta, Jalisco, México" />
                             <option value="Miami, Florida, USA" />
                             <option value="Orlando, Florida, USA" />
                             <option value="Las Vegas, Nevada, USA" />
                             <option value="Nueva York, New York, USA" />
-                            <option value="Par�s, Francia" />
-                            <option value="Madrid, Espa�a" />
-                            <option value="Barcelona, Espa�a" />
+                            <option value="París, Francia" />
+                            <option value="Madrid, España" />
+                            <option value="Barcelona, España" />
                             <option value="Roma, Italia" />
-                            <option value="Punta Cana, Rep�blica Dominicana" />
+                            <option value="Punta Cana, República Dominicana" />
                           </datalist>
                         </div>
                       </div>
@@ -1928,7 +1917,7 @@ export default function Home() {
                           <option value="6">6+ viajeros</option>
                         </select>
                       </div>
-                      {/* Bot�n */}
+                      {/* Botón */}
                       <div className="flex items-end">
                         <Button
                           className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold"
@@ -1947,7 +1936,7 @@ export default function Home() {
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                       {/* Ciudad con sugerencias */}
                       <div className="md:col-span-1">
-                        <label className="block text-sm font-medium mb-2 text-gray-900">�A d�nde?</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-900">¿A dónde?</label>
                         <div className="relative">
                           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
                           <Input
@@ -1958,18 +1947,18 @@ export default function Home() {
                             list="activity-destinations"
                           />
                           <datalist id="activity-destinations">
-                            {/* M�xico - Playas */}
-                            <option value="Canc�n, Quintana Roo, M�xico" />
-                            <option value="Playa del Carmen, Quintana Roo, M�xico" />
-                            <option value="Riviera Maya, Quintana Roo, M�xico" />
-                            <option value="Los Cabos, Baja California Sur, M�xico" />
-                            <option value="Puerto Vallarta, Jalisco, M�xico" />
-                            {/* M�xico - Ciudades */}
-                            <option value="Ciudad de M�xico, CDMX, M�xico" />
-                            <option value="Guadalajara, Jalisco, M�xico" />
-                            <option value="Oaxaca, Oaxaca, M�xico" />
-                            <option value="San Miguel de Allende, Guanajuato, M�xico" />
-                            <option value="M�rida, Yucat�n, M�xico" />
+                            {/* México - Playas */}
+                            <option value="Cancún, Quintana Roo, México" />
+                            <option value="Playa del Carmen, Quintana Roo, México" />
+                            <option value="Riviera Maya, Quintana Roo, México" />
+                            <option value="Los Cabos, Baja California Sur, México" />
+                            <option value="Puerto Vallarta, Jalisco, México" />
+                            {/* México - Ciudades */}
+                            <option value="Ciudad de México, CDMX, México" />
+                            <option value="Guadalajara, Jalisco, México" />
+                            <option value="Oaxaca, Oaxaca, México" />
+                            <option value="San Miguel de Allende, Guanajuato, México" />
+                            <option value="Mérida, Yucatán, México" />
                             {/* USA */}
                             <option value="Orlando, Florida, USA" />
                             <option value="Miami, Florida, USA" />
@@ -1977,12 +1966,12 @@ export default function Home() {
                             <option value="Nueva York, New York, USA" />
                             <option value="Los Angeles, California, USA" />
                             {/* Europa */}
-                            <option value="Par�s, Francia" />
-                            <option value="Barcelona, Espa�a" />
+                            <option value="París, Francia" />
+                            <option value="Barcelona, España" />
                             <option value="Roma, Italia" />
                             <option value="Londres, Reino Unido" />
                             {/* Caribe */}
-                            <option value="Punta Cana, Rep�blica Dominicana" />
+                            <option value="Punta Cana, República Dominicana" />
                           </datalist>
                         </div>
                       </div>
@@ -2016,7 +2005,7 @@ export default function Home() {
                         </select>
                       </div>
 
-                      {/* Radio de b�squeda */}
+                      {/* Radio de búsqueda */}
                       <div className="md:col-span-1">
                         <label className="block text-sm font-medium mb-2 text-gray-900">Radio (km)</label>
                         <select
@@ -2031,7 +2020,7 @@ export default function Home() {
                         </select>
                       </div>
 
-                      {/* Bot�n Buscar */}
+                      {/* Botón Buscar */}
                       <div className="md:col-span-1 flex items-end">
                         <motion.div
                           whileHover={{ scale: 1.02 }}
@@ -2083,15 +2072,15 @@ export default function Home() {
                   <div className="text-center py-8">
                     <Compass className="w-16 h-16 mx-auto mb-3 text-blue-500" />
                     <h3 className="text-xl font-bold mb-2">Cruceros</h3>
-                    <p className="text-gray-700">Pr�ximamente...</p>
+                    <p className="text-gray-700">Próximamente...</p>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="ashome" className="mt-6">
                   <div className="space-y-4">
-                    {/* Header con leyenda y bot�n Publica tu casa */}
+                    {/* Header con leyenda y botón Publica tu casa */}
                     <div className="flex flex-wrap justify-between items-center gap-4">
-                      <p className="text-sm text-gray-600">Encuentra casas, departamentos y villas para tu pr�ximo viaje</p>
+                      <p className="text-sm text-gray-600">Encuentra casas, departamentos y villas para tu próximo viaje</p>
                       <Button
                         variant="outline"
                         className="border-blue-600 text-blue-600 hover:bg-blue-50"
@@ -2103,7 +2092,7 @@ export default function Home() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-2 text-gray-900">�A d�nde?</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-900">¿A dónde?</label>
                         <div className="relative">
                           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
                           <Input
@@ -2114,16 +2103,16 @@ export default function Home() {
                             list="ashome-destinations"
                           />
                           <datalist id="ashome-destinations">
-                            <option value="Canc�n, Quintana Roo, M�xico" />
-                            <option value="Playa del Carmen, Quintana Roo, M�xico" />
-                            <option value="Tulum, Quintana Roo, M�xico" />
-                            <option value="Ciudad de M�xico, CDMX, M�xico" />
-                            <option value="San Miguel de Allende, Guanajuato, M�xico" />
-                            <option value="Valle de Bravo, Estado de M�xico, M�xico" />
-                            <option value="Puerto Vallarta, Jalisco, M�xico" />
-                            <option value="Los Cabos, Baja California Sur, M�xico" />
-                            <option value="Oaxaca, Oaxaca, M�xico" />
-                            <option value="M�rida, Yucat�n, M�xico" />
+                            <option value="Cancún, Quintana Roo, México" />
+                            <option value="Playa del Carmen, Quintana Roo, México" />
+                            <option value="Tulum, Quintana Roo, México" />
+                            <option value="Ciudad de México, CDMX, México" />
+                            <option value="San Miguel de Allende, Guanajuato, México" />
+                            <option value="Valle de Bravo, Estado de México, México" />
+                            <option value="Puerto Vallarta, Jalisco, México" />
+                            <option value="Los Cabos, Baja California Sur, México" />
+                            <option value="Oaxaca, Oaxaca, México" />
+                            <option value="Mérida, Yucatán, México" />
                           </datalist>
                         </div>
                       </div>
@@ -2148,7 +2137,7 @@ export default function Home() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-900">Hu�spedes</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-900">Huéspedes</label>
                         <div className="bg-white rounded-lg">
                           <CounterSelector
                             value={guests}
@@ -2160,7 +2149,7 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-                    {/* Bot�n Buscar a la derecha */}
+                    {/* Botón Buscar a la derecha */}
                     <div className="flex justify-end pt-2">
                       <Button
                         className="h-12 px-8 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold"
@@ -2246,7 +2235,7 @@ export default function Home() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                           <div className="absolute bottom-4 left-4 right-4 text-white">
                             <h4 className="text-2xl font-bold mb-2">Descubre el Mundo</h4>
-                            <p className="text-sm opacity-90">Tours todo incluido con vuelo, hotel y gu�a tur�stico</p>
+                            <p className="text-sm opacity-90">Tours todo incluido con vuelo, hotel y guía turístico</p>
                           </div>
                         </div>
                       );
@@ -2258,7 +2247,7 @@ export default function Home() {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <Input
                           type="text"
-                          placeholder="Buscar destino, pa�s o tour..."
+                          placeholder="Buscar destino, país o tour..."
                           value={tourSearch}
                           onChange={(e) => setTourSearch(e.target.value)}
                           onKeyPress={(e) => {
@@ -2274,7 +2263,7 @@ export default function Home() {
                               router.push(`/tours?search=${encodeURIComponent(tourSearch)}`)
                             }
                           }}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-8 py-5 bg-[#0066FF] hover:bg-[#0052CC] text-white"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-8 py-5 bg-blue-600 hover:bg-blue-700"
                         >
                           Buscar
                         </Button>
@@ -2330,11 +2319,11 @@ export default function Home() {
 
                     <div className="flex flex-col sm:flex-row gap-3 pt-4">
                       <Button
-                        className="flex-1 bg-[#0066FF] hover:bg-[#0052CC] text-white"
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
                         onClick={() => router.push('/tours')}
                       >
                         <Globe className="w-5 h-5 mr-2" />
-                        Ver cat�logo completo
+                        Ver catálogo completo
                       </Button>
                       <Button
                         variant="outline"
@@ -2342,7 +2331,7 @@ export default function Home() {
                         onClick={() => router.push('/viajes-grupales')}
                       >
                         <Users className="w-5 h-5 mr-2" />
-                        Cotizaci�n especial - Grupos Grandes
+                        Cotización para grupos (+10 personas)
                       </Button>
                     </div>
                   </div>
@@ -2365,7 +2354,7 @@ export default function Home() {
                   <div className="text-center py-8">
                     <Star className="w-16 h-16 mx-auto mb-3 text-blue-500" />
                     <h3 className="text-xl font-bold mb-2">Universal Studios</h3>
-                    <p className="text-gray-600 mb-4">Aventuras �picas en Universal Studios</p>
+                    <p className="text-gray-600 mb-4">Aventuras épicas en Universal Studios</p>
                     <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                       Ver paquetes Universal
                     </Button>
@@ -2377,7 +2366,7 @@ export default function Home() {
                   <div className="text-center py-8">
                     <Activity className="w-16 h-16 mx-auto mb-3 text-blue-500" />
                     <h3 className="text-xl font-bold mb-2">Xcaret Parks</h3>
-                    <p className="text-gray-600 mb-4">Experiencias �nicas en los parques Xcaret</p>
+                    <p className="text-gray-600 mb-4">Experiencias únicas en los parques Xcaret</p>
                     <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                       Ver paquetes Xcaret
                     </Button>
@@ -2390,7 +2379,7 @@ export default function Home() {
                     <Users className="w-16 h-16 mx-auto mb-3 text-blue-500" />
                     <h3 className="text-xl font-bold mb-2">Conekta</h3>
                     <p className="text-gray-600 mb-4">Expos, capacitaciones y eventos corporativos</p>
-                    <p className="text-sm text-gray-500">Pr�ximamente...</p>
+                    <p className="text-sm text-gray-500">Próximamente...</p>
                   </div>
                 </TabsContent>
 
@@ -2398,7 +2387,7 @@ export default function Home() {
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-2 text-gray-900">�A d�nde?</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-900">¿A dónde?</label>
                         <div className="relative">
                           <Utensils className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
                           <Input
@@ -2409,13 +2398,13 @@ export default function Home() {
                             list="restaurant-cities"
                           />
                           <datalist id="restaurant-cities">
-                            <option value="Ciudad de M�xico, CDMX" />
-                            <option value="Canc�n, Quintana Roo" />
+                            <option value="Ciudad de México, CDMX" />
+                            <option value="Cancún, Quintana Roo" />
                             <option value="Guadalajara, Jalisco" />
-                            <option value="Monterrey, Nuevo Le�n" />
-                            <option value="M�rida, Yucat�n" />
+                            <option value="Monterrey, Nuevo León" />
+                            <option value="Mérida, Yucatán" />
                             <option value="Puebla, Puebla" />
-                            <option value="Quer�taro, Quer�taro" />
+                            <option value="Querétaro, Querétaro" />
                             <option value="Playa del Carmen, Quintana Roo" />
                             <option value="Los Cabos, Baja California Sur" />
                             <option value="Puerto Vallarta, Jalisco" />
@@ -2465,13 +2454,13 @@ export default function Home() {
                     <Smartphone className="w-16 h-16 mx-auto mb-3 text-blue-500" />
                     <h3 className="text-xl font-bold mb-2">E-Sim para Viajeros</h3>
                     <p className="text-gray-600 mb-4">Mantente conectado en cualquier parte del mundo</p>
-                    <p className="text-sm text-gray-500">Pr�ximamente...</p>
+                    <p className="text-sm text-gray-500">Próximamente...</p>
                   </div>
                 </TabsContent>
               </Tabs>
             </motion.div>
 
-            {/* AS Club y Alertas - Dos recuadros lado a lado (mitad del tama�o de filtros) */}
+            {/* AS Club y Alertas - Dos recuadros lado a lado (mitad del tamaño de filtros) */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-6xl mx-auto">
               {/* AS Club */}
               <motion.div
@@ -2489,7 +2478,7 @@ export default function Home() {
                       {isAuthenticated ? (
                         <>
                           <h3 className="font-bold text-gray-900 text-lg">
-                            �Bienvenido, {user?.name.split(' ')[0]}!
+                            ¡Bienvenido, {user?.name.split(' ')[0]}!
                           </h3>
                           <p className="text-sm text-gray-700">
                             Disfruta beneficios exclusivos
@@ -2498,7 +2487,7 @@ export default function Home() {
                       ) : (
                         <>
                           <h3 className="font-bold text-gray-900 text-lg">
-                            �nete a AS Club
+                            Únete a AS Club
                           </h3>
                           <p className="text-sm text-gray-700">
                             Beneficios exclusivos
@@ -2510,7 +2499,7 @@ export default function Home() {
                   {!isAuthenticated && (
                     <Link href="/login">
                       <Button className="w-full bg-blue-600 text-white hover:bg-blue-700 font-semibold mt-4">
-                        Iniciar sesi�n
+                        Iniciar sesión
                       </Button>
                     </Link>
                   )}
@@ -2575,7 +2564,7 @@ export default function Home() {
         {/* Resto del contenido */}
         <div className="container mx-auto px-4 py-8 max-w-6xl">
 
-          {/* NUEVA SECCI�N: Tours y Viajes Grupales - SIEMPRE VISIBLE */}
+          {/* NUEVA SECCIÓN: Tours y Viajes Grupales - SIEMPRE VISIBLE */}
           <div className="mb-12">
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
@@ -2670,311 +2659,332 @@ export default function Home() {
                 ))}
               </div>
             )}
-            {/* CTA adicional - ELIMINADO (duplicado) */}
+            {/* CTA adicional */}
+            <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8"
+                onClick={() => router.push('/tours')}
+              >
+                <Globe className="w-5 h-5 mr-2" />
+                Explorar todos los tours
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8"
+                onClick={() => router.push('/viajes-grupales')}
+              >
+                <Users className="w-5 h-5 mr-2" />
+                Cotización para grupos (+10 personas)
+              </Button>
+            </div>
+          </div>
 
-            {/* Ofertas Especiales y Descuentos - OCULTO POR SETTING */}
-            {homeSettings.HOME_OFFERS_SECTION === 'true' && (
-              <div className="mb-12">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-3xl font-bold">Ofertas especiales para ti</h2>
-                  <Button variant="link" className="text-[#0066FF] font-semibold">
-                    Ver todas las ofertas
-                    <ChevronRight className="w-5 h-5 ml-1" />
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {promotions.map((promo) => (
-                    <motion.div
-                      key={promo.id}
-                      whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                    >
-                      <Card
-                        className="overflow-hidden group cursor-pointer border-none shadow-soft hover:shadow-hard transition-all duration-300 rounded-3xl"
-                        onClick={() => router.push(`/oferta/${promo.id}`)}
-                      >
-                        <div className="relative h-48 overflow-hidden">
-                          <motion.img
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ duration: 0.3 }}
-                            src={promo.image_url}
-                            alt={promo.title}
-                            className="w-full h-full object-cover"
-                          />
-                          {promo.discount_percentage && (
-                            <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
-                              <Percent className="w-4 h-4" />
-                              {promo.discount_percentage}% OFF
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-4">
-                          {promo.badge_text && (
-                            <div className="flex items-center gap-2 mb-2">
-                              <Tag className="w-4 h-4 text-[#0066FF]" />
-                              <span className="text-sm font-semibold text-[#0066FF]">{promo.badge_text}</span>
-                            </div>
-                          )}
-                          <h3 className="font-semibold text-lg mb-1">{promo.title}</h3>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {promo.description}
-                          </p>
-                          {promo.valid_until && (
-                            <p className="text-xs text-muted-foreground">
-                              V�lido hasta {new Date(promo.valid_until).toLocaleDateString()}
-                            </p>
-                          )}
-                        </div>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
+          {/* Ofertas Especiales y Descuentos - OCULTO POR SETTING */}
+          {homeSettings.HOME_OFFERS_SECTION === 'true' && (
+            <div className="mb-12">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-3xl font-bold">Ofertas especiales para ti</h2>
+                <Button variant="link" className="text-[#0066FF] font-semibold">
+                  Ver todas las ofertas
+                  <ChevronRight className="w-5 h-5 ml-1" />
+                </Button>
               </div>
-            )}
 
-            {/* Descubre vuelos a destinos favoritos - OCULTO POR SETTING */}
-            {homeSettings.HOME_FLIGHTS_SECTION === 'true' && (
-              <div className="mb-12">
-                <h2 className="text-3xl font-bold mb-6">Descubre vuelos a destinos favoritos</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {flightDestinations.map((dest) => (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {promotions.map((promo) => (
+                  <motion.div
+                    key={promo.id}
+                    whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                  >
                     <Card
-                      key={dest.id}
-                      className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
-                      onClick={() => {
-                        // Guardar par�metros de b�squeda y redirigir a resultados unificados
-                        const searchData = {
-                          success: true,
-                          data: [],
-                          searchParams: {
-                            type: 'flight',
-                            origin: 'MEX',
-                            destination: dest.airport_code || dest.city.substring(0, 3).toUpperCase(),
-                            destinationCity: dest.city,
-                            departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                            returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                            adults: 1,
-                            children: 0
-                          }
-                        }
-                        localStorage.setItem('searchResults', JSON.stringify(searchData))
-                        router.push(`/vuelos/${encodeURIComponent(dest.city)}`)
-                      }}
-                    >
-                      <div className="relative h-32 overflow-hidden">
-                        <img
-                          src={dest.image_url}
-                          alt={dest.city}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                      </div>
-                      <div className="p-3">
-                        <h3 className="font-semibold mb-1">{dest.city}</h3>
-                        <p className="text-sm text-[#0066FF] font-semibold">
-                          ${Number(dest.price_from).toLocaleString()} {dest.currency}
-                        </p>
-                        <p className="text-xs text-muted-foreground">por persona, ida y vuelta</p>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Descubre tu nuevo hospedaje favorito - OCULTO POR SETTING */}
-            {homeSettings.HOME_ACCOMMODATION_SECTION === 'true' && (
-              <div className="mb-12">
-                <h2 className="text-3xl font-bold mb-6">Descubre tu nuevo hospedaje favorito</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {accommodationFavorites.map((item) => (
-                    <Card
-                      key={item.id}
-                      className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
-                      onClick={() => router.push(`/hospedaje/${item.id}`)}
+                      className="overflow-hidden group cursor-pointer border-none shadow-soft hover:shadow-hard transition-all duration-300 rounded-3xl"
+                      onClick={() => router.push(`/oferta/${promo.id}`)}
                     >
                       <div className="relative h-48 overflow-hidden">
-                        <img
-                          src={item.image_url}
-                          alt={item.title || item.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        <motion.img
+                          whileHover={{ scale: 1.1 }}
+                          transition={{ duration: 0.3 }}
+                          src={promo.image_url}
+                          alt={promo.title}
+                          className="w-full h-full object-cover"
                         />
+                        {promo.discount_percentage && (
+                          <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+                            <Percent className="w-4 h-4" />
+                            {promo.discount_percentage}% OFF
+                          </div>
+                        )}
                       </div>
                       <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-1">{item.title || item.name}</h3>
-                        <p className="text-xs text-muted-foreground mb-2">{item.location}</p>
-                        <p className="text-muted-foreground text-sm">
-                          Desde ${Number(item.price_from || item.price_per_night || 0).toLocaleString()} {item.currency || 'MXN'}
-                        </p>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Ofertas de �ltima hora para el fin de semana - OCULTO POR SETTING */}
-            {homeSettings.HOME_WEEKEND_SECTION === 'true' && (
-              <div className="mb-12">
-                <h2 className="text-3xl font-bold mb-6">Ofertas de �ltima hora para el fin de semana</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {weekendDeals.map((deal) => (
-                    <Card
-                      key={deal.id}
-                      className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
-                      onClick={() => router.push(`/hospedaje/${deal.id}`)}
-                    >
-                      <div className="relative h-36 overflow-hidden">
-                        <img
-                          src={deal.image_url}
-                          alt={deal.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                        {deal.discount_percentage && (
-                          <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-                            -{deal.discount_percentage}%
+                        {promo.badge_text && (
+                          <div className="flex items-center gap-2 mb-2">
+                            <Tag className="w-4 h-4 text-[#0066FF]" />
+                            <span className="text-sm font-semibold text-[#0066FF]">{promo.badge_text}</span>
                           </div>
                         )}
-                      </div>
-                      <div className="p-3">
-                        <p className="text-xs text-[#0066FF] font-semibold mb-1">{deal.dates_label}</p>
-                        <h3 className="font-semibold text-sm mb-1">{deal.title}</h3>
-                        <p className="text-xs text-muted-foreground mb-2">{deal.location}</p>
-                        <p className="text-sm font-bold text-[#0066FF]">
-                          ${Number(deal.price_per_night).toLocaleString()} {deal.currency}
+                        <h3 className="font-semibold text-lg mb-1">{promo.title}</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {promo.description}
                         </p>
-                        <p className="text-xs text-muted-foreground">por noche</p>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Descubre paquetes vacacionales - OCULTO POR SETTING */}
-            {homeSettings.HOME_VACATION_PACKAGES === 'true' && (
-              <div className="mb-12">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-3xl font-bold">Descubre paquetes vacacionales a los destinos m�s buscados</h2>
-                  <Button variant="link" className="text-[#0066FF] font-semibold" onClick={() => router.push('/paquetes')}>
-                    Ver todos los paquetes
-                    <ChevronRight className="w-5 h-5 ml-1" />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {vacationPackages.map((pkg) => (
-                    <Card
-                      key={pkg.id}
-                      className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
-                      onClick={() => router.push(`/paquete/${pkg.id}`)}
-                    >
-                      <div className="relative h-52 overflow-hidden">
-                        <img
-                          src={pkg.image_url}
-                          alt={pkg.destination}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                        {pkg.nights && (
-                          <div className="absolute top-3 left-3 bg-white/90 px-3 py-1 rounded-full">
-                            <p className="text-xs font-semibold">{pkg.nights} noches</p>
-                          </div>
+                        {promo.valid_until && (
+                          <p className="text-xs text-muted-foreground">
+                            Válido hasta {new Date(promo.valid_until).toLocaleDateString()}
+                          </p>
                         )}
                       </div>
-                      <div className="p-5">
-                        <h3 className="font-bold text-xl mb-2">{pkg.destination}</h3>
-                        <p className="text-sm font-semibold text-muted-foreground mb-2">
-                          {pkg.includes || pkg.package_name}
-                        </p>
-                        <p className="text-sm text-muted-foreground mb-3">{pkg.description}</p>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-muted-foreground">Desde</p>
-                            <p className="text-xl font-bold text-[#0066FF]">
-                              ${Number(pkg.price).toLocaleString()} {pkg.currency}
-                            </p>
-                          </div>
-                          <Button size="sm" className="bg-[#0066FF] hover:bg-[#0052CC] text-white">
-                            Ver paquete
-                          </Button>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Descubre vuelos a destinos favoritos - OCULTO POR SETTING */}
+          {homeSettings.HOME_FLIGHTS_SECTION === 'true' && (
+            <div className="mb-12">
+              <h2 className="text-3xl font-bold mb-6">Descubre vuelos a destinos favoritos</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {flightDestinations.map((dest) => (
+                  <Card
+                    key={dest.id}
+                    className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
+                    onClick={() => {
+                      // Guardar parámetros de búsqueda y redirigir a resultados unificados
+                      const searchData = {
+                        success: true,
+                        data: [],
+                        searchParams: {
+                          type: 'flight',
+                          origin: 'MEX',
+                          destination: dest.airport_code || dest.city.substring(0, 3).toUpperCase(),
+                          destinationCity: dest.city,
+                          departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                          returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                          adults: 1,
+                          children: 0
+                        }
+                      }
+                      localStorage.setItem('searchResults', JSON.stringify(searchData))
+                      router.push(`/vuelos/${encodeURIComponent(dest.city)}`)
+                    }}
+                  >
+                    <div className="relative h-32 overflow-hidden">
+                      <img
+                        src={dest.image_url}
+                        alt={dest.city}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="p-3">
+                      <h3 className="font-semibold mb-1">{dest.city}</h3>
+                      <p className="text-sm text-[#0066FF] font-semibold">
+                        ${Number(dest.price_from).toLocaleString()} {dest.currency}
+                      </p>
+                      <p className="text-xs text-muted-foreground">por persona, ida y vuelta</p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Descubre tu nuevo hospedaje favorito - OCULTO POR SETTING */}
+          {homeSettings.HOME_ACCOMMODATION_SECTION === 'true' && (
+            <div className="mb-12">
+              <h2 className="text-3xl font-bold mb-6">Descubre tu nuevo hospedaje favorito</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {accommodationFavorites.map((item) => (
+                  <Card
+                    key={item.id}
+                    className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
+                    onClick={() => router.push(`/hospedaje/${item.id}`)}
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={item.image_url}
+                        alt={item.title || item.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-lg mb-1">{item.title || item.name}</h3>
+                      <p className="text-xs text-muted-foreground mb-2">{item.location}</p>
+                      <p className="text-muted-foreground text-sm">
+                        Desde ${Number(item.price_from || item.price_per_night || 0).toLocaleString()} {item.currency || 'MXN'}
+                      </p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Ofertas de última hora para el fin de semana - OCULTO POR SETTING */}
+          {homeSettings.HOME_WEEKEND_SECTION === 'true' && (
+            <div className="mb-12">
+              <h2 className="text-3xl font-bold mb-6">Ofertas de última hora para el fin de semana</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {weekendDeals.map((deal) => (
+                  <Card
+                    key={deal.id}
+                    className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
+                    onClick={() => router.push(`/hospedaje/${deal.id}`)}
+                  >
+                    <div className="relative h-36 overflow-hidden">
+                      <img
+                        src={deal.image_url}
+                        alt={deal.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      {deal.discount_percentage && (
+                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                          -{deal.discount_percentage}%
                         </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="text-xs text-[#0066FF] font-semibold mb-1">{deal.dates_label}</p>
+                      <h3 className="font-semibold text-sm mb-1">{deal.title}</h3>
+                      <p className="text-xs text-muted-foreground mb-2">{deal.location}</p>
+                      <p className="text-sm font-bold text-[#0066FF]">
+                        ${Number(deal.price_per_night).toLocaleString()} {deal.currency}
+                      </p>
+                      <p className="text-xs text-muted-foreground">por noche</p>
+                    </div>
+                  </Card>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Echa un vistazo a estos hospedajes �nicos - OCULTO POR SETTING */}
-            {homeSettings.HOME_UNIQUE_STAYS === 'true' && (
-              <div className="mb-12">
-                <h2 className="text-3xl font-bold mb-6">Echa un vistazo a estos hospedajes �nicos</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {uniqueStays.map((unique) => (
-                    <Card
-                      key={unique.id}
-                      className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-shadow rounded-3xl"
-                      onClick={() => router.push(`/hospedaje/${unique.id}`)}
-                    >
-                      <div className="relative h-44 overflow-hidden">
-                        <img
-                          src={unique.image_url}
-                          alt={unique.property_name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                      </div>
-                      <div className="p-4">
-                        {unique.rating && (
-                          <div className="flex items-center gap-1 mb-2">
-                            <span className="text-yellow-500">?</span>
-                            <span className="font-semibold text-sm">{Number(unique.rating).toFixed(1)}</span>
-                            <span className="text-xs text-muted-foreground">
-                              ({unique.total_reviews || 0})
-                            </span>
-                          </div>
-                        )}
-                        <h3 className="font-semibold text-base mb-1">{unique.property_name}</h3>
-                        <p className="text-xs text-muted-foreground mb-2">{unique.location}</p>
-                        <p className="text-sm font-semibold text-[#0066FF]">
-                          ${Number(unique.price_per_night).toLocaleString()} {unique.currency}
-                        </p>
-                        <p className="text-xs text-muted-foreground">por noche</p>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+          {/* Descubre paquetes vacacionales - OCULTO POR SETTING */}
+          {homeSettings.HOME_VACATION_PACKAGES === 'true' && (
+            <div className="mb-12">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-3xl font-bold">Descubre paquetes vacacionales a los destinos más buscados</h2>
+                <Button variant="link" className="text-[#0066FF] font-semibold" onClick={() => router.push('/paquetes')}>
+                  Ver todos los paquetes
+                  <ChevronRight className="w-5 h-5 ml-1" />
+                </Button>
               </div>
-            )}
-
-            {/* Explora el mundo con AS Operadora - OCULTO POR SETTING */}
-            {homeSettings.HOME_EXPLORE_WORLD === 'true' && (
-              <div className="mb-12">
-                <h2 className="text-3xl font-bold mb-6">Explora el mundo con AS Operadora</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {exploreDestinations.map((dest) => (
-                    <Card
-                      key={dest.id}
-                      className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
-                      onClick={() => router.push(`/resultados/activities?city=${encodeURIComponent(dest.destination || dest.destination_name || '')}&radius=20`)}
-                    >
-                      <div className="relative h-24 overflow-hidden">
-                        <img
-                          src={dest.image_url}
-                          alt={dest.destination || dest.destination_name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                        <div className="absolute bottom-2 left-2 text-white">
-                          <h3 className="font-bold text-sm">{dest.destination || dest.destination_name}</h3>
-                          <p className="text-xs">{(dest.hotels_count || dest.total_hotels || 250).toLocaleString()} hoteles</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {vacationPackages.map((pkg) => (
+                  <Card
+                    key={pkg.id}
+                    className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
+                    onClick={() => router.push(`/paquete/${pkg.id}`)}
+                  >
+                    <div className="relative h-52 overflow-hidden">
+                      <img
+                        src={pkg.image_url}
+                        alt={pkg.destination}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      {pkg.nights && (
+                        <div className="absolute top-3 left-3 bg-white/90 px-3 py-1 rounded-full">
+                          <p className="text-xs font-semibold">{pkg.nights} noches</p>
                         </div>
+                      )}
+                    </div>
+                    <div className="p-5">
+                      <h3 className="font-bold text-xl mb-2">{pkg.destination}</h3>
+                      <p className="text-sm font-semibold text-muted-foreground mb-2">
+                        {pkg.includes || pkg.package_name}
+                      </p>
+                      <p className="text-sm text-muted-foreground mb-3">{pkg.description}</p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Desde</p>
+                          <p className="text-xl font-bold text-[#0066FF]">
+                            ${Number(pkg.price).toLocaleString()} {pkg.currency}
+                          </p>
+                        </div>
+                        <Button size="sm" className="bg-[#0066FF] hover:bg-[#0052CC] text-white">
+                          Ver paquete
+                        </Button>
                       </div>
-                    </Card>
-                  ))}
-                </div>
+                    </div>
+                  </Card>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* Echa un vistazo a estos hospedajes únicos - OCULTO POR SETTING */}
+          {homeSettings.HOME_UNIQUE_STAYS === 'true' && (
+            <div className="mb-12">
+              <h2 className="text-3xl font-bold mb-6">Echa un vistazo a estos hospedajes únicos</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {uniqueStays.map((unique) => (
+                  <Card
+                    key={unique.id}
+                    className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-shadow rounded-3xl"
+                    onClick={() => router.push(`/hospedaje/${unique.id}`)}
+                  >
+                    <div className="relative h-44 overflow-hidden">
+                      <img
+                        src={unique.image_url}
+                        alt={unique.property_name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="p-4">
+                      {unique.rating && (
+                        <div className="flex items-center gap-1 mb-2">
+                          <span className="text-yellow-500">★</span>
+                          <span className="font-semibold text-sm">{Number(unique.rating).toFixed(1)}</span>
+                          <span className="text-xs text-muted-foreground">
+                            ({unique.total_reviews || 0})
+                          </span>
+                        </div>
+                      )}
+                      <h3 className="font-semibold text-base mb-1">{unique.property_name}</h3>
+                      <p className="text-xs text-muted-foreground mb-2">{unique.location}</p>
+                      <p className="text-sm font-semibold text-[#0066FF]">
+                        ${Number(unique.price_per_night).toLocaleString()} {unique.currency}
+                      </p>
+                      <p className="text-xs text-muted-foreground">por noche</p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Explora el mundo con AS Operadora - OCULTO POR SETTING */}
+          {homeSettings.HOME_EXPLORE_WORLD === 'true' && (
+            <div className="mb-12">
+              <h2 className="text-3xl font-bold mb-6">Explora el mundo con AS Operadora</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {exploreDestinations.map((dest) => (
+                  <Card
+                    key={dest.id}
+                    className="overflow-hidden group cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-3xl"
+                    onClick={() => router.push(`/resultados/activities?city=${encodeURIComponent(dest.destination || dest.destination_name || '')}&radius=20`)}
+                  >
+                    <div className="relative h-24 overflow-hidden">
+                      <img
+                        src={dest.image_url}
+                        alt={dest.destination || dest.destination_name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute bottom-2 left-2 text-white">
+                        <h3 className="font-bold text-sm">{dest.destination || dest.destination_name}</h3>
+                        <p className="text-xs">{(dest.hotels_count || dest.total_hotels || 250).toLocaleString()} hoteles</p>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Footer */}
       <footer className="bg-[#F7F7F7] mt-16 py-12">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
@@ -2990,19 +3000,19 @@ export default function Home() {
               <h4 className="font-semibold mb-4">Ayuda</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/ayuda" className="hover:text-foreground">Centro de ayuda</Link></li>
-                <li><Link href="/contacto" className="hover:text-foreground">Cont�ctanos</Link></li>
+                <li><Link href="/contacto" className="hover:text-foreground">Contáctanos</Link></li>
                 <li><Link href="/legal/privacidad" className="hover:text-foreground">Privacidad</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">T�rminos</h4>
+              <h4 className="font-semibold mb-4">Términos</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/legal/terminos" className="hover:text-foreground">T�rminos de uso</Link></li>
-                <li><Link href="/legal/cookies" className="hover:text-foreground">Pol�tica de cookies</Link></li>
+                <li><Link href="/legal/terminos" className="hover:text-foreground">Términos de uso</Link></li>
+                <li><Link href="/legal/cookies" className="hover:text-foreground">Política de cookies</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">S�guenos</h4>
+              <h4 className="font-semibold mb-4">Síguenos</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#" className="hover:text-foreground">Facebook</a></li>
                 <li><a href="#" className="hover:text-foreground">Twitter</a></li>
@@ -3011,24 +3021,23 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t pt-8 text-sm text-muted-foreground text-center">
-            <p>� 2024 AS Operadora de Viajes y Eventos. Todos los derechos reservados.</p>
+            <p>© 2024 AS Operadora de Viajes y Eventos. Todos los derechos reservados.</p>
             <p className="text-xs mt-1">AS Viajando</p>
             <p className="text-xs mt-2 opacity-50">
-              v2.296 | Build: 04 Feb 2026, 19:50 CST
+              v2.257 | Build: 31 Ene 2026, 19:15 CST
             </p>
-            {/* Informaci�n de BD - OCULTA TEMPORALMENTE */}
-            {/* {dbInfo && (
+            {dbInfo && (
               <div className="text-xs mt-3 opacity-70 bg-slate-100 p-3 rounded inline-block">
                 <p className="font-mono">
-                  ??? BD: <span className="font-bold">{dbInfo.database}</span> |
-                  ?? Endpoint: <span className="font-bold">{dbInfo.endpoint}</span>
+                  🗄️ BD: <span className="font-bold">{dbInfo.database}</span> |
+                  📍 Endpoint: <span className="font-bold">{dbInfo.endpoint}</span>
                 </p>
                 <p className="font-mono mt-1">
-                  ?? Usuarios: <span className="font-bold">{dbInfo.totalUsers}</span> |
-                  ?? Versi�n: <span className="font-bold">v2.296</span>
+                  👥 Usuarios: <span className="font-bold">{dbInfo.totalUsers}</span> |
+                  📦 Versión: <span className="font-bold">v2.248</span>
                 </p>
               </div>
-            )} */}
+            )}
           </div>
         </div>
       </footer >

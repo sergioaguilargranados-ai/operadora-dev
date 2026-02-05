@@ -8,7 +8,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { Search, MapPin, Globe, ExternalLink, Star, Users, Clock, HelpCircle, Bell } from "lucide-react"
+import { Search, MapPin, Globe, ExternalLink, Star, Users, Clock, HelpCircle, Bell, ArrowLeft } from "lucide-react"
 import { Logo } from "@/components/Logo"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -135,20 +135,23 @@ export default function ActividadesPage() {
             <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
                 <div className="container mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-4 md:gap-8">
-                        <Logo className="py-2" />
+                        <button
+                            onClick={() => router.push('/')}
+                            className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                            <span className="hidden sm:inline text-sm font-medium">Volver</span>
+                        </button>
+                        <Link href="/">
+                            <Logo className="py-2" />
+                        </Link>
                     </div>
                     <div className="flex items-center gap-3 md:gap-6 text-sm">
                         <button
-                            onClick={() => router.push('/')}
+                            onClick={() => router.push('/mis-reservas')}
                             className="hover:text-primary font-medium"
                         >
-                            Inicio
-                        </button>
-                        <button
-                            onClick={() => router.push('/tours')}
-                            className="hover:text-primary font-medium"
-                        >
-                            Tours Grupales
+                            Tus Reservas
                         </button>
                         <button
                             onClick={() => router.push('/ayuda')}
@@ -163,6 +166,7 @@ export default function ActividadesPage() {
                             title="Notificaciones"
                         >
                             <Bell className="w-5 h-5" />
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                         </button>
                         {isAuthenticated ? (
                             <button
@@ -174,9 +178,9 @@ export default function ActividadesPage() {
                                 </div>
                             </button>
                         ) : (
-                            <Link href="/login">
-                                <button className="hover:text-primary font-medium">Iniciar sesión</button>
-                            </Link>
+                            <div className="w-8 h-8 bg-[#0066FF] rounded-full flex items-center justify-center text-white font-semibold cursor-pointer" onClick={() => router.push('/login')}>
+                                S
+                            </div>
                         )}
                     </div>
                 </div>
@@ -233,7 +237,7 @@ export default function ActividadesPage() {
                                     <Button
                                         onClick={handleSearch}
                                         size="lg"
-                                        className="px-8 h-12 bg-[#0066FF] hover:bg-[#0052CC]"
+                                        className="px-8 h-12 bg-[#0066FF] hover:bg-[#0052CC] rounded-full text-white"
                                     >
                                         <Search className="w-5 h-5 mr-2" />
                                         Buscar
@@ -326,7 +330,7 @@ export default function ActividadesPage() {
                     <Button
                         size="lg"
                         onClick={() => window.open(getCivitatisUrl(), '_blank')}
-                        className="px-12 py-6 text-lg bg-[#0066FF] hover:bg-[#0052CC]"
+                        className="px-12 py-6 text-lg bg-[#0066FF] hover:bg-[#0052CC] rounded-full text-white"
                     >
                         <Globe className="w-6 h-6 mr-3" />
                         Ver todos los destinos
@@ -370,15 +374,47 @@ export default function ActividadesPage() {
                 </div>
             </section>
 
-            {/* Footer con versión */}
-            <footer className="bg-gray-900 text-white py-8">
-                <div className="container mx-auto px-4 text-center">
-                    <p className="text-sm opacity-75">
-                        © 2026 AS Operadora. Todos los derechos reservados.
-                    </p>
-                    <p className="text-xs mt-2 opacity-50">
-                        v2.295 | Build: 03 Feb 2026, 23:40 CST | Powered by Civitatis
-                    </p>
+            {/* Footer - igual a la página principal */}
+            <footer className="bg-[#F7F7F7] mt-16 py-12">
+                <div className="container mx-auto px-4 max-w-6xl">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+                        <div>
+                            <h4 className="font-semibold mb-4">Empresa</h4>
+                            <ul className="space-y-2 text-sm text-muted-foreground">
+                                <li><Link href="/empresa/acerca-de" className="hover:text-foreground">Acerca de</Link></li>
+                                <li><Link href="/empresa/empleos" className="hover:text-foreground">Empleos</Link></li>
+                                <li><Link href="/empresa/prensa" className="hover:text-foreground">Prensa</Link></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold mb-4">Ayuda</h4>
+                            <ul className="space-y-2 text-sm text-muted-foreground">
+                                <li><Link href="/ayuda" className="hover:text-foreground">Centro de ayuda</Link></li>
+                                <li><Link href="/contacto" className="hover:text-foreground">Contáctanos</Link></li>
+                                <li><Link href="/legal/privacidad" className="hover:text-foreground">Privacidad</Link></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold mb-4">Términos</h4>
+                            <ul className="space-y-2 text-sm text-muted-foreground">
+                                <li><Link href="/legal/terminos" className="hover:text-foreground">Términos de uso</Link></li>
+                                <li><Link href="/legal/cookies" className="hover:text-foreground">Política de cookies</Link></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold mb-4">Síguenos</h4>
+                            <ul className="space-y-2 text-sm text-muted-foreground">
+                                <li><a href="#" className="hover:text-foreground">Facebook</a></li>
+                                <li><a href="#" className="hover:text-foreground">Twitter</a></li>
+                                <li><a href="#" className="hover:text-foreground">Instagram</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div className="border-t pt-8 text-sm text-muted-foreground text-center">
+                        <p>© 2024 AS Operadora de Viajes y Eventos. Todos los derechos reservados.</p>
+                        <p className="text-xs mt-1">AS Viajando</p>
+                        <p className="text-xs mt-2 opacity-50">v2.298 | Build: 04 Feb 2026 | Powered by Civitatis</p>
+                    </div>
                 </div>
             </footer>
         </div>
