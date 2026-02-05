@@ -393,7 +393,7 @@ function ToursContent() {
                             <Button
                                 size="sm"
                                 onClick={() => router.push('/viajes-grupales')}
-                                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 hover:from-blue-700 hover:to-indigo-700"
+                                className="bg-[#0066FF] hover:bg-[#0052CC] text-white border-0 rounded-full"
                             >
                                 <Users className="w-4 h-4 mr-2" />
                                 <span className="hidden sm:inline">Cotizar Grupo</span>
@@ -409,7 +409,7 @@ function ToursContent() {
                                     key={cat.code}
                                     onClick={() => setSelectedCategory(cat.code)}
                                     className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${selectedCategory === cat.code
-                                        ? 'bg-blue-600 text-white'
+                                        ? 'bg-[#0066FF] text-white'
                                         : 'bg-gray-100 text-gray-700'
                                         }`}
                                 >
@@ -484,7 +484,7 @@ function ToursContent() {
                                 </div>
                                 <Button
                                     type="submit"
-                                    className="h-12 px-6 bg-blue-600 text-white hover:bg-blue-700"
+                                    className="h-12 px-6 bg-[#0066FF] text-white hover:bg-[#0052CC] rounded-full"
                                 >
                                     Buscar
                                 </Button>
@@ -497,7 +497,7 @@ function ToursContent() {
             {/* Botón móvil de filtros */}
             <button
                 onClick={() => setShowMobileFilters(true)}
-                className="lg:hidden fixed bottom-6 right-6 z-40 bg-blue-600 text-white rounded-full p-4 shadow-2xl hover:bg-blue-700 transition-colors"
+                className="lg:hidden fixed bottom-6 right-6 z-40 bg-[#0066FF] text-white rounded-full p-4 shadow-2xl hover:bg-[#0052CC] transition-colors"
             >
                 <Filter className="w-6 h-6" />
             </button>
@@ -880,7 +880,7 @@ function ToursContent() {
                                                                             </div>
                                                                             <Button
                                                                                 size="sm"
-                                                                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                                                                className="bg-[#0066FF] hover:bg-[#0052CC] text-white rounded-full"
                                                                             >
                                                                                 Ver
                                                                                 <ArrowRight className="w-4 h-4 ml-1" />
@@ -920,7 +920,7 @@ function ToursContent() {
                                                                         key={page}
                                                                         variant={currentPage === page ? "default" : "outline"}
                                                                         onClick={() => goToPage(page)}
-                                                                        className={`w-10 h-10 p-0 ${currentPage === page ? 'bg-blue-600 text-white' : ''}`}
+                                                                        className={`w-10 h-10 p-0 ${currentPage === page ? 'bg-[#0066FF] text-white' : ''}`}
                                                                     >
                                                                         {page}
                                                                     </Button>
