@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 
 export function WhatsAppWidget() {
-    const phoneNumber = '5215512345678' // Número de WhatsApp de AS Operadora
+    const phoneNumber = '527208156804' // Número oficial AS Operadora +52 720 815 6804
     const message = encodeURIComponent('Hola, me gustaría obtener más información sobre sus servicios.')
 
     return (
