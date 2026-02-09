@@ -31,7 +31,7 @@ const renderTemplate = (templateName: string, variables: Record<string, any>): s
         let finalHtml = baseTemplate.replace('{{CONTENT}}', contentTemplate);
 
         // Reemplazar variables globales
-        const globalVars = {
+        const globalVars: Record<string, any> = {
             ...variables,
             APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'https://app.asoperadora.com',
             UNSUBSCRIBE_URL: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.asoperadora.com'}/unsubscribe?email=${variables.EMAIL || ''}`,
