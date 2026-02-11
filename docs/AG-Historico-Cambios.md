@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 09 de Febrero de 2026 - 16:15 CST  
-**Versión actual:** v2.302  
+**Última actualización:** 11 de Febrero de 2026 - 10:30 CST  
+**Versión actual:** v2.303  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,37 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.303 - 11 de Febrero de 2026 - 10:30 CST
+
+**🐛 FIX: Error al ver detalle de reserva (`/reserva/[id]`)**
+
+**Problema Reportado:**
+- Error React #418 (hydration mismatch) al abrir detalle de reserva
+- `"[object Object]" is not valid JSON` en consola F12
+- La página crasheaba al hacer click en "Ver detalle"
+
+**Causa Raíz:**
+- El API `/api/bookings/[id]` devuelve `traveler_info` como **objeto**, no como string JSON
+- El frontend usaba `JSON.parse()` en campos que ya eran objetos
+- Nombres de campos incorrectos: `booking_type` vs `type`, `total_amount` vs `total_price`, `booking_details` vs `details`
+- Referencia a `contact_info` que no existe en la respuesta del API
+
+**Solución:**
+1. ✅ Helper `safeParseJSON()` — si ya es objeto lo devuelve, si es string lo parsea
+2. ✅ Nombres de campos corregidos (`type`, `total_price`, `details`)
+3. ✅ `traveler_info` maneja tanto objeto individual como array
+4. ✅ Eliminada referencia a `contact_info` inexistente
+5. ✅ Teléfono de contacto actualizado al oficial (+52 720 815 6804)
+
+**Archivos Modificados:**
+- `src/app/reserva/[id]/page.tsx` — Fix completo
+
+**Cifra de Control:**
+- **Tablas:** 50 (sin cambios)
+- **Campos:** 633 (sin cambios)
+
+---
 
 ### v2.302 - 09 de Febrero de 2026 - 16:15 CST
 
