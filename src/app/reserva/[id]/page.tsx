@@ -31,6 +31,17 @@ import { motion } from 'framer-motion'
 import PDFService from '@/services/PDFService'
 import { useToast } from '@/hooks/use-toast'
 
+// Helper: parseo seguro de JSON (si ya es objeto, devolver tal cual)
+function safeParseJSON(value: any, fallback: any = {}) {
+  if (value === null || value === undefined) return fallback
+  if (typeof value === 'object') return value
+  try {
+    return JSON.parse(value)
+  } catch {
+    return fallback
+  }
+}
+
 export default function BookingDetailsPage() {
   const router = useRouter()
   const params = useParams()
@@ -84,17 +95,16 @@ export default function BookingDetailsPage() {
 
     setGeneratingPDF(true)
     try {
-      const travelerInfo = JSON.parse(booking.traveler_info || '[]')
-      const contactInfo = JSON.parse(booking.contact_info || '{}')
-      const bookingDetails = JSON.parse(booking.booking_details || '{}')
+      const travelerInfo = safeParseJSON(booking.traveler_info, {})
+      const bookingDetails = safeParseJSON(booking.details, {})
 
       const voucherData = {
         bookingReference: booking.booking_reference,
-        customerName: travelerInfo[0]?.name || contactInfo.name || 'Cliente',
-        customerEmail: contactInfo.email || '',
-        bookingType: booking.booking_type,
+        customerName: travelerInfo.name || 'Cliente',
+        customerEmail: travelerInfo.email || '',
+        bookingType: booking.type || booking.booking_type,
         status: booking.status,
-        totalAmount: parseFloat(booking.total_amount),
+        totalAmount: parseFloat(booking.total_price) || 0,
         currency: booking.currency,
         createdAt: booking.created_at,
         confirmedAt: booking.confirmed_at,
@@ -206,10 +216,10 @@ export default function BookingDetailsPage() {
     )
   }
 
-  const TypeIcon = getTypeIcon(booking.booking_type)
-  const travelerInfo = JSON.parse(booking.traveler_info || '[]')
-  const contactInfo = JSON.parse(booking.contact_info || '{}')
-  const bookingDetails = JSON.parse(booking.booking_details || '{}')
+  const bookingType = booking.type || booking.booking_type
+  const TypeIcon = getTypeIcon(bookingType)
+  const travelerInfo = safeParseJSON(booking.traveler_info, {})
+  const bookingDetails = safeParseJSON(booking.details, {})
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
@@ -255,8 +265,8 @@ export default function BookingDetailsPage() {
                   Reserva #{booking.booking_reference}
                 </h1>
                 <p className="text-muted-foreground">
-                  {booking.booking_type === 'flight' ? 'Vuelo' :
-                   booking.booking_type === 'hotel' ? 'Hotel' : 'Paquete'}
+                  {bookingType === 'flight' ? 'Vuelo' :
+                    bookingType === 'hotel' ? 'Hotel' : 'Paquete'}
                 </p>
               </div>
             </div>
@@ -280,7 +290,7 @@ export default function BookingDetailsPage() {
                 </h2>
                 <Separator className="my-4" />
 
-                {booking.booking_type === 'flight' && bookingDetails.outbound && (
+                {bookingType === 'flight' && bookingDetails.outbound && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -329,7 +339,7 @@ export default function BookingDetailsPage() {
                   </div>
                 )}
 
-                {booking.booking_type === 'hotel' && bookingDetails.name && (
+                {bookingType === 'hotel' && bookingDetails.name && (
                   <div className="space-y-4">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Hotel</p>
@@ -358,7 +368,7 @@ export default function BookingDetailsPage() {
             </motion.div>
 
             {/* Información de viajeros */}
-            {travelerInfo.length > 0 && (
+            {travelerInfo && (travelerInfo.name || (Array.isArray(travelerInfo) && travelerInfo.length > 0)) && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -372,7 +382,7 @@ export default function BookingDetailsPage() {
                   <Separator className="my-4" />
 
                   <div className="space-y-4">
-                    {travelerInfo.map((traveler: any, index: number) => (
+                    {(Array.isArray(travelerInfo) ? travelerInfo : [travelerInfo]).map((traveler: any, index: number) => (
                       <div key={index} className="p-4 bg-gray-50 rounded-lg">
                         <p className="font-semibold mb-2">
                           Viajero {index + 1}
@@ -480,7 +490,7 @@ export default function BookingDetailsPage() {
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground mb-1">Total</p>
                     <p className="text-3xl font-bold text-primary">
-                      {formatCurrency(parseFloat(booking.total_amount), booking.currency)}
+                      {formatCurrency(parseFloat(booking.total_price || booking.total_amount) || 0, booking.currency)}
                     </p>
                   </div>
 
@@ -545,7 +555,7 @@ export default function BookingDetailsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-muted-foreground" />
-                    <span>+52 55 1234 5678</span>
+                    <span>+52 720 815 6804</span>
                   </div>
                 </div>
               </Card>
