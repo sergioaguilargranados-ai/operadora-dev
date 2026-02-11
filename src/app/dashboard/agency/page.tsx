@@ -69,6 +69,20 @@ interface AgencyClient {
     created_at: string
 }
 
+interface Commission {
+    id: number
+    booking_type: string
+    agent_name: string
+    base_price: number
+    commission_amount: number
+    agent_commission_amount: number
+    agency_commission_amount: number
+    status: string
+    created_at: string
+    booking_reference?: string
+    destination?: string
+}
+
 const COLORS = ['#FF6B00', '#0066FF', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
 
 // ═══════════════════════════════════════
@@ -83,6 +97,8 @@ export default function AgencyDashboardPage() {
     const [stats, setStats] = useState<AgencyStats | null>(null)
     const [agents, setAgents] = useState<Agent[]>([])
     const [clients, setClients] = useState<AgencyClient[]>([])
+    const [commissions, setCommissions] = useState<Commission[]>([])
+    const [commissionsLoaded, setCommissionsLoaded] = useState(false)
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState<'overview' | 'agents' | 'clients' | 'commissions'>('overview')
     const [searchQuery, setSearchQuery] = useState('')
@@ -101,6 +117,26 @@ export default function AgencyDashboardPage() {
         }
         fetchData()
     }, [isAuthenticated])
+
+    // Cargar comisiones al entrar al tab
+    useEffect(() => {
+        if (activeTab === 'commissions' && !commissionsLoaded) {
+            fetchCommissions()
+        }
+    }, [activeTab])
+
+    const fetchCommissions = async () => {
+        try {
+            const res = await fetch(`/api/agency/commissions?agency_id=${agencyId}`)
+            const data = await res.json()
+            if (data.success) {
+                setCommissions(data.data.commissions || [])
+                setCommissionsLoaded(true)
+            }
+        } catch (error) {
+            console.error('Error fetching commissions:', error)
+        }
+    }
 
     const fetchData = async () => {
         try {
@@ -567,12 +603,63 @@ export default function AgencyDashboardPage() {
                         </div>
 
                         <Card className="p-6">
-                            <h3 className="text-lg font-semibold mb-4">Historial de Comisiones</h3>
-                            <div className="text-center py-12 text-muted-foreground">
-                                <Wallet className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                                <p>Las comisiones aparecerán aquí cuando se generen reservas</p>
-                                <p className="text-sm mt-1">Las comisiones se calculan automáticamente al confirmar una reserva</p>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold">Historial de Comisiones</h3>
+                                <Badge variant="secondary" className="text-sm">{commissions.length} registros</Badge>
                             </div>
+                            {commissions.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="bg-muted/50">
+                                            <tr>
+                                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Tipo</th>
+                                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Agente</th>
+                                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Precio Base</th>
+                                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Comisión</th>
+                                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Agente</th>
+                                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Agencia</th>
+                                                <th className="text-center p-3 text-sm font-medium text-muted-foreground">Estado</th>
+                                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Fecha</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y">
+                                            {commissions.map(comm => (
+                                                <tr key={comm.id} className="hover:bg-muted/30 transition-colors">
+                                                    <td className="p-3">
+                                                        <Badge variant="outline" className="capitalize">
+                                                            {comm.booking_type === 'hotel' ? '🏨' : comm.booking_type === 'tour' ? '🌎' : comm.booking_type === 'package' ? '📦' : comm.booking_type === 'transfer' ? '🚗' : '🎭'} {comm.booking_type}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="p-3 font-medium">{comm.agent_name || '—'}</td>
+                                                    <td className="p-3 text-right">{formatCurrency(comm.base_price)}</td>
+                                                    <td className="p-3 text-right font-semibold text-green-600">{formatCurrency(comm.commission_amount)}</td>
+                                                    <td className="p-3 text-right text-sm">{formatCurrency(comm.agent_commission_amount)}</td>
+                                                    <td className="p-3 text-right text-sm">{formatCurrency(comm.agency_commission_amount)}</td>
+                                                    <td className="p-3 text-center">
+                                                        <Badge className={
+                                                            comm.status === 'paid' ? 'bg-blue-100 text-blue-700' :
+                                                                comm.status === 'available' ? 'bg-green-100 text-green-700' :
+                                                                    comm.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                                        'bg-gray-100 text-gray-500'
+                                                        }>
+                                                            {comm.status === 'paid' ? '💰 Pagada' : comm.status === 'available' ? '✅ Disponible' : comm.status === 'pending' ? '⏳ Pendiente' : comm.status}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="p-3 text-sm text-muted-foreground">
+                                                        {new Date(comm.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 text-muted-foreground">
+                                    <Wallet className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                                    <p>Las comisiones aparecerán aquí cuando se generen reservas</p>
+                                    <p className="text-sm mt-1">Las comisiones se calculan automáticamente al confirmar una reserva</p>
+                                </div>
+                            )}
                         </Card>
                     </motion.div>
                 )}
