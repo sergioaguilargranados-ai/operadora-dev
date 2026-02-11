@@ -20,7 +20,8 @@ import {
   Clock,
   ArrowUpRight,
   ArrowDownRight,
-  Loader2
+  Loader2,
+  Shield
 } from 'lucide-react'
 
 interface DashboardStats {
@@ -200,6 +201,14 @@ export default function DashboardPage() {
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Aprobaciones
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start bg-slate-900 text-white hover:bg-slate-800 hover:text-white"
+                onClick={() => router.push('/dashboard/admin/agencies')}
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                🛡️ Panel Super Admin
               </Button>
             </div>
           </Card>

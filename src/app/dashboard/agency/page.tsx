@@ -11,7 +11,8 @@ import { PageHeader } from '@/components/PageHeader'
 import {
     Users, UserPlus, DollarSign, TrendingUp, Briefcase, Link2, Search,
     Loader2, Eye, Edit, BarChart3, Wallet, Clock, CheckCircle,
-    Copy, Plus, ArrowUpRight, ArrowDownRight, ChevronRight, Building2
+    Copy, Plus, ArrowUpRight, ArrowDownRight, ChevronRight, Building2,
+    Download, Filter, CreditCard, Send, AlertCircle
 } from 'lucide-react'
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
@@ -106,6 +107,16 @@ export default function AgencyDashboardPage() {
     // Modal crear agente
     const [showAgentModal, setShowAgentModal] = useState(false)
     const [newAgent, setNewAgent] = useState({ name: '', email: '', phone: '', password: '', commission_split: 10 })
+
+    // Dispersión
+    const [showDisburseModal, setShowDisburseModal] = useState(false)
+    const [disburseForm, setDisburseForm] = useState({ payment_method: 'transfer', payment_reference: '', notes: '' })
+    const [disbursing, setDisbursing] = useState(false)
+
+    // Filtros de comisiones
+    const [commFilterStatus, setCommFilterStatus] = useState<string>('all')
+    const [commFilterDateFrom, setCommFilterDateFrom] = useState('')
+    const [commFilterDateTo, setCommFilterDateTo] = useState('')
 
     // TODO: Obtener del contexto de autenticación
     const agencyId = 2 // M&MTravelAgency ID temporal
@@ -203,6 +214,61 @@ export default function AgencyDashboardPage() {
             toast({ variant: 'destructive', title: 'Error', description: 'No se pudo crear el agente' })
         }
     }
+
+    const handleDisburse = async () => {
+        if (!disburseForm.payment_reference) {
+            toast({ variant: 'destructive', title: 'Error', description: 'La referencia de pago es obligatoria' })
+            return
+        }
+        try {
+            setDisbursing(true)
+            const res = await fetch('/api/agency/commissions/disburse', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    agency_id: agencyId,
+                    payment_method: disburseForm.payment_method,
+                    payment_reference: disburseForm.payment_reference,
+                    notes: disburseForm.notes
+                })
+            })
+            const data = await res.json()
+            if (data.success) {
+                toast({
+                    title: '✅ Dispersión exitosa',
+                    description: `${data.data.commissions_paid} comisiones pagadas. Lote: ${data.data.batch_reference}`
+                })
+                setShowDisburseModal(false)
+                setDisburseForm({ payment_method: 'transfer', payment_reference: '', notes: '' })
+                setCommissionsLoaded(false)
+                fetchData()
+                fetchCommissions()
+            } else {
+                toast({ variant: 'destructive', title: 'Error', description: data.error || 'No se pudo dispersar' })
+            }
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Error al dispersar comisiones' })
+        } finally {
+            setDisbursing(false)
+        }
+    }
+
+    const handleExportCSV = () => {
+        let url = `/api/agency/commissions/export?agency_id=${agencyId}&format=csv`
+        if (commFilterStatus !== 'all') url += `&status=${commFilterStatus}`
+        if (commFilterDateFrom) url += `&date_from=${commFilterDateFrom}`
+        if (commFilterDateTo) url += `&date_to=${commFilterDateTo}`
+        window.open(url, '_blank')
+    }
+
+    const filteredCommissions = commissions.filter(c => {
+        if (commFilterStatus !== 'all' && c.status !== commFilterStatus) return false
+        if (commFilterDateFrom && new Date(c.created_at) < new Date(commFilterDateFrom)) return false
+        if (commFilterDateTo && new Date(c.created_at) > new Date(commFilterDateTo + 'T23:59:59')) return false
+        return true
+    })
+
+    const availableCount = commissions.filter(c => c.status === 'available').length
 
     const copyReferralLink = (code: string) => {
         const url = `https://mmta.app.asoperadora.com/?r=${code}`
@@ -602,12 +668,59 @@ export default function AgencyDashboardPage() {
                             </Card>
                         </div>
 
+                        {/* Filtros y Acciones */}
+                        <div className="flex flex-wrap gap-3 mb-4 items-center">
+                            <div className="flex items-center gap-2">
+                                <Filter className="w-4 h-4 text-muted-foreground" />
+                                <select
+                                    className="text-sm border rounded-md px-3 py-2 bg-background"
+                                    value={commFilterStatus}
+                                    onChange={(e) => setCommFilterStatus(e.target.value)}
+                                >
+                                    <option value="all">Todos los estados</option>
+                                    <option value="pending">⏳ Pendiente</option>
+                                    <option value="available">✅ Disponible</option>
+                                    <option value="paid">💰 Pagada</option>
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    type="date"
+                                    className="w-40 text-sm"
+                                    value={commFilterDateFrom}
+                                    onChange={(e) => setCommFilterDateFrom(e.target.value)}
+                                    placeholder="Desde"
+                                />
+                                <span className="text-muted-foreground text-sm">a</span>
+                                <Input
+                                    type="date"
+                                    className="w-40 text-sm"
+                                    value={commFilterDateTo}
+                                    onChange={(e) => setCommFilterDateTo(e.target.value)}
+                                    placeholder="Hasta"
+                                />
+                            </div>
+                            <div className="flex-1" />
+                            <Button variant="outline" size="sm" className="gap-2" onClick={handleExportCSV}>
+                                <Download className="w-4 h-4" /> Exportar CSV
+                            </Button>
+                            {availableCount > 0 && (
+                                <Button
+                                    size="sm"
+                                    className="gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700"
+                                    onClick={() => setShowDisburseModal(true)}
+                                >
+                                    <Send className="w-4 h-4" /> Dispersar ({availableCount})
+                                </Button>
+                            )}
+                        </div>
+
                         <Card className="p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-semibold">Historial de Comisiones</h3>
-                                <Badge variant="secondary" className="text-sm">{commissions.length} registros</Badge>
+                                <Badge variant="secondary" className="text-sm">{filteredCommissions.length} de {commissions.length} registros</Badge>
                             </div>
-                            {commissions.length > 0 ? (
+                            {filteredCommissions.length > 0 ? (
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
                                         <thead className="bg-muted/50">
@@ -623,7 +736,7 @@ export default function AgencyDashboardPage() {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y">
-                                            {commissions.map(comm => (
+                                            {filteredCommissions.map(comm => (
                                                 <tr key={comm.id} className="hover:bg-muted/30 transition-colors">
                                                     <td className="p-3">
                                                         <Badge variant="outline" className="capitalize">
@@ -656,14 +769,80 @@ export default function AgencyDashboardPage() {
                             ) : (
                                 <div className="text-center py-12 text-muted-foreground">
                                     <Wallet className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                                    <p>Las comisiones aparecerán aquí cuando se generen reservas</p>
-                                    <p className="text-sm mt-1">Las comisiones se calculan automáticamente al confirmar una reserva</p>
+                                    <p>No hay comisiones con estos filtros</p>
+                                    <p className="text-sm mt-1">Intenta cambiar los filtros o espera a nuevas reservas</p>
                                 </div>
                             )}
                         </Card>
                     </motion.div>
                 )}
             </main>
+
+            {/* ═══ MODAL: Dispersar Comisiones ═══ */}
+            <Dialog open={showDisburseModal} onOpenChange={setShowDisburseModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Send className="w-5 h-5 text-green-500" />
+                            Dispersar Comisiones
+                        </DialogTitle>
+                        <DialogDescription>
+                            Se pagarán todas las comisiones con estado "Disponible" ({availableCount} comisiones por {formatCurrency(commissions.filter(c => c.status === 'available').reduce((s, c) => s + (c.agent_commission_amount || 0), 0))}).
+                            Los agentes recibirán una notificación por email.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-2">
+                        <div>
+                            <Label>Método de pago *</Label>
+                            <select
+                                className="w-full border rounded-md px-3 py-2 bg-background mt-1"
+                                value={disburseForm.payment_method}
+                                onChange={(e) => setDisburseForm({ ...disburseForm, payment_method: e.target.value })}
+                            >
+                                <option value="transfer">💳 Transferencia bancaria</option>
+                                <option value="cash">💵 Efectivo</option>
+                                <option value="check">📝 Cheque</option>
+                            </select>
+                        </div>
+                        <div>
+                            <Label>Referencia de pago *</Label>
+                            <Input
+                                placeholder="Ej: SPEI-20260211-001"
+                                value={disburseForm.payment_reference}
+                                onChange={(e) => setDisburseForm({ ...disburseForm, payment_reference: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <Label>Notas (opcional)</Label>
+                            <Input
+                                placeholder="Dispersión quincenal febrero"
+                                value={disburseForm.notes}
+                                onChange={(e) => setDisburseForm({ ...disburseForm, notes: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex gap-2">
+                            <AlertCircle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
+                            <p className="text-sm text-yellow-700">
+                                Esta acción marcará las comisiones como pagadas y notificará a los agentes por email. No se puede deshacer.
+                            </p>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowDisburseModal(false)}>Cancelar</Button>
+                        <Button
+                            className="bg-green-500 hover:bg-green-600 text-white gap-2"
+                            onClick={handleDisburse}
+                            disabled={disbursing}
+                        >
+                            {disbursing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                            {disbursing ? 'Dispersando...' : 'Confirmar Dispersión'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* ═══ MODAL: Crear Agente ═══ */}
             <Dialog open={showAgentModal} onOpenChange={setShowAgentModal}>
