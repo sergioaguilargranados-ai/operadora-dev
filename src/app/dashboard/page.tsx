@@ -185,6 +185,14 @@ function DashboardContent() {
               </Button>
               <Button
                 variant="outline"
+                className="w-full justify-start bg-emerald-600 text-white hover:bg-emerald-700 hover:text-white"
+                onClick={() => router.push('/dashboard/rrhh')}
+              >
+                <Users className="w-4 h-4 mr-2" />
+                👥 RRHH — Recursos Humanos
+              </Button>
+              <Button
+                variant="outline"
                 className="w-full justify-start"
                 onClick={() => router.push('/dashboard/agency')}
               >

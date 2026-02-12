@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 12 de Febrero de 2026 - 00:15 CST  
-**Versión actual:** v2.315  
+**Última actualización:** 12 de Febrero de 2026 - 02:45 CST  
+**Versión actual:** v2.316  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,68 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.316 - 12 de Febrero de 2026 - 02:45 CST
+
+**👥 Módulo RRHH (Recursos Humanos) — Implementación Completa**
+
+**Migraciones de Base de Datos:**
+- ✅ `040_client_documents_extension.sql` — Extensión de tabla `documents` para soportar documentos de clientes con alertas de vencimiento, tipos mexicanos (INE, CURP, RFC), vista `client_documents_view`, funciones SQL
+- ✅ `041_hr_module_core.sql` — 11 tablas HR: departamentos, posiciones, empleados (perfiles diferenciados: interno/agente/freelance/contractor), contratos, asistencia, ausencias, nómina, comisiones de agentes, documentos de empleados, pipeline de reclutamiento, log de auditoría. 44 índices, triggers `updated_at` automáticos. Campos de cumplimiento legal mexicano (RFC, CURP, NSS, IMSS, ISR, CLABE)
+
+**Servicios Backend:**
+- ✅ `ClientDocumentService.ts` — CRUD documentos de clientes, verificación/rechazo, alertas de expiración, checklist de completitud, estadísticas
+- ✅ `HRService.ts` — CRUD completo para empleados, departamentos, posiciones, contratos, asistencia (check-in/out), ausencias (aprobar/rechazar), nómina, reclutamiento, auditoría. Dashboard stats
+
+**APIs REST:**
+- ✅ `api/client-documents/route.ts` — GET: listar por cliente/tenant, expiración, stats, checklist. POST: crear, verificar, eliminar
+- ✅ `api/hr/route.ts` — GET: dashboard, empleados (con filtros), departamentos, posiciones, contratos, asistencia, ausencias, nómina, reclutamiento, auditoría. POST: crear/actualizar empleados, departamentos, posiciones, contratos, check-in/out, ausencias, nómina, candidatos
+
+**Frontend (13 páginas):**
+- ✅ `HRSidebar.tsx` — Sidebar colapsable con acento verde esmeralda, 12 items de navegación
+- ✅ `dashboard/rrhh/page.tsx` — Dashboard principal con 12 KPIs, alertas activas, acciones rápidas, gráfico de distribución
+- ✅ `dashboard/rrhh/employees/page.tsx` — Listado empleados internos con búsqueda, filtros, modal creación (RFC, CURP, NSS)
+- ✅ `dashboard/rrhh/agents/page.tsx` — Grid de agentes con comisiones, ventas YTD, metas, territorios, certificaciones
+- ✅ `dashboard/rrhh/departments/page.tsx` — Grid de departamentos con conteo de empleados
+- ✅ `dashboard/rrhh/contracts/page.tsx` — Lista de contratos con badges, alertas vencimiento, modal creación
+- ✅ `dashboard/rrhh/attendance/page.tsx` — Control asistencia con check-in/out, resumen diario
+- ✅ `dashboard/rrhh/leaves/page.tsx` — Solicitudes de ausencia con filtros estado, aprobar/rechazar
+- ✅ `dashboard/rrhh/payroll/page.tsx` — Tabla nómina con bruto/deducciones/neto
+- ✅ `dashboard/rrhh/commissions/page.tsx` — Comisiones de agentes con KPIs
+- ✅ `dashboard/rrhh/documents/page.tsx` — Expediente digital con badges de estado por documento
+- ✅ `dashboard/rrhh/recruitment/page.tsx` — Pipeline Kanban 6 columnas (Postulado→Contratado)
+- ✅ `dashboard/rrhh/audit/page.tsx` — Log de auditoría con filtros por tipo de acción
+
+**Integración:**
+- ✅ Botón RRHH agregado en Dashboard principal → Enlaces Útiles (verde esmeralda)
+- ✅ Script `scripts/migrate-hr-module.js` para ejecutar migraciones en Neon
+
+**Archivos creados (19):**
+```
+migrations/040_client_documents_extension.sql
+migrations/041_hr_module_core.sql
+src/services/ClientDocumentService.ts
+src/services/HRService.ts
+src/components/HRSidebar.tsx
+src/app/api/client-documents/route.ts
+src/app/api/hr/route.ts
+src/app/dashboard/rrhh/layout.tsx
+src/app/dashboard/rrhh/page.tsx
+src/app/dashboard/rrhh/employees/page.tsx
+src/app/dashboard/rrhh/agents/page.tsx
+src/app/dashboard/rrhh/departments/page.tsx
+src/app/dashboard/rrhh/contracts/page.tsx
+src/app/dashboard/rrhh/attendance/page.tsx
+src/app/dashboard/rrhh/leaves/page.tsx
+src/app/dashboard/rrhh/payroll/page.tsx
+src/app/dashboard/rrhh/commissions/page.tsx
+src/app/dashboard/rrhh/documents/page.tsx
+src/app/dashboard/rrhh/recruitment/page.tsx
+src/app/dashboard/rrhh/audit/page.tsx
+scripts/migrate-hr-module.js
+```
+
+---
 
 ### v2.315 - 12 de Febrero de 2026 - 00:15 CST
 
