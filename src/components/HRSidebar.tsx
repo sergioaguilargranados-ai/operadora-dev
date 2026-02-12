@@ -103,7 +103,15 @@ export function HRSidebar() {
 
             {/* Footer */}
             {!collapsed && (
-                <div className="px-3 py-2 border-t border-gray-100">
+                <div className="px-3 py-2 border-t border-gray-100 space-y-1">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-[10px] h-7 rounded-lg border-blue-200/50 bg-blue-50/30 text-blue-600 hover:bg-blue-100/50"
+                        onClick={() => router.push('/dashboard/crm')}
+                    >
+                        🎯 Ir a CRM
+                    </Button>
                     <Button
                         variant="outline"
                         size="sm"

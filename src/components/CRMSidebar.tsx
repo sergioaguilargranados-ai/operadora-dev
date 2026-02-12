@@ -5,7 +5,7 @@ import {
     Users, Target, ListTodo, Bell, Zap,
     BarChart3, Upload, Calendar, MessageSquare,
     LayoutDashboard, Eye, Workflow, Mail,
-    TrendingUp, ChevronLeft, ChevronRight
+    TrendingUp, ChevronLeft, ChevronRight, FolderOpen
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -29,6 +29,7 @@ const CRM_NAV_ITEMS = [
     { href: '/dashboard/crm/predictive', label: 'Scoring', icon: TrendingUp, color: 'text-purple-500' },
     { href: '/dashboard/crm/campaign-metrics', label: 'Métricas', icon: BarChart3, color: 'text-pink-500' },
     { divider: true, label: 'Datos' },
+    { href: '/dashboard/crm/client-documents', label: 'Docs Clientes', icon: FolderOpen, color: 'text-sky-500' },
     { href: '/dashboard/crm/import', label: 'Importar CSV', icon: Upload, color: 'text-green-500' },
 ] as const
 
@@ -104,7 +105,15 @@ export function CRMSidebar() {
 
             {/* Footer */}
             {!collapsed && (
-                <div className="px-3 py-2 border-t border-gray-100">
+                <div className="px-3 py-2 border-t border-gray-100 space-y-1">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-[10px] h-7 rounded-lg border-emerald-200/50 bg-emerald-50/30 text-emerald-600 hover:bg-emerald-100/50"
+                        onClick={() => router.push('/dashboard/rrhh')}
+                    >
+                        👥 Ir a RRHH
+                    </Button>
                     <Button
                         variant="outline"
                         size="sm"
