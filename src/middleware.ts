@@ -27,10 +27,14 @@ const PROTECTED_ROUTES: RouteRule[] = [
   { path: '/dashboard/agency', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN'], requireAuth: true },
   // Agent
   { path: '/dashboard/agent', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT'], requireAuth: true },
+  // RRHH - Solo HR Manager, Agency Admin y Super Admin
+  { path: '/dashboard/rrhh', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'HR_MANAGER'], requireAuth: true },
+  // CRM - Agentes y admins
+  { path: '/dashboard/crm', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'HR_MANAGER'], requireAuth: true },
   // Dashboard general - cualquier usuario autenticado
-  { path: '/dashboard/payments', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'CLIENT', 'admin', 'user'], requireAuth: true },
-  { path: '/dashboard/corporate', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'CLIENT', 'admin', 'user'], requireAuth: true },
-  { path: '/dashboard', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'CLIENT', 'admin', 'user'], requireAuth: true },
+  { path: '/dashboard/payments', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'CLIENT', 'admin', 'user', 'HR_MANAGER'], requireAuth: true },
+  { path: '/dashboard/corporate', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'CLIENT', 'admin', 'user', 'HR_MANAGER'], requireAuth: true },
+  { path: '/dashboard', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'CLIENT', 'admin', 'user', 'HR_MANAGER'], requireAuth: true },
   // Mis reservas
   { path: '/mis-reservas', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'CLIENT', 'admin', 'user'], requireAuth: true },
   // Aprobaciones
