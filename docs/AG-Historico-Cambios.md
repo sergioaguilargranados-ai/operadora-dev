@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 11 de Febrero de 2026 - 22:00 CST  
-**Versión actual:** v2.313  
+**Última actualización:** 12 de Febrero de 2026 - 00:15 CST  
+**Versión actual:** v2.315  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,70 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.315 - 12 de Febrero de 2026 - 00:15 CST
+
+**🚀 CRM Sprints 8-10: Calendario, Predictive, WhatsApp, Workflows, Campaign Metrics — CRM al 99%**
+
+**Sprint 8 — Calendario CRM y Scoring Predictivo:**
+- ✅ `CRMCalendarService.ts` — Vista unificada tareas/seguimientos/viajes, digest semanal, Google Calendar links, iCal
+- ✅ `CRMPredictiveService.ts` — 6 señales ponderadas, probabilidad de conversión, risk level, recomendaciones
+- ✅ API `/api/crm/calendar` — events, digest, google_link, ical
+- ✅ API `/api/crm/predictive` — predict, top_predictions
+- ✅ UI `/dashboard/crm/calendar` — Calendario mensual interactivo con eventos por tipo
+- ✅ UI `/dashboard/crm/predictive` — Scoring predictivo dark premium con ranking
+
+**Sprint 9 — WhatsApp CRM y Workflow Engine:**
+- ✅ `CRMWhatsAppService.ts` — 6 plantillas por pipeline stage (bienvenida, seguimiento, cotización, recordatorio, confirmación, post-viaje)
+- ✅ `CRMWorkflowService.ts` — Motor con 9 tipos de paso (send_email, send_whatsapp, wait, condition, update_contact, create_task, move_stage, add_tag, notify_agent)
+- ✅ 4 workflows predefinidos: Bienvenida lead, Seguimiento cotización, Re-engagement, Hot lead
+- ✅ API `/api/crm/whatsapp` — templates, preview, suggest, envío individual/masivo
+- ✅ API `/api/crm/workflows` — templates, saved, save, execute, update, toggle
+- ✅ UI `/dashboard/crm/whatsapp` — Flujo 4 pasos con preview estilo WhatsApp
+- ✅ UI `/dashboard/crm/workflows` — Gestor con tabs, panel de detalle, flujo visual
+
+**Sprint 10 — Métricas de Campañas, A/B Testing y Deep Linking:**
+- ✅ `CRMCampaignMetricsService.ts` — Pixel tracking (GIF 1x1), click tracking (redirect), A/B testing con 3 criterios
+- ✅ Migración `039_crm_sprint10_campaign_metrics.sql` — crm_campaign_stats, crm_campaign_events, crm_ab_tests, crm_deep_links
+- ✅ API `/api/crm/metrics` — summary, campaign detail, timeline, abtests, evaluate, register, create_abtest
+- ✅ API `/api/crm/metrics/track` — Pixel tracking opens + redirect tracking clicks
+- ✅ UI `/dashboard/crm/campaign-metrics` — 5 KPIs, gráfico timeline, benchmarks vs industria, tabla campañas
+- ✅ 8 deep links predefinidos para app móvil (Dashboard, Contact 360°, Pipeline, Tasks, Calendar, Predictive, WhatsApp, Notifications)
+
+**Dashboard CRM actualizado:**
+- ✅ 10 botones de acciones rápidas: Campañas Email, Reporte PDF, Calendario, Scoring Predictivo, WhatsApp CRM, Workflows, Métricas Campañas, más
+- ✅ Fix: CRMWhatsAppService `message` → `body` (WhatsAppMessage interface alignment)
+
+**Archivos creados (15):**
+```
+src/services/CRMCalendarService.ts
+src/services/CRMPredictiveService.ts
+src/services/CRMWhatsAppService.ts
+src/services/CRMWorkflowService.ts
+src/services/CRMCampaignMetricsService.ts
+src/app/api/crm/calendar/route.ts
+src/app/api/crm/predictive/route.ts
+src/app/api/crm/whatsapp/route.ts
+src/app/api/crm/workflows/route.ts
+src/app/api/crm/metrics/route.ts
+src/app/api/crm/metrics/track/route.ts
+src/app/dashboard/crm/calendar/page.tsx
+src/app/dashboard/crm/predictive/page.tsx
+src/app/dashboard/crm/whatsapp/page.tsx
+src/app/dashboard/crm/workflows/page.tsx
+src/app/dashboard/crm/campaign-metrics/page.tsx
+migrations/039_crm_sprint10_campaign_metrics.sql
+```
+
+**Archivos modificados (2):**
+```
+src/app/dashboard/crm/page.tsx (nav buttons)
+docs/AG-Reporte-CRM-Estado-Plan.md (Sprints 8-10 completados)
+```
+
+**Totales CRM:** 10 sprints | 10 servicios | 28 APIs | 17 páginas | ~99%
+
+---
 
 ### v2.313 - 11 de Febrero de 2026 - 22:00 CST
 
