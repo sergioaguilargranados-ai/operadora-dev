@@ -14,7 +14,9 @@ import {
     Shield,
     LogOut,
     Bell,
-    HelpCircle
+    HelpCircle,
+    Target,
+    Users
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -118,6 +120,28 @@ export function UserMenu() {
                                     <MessageCircle className="w-4 h-4" />
                                     Centro de Comunicación
                                 </button>
+
+                                {/* Opciones CRM y RRHH */}
+                                {user.role && ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENCY_ADMIN', 'AGENT', 'HR_MANAGER'].includes(user.role) && (
+                                    <>
+                                        <div className="border-t my-2"></div>
+                                        <p className="px-4 py-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Módulos</p>
+                                        <button
+                                            onClick={() => { router.push('/dashboard/crm'); setShowUserMenu(false) }}
+                                            className="w-full px-4 py-2 text-left hover:bg-blue-50 flex items-center gap-3"
+                                        >
+                                            <Target className="w-4 h-4 text-blue-600" />
+                                            <span className="text-blue-700 font-medium">CRM — Leads & Clientes</span>
+                                        </button>
+                                        <button
+                                            onClick={() => { router.push('/dashboard/rrhh'); setShowUserMenu(false) }}
+                                            className="w-full px-4 py-2 text-left hover:bg-emerald-50 flex items-center gap-3"
+                                        >
+                                            <Users className="w-4 h-4 text-emerald-600" />
+                                            <span className="text-emerald-700 font-medium">RRHH — Recursos Humanos</span>
+                                        </button>
+                                    </>
+                                )}
 
                                 {/* Opciones de Admin/SuperAdmin */}
                                 {user.role && ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(user.role) && (
