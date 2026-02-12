@@ -177,6 +177,14 @@ function DashboardContent() {
             <div className="space-y-2">
               <Button
                 variant="outline"
+                className="w-full justify-start bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
+                onClick={() => router.push('/dashboard/crm')}
+              >
+                <Users className="w-4 h-4 mr-2" />
+                🎯 CRM — Gestión de Leads
+              </Button>
+              <Button
+                variant="outline"
                 className="w-full justify-start"
                 onClick={() => router.push('/dashboard/agency')}
               >
