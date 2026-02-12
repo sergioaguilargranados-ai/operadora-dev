@@ -74,7 +74,7 @@ export function UserMenu() {
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center gap-2 hover:text-primary"
                 >
-                    <div className="w-8 h-8 bg-[#0066FF] rounded-full flex items-center justify-center text-white font-semibold">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: 'var(--brand-primary)' }}>
                         {user.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="hidden md:flex flex-col items-start">

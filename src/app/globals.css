@@ -29,6 +29,18 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    /* ═══ Brand / White-Label CSS Variables ═══ */
+    /* Defaults = AS Operadora branding (#0066FF) */
+    /* BrandStyles.tsx overrides these dynamically per tenant */
+    --brand-primary: #0066FF;
+    --brand-secondary: #0052CC;
+    --brand-accent: #0066FF;
+    --brand-primary-hover: #0057D9;
+    --brand-primary-light: #66A3FF;
+    --brand-primary-bg: #E6F0FF;
+    --brand-secondary-hover: #0046AD;
+    --is-white-label: 0;
   }
 
   .dark {

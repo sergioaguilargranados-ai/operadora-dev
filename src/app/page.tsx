@@ -20,6 +20,7 @@ import { User as UserIcon, LogOut } from "lucide-react"
 import { useSearch } from "@/hooks/useSearch"
 import { FeatureGate, useFeatureCheck } from "@/components/FeatureGate"
 import { useFeatures } from "@/contexts/FeaturesContext"
+import { BrandFooter } from "@/components/BrandFooter"
 import type {
   Promotion,
   FeaturedHero,
@@ -2964,50 +2965,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#F7F7F7] mt-16 py-12">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h4 className="font-semibold mb-4">Empresa</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/empresa/acerca-de" className="hover:text-foreground">Acerca de</Link></li>
-                <li><Link href="/empresa/empleos" className="hover:text-foreground">Empleos</Link></li>
-                <li><Link href="/empresa/prensa" className="hover:text-foreground">Prensa</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Ayuda</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/ayuda" className="hover:text-foreground">Centro de ayuda</Link></li>
-                <li><Link href="/contacto" className="hover:text-foreground">Contáctanos</Link></li>
-                <li><Link href="/legal/privacidad" className="hover:text-foreground">Privacidad</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Términos</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/legal/terminos" className="hover:text-foreground">Términos de uso</Link></li>
-                <li><Link href="/legal/cookies" className="hover:text-foreground">Política de cookies</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Síguenos</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Facebook</a></li>
-                <li><a href="#" className="hover:text-foreground">Twitter</a></li>
-                <li><a href="#" className="hover:text-foreground">Instagram</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t pt-8 text-sm text-muted-foreground text-center">
-            <p>© 2024 AS Operadora de Viajes y Eventos. Todos los derechos reservados.</p>
-            <p className="text-xs mt-1">AS Viajando</p>
-            <p className="text-xs mt-2 opacity-50">
-              v2.302 | Build: 09 Feb 2026
-            </p>
-          </div>
-        </div>
-      </footer >
+      <BrandFooter />
     </div >
   )
 }

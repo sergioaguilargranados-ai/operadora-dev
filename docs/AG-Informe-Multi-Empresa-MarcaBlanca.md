@@ -1,8 +1,8 @@
 # 📊 AG-Informe: Multi-Empresa y Marca Blanca - Estado Actual y Pendientes
 
 **Fecha:** 11 de Febrero de 2026  
-**Versión actual del proyecto:** v2.311  
-**Última actualización:** 11 de Febrero de 2026 - 18:00 CST  
+**Versión actual del proyecto:** v2.312  
+**Última actualización:** 11 de Febrero de 2026 - 19:30 CST  
 **Propósito:** Análisis completo del estado de las funcionalidades Multi-Empresa (Multi-Tenant) y Marca Blanca (White-Label)
 
 ---
@@ -147,16 +147,17 @@ La estructura de BD tiene `tenant_id` como foreign key en **14+ tablas** y ahora
 
 ---
 
-### 4. Middleware — 70% Listo (actualizado desde 30%)
+### 4. Middleware — 75% Listo (actualizado desde 70%)
 
 | Funcionalidad | Estado | Detalle |
 |:-------------|:------:|:--------|
-| Detección de host/subdominio | ✅ | Headers `x-tenant-id`, `x-tenant-subdomain` |
+| Detección de host/subdominio | ✅ | Headers `x-tenant-host`, `x-tenant-subdomain` |
 | Detección de dominio custom | ⚠️ | Detecta pero retorna null — falta conexión a BD |
 | ~~Protección de rutas~~ | ✅ | **v2.311** — JWT decode en Edge + redirect por rol |
 | Cookie sync con AuthContext | ✅ | **v2.311** — `as_user`, `as_token` cookies |
 | Tabla de rutas protegidas | ✅ | **v2.311** — admin, agency, agent con roles requeridos |
 | Access denied toast | ✅ | **v2.311** — Redirect con parámetros indicando rol faltante |
+| Cookie de referral `?r=CODIGO` | ✅ | **v2.311** — Guarda en cookie `as_referral` con 30 días TTL |
 | Conexión real a BD para tenant | ❌ | TODO: Consultar `tenants` table en Edge (requiere kv/cache) |
 
 ---
@@ -211,79 +212,72 @@ La estructura de BD tiene `tenant_id` como foreign key en **14+ tablas** y ahora
 
 ## ❌ Lo Que FALTA (Pendiente de Implementar)
 
-### A. Frontend White-Label — El Pendiente Principal
+### 8. Frontend White-Label — 85% Listo (actualizado desde 0%)
 
-| Componente | Prioridad | Descripción |
-|:-----------|:---------:|:------------|
-| **WhiteLabelContext.tsx** | 🔴 ALTA | Context de React para cargar y distribuir configuración de branding dinámico |
-| **useWhiteLabel() hook** | 🔴 ALTA | Hook para acceder a colores, logo, nombre del tenant actual |
-| **Logo dinámico en Header** | 🔴 ALTA | Mostrar logo del tenant en vez del de AS Operadora |
-| **Colores dinámicos (CSS vars)** | 🔴 ALTA | Aplicar `primary_color`, `secondary_color` como variables CSS |
-| **Footer personalizado** | 🟡 MEDIA | Mostrar info de la agencia en footer |
-| **Emails con branding** | 🟡 MEDIA | Templates de email usando colores/logo del tenant |
-
----
-
-### B. Middleware — Conexión Real a BD para Tenants
-
-| Tarea | Prioridad | Detalle |
-|:------|:---------:|:-------|
-| ~~Protección de rutas por rol~~ | ~~🔴~~ | ✅ **COMPLETADO v2.311** |
-| Conectar detección de subdominio a BD | 🔴 ALTA | Edge Runtime no permite Node.js pg — usar KV/cache o fetch interno |
-| Conectar detección de dominio custom a BD | 🔴 ALTA | Misma limitación Edge — cache o Vercel KV |
-| Pasar config white-label vía cookie/header | 🔴 ALTA | Para que `WhiteLabelContext` pueda leerla |
-
-> **NOTA TÉCNICA:** El Edge Runtime de Next.js no permite usar `node-postgres` directamente. Opciones:
-> 1. **Vercel KV / Edge Cache** — Guardar config de tenants en Redis/KV al crear/actualizar
-> 2. **API interna** — fetch a `/api/tenants/detect` desde middleware (latencia)
-> 3. **Hardcoded map** — Mapa estático de subdominios para primeros tenants (temporal)
+| Componente | Estado | Detalle |
+|:-----------|:------:|:--------|
+| `WhiteLabelContext.tsx` | ✅ | **v2.304** — Context completo con `detectTenant()`, `applyTenantConfig()` |
+| `useWhiteLabel()` hook | ✅ | **v2.304** — Hook principal + `useBrandColors()` + `useIsWhiteLabel()` |
+| `WhiteLabelProvider` en layout | ✅ | **v2.304** — Envuelve toda la app en `layout.tsx` |
+| `BrandStyles.tsx` | ✅ | **v2.304** — Inyecta CSS variables dinámicas por tenant con cleanup |
+| CSS Variables defaults | ✅ | **v2.312** — `globals.css` con `--brand-primary/secondary/accent` + derivados |
+| `Logo.tsx` dinámico | ✅ | **v2.304** — 3 modos: WL+logo, WL sin logo, default AS |
+| `BrandFooter.tsx` | ✅ | **v2.312** — Footer reutilizable con datos del tenant + "Powered by" |
+| `ChatWidget.tsx` dinámico | ✅ | **v2.312** — Saludo, colores y nombre del tenant |
+| `WhatsAppWidget.tsx` dinámico | ✅ | **v2.312** — Teléfono del tenant + mensaje personalizado |
+| `UserMenu.tsx` con brand colors | ✅ | **v2.312** — Avatar usa `--brand-primary` |
+| Testing mode `?tenant=mmta` | ✅ | **v2.304** — Para probar white-label en localhost |
+| `/api/tenant/detect` | ✅ | **v2.304** — API funcional por host/subdomain/domain |
+| Emails con branding | ❌ | Templates de email usando colores/logo del tenant |
+| Favicon/title dinámico | ❌ | Dynamic metadata según tenant |
 
 ---
 
-### C. Panel de Administración de Tenants
+### 9. Admin UI Tenants — 90% Listo (actualizado desde 25%)
 
 | Componente | Prioridad | Descripción |
 |:-----------|:---------:|:------------|
-| Página `/admin/tenants` | 🟡 MEDIA | CRUD visual de empresas/agencias |
-| Formulario de creación de tenant | 🟡 MEDIA | Nombre, tipo, logo, colores, dominio |
-| Configuración White-Label UI | 🟡 MEDIA | Editor visual de branding para agencias |
-| Gestión de usuarios por tenant | 🟡 MEDIA | Asignar/remover usuarios |
-
-> **NOTA:** El Panel Super Admin (`/dashboard/admin/agencies`) ya muestra la lista de agencias con stats. Falta convertirlo en CRUD completo.
+| Página `/admin/tenants` | ✅ | **v2.304** — CRUD completo con formularios |
+| Formulario creación de tenant | ✅ | Nombre, tipo, logo, colores, dominio |
+| Configuración White-Label UI | ✅ | Editor visual de branding: footer, support, meta, social |
+| Gestión de usuarios por tenant | ⚠️ | Lista visible, falta add/remove desde UI |
 
 ---
 
-### D. Flujo White-Label Completo
+### D. Pendientes White-Label Fase 2
 
 | Componente | Prioridad | Descripción |
 |:-----------|:---------:|:------------|
-| Guardar `?r=CODIGO` en cookie al navegar | 🟡 MEDIA | Para que se persista al navegar entre páginas |
+| ~~Guardar `?r=CODIGO` en cookie~~ | ~~🟡~~ | ✅ **COMPLETADO v2.311** — Middleware guarda cookie `as_referral` |
 | Markup de precios por agencia | 🟡 MEDIA | Aplicar sobreprecio configurable al White-Label |
 | Registro auto-vinculado a agencia | 🟡 MEDIA | Leer cookie de referral y vincular automáticamente |
 | Favicon/title dinámico por tenant | 🟠 BAJA | Cambiar favicon y `<title>` según agencia |
+| Emails con branding del tenant | 🟡 MEDIA | Templates de email usando colores/logo del tenant |
+| Conexión middleware a BD (Edge) | 🟡 MEDIA | Vercel KV / Edge Cache para config de tenants |
 
 ---
 
-## 📊 Resumen de Completitud (Actualizado v2.311)
+## 📊 Resumen de Completitud (Actualizado v2.312)
 
 | Capa | % Completado | Estado | Faltante Principal |
 |:-----|:------------:|:------:|:------------------|
 | Base de Datos | **95%** | 🟢 | — |
 | Backend Services | **90%** | 🟢 | Markup de precios |
-| API Routes | **85%** | 🟢 | CRUD admin tenants |
+| API Routes | **85%** | 🟢 | — |
 | TypeScript Types | **100%** | 🟢 | — |
-| Middleware | **70%** | 🟡 | Conexión a BD para detectar tenant |
+| Middleware | **75%** | 🟡 | Conexión a BD para detectar tenant (Edge) |
 | Dashboard Agencia | **80%** | 🟢 | — |
-| Sistema Referrals | **85%** | 🟢 | Cookie persistente + auto-vinculación |
-| Frontend White-Label | **0%** | 🔴 | WhiteLabelContext, colores/logo dinámicos |
-| Admin UI Tenants | **25%** | 🟠 | CRUD completo desde Super Admin |
-| **PROMEDIO GENERAL** | **~70%** | 🟡 | **El gran pendiente es el rendering white-label (frontend)** |
+| Sistema Referrals | **90%** | 🟢 | Auto-vinculación en registro |
+| Frontend White-Label | **85%** | � | Emails dinámicos, favicon/title |
+| Admin UI Tenants | **90%** | � | Gestión usuarios por tenant |
+| **PROMEDIO GENERAL** | **~88%** | � | **Pendientes menores: emails, favicon, markup** |
 
 ### Progresión:
 
 ```
 v2.302 (10 Feb): ~45% general
 v2.311 (11 Feb): ~70% general → +25% en un día
+v2.312 (11 Feb): ~88% general → +18% (rendering white-label + admin CRUD verificado)
 ```
 
 ---
@@ -292,38 +286,37 @@ v2.311 (11 Feb): ~70% general → +25% en un día
 
 Lista detallada de observaciones pendientes, priorizadas:
 
-### OBS-001: WhiteLabelContext no existe — 🔴 CRÍTICO
-- **Descripción:** No hay Context ni hook para distribuir la configuración visual del tenant actual
-- **Impacto:** Sin esto, no se pueden aplicar colores, logos ni branding dinámico
-- **Solución:** Crear `src/contexts/WhiteLabelContext.tsx` + `useWhiteLabel()` hook
-- **Dependencia:** Requiere que el middleware pase `x-tenant-config` en headers o cookie
-- **Estado:** ❌ No iniciado
+### OBS-001: ~~WhiteLabelContext no existe~~ — ✅ RESUELTO v2.304+v2.312
+- **Descripción:** Context y hooks implementados y funcionales
+- **Implementado:** `WhiteLabelContext.tsx` con `useWhiteLabel()`, `useBrandColors()`, `useIsWhiteLabel()`
+- **Plus:** `BrandStyles.tsx` inyecta CSS variables dinámicas al DOM
+- **Plus:** `globals.css` incluye defaults para evitar flash de contenido sin estilo
+- **Estado:** ✅ Completado
 
-### OBS-002: Middleware no conecta a BD para detectar tenant — 🔴 CRÍTICO
-- **Descripción:** El middleware detecta subdominios pero siempre retorna `null` porque no consulta la BD
-- **Impacto:** Ningún subdominio de agencia funcionará (ej: `mmta.asoperadora.com`)
-- **Solución:** Implementar cache en Edge (Vercel KV o fetch interno a `/api/tenants/detect`)
-- **Nota técnica:** Edge Runtime no soporta `node-postgres` — necesita alternativa
-- **Estado:** ❌ No iniciado
+### OBS-002: Middleware no conecta a BD para detectar tenant — � PARCIAL
+- **Descripción:** El middleware detecta subdominios y pasa headers, pero no consulta BD directamente
+- **Workaround implementado:** El `WhiteLabelContext` hace fetch a `/api/tenant/detect` desde el cliente
+- **Impacto residual:** Primera carga tiene latencia extra del fetch (pero es cached después)
+- **Solución ideal:** Vercel KV o Edge Cache para config pre-cargada
+- **Estado:** ⚠️ Funcional con workaround client-side
 
-### OBS-003: Logo y colores no cambian por tenant — 🔴 CRÍTICO
-- **Descripción:** El Header siempre muestra "AS Operadora" con colores azules fijos
-- **Impacto:** La experiencia white-label no se logra visualmente
-- **Solución:** CSS variables dinámicas (`--primary-color`, `--secondary-color`) desde WhiteLabelContext
-- **Dependencia:** OBS-001 y OBS-002
-- **Estado:** ❌ No iniciado
+### OBS-003: ~~Logo y colores no cambian por tenant~~ — ✅ RESUELTO v2.304+v2.312
+- **Logo:** `Logo.tsx` soporta 3 modos (WL+logo, WL sin logo, default AS)
+- **Colores:** CSS variables `--brand-primary/secondary/accent` con derivados hover/light/bg
+- **Componentes migrados:** UserMenu, ChatWidget, WhatsAppWidget
+- **Estado:** ✅ Completado
 
-### OBS-004: Cookie de referral no persiste al navegar — 🟡 MEDIO
-- **Descripción:** Si un usuario viene con `?r=MMTA-CARLOS01` y navega a otra página, se pierde el código
-- **Impacto:** Se pierden conversiones de referidos
-- **Solución:** Middleware o componente que detecte `?r=` y guarde en cookie `as_referral` con 30 días TTL
-- **Estado:** ⚠️ Parcial — Booking POST ya detecta `referral_code`, pero no se guarda en cookie al navegar
+### OBS-004: ~~Cookie de referral no persiste al navegar~~ — ✅ RESUELTO v2.311
+- **Implementado:** Middleware guarda cookie `as_referral` con 30 días TTL al detectar `?r=CODIGO`
+- **Estado:** ✅ Completado
 
-### OBS-005: No hay CRUD visual de tenants en Admin — 🟡 MEDIO
-- **Descripción:** El Super Admin ve la lista de agencias pero no puede crear/editar/eliminar desde la UI
-- **Impacto:** Tiene que usar APIs directamente para gestionar tenants
-- **Solución:** Convertir `/dashboard/admin/agencies` en CRUD completo con formularios
-- **Estado:** ⚠️ Parcial — Lista + stats existen, falta CRUD
+### OBS-005: ~~No hay CRUD visual de tenants~~ — ✅ RESUELTO v2.304
+- **Implementado:** `/admin/tenants` con CRUD completo:
+  - Crear/editar/eliminar tenants
+  - Formulario con datos legales, colores, logo, dominio
+  - Configuración White-Label: footer, soporte, meta, social
+  - Color pickers para primario/secundario/acento
+- **Estado:** ✅ Completado
 
 ### OBS-006: No hay markup de precios por agencia — 🟡 MEDIO
 - **Descripción:** Las agencias no pueden aplicar sobreprecio a los servicios que revenden
@@ -337,66 +330,63 @@ Lista detallada de observaciones pendientes, priorizadas:
 - **Solución:** Pasar `tenantId` al NotificationService y cargar branding dinámico
 - **Estado:** ❌ No iniciado
 
-### OBS-008: Footer no se personaliza por agencia — 🟠 BAJO
-- **Descripción:** El footer muestra info fija de AS Operadora
-- **Impacto:** Menor — usuarios del White-Label ven la marca correcta en header pero no en footer
-- **Solución:** Inyectar datos del tenant en componente Footer
-- **Dependencia:** OBS-001
-- **Estado:** ❌ No iniciado
+### OBS-008: ~~Footer no se personaliza por agencia~~ — ✅ RESUELTO v2.312
+- **Implementado:** Componente `BrandFooter.tsx` reutilizable
+- **Datos dinámicos:** Contacto, email, teléfono, redes sociales, links legales del tenant
+- **Badge:** "Powered by AS Operadora" en modo white-label
+- **Estado:** ✅ Completado
 
 ### OBS-009: Favicon y title no cambian por tenant — 🟠 BAJO
 - **Descripción:** El favicon y `<title>` siempre dicen "AS Operadora"
 - **Impacto:** Los favoritos y tabs del browser muestran la marca equivocada
 - **Solución:** Dynamic metadata en `layout.tsx` leyendo del WhiteLabelContext
-- **Dependencia:** OBS-001
 - **Estado:** ❌ No iniciado
 
 ### OBS-010: No hay onboarding para nuevas agencias — 🟠 BAJO
 - **Descripción:** No existe flujo de auto-registro de agencias
-- **Impacto:** Solo SUPER_ADMIN puede registrar agencias manualmente
+- **Impacto:** Solo SUPER_ADMIN puede registrar agencias manualmente (desde `/admin/tenants`)
 - **Solución:** Formulario público de solicitud → aprobación por admin → setup automático
 - **Estado:** ❌ No iniciado
 
 ---
 
-## 🎯 Plan de Implementación Actualizado
+## 🎯 Plan de Implementación Actualizado (v2.312)
 
-### Fase 1: Rendering White-Label (3-4 días) — OBS-001, OBS-002, OBS-003
-1. Crear `WhiteLabelContext.tsx` + `useWhiteLabel()` hook
-2. Implementar API `/api/tenants/detect` para que middleware pueda consultar
-3. Conectar middleware → API detect → pasar config en header/cookie
-4. CSS variables dinámicas aplicadas globalmente
-5. Logo dinámico en Header + colores dinámicos
+### ~~Fase 1: Rendering White-Label~~ — ✅ COMPLETADA v2.304+v2.312
+1. ~~Crear `WhiteLabelContext.tsx` + `useWhiteLabel()` hook~~ ✅
+2. ~~Implementar API `/api/tenants/detect`~~ ✅
+3. ~~CSS variables dinámicas aplicadas globalmente~~ ✅
+4. ~~Logo dinámico en Header + colores dinámicos~~ ✅
+5. ~~Footer dinámico~~ ✅
 
-### Fase 2: Referral Persistente + Admin CRUD (2-3 días) — OBS-004, OBS-005
-6. Cookie `as_referral` al detectar `?r=CODIGO`
+### Fase 2: Referral Persistente + Polish (1-2 días)
+6. ~~Cookie `as_referral` al detectar `?r=CODIGO`~~ ✅
 7. Auto-vinculación en registro con cookie de referral
-8. CRUD completo de tenants en Super Admin panel
+8. ~~CRUD completo de tenants en Super Admin panel~~ ✅
+9. Favicon/title dinámico por tenant
 
-### Fase 3: Markup + Branding Email (2-3 días) — OBS-006, OBS-007
-9. Campo `markup_percentage` + aplicación en precios
-10. Templates de email dinámicos con logo/colores del tenant
+### Fase 3: Markup + Branding Email (2-3 días)
+10. Campo `markup_percentage` + aplicación en precios
+11. Templates de email dinámicos con logo/colores del tenant
 
-### Fase 4: Polish (1-2 días) — OBS-008, OBS-009, OBS-010
-11. Footer personalizado
-12. Favicon/title dinámico
-13. Flujo de onboarding para nuevas agencias
+### Fase 4: Edge Optimization (1 día)
+12. Vercel KV o Edge Cache para config de tenants en middleware
 
-**Estimado total: 8-12 días de desarrollo**
-*(Reducido de 13-17 días gracias al avance de Sprints 3-6)*
+**Estimado restante: 4-6 días de desarrollo**
+*(Reducido significativamente — la infraestructura core está completa)*
 
 ---
 
 ## ✅ Cambios vs Versión Anterior de este Informe
 
-| Sección | Antes (v2.302) | Ahora (v2.311) |
-|:--------|:--------------|:---------------|
-| BD Schema | 90% | **95%** (+agent_notifications, agent_reviews, 168 indexes) |
-| Backend Service | 80% | **90%** (+CommissionService, AgentNotificationService) |
-| API Routes | 70% | **85%** (+14 endpoints nuevos) |
-| Middleware | 30% | **70%** (+protección rutas, JWT, cookies) |
-| Dashboard Agencia | 0% | **80%** (completamente nuevo) |
-| Sistema Referrals | 0% | **85%** (liga, clics, conversiones, QR) |
-| Frontend White-Label | 0% | **0%** (sigue siendo el pendiente principal) |
-| Admin UI Tenants | 0% | **25%** (Super Admin con lista + stats) |
-| **PROMEDIO** | **~45%** | **~70%** |
+| Sección | v2.302 | v2.311 | v2.312 |
+|:--------|:-------|:-------|:-------|
+| BD Schema | 90% | 95% | **95%** |
+| Backend Service | 80% | 90% | **90%** |
+| API Routes | 70% | 85% | **85%** |
+| Middleware | 30% | 70% | **75%** (+referral cookie) |
+| Dashboard Agencia | 0% | 80% | **80%** |
+| Sistema Referrals | 0% | 85% | **90%** (+cookie persistente) |
+| Frontend White-Label | 0% | 0% | **85%** (context, logo, colors, footer, widgets) |
+| Admin UI Tenants | 0% | 25% | **90%** (CRUD completo verificado) |
+| **PROMEDIO** | **~45%** | **~70%** | **~88%** |

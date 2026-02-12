@@ -6,6 +6,7 @@ import { MessageCircle, X, Send, Loader2, User, Bot, Minimize2 } from 'lucide-re
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
+import { useWhiteLabel } from '@/contexts/WhiteLabelContext'
 
 interface Message {
   id: string
@@ -19,13 +20,14 @@ interface ChatWidgetProps {
 }
 
 export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
+  const { companyName } = useWhiteLabel()
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: '¡Hola! 👋 Soy tu asistente virtual de AS Operadora. ¿En qué puedo ayudarte hoy?',
+      content: `¡Hola! 👋 Soy tu asistente virtual de ${companyName}. ¿En qué puedo ayudarte hoy?`,
       timestamp: new Date()
     }
   ])
@@ -112,7 +114,8 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
           >
             <Button
               onClick={() => setIsOpen(true)}
-              className="h-14 w-14 rounded-full bg-[#0066FF] hover:bg-[#0052CC] shadow-lg hover:shadow-xl transition-all hover:scale-110"
+              className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110"
+              style={{ backgroundColor: 'var(--brand-primary)' }}
             >
               <MessageCircle className="w-6 h-6 text-white" />
             </Button>
@@ -131,13 +134,13 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
           >
             <Card className="flex flex-col h-full overflow-hidden shadow-2xl border-2">
               {/* Header */}
-              <div className="bg-[#0066FF] text-white p-4 flex items-center justify-between">
+              <div className="text-white p-4 flex items-center justify-between" style={{ backgroundColor: 'var(--brand-primary)' }}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                     <Bot className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Asistente AS Operadora</h3>
+                    <h3 className="font-semibold">Asistente {companyName.split(' ')[0]}</h3>
                     <p className="text-xs text-white/80">En línea</p>
                   </div>
                 </div>
@@ -178,8 +181,8 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
                         )}
                         <div
                           className={`max-w-[75%] rounded-2xl px-4 py-2 ${message.role === 'user'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-white border border-gray-200 text-gray-900'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white border border-gray-200 text-gray-900'
                             }`}
                         >
                           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -229,7 +232,7 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
                       <Button
                         onClick={handleSend}
                         disabled={!input.trim() || loading}
-                        className="bg-blue-600 hover:bg-blue-700"
+                        style={{ backgroundColor: 'var(--brand-primary)' }}
                       >
                         {loading ? (
                           <Loader2 className="w-4 h-4 animate-spin" />

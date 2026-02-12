@@ -1,10 +1,13 @@
 "use client"
 
 import { motion } from 'framer-motion'
+import { useWhiteLabel } from '@/contexts/WhiteLabelContext'
 
 export function WhatsAppWidget() {
-    const phoneNumber = '527208156804' // Número oficial AS Operadora +52 720 815 6804
-    const message = encodeURIComponent('Hola, me gustaría obtener más información sobre sus servicios.')
+    const { supportPhone, companyName } = useWhiteLabel()
+    // Limpiar número: solo dígitos, sin espacios ni +
+    const phoneNumber = supportPhone.replace(/[^0-9]/g, '') || '527208156804'
+    const message = encodeURIComponent(`Hola, me gustaría obtener más información sobre los servicios de ${companyName}.`)
 
     return (
         <motion.div

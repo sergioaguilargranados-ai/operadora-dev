@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 11 de Febrero de 2026 - 18:00 CST  
-**Versión actual:** v2.311  
+**Última actualización:** 11 de Febrero de 2026 - 19:30 CST  
+**Versión actual:** v2.312  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,44 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.312 - 11 de Febrero de 2026 - 19:30 CST
+
+**🎨 Sprint 7: White-Label Core – Marca Blanca Funcional**
+
+**CSS Variables & Branding Dinámico:**
+- ✅ `globals.css` — Variables CSS de marca (`--brand-primary`, `--brand-secondary`, `--brand-accent`, hover/light/bg variants) con defaults AS Operadora
+- ✅ `BrandStyles.tsx` — Ya existente, inyecta CSS variables dinámicas por tenant al montar
+- ✅ Migración de componentes hardcodeados `#0066FF` → `var(--brand-primary)`
+
+**Componentes Migrados a Brand Variables:**
+- ✅ `UserMenu.tsx` — Avatar circle usa `--brand-primary` en vez de `bg-[#0066FF]`
+- ✅ `ChatWidget.tsx` — Botón flotante, header, send button y saludo dinámico con nombre del tenant
+- ✅ `WhatsAppWidget.tsx` — Número de teléfono dinámico desde `supportPhone` del tenant + mensaje personalizado
+- ✅ `Logo.tsx` — Ya soportaba 3 modos: WL+logo, WL sin logo, default AS (verificado)
+
+**Footer Dinámico:**
+- ✅ Nuevo componente `BrandFooter.tsx` — Footer reutilizable con datos del tenant
+- ✅ Contacto (email, teléfono), links legales (términos, privacidad), redes sociales del tenant
+- ✅ Badge "Powered by AS Operadora" en modo white-label
+- ✅ `page.tsx` — Footer principal reemplazado por `<BrandFooter />`
+
+**Infraestructura Existente Verificada:**
+- ✅ `WhiteLabelContext.tsx` — Funcional con `useWhiteLabel()`, `useBrandColors()`, `useIsWhiteLabel()` hooks
+- ✅ `WhiteLabelProvider` — Envuelve toda la app en `layout.tsx`
+- ✅ `/api/tenant/detect` — API funcional que consulta BD por host/subdomain/domain
+- ✅ `TenantService` — `detectTenant()`, `getTenantBySubdomain()`, `getWhiteLabelConfig()`
+- ✅ Testing mode: `?tenant=mmta` en localhost para probar white-label sin subdomain real
+- ✅ `BrandStyles.tsx` — Inyecta CSS variables dinámicamente (cleanup en unmount)
+- ✅ `/admin/tenants` — Panel CRUD completo para gestión de tenants y configuración WL
+- ✅ Middleware pasa headers `x-tenant-host`, `x-tenant-subdomain`, `x-white-label`
+
+**Datos en BD:**
+- Tenant 1: AS Operadora (corporate, branding default)
+- Tenant 2: M&M Travel Agency (agency, primary_color=#FF6B00, domain=mmta.app.asoperadora.com)
+- White Label Config para Tenant 2: footer, support_email, meta_title configurados
+
+---
 
 ### v2.311 - 11 de Febrero de 2026 - 18:00 CST
 
