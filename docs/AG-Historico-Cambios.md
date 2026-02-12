@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 11 de Febrero de 2026 - 10:30 CST  
-**Versión actual:** v2.303  
+**Última actualización:** 11 de Febrero de 2026 - 18:00 CST  
+**Versión actual:** v2.311  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,97 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.311 - 11 de Febrero de 2026 - 18:00 CST
+
+**🛡️ Sprint 6: Robustez, Protección de Rutas, Analytics y Services**
+
+**Protección Server-Side de Rutas:**
+- ✅ Middleware con protección de rutas por rol vía JWT decode en Edge Runtime
+- ✅ Cookie sync en AuthContext (`as_user`, `as_token`) para comunicación client↔middleware
+- ✅ Toast de "acceso denegado" en dashboard con indicación de rol requerido
+- ✅ Tabla de rutas protegidas: `/dashboard/admin` → SUPER_ADMIN, `/dashboard/agency` → AGENCY_ADMIN+, `/dashboard/agent` → AGENT+
+
+**Analytics Avanzados:**
+- ✅ API `GET /api/agency/analytics?agency_id=X&period=30d`
+- ✅ Revenue timeline (ingresos por día, total vs confirmado)
+- ✅ Commission timeline (pending/available/paid por día)
+- ✅ Top Agents Leaderboard con badges de performance (💎 Diamond, 🥇 Gold, 🥈 Silver, 🎯 Top Converter, ⭐ Client Favorite)
+- ✅ Referral funnel: Clics → Conversiones → Comisiones → Pagos
+- ✅ Comparativa periodo actual vs anterior (% variación bookings + revenue)
+- ✅ Distribución por tipo de reserva
+
+**AgentNotificationService (auto-triggers):**
+- ✅ Servicio centralizado `src/services/AgentNotificationService.ts` con métodos tipados
+- ✅ Auto-notificación en webhook `booking-status` (comisión creada / disponible)
+- ✅ Auto-notificación en `disburse` (dispersión recibida: in-app + email)
+- ✅ Auto-notificación en `reviews POST` (nueva calificación recibida)
+- ✅ Sistema de milestones: 5/10/25 referidos, $10K/$50K en comisiones, calificación perfecta
+
+**Optimización de Base de Datos:**
+- ✅ Script `scripts/optimize-db-indexes.js` ejecutado
+- ✅ 168 índices de rendimiento creados en todas las tablas principales
+- ✅ Índices compuestos para queries frecuentes (agency+status, agent+rating)
+- ✅ Índices parciales para reducir storage (WHERE is_active = true)
+
+**Otros:**
+- ✅ Suspense boundary en dashboard page para `useSearchParams` (req. Next.js 15)
+
+**Archivos Modificados/Creados:**
+- `src/middleware.ts` — Protección de rutas + JWT decode Edge
+- `src/contexts/AuthContext.tsx` — Cookie helpers + sync
+- `src/app/dashboard/page.tsx` — Suspense + access denied toast
+- `src/app/api/agency/analytics/route.ts` — API analytics (NUEVO)
+- `src/services/AgentNotificationService.ts` — Notification service (NUEVO)
+- `src/app/api/webhooks/booking-status/route.ts` — Auto-notificaciones
+- `src/app/api/agency/commissions/disburse/route.ts` — In-app + email notif
+- `src/app/api/agent/reviews/route.ts` — Auto-notificación + achievement check
+- `scripts/optimize-db-indexes.js` — DB optimization (NUEVO)
+
+---
+
+### v2.310 - 11 de Febrero de 2026 - 17:30 CST
+
+**🔐 Sprint 5: Roles, QR Code, Notificaciones y Reviews**
+
+**Sistema de Roles y Permisos:**
+- ✅ Hook `useRole()` con detección de SUPER_ADMIN, AGENCY_ADMIN, AGENT, CLIENT
+- ✅ Componente `RoleGuard` para rendering condicional por rol
+- ✅ Permisos granulares: `canAccessAdminPanel`, `canDisburseCommissions`, `canExportData`, `canCreateAgents`
+- ✅ API `GET /api/auth/me` — perfil completo con agentInfo + unreadNotifications
+
+**QR Code para Liga de Referido:**
+- ✅ API `GET /api/agent/qr-code?agent_id=X` con formatos PNG, SVG, Base64
+- ✅ Librería `qrcode` instalada + `@types/qrcode`
+- ✅ Branding: dark navy (#1A1A2E) con fondo blanco
+- ✅ Botón QR junto a Copiar/Compartir en Agent Dashboard
+- ✅ QR expandible con animación + botón "Descargar QR"
+
+**Notificaciones In-App:**
+- ✅ Tabla `agent_notifications` — tipos: commission, referral, conversion, payout, achievement, info
+- ✅ API `GET/PUT /api/agent/notifications` — listar con filtros + marcar como leídas
+- ✅ Bell icon animado (pulse) con badge unread count en header del Agent Dashboard
+- ✅ Dropdown con lista de notificaciones, emojis, timestamps, indicador no-leído
+- ✅ Botón "Leer todas" para mark-all-as-read
+- ✅ Script `scripts/create-notifications-table.js` con datos de prueba
+
+**Reviews y Calificaciones:**
+- ✅ Tabla `agent_reviews` — rating 1-5, título, comentario, respuesta agente, verificación
+- ✅ API `GET/POST /api/agent/reviews` — lista reviews + stats (distribución estrellas)
+- ✅ Sección "Mis Calificaciones" en Agent Dashboard
+- ✅ Rating promedio grande, barras de distribución, últimas 2 reviews con badges
+- ✅ Script `scripts/create-reviews-table.js` con datos de prueba
+
+**Archivos Creados:**
+- `src/hooks/useRole.tsx` — Hook + RoleGuard
+- `src/app/api/auth/me/route.ts` — Perfil completo
+- `src/app/api/agent/qr-code/route.ts` — QR Code generator
+- `src/app/api/agent/notifications/route.ts` — Notifications API
+- `src/app/api/agent/reviews/route.ts` — Reviews API
+- `scripts/create-notifications-table.js` — Migration + seed
+- `scripts/create-reviews-table.js` — Migration + seed
+
+---
 
 ### v2.303 - 11 de Febrero de 2026 - 10:30 CST
 

@@ -1,14 +1,15 @@
-# 📊 Informe: Multi-Empresa y Marca Blanca - Estado Actual y Pendientes
+# 📊 AG-Informe: Multi-Empresa y Marca Blanca - Estado Actual y Pendientes
 
-**Fecha:** 10 de Febrero de 2026  
-**Versión actual del proyecto:** v2.302  
+**Fecha:** 11 de Febrero de 2026  
+**Versión actual del proyecto:** v2.311  
+**Última actualización:** 11 de Febrero de 2026 - 18:00 CST  
 **Propósito:** Análisis completo del estado de las funcionalidades Multi-Empresa (Multi-Tenant) y Marca Blanca (White-Label)
 
 ---
 
 ## 🎯 Visión Original
 
-Según [ESPECIFICACION-COMPLETA.md](file:///g:/Otros%20ordenadores/Mi%20PC/operadora-dev/.same/ESPECIFICACION-COMPLETA.md#L417-L744), la plataforma fue diseñada como:
+Según [ESPECIFICACION-COMPLETA.md], la plataforma fue diseñada como:
 
 > **Sistema multi-tenant (multi-empresa), multi-moneda para gestión de viajes y eventos.**
 > - **Modelo de Negocio:** B2B2C (Business to Business to Consumer)
@@ -41,30 +42,36 @@ Según [ESPECIFICACION-COMPLETA.md](file:///g:/Otros%20ordenadores/Mi%20PC/opera
 
 ## ✅ Lo Que YA EXISTE (Implementado)
 
-### 1. Base de Datos — 90% Lista
+### 1. Base de Datos — 95% Lista
 
-La estructura de BD tiene `tenant_id` como foreign key en **14+ tablas**, lo cual es excelente:
+La estructura de BD tiene `tenant_id` como foreign key en **14+ tablas** y ahora incluye tablas de agencias:
 
 | Componente | Estado | Detalle |
 |:-----------|:------:|:--------|
-| Tabla `tenants` | ✅ | Con campos: company_name, legal_name, tax_id, logo_url, colors, custom_domain |
+| Tabla `tenants` | ✅ | company_name, legal_name, tax_id, logo_url, colors, custom_domain |
 | FK `tenant_id` en users | ✅ | Aislamiento de datos por empresa |
 | FK `tenant_id` en bookings | ✅ | Reservas por empresa |
 | FK `tenant_id` en payments | ✅ | Pagos por empresa |
 | FK `tenant_id` en documents | ✅ | Documentos por empresa |
 | FK `tenant_id` en communication | ✅ | Centro de comunicación por empresa |
-| Tabla `tenant_users` | ✅ | User-to-tenant mapping con roles |
+| Tabla `tenant_users` | ✅ | User-to-tenant mapping con roles + referral_code |
 | Tabla `white_label_config` | ✅ | Configuración visual por agencia |
-| Tabla `agency_clients` | ⚠️ | Especificada pero no verificada en BD actual |
-| Tabla `agency_commissions` | ⚠️ | Especificada pero no verificada en BD actual |
+| Tabla `agency_clients` | ✅ | **Verificada y funcional** — clientes de agencias |
+| Tabla `agency_commissions` | ✅ | **Verificada y funcional** — comisiones por booking con split agente/agencia |
+| Tabla `agent_notifications` | ✅ | **NUEVO v2.310** — Notificaciones in-app para agentes |
+| Tabla `agent_reviews` | ✅ | **NUEVO v2.310** — Calificaciones de agentes |
+| Tabla `referral_clicks` | ✅ | Tracking de clics en ligas de referido |
+| Tabla `referral_conversions` | ✅ | Tracking de conversiones de referidos |
+| Tabla `commission_disbursements` | ✅ | Dispersiones/pagos de comisiones |
 | Tabla `travel_policies` | ✅ | Políticas de viaje por empresa |
 | Tabla `travel_approvals` | ✅ | Aprobaciones por empresa |
+| **168 índices optimizados** | ✅ | **NUEVO v2.311** — Performance indexes en todas las tablas |
 
 ---
 
-### 2. Backend Service — [TenantService.ts](file:///g:/Otros%20ordenadores/Mi%20PC/operadora-dev/src/services/TenantService.ts) — 80% Listo
+### 2. Backend Services — 90% Listos
 
-El servicio tiene **15+ métodos** implementados:
+#### TenantService.ts — 15+ métodos implementados
 
 | Método | Estado | Función |
 |:-------|:------:|:--------|
@@ -85,35 +92,110 @@ El servicio tiene **15+ métodos** implementados:
 | `getTenantStats()` | ✅ | Estadísticas del tenant |
 | `listTenants()` | ✅ | Listar con paginación y filtros |
 
+#### CommissionService.ts — Implementado v2.307
+
+| Método | Estado | Función |
+|:-------|:------:|:--------|
+| `calculateCommission()` | ✅ | Cálculo automático por booking + agente |
+| `processBookingStatusChange()` | ✅ | Trigger confirmed→available→paid |
+| `getCommissions()` | ✅ | Listar con filtros (agencia, agente, status) |
+
+#### AgentNotificationService.ts — NUEVO v2.311
+
+| Método | Estado | Función |
+|:-------|:------:|:--------|
+| `notifyCommissionCreated()` | ✅ | Auto-trigger al generar comisión |
+| `notifyCommissionAvailable()` | ✅ | Auto-trigger al booking completado |
+| `notifyDisbursement()` | ✅ | Auto-trigger al dispersar pago |
+| `notifyReferralClick()` | ✅ | Clic en liga de referido |
+| `notifyConversion()` | ✅ | Nuevo cliente referido |
+| `notifyNewReview()` | ✅ | Nueva calificación recibida |
+| `checkAchievements()` | ✅ | Verificar y otorgar milestones automáticos |
+
+#### NotificationService.ts (Email) — Implementado
+
+| Método | Estado | Función |
+|:-------|:------:|:--------|
+| `sendEmail()` | ✅ | Envío genérico vía SMTP |
+| `sendBookingConfirmation()` | ✅ | Email de confirmación HTML premium |
+| `sendInvoiceEmail()` | ✅ | Email de factura |
+| `sendPaymentReminder()` | ✅ | Recordatorio de pago |
+| `sendCancellationEmail()` | ✅ | Email de cancelación |
+
 ---
 
-### 3. API Routes — 70% Listas
+### 3. API Routes — 85% Listas
 
 | Endpoint | Estado | Funcionalidad |
 |:---------|:------:|:-------------|
 | `GET /api/tenants` | ✅ | Listar tenants |
 | `POST /api/tenants` | ✅ | Crear tenant + white-label config |
-| `GET /api/tenants/[id]` | ✅ | Obtener tenant (incluye white-label si es agencia) |
+| `GET /api/tenants/[id]` | ✅ | Obtener tenant + white-label |
 | `PUT /api/tenants/[id]` | ✅ | Actualizar tenant + white-label |
 | `DELETE /api/tenants/[id]` | ✅ | Soft delete del tenant |
+| `GET /api/agency/commissions` | ✅ | **v2.307** — Listar comisiones con filtros |
+| `POST /api/agency/commissions/disburse` | ✅ | **v2.309** — Dispersión batch + email |
+| `GET /api/agency/commissions/export` | ✅ | **v2.309** — Export CSV para Excel |
+| `GET /api/agency/analytics` | ✅ | **v2.311** — Analytics avanzados (timelines, leaderboard, funnel) |
+| `GET /api/agent/dashboard` | ✅ | **v2.306** — Dashboard completo del agente |
+| `GET /api/agent/referral-link` | ✅ | **v2.307** — Liga de referido con stats |
+| `GET /api/agent/qr-code` | ✅ | **v2.310** — QR Code en PNG/SVG/Base64 |
+| `GET/PUT /api/agent/notifications` | ✅ | **v2.310** — Notificaciones in-app |
+| `GET/POST /api/agent/reviews` | ✅ | **v2.310** — Calificaciones de agentes |
+| `GET /api/auth/me` | ✅ | **v2.310** — Perfil + agentInfo + unread |
+| `POST /api/webhooks/booking-status` | ✅ | **v2.307** — Auto-trigger comisiones + notificaciones |
 
 ---
 
-### 4. Middleware — [middleware.ts](file:///g:/Otros%20ordenadores/Mi%20PC/operadora-dev/src/middleware.ts) — 30% Listo
+### 4. Middleware — 70% Listo (actualizado desde 30%)
 
-El middleware detecta host y prepara headers, pero tiene **TODOs críticos**:
-
-```typescript
-// Línea 54: TODO: Aquí harías la consulta a la BD para obtener el tenant
-// Línea 61: TODO: Consultar en la BD si existe un tenant con este custom_domain
-```
-
-> [!WARNING]
-> El middleware detecta subdominios y dominios personalizados, pero **siempre retorna `null`**. No está conectado a la base de datos.
+| Funcionalidad | Estado | Detalle |
+|:-------------|:------:|:--------|
+| Detección de host/subdominio | ✅ | Headers `x-tenant-id`, `x-tenant-subdomain` |
+| Detección de dominio custom | ⚠️ | Detecta pero retorna null — falta conexión a BD |
+| ~~Protección de rutas~~ | ✅ | **v2.311** — JWT decode en Edge + redirect por rol |
+| Cookie sync con AuthContext | ✅ | **v2.311** — `as_user`, `as_token` cookies |
+| Tabla de rutas protegidas | ✅ | **v2.311** — admin, agency, agent con roles requeridos |
+| Access denied toast | ✅ | **v2.311** — Redirect con parámetros indicando rol faltante |
+| Conexión real a BD para tenant | ❌ | TODO: Consultar `tenants` table en Edge (requiere kv/cache) |
 
 ---
 
-### 5. TypeScript Types — 100% Listos
+### 5. Frontend — Dashboard de Agencia — 80% Listo (actualizado desde 0%)
+
+| Componente | Estado | Detalle |
+|:-----------|:------:|:--------|
+| Dashboard Agent Page | ✅ | **v2.305** — Stats, gráficas, liga de referido |
+| Tab Comisiones | ✅ | **v2.308** — Tabla con datos reales, badges de status |
+| Tab Referidos | ✅ | **v2.306** — Clics, conversiones, tasas |
+| Panel Super Admin | ✅ | **v2.309** — Vista global, dark theme, gráfica comparativa |
+| QR Code expandible | ✅ | **v2.310** — Botón QR + descarga |
+| Bell icon + dropdown | ✅ | **v2.310** — Notificaciones con unread count |
+| Sección Reviews | ✅ | **v2.310** — Rating, distribución, reviews recientes |
+| Dispersiones UI | ✅ | **v2.309** — Modal con método pago, referencia, confirmación |
+| Export CSV | ✅ | **v2.309** — Descarga CSV con BOM para Excel |
+| Filtros fecha/status | ✅ | **v2.309** — En tab comisiones |
+| Hook `useRole()` | ✅ | **v2.310** — Permisos client-side |
+| RoleGuard component | ✅ | **v2.310** — Render condicional por rol |
+
+---
+
+### 6. Sistema de Referidos — 85% Listo (actualizado desde 0%)
+
+| Componente | Estado | Detalle |
+|:-----------|:------:|:--------|
+| Liga de referido | ✅ | **v2.306** — `mmta.app.asoperadora.com/?r=CODIGO` |
+| Tabla `referral_clicks` | ✅ | Tracking de clics con IP, user-agent, UTM |
+| Tabla `referral_conversions` | ✅ | Tracking de clientes que se registran |
+| API `/api/agent/referral-link` | ✅ | Stats de clics + conversiones |
+| QR Code para liga | ✅ | **v2.310** — Formatos PNG/SVG/Base64 |
+| Detección de `?r=CODIGO` en URL | ⚠️ | **Parcial** — Falta guardar en cookie al navegar |
+| Auto-vinculación de registro | ⚠️ | **Parcial** — Booking POST detecta `referral_code` |
+| Markup de precios por agencia | ❌ | No implementado |
+
+---
+
+### 7. TypeScript Types — 100% Listos
 
 | Tipo | Archivo | Estado |
 |:-----|:--------|:------:|
@@ -129,7 +211,7 @@ El middleware detecta host y prepara headers, pero tiene **TODOs críticos**:
 
 ## ❌ Lo Que FALTA (Pendiente de Implementar)
 
-### A. Frontend — El Hueco Principal
+### A. Frontend White-Label — El Pendiente Principal
 
 | Componente | Prioridad | Descripción |
 |:-----------|:---------:|:------------|
@@ -142,13 +224,19 @@ El middleware detecta host y prepara headers, pero tiene **TODOs críticos**:
 
 ---
 
-### B. Middleware — Conectar a BD
+### B. Middleware — Conexión Real a BD para Tenants
 
 | Tarea | Prioridad | Detalle |
 |:------|:---------:|:-------|
-| Conectar detección de subdominio a BD | 🔴 ALTA | Usar `TenantService.getTenantBySubdomain()` |
-| Conectar detección de dominio custom a BD | 🔴 ALTA | Usar `TenantService.getTenantByDomain()` |
-| Pasar config al frontend vía cookie/header | 🔴 ALTA | Para que `WhiteLabelContext` pueda leerla |
+| ~~Protección de rutas por rol~~ | ~~🔴~~ | ✅ **COMPLETADO v2.311** |
+| Conectar detección de subdominio a BD | 🔴 ALTA | Edge Runtime no permite Node.js pg — usar KV/cache o fetch interno |
+| Conectar detección de dominio custom a BD | 🔴 ALTA | Misma limitación Edge — cache o Vercel KV |
+| Pasar config white-label vía cookie/header | 🔴 ALTA | Para que `WhiteLabelContext` pueda leerla |
+
+> **NOTA TÉCNICA:** El Edge Runtime de Next.js no permite usar `node-postgres` directamente. Opciones:
+> 1. **Vercel KV / Edge Cache** — Guardar config de tenants en Redis/KV al crear/actualizar
+> 2. **API interna** — fetch a `/api/tenants/detect` desde middleware (latencia)
+> 3. **Hardcoded map** — Mapa estático de subdominios para primeros tenants (temporal)
 
 ---
 
@@ -156,105 +244,159 @@ El middleware detecta host y prepara headers, pero tiene **TODOs críticos**:
 
 | Componente | Prioridad | Descripción |
 |:-----------|:---------:|:------------|
-| Página `/admin/tenants` | 🔴 ALTA | CRUD visual de empresas/agencias |
-| Formulario de creación de tenant | 🔴 ALTA | Nombre, tipo, logo, colores, dominio |
-| Configuración White-Label UI | 🔴 ALTA | Editor visual de branding para agencias |
+| Página `/admin/tenants` | 🟡 MEDIA | CRUD visual de empresas/agencias |
+| Formulario de creación de tenant | 🟡 MEDIA | Nombre, tipo, logo, colores, dominio |
+| Configuración White-Label UI | 🟡 MEDIA | Editor visual de branding para agencias |
 | Gestión de usuarios por tenant | 🟡 MEDIA | Asignar/remover usuarios |
 
+> **NOTA:** El Panel Super Admin (`/dashboard/admin/agencies`) ya muestra la lista de agencias con stats. Falta convertirlo en CRUD completo.
+
 ---
 
-### D. Sistema de Agencias
+### D. Flujo White-Label Completo
 
 | Componente | Prioridad | Descripción |
 |:-----------|:---------:|:------------|
-| Dashboard de Agencia | 🟡 MEDIA | Vue de ventas, comisiones, clientes |
-| Sistema de Comisiones UI | 🟡 MEDIA | Configurar % comisión, ver ingresos |
-| Links de Referido | 🟡 MEDIA | Generar `?r=AGENCIA123` y tracking |
-| CRM de Clientes (agencia) | 🟠 BAJA | Gestionar clientes de la agencia |
+| Guardar `?r=CODIGO` en cookie al navegar | 🟡 MEDIA | Para que se persista al navegar entre páginas |
+| Markup de precios por agencia | 🟡 MEDIA | Aplicar sobreprecio configurable al White-Label |
+| Registro auto-vinculado a agencia | 🟡 MEDIA | Leer cookie de referral y vincular automáticamente |
+| Favicon/title dinámico por tenant | 🟠 BAJA | Cambiar favicon y `<title>` según agencia |
 
 ---
 
-### E. Flujo de Usuario Tercero (White-Label)
+## 📊 Resumen de Completitud (Actualizado v2.311)
 
-| Componente | Prioridad | Descripción |
-|:-----------|:---------:|:------------|
-| Detección de `?r=CODIGO` en URL | 🟡 MEDIA | Guardar referral en cookie |
-| Markup de precios por agencia | 🟡 MEDIA | Aplicar sobreprecio configurable |
-| Registro vinculado a agencia | 🟡 MEDIA | Auto-vincular cliente a agencia |
+| Capa | % Completado | Estado | Faltante Principal |
+|:-----|:------------:|:------:|:------------------|
+| Base de Datos | **95%** | 🟢 | — |
+| Backend Services | **90%** | 🟢 | Markup de precios |
+| API Routes | **85%** | 🟢 | CRUD admin tenants |
+| TypeScript Types | **100%** | 🟢 | — |
+| Middleware | **70%** | 🟡 | Conexión a BD para detectar tenant |
+| Dashboard Agencia | **80%** | 🟢 | — |
+| Sistema Referrals | **85%** | 🟢 | Cookie persistente + auto-vinculación |
+| Frontend White-Label | **0%** | 🔴 | WhiteLabelContext, colores/logo dinámicos |
+| Admin UI Tenants | **25%** | 🟠 | CRUD completo desde Super Admin |
+| **PROMEDIO GENERAL** | **~70%** | 🟡 | **El gran pendiente es el rendering white-label (frontend)** |
 
----
+### Progresión:
 
-## 📊 Resumen de Completitud
-
-```mermaid
-pie title Estado Multi-Empresa / Marca Blanca
-    "BD Schema" : 90
-    "Backend Service" : 80
-    "API Routes" : 70
-    "Types" : 100
-    "Middleware" : 30
-    "Frontend Context" : 0
-    "Admin UI" : 0
-    "Agency Dashboard" : 0
-    "White-Label Render" : 0
-    "Referral System" : 0
+```
+v2.302 (10 Feb): ~45% general
+v2.311 (11 Feb): ~70% general → +25% en un día
 ```
 
-| Capa | % Completado | Faltante Principal |
-|:-----|:------------:|:------------------|
-| Base de Datos | **90%** | Verificar tablas agency_clients/agency_commissions en BD actual |
-| Backend Service | **80%** | Métodos de comisiones, referrals |
-| API Routes | **70%** | Endpoints de comisiones, referrals, agency clients |
-| TypeScript Types | **100%** | — |
-| Middleware | **30%** | Conectar a BD (actualmente retorna null siempre) |
-| Frontend Context | **0%** | No existe WhiteLabelContext.tsx |
-| Admin UI Tenants | **0%** | No existe página /admin/tenants |
-| Dashboard Agencia | **0%** | No existe |
-| Rendering White-Label | **0%** | No se aplican colores/logos dinámicos |
-| Sistema Referrals | **0%** | No existe |
-| **PROMEDIO GENERAL** | **~45%** | **El backend está bien avanzado, falta todo el frontend** |
+---
+
+## 📋 LISTA DE OBSERVACIONES (OBS) — Marca Blanca
+
+Lista detallada de observaciones pendientes, priorizadas:
+
+### OBS-001: WhiteLabelContext no existe — 🔴 CRÍTICO
+- **Descripción:** No hay Context ni hook para distribuir la configuración visual del tenant actual
+- **Impacto:** Sin esto, no se pueden aplicar colores, logos ni branding dinámico
+- **Solución:** Crear `src/contexts/WhiteLabelContext.tsx` + `useWhiteLabel()` hook
+- **Dependencia:** Requiere que el middleware pase `x-tenant-config` en headers o cookie
+- **Estado:** ❌ No iniciado
+
+### OBS-002: Middleware no conecta a BD para detectar tenant — 🔴 CRÍTICO
+- **Descripción:** El middleware detecta subdominios pero siempre retorna `null` porque no consulta la BD
+- **Impacto:** Ningún subdominio de agencia funcionará (ej: `mmta.asoperadora.com`)
+- **Solución:** Implementar cache en Edge (Vercel KV o fetch interno a `/api/tenants/detect`)
+- **Nota técnica:** Edge Runtime no soporta `node-postgres` — necesita alternativa
+- **Estado:** ❌ No iniciado
+
+### OBS-003: Logo y colores no cambian por tenant — 🔴 CRÍTICO
+- **Descripción:** El Header siempre muestra "AS Operadora" con colores azules fijos
+- **Impacto:** La experiencia white-label no se logra visualmente
+- **Solución:** CSS variables dinámicas (`--primary-color`, `--secondary-color`) desde WhiteLabelContext
+- **Dependencia:** OBS-001 y OBS-002
+- **Estado:** ❌ No iniciado
+
+### OBS-004: Cookie de referral no persiste al navegar — 🟡 MEDIO
+- **Descripción:** Si un usuario viene con `?r=MMTA-CARLOS01` y navega a otra página, se pierde el código
+- **Impacto:** Se pierden conversiones de referidos
+- **Solución:** Middleware o componente que detecte `?r=` y guarde en cookie `as_referral` con 30 días TTL
+- **Estado:** ⚠️ Parcial — Booking POST ya detecta `referral_code`, pero no se guarda en cookie al navegar
+
+### OBS-005: No hay CRUD visual de tenants en Admin — 🟡 MEDIO
+- **Descripción:** El Super Admin ve la lista de agencias pero no puede crear/editar/eliminar desde la UI
+- **Impacto:** Tiene que usar APIs directamente para gestionar tenants
+- **Solución:** Convertir `/dashboard/admin/agencies` en CRUD completo con formularios
+- **Estado:** ⚠️ Parcial — Lista + stats existen, falta CRUD
+
+### OBS-006: No hay markup de precios por agencia — 🟡 MEDIO
+- **Descripción:** Las agencias no pueden aplicar sobreprecio a los servicios que revenden
+- **Impacto:** Modelo de negocio de reventa no funciona completamente
+- **Solución:** Campo `markup_percentage` en `white_label_config` + aplicación en precios mostrados
+- **Estado:** ❌ No iniciado
+
+### OBS-007: Emails no usan branding del tenant — 🟡 MEDIO
+- **Descripción:** Todos los emails salen con el branding de AS Operadora
+- **Impacto:** Los clientes de agencias ven "AS Operadora" en vez de su agencia
+- **Solución:** Pasar `tenantId` al NotificationService y cargar branding dinámico
+- **Estado:** ❌ No iniciado
+
+### OBS-008: Footer no se personaliza por agencia — 🟠 BAJO
+- **Descripción:** El footer muestra info fija de AS Operadora
+- **Impacto:** Menor — usuarios del White-Label ven la marca correcta en header pero no en footer
+- **Solución:** Inyectar datos del tenant en componente Footer
+- **Dependencia:** OBS-001
+- **Estado:** ❌ No iniciado
+
+### OBS-009: Favicon y title no cambian por tenant — 🟠 BAJO
+- **Descripción:** El favicon y `<title>` siempre dicen "AS Operadora"
+- **Impacto:** Los favoritos y tabs del browser muestran la marca equivocada
+- **Solución:** Dynamic metadata en `layout.tsx` leyendo del WhiteLabelContext
+- **Dependencia:** OBS-001
+- **Estado:** ❌ No iniciado
+
+### OBS-010: No hay onboarding para nuevas agencias — 🟠 BAJO
+- **Descripción:** No existe flujo de auto-registro de agencias
+- **Impacto:** Solo SUPER_ADMIN puede registrar agencias manualmente
+- **Solución:** Formulario público de solicitud → aprobación por admin → setup automático
+- **Estado:** ❌ No iniciado
 
 ---
 
-## 🎯 Plan Sugerido de Implementación (por fases)
+## 🎯 Plan de Implementación Actualizado
 
-### Fase 1: Infraestructura Core (3-4 días)
-1. Conectar `middleware.ts` a BD para detección real de tenants
-2. Crear `WhiteLabelContext.tsx` + `useWhiteLabel()` hook
-3. Implementar CSS variables dinámicas desde configuración del tenant
-4. Logo dinámico en Header/PageHeader
+### Fase 1: Rendering White-Label (3-4 días) — OBS-001, OBS-002, OBS-003
+1. Crear `WhiteLabelContext.tsx` + `useWhiteLabel()` hook
+2. Implementar API `/api/tenants/detect` para que middleware pueda consultar
+3. Conectar middleware → API detect → pasar config en header/cookie
+4. CSS variables dinámicas aplicadas globalmente
+5. Logo dinámico en Header + colores dinámicos
 
-### Fase 2: Panel Admin (3-4 días)
-5. Página `/admin/tenants` con CRUD completo
-6. Editor visual de White-Label (preview en tiempo real)
-7. Gestión de usuarios por tenant
+### Fase 2: Referral Persistente + Admin CRUD (2-3 días) — OBS-004, OBS-005
+6. Cookie `as_referral` al detectar `?r=CODIGO`
+7. Auto-vinculación en registro con cookie de referral
+8. CRUD completo de tenants en Super Admin panel
 
-### Fase 3: Agencias y Comisiones (4-5 días)
-8. Verificar/crear tablas `agency_clients` y `agency_commissions` en BD
-9. APIs de comisiones y clientes de agencia
-10. Dashboard de agencia
-11. Sistema de links de referido
+### Fase 3: Markup + Branding Email (2-3 días) — OBS-006, OBS-007
+9. Campo `markup_percentage` + aplicación en precios
+10. Templates de email dinámicos con logo/colores del tenant
 
-### Fase 4: Flujo White-Label Completo (3-4 días)
-12. Detección de referral code en URL
-13. Markup de precios por agencia
-14. Emails con branding del tenant
-15. Registro auto-vinculado a agencia
+### Fase 4: Polish (1-2 días) — OBS-008, OBS-009, OBS-010
+11. Footer personalizado
+12. Favicon/title dinámico
+13. Flujo de onboarding para nuevas agencias
 
-**Estimado total: 13-17 días de desarrollo**
+**Estimado total: 8-12 días de desarrollo**
+*(Reducido de 13-17 días gracias al avance de Sprints 3-6)*
 
 ---
 
-## ❓ Preguntas para el Usuario
+## ✅ Cambios vs Versión Anterior de este Informe
 
-1. **¿Cuál es la prioridad?** ¿Empezamos por la Fase 1 (infraestructura core) o hay algún componente específico que necesites primero?
-
-2. **¿Tienes ya alguna agencia de prueba** que quieras registrar como tenant? Esto nos ayudaría a probar el flujo completo.
-
-3. **¿El dominio `as-ope-viajes.company` será el dominio principal,** y los subdominios serán tipo `agencia1.as-ope-viajes.company`? ¿O planeas usar `asoperadora.com`?
-
-4. **¿Las agencias podrán auto-registrarse** o solo el SUPER_ADMIN las crea?
-
-5. **¿Quieres que el sistema de comisiones sea funcional desde el inicio** (con cálculos reales) o primero solo la estructura visual?
-
-6. **¿Hay alguna funcionalidad adicional** que no esté en la especificación original que quieras agregar ahora?
+| Sección | Antes (v2.302) | Ahora (v2.311) |
+|:--------|:--------------|:---------------|
+| BD Schema | 90% | **95%** (+agent_notifications, agent_reviews, 168 indexes) |
+| Backend Service | 80% | **90%** (+CommissionService, AgentNotificationService) |
+| API Routes | 70% | **85%** (+14 endpoints nuevos) |
+| Middleware | 30% | **70%** (+protección rutas, JWT, cookies) |
+| Dashboard Agencia | 0% | **80%** (completamente nuevo) |
+| Sistema Referrals | 0% | **85%** (liga, clics, conversiones, QR) |
+| Frontend White-Label | 0% | **0%** (sigue siendo el pendiente principal) |
+| Admin UI Tenants | 0% | **25%** (Super Admin con lista + stats) |
+| **PROMEDIO** | **~45%** | **~70%** |
