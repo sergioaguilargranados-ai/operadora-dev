@@ -1,7 +1,7 @@
 # 🎯 AG-Contexto-Proyecto - AS Operadora
 
-**Última actualización:** 05 de Febrero de 2026 - 17:45 CST  
-**Versión actual:** v2.301  
+**Última actualización:** 11 de Febrero de 2026 - 21:30 CST  
+**Versión actual:** v2.313  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -15,12 +15,17 @@
 ### Cliente
 Sergio Aguilar Granados
 
+### Repositorio Git
+- **Repositorio principal (activo):** `https://github.com/sergioaguilargranados-ai/operadora-dev.git`
+- **Repositorio legacy (pruebas anteriores):** `https://github.com/sergioaguilargranados-ai/as-operadora.git` — NO usar para nuevos cambios
+- **Deploy:** Automático vía Git push → Vercel
+
 ### Objetivo
 Sistema completo de gestión de viajes corporativos con búsqueda, reservas, aprobaciones, pagos, reportes y dashboard ejecutivo. Competir con plataformas como Expedia con funcionalidades superiores.
 
 ### Estado Actual
-- **Versión:** v2.301
-- **Progreso:** 99% completo
+- **Versión:** v2.313
+- **Progreso:** 99% completo (White-Label: ~96%)
 - **Ambiente:** Desarrollo activo con usuarios en UAT
 - **Deploy:** Automático vía Git → Vercel
 
