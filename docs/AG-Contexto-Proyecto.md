@@ -1,7 +1,7 @@
 # 🎯 AG-Contexto-Proyecto - AS Operadora
 
-**Última actualización:** 11 de Febrero de 2026 - 21:30 CST  
-**Versión actual:** v2.313  
+**Última actualización:** 15 de Febrero de 2026 - 14:16 CST  
+**Versión actual:** v2.316d  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -24,7 +24,7 @@ Sergio Aguilar Granados
 Sistema completo de gestión de viajes corporativos con búsqueda, reservas, aprobaciones, pagos, reportes y dashboard ejecutivo. Competir con plataformas como Expedia con funcionalidades superiores.
 
 ### Estado Actual
-- **Versión:** v2.313
+- **Versión:** v2.316d
 - **Progreso:** 99% completo (White-Label: ~96%)
 - **Ambiente:** Desarrollo activo con usuarios en UAT
 - **Deploy:** Automático vía Git → Vercel
@@ -613,16 +613,29 @@ git push as-operadora main
 
 ### Durante el Trabajo
 1. Trabajar en `operadora-dev/` (directorio correcto)
-2. Usar versionado v2.XXX
-3. Usar hora CST para todo
+2. Usar versionado conforme a la sección **Convenciones de Versionado** (ver abajo)
+3. Usar hora CDMX (CST / UTC-6) para todo — incluir fecha y hora
 4. Comunicación en español
 5. Respuestas concisas
+
+### Convenciones de Versionado
+
+**Formato:** `v2.XXX` donde XXX es un número secuencial incrementado con cada release.
+
+**Reglas:**
+1. **Solo la versión** se muestra en el footer de la aplicación (ejemplo: `v2.316d`). NO incluir "Build:", ni fecha, ni hora en el footer.
+2. **Sub-versiones** se usan cuando hay múltiples releases pequeños dentro de una misma versión mayor, usando sufijo de letra: `v2.316`, `v2.316b`, `v2.316c`, `v2.316d`.
+3. **En comentarios de código** (cabecera de archivos .tsx/.ts): incluir fecha y hora CDMX. Ejemplo: `// Build: 15 Feb 2026 - 14:16 CST - v2.316d`
+4. **En documentos AG-**: incluir fecha, hora CDMX y versión en el header.
+5. **En AG-Historico-Cambios.md**: formato `### v2.XXX - DD de MES de AAAA - HH:MM CST`
+6. **En commits de Git**: incluir versión al inicio. Ejemplo: `v2.316d - descripción del cambio`
+7. **Zona horaria:** Siempre usar hora de Ciudad de México (CST / UTC-6). NO usar UTC ni otra zona horaria.
 
 ### Al Finalizar
 1. Actualizar documentos necesarios
 2. Incrementar versión
 3. Actualizar `AG-Historico-Cambios.md`
-4. Commit y push a GitHub
+4. Commit y push a GitHub (`operadora-dev.git`)
 5. Verificar deploy automático
 
 ### Frases Clave del Usuario
