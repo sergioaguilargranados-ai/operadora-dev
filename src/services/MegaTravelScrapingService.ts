@@ -281,25 +281,39 @@ export class MegaTravelScrapingService {
             // Usar precios dinámicos si están disponibles, sino usar estáticos
             const pricing = dynamicPricing.price_usd !== null ? dynamicPricing : staticPricing;
 
-            const { includes, not_includes } = await this.scrapeIncludesNotIncludes($);
+            // Includes/Not-includes desde la página principal
+            let { includes, not_includes } = await this.scrapeIncludesNotIncludes($);
 
-            // Extraer código del tour para obtener itinerario completo
+            // Extraer código del tour para obtener datos desde circuito.php (FUENTE PRINCIPAL)
             const tourCode = tourUrl.match(/(\d+)\.html$/)?.[1];
             let fullItinerary = itinerary;
 
             if (tourCode) {
                 try {
-                    console.log(`📄 Obteniendo itinerario completo desde circuito.php...`);
-                    const circuitoItinerary = await this.scrapeItineraryFromCircuito(tourCode);
+                    const circuitoData = await this.scrapeFromCircuito(tourCode);
 
-                    if (circuitoItinerary.length > itinerary.length) {
-                        fullItinerary = circuitoItinerary;
-                        console.log(`✅ Itinerario completo: ${circuitoItinerary.length} días (desde circuito.php)`);
+                    // Usar itinerario de circuito.php si tiene más días
+                    if (circuitoData.itinerary.length > itinerary.length) {
+                        fullItinerary = circuitoData.itinerary;
+                        console.log(`✅ Itinerario completo: ${circuitoData.itinerary.length} días (desde circuito.php)`);
                     } else {
                         console.log(`ℹ️  Usando itinerario de página principal: ${itinerary.length} días`);
                     }
+
+                    // Complementar includes si circuito.php tiene más
+                    if (circuitoData.includes.length > includes.length) {
+                        includes = circuitoData.includes;
+                        console.log(`✅ Includes desde circuito.php: ${includes.length} items`);
+                    }
+
+                    // Complementar not_includes si circuito.php tiene datos y la página no
+                    if (circuitoData.not_includes.length > not_includes.length) {
+                        not_includes = circuitoData.not_includes;
+                        console.log(`✅ Not-includes desde circuito.php: ${not_includes.length} items`);
+                    }
+
                 } catch (error) {
-                    console.log(`⚠️  No se pudo obtener itinerario desde circuito.php, usando página principal`);
+                    console.log(`⚠️  No se pudo obtener datos desde circuito.php, usando página principal`);
                 }
             }
 
@@ -335,12 +349,24 @@ export class MegaTravelScrapingService {
     }
 
     /**
-     * SCRAPING DE ITINERARIO COMPLETO desde circuito.php
+     * SCRAPING COMPLETO desde circuito.php — FUENTE PRINCIPAL de datos
+     * URL: megatravel.com.mx/tools/circuito.php?domi=&domiviaja=&viaje={code}&txtColor=000000&thBG=666666&thTxColor=FFFFFF&ff=1
+     * 
+     * circuito.php es una SPA que contiene TODOS los datos del tour:
+     * Itinerario, Incluye, No Incluye, Precios, Hoteles, Fechas, Notas, Visas
+     * Requiere Puppeteer para renderizar el JavaScript.
      */
-    static async scrapeItineraryFromCircuito(tourCode: string): Promise<ItineraryDay[]> {
-        const url = `https://megatravel.com.mx/tools/circuito.php?viaje=${tourCode}`;
+    static async scrapeFromCircuito(tourCode: string): Promise<{
+        itinerary: ItineraryDay[];
+        includes: string[];
+        not_includes: string[];
+        duration: string | null;
+    }> {
+        const url = `https://www.megatravel.com.mx/tools/circuito.php?domi=&domiviaja=&viaje=${tourCode}&txtColor=000000&thBG=666666&thTxColor=FFFFFF&ff=1`;
 
         try {
+            console.log(`   📄 Obteniendo datos desde circuito.php (viaje=${tourCode})...`);
+
             const browser = await puppeteer.launch({
                 headless: true,
                 args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -354,73 +380,142 @@ export class MegaTravelScrapingService {
                 timeout: 60000
             });
 
+            // Esperar a que cargue el contenido dinámico
             await page.waitForSelector('body', { timeout: 10000 });
+            await new Promise(resolve => setTimeout(resolve, 5000));
+
             const html = await page.content();
             await browser.close();
 
             const $ = cheerio.load(html);
 
-            // Buscar sección de itinerario
-            const itinerarySection = $('h5:contains("Itinerario")').next('.p-3, .border');
-
-            if (!itinerarySection.length) {
-                console.log('⚠️  No se encontró sección de itinerario en circuito.php');
-                return [];
-            }
-
+            // ========== ITINERARIO ==========
             const days: ItineraryDay[] = [];
             let dayNumber = 1;
 
-            // Parsear días del itinerario
-            // Formato: <p><b>FECHA CIUDAD - PAÍS</b></p><p>Descripción...</p>
-            const paragraphs = itinerarySection.find('p');
+            // Buscar sección de itinerario por h5
+            const itinHeading = $('h5').filter((i, el) => $(el).text().trim() === 'Itinerario');
+            // El contenido viene después del h5, dentro del siguiente div hermano
+            let itinContainer = itinHeading.next();
+            // A veces la estructura es h5 → div.border → p's
+            if (!itinContainer.find('p').length) {
+                itinContainer = itinHeading.parent().next();
+            }
 
-            for (let i = 0; i < paragraphs.length; i++) {
-                const p = $(paragraphs[i]);
-                const boldText = p.find('b').text().trim();
+            const paragraphs = itinContainer.find('p');
 
-                if (boldText && boldText.length > 0) {
-                    // Este es un título de día
-                    const title = boldText;
+            if (paragraphs.length > 0) {
+                for (let i = 0; i < paragraphs.length; i++) {
+                    const p = $(paragraphs[i]);
+                    const boldText = p.find('b, strong').text().trim();
 
-                    // Buscar descripción en el siguiente <p>
-                    let description = '';
-                    if (i + 1 < paragraphs.length) {
-                        const nextP = $(paragraphs[i + 1]);
-                        // Si el siguiente <p> no tiene <b>, es la descripción
-                        if (nextP.find('b').length === 0) {
-                            description = nextP.text().trim();
-                            i++; // Saltar el siguiente párrafo
+                    if (boldText && boldText.length > 0) {
+                        // Ignorar títulos que no son días (ej: nombre del barco)
+                        if (boldText.startsWith('**') || boldText.length < 5) continue;
+
+                        const title = boldText;
+
+                        // Buscar descripción en siguiente(s) <p> sin bold
+                        let description = '';
+                        let j = i + 1;
+                        while (j < paragraphs.length) {
+                            const nextP = $(paragraphs[j]);
+                            if (nextP.find('b, strong').length > 0) break;
+                            const nextText = nextP.text().trim();
+                            if (nextText) {
+                                description += (description ? ' ' : '') + nextText;
+                            }
+                            j++;
                         }
+                        i = j - 1; // Saltar los párrafos consumidos
+
+                        // Extraer ciudad del título
+                        // Formato 1: "DÍA 01  MÉXICO – CASABLANCA"
+                        // Formato 2: "FEBRERO 15  SÃO PAULO (SANTOS) - BRASIL"
+                        let city: string | undefined;
+                        const dayTitleMatch = title.match(/(?:DÍA\s+\d+|DIA\s+\d+|[A-Z]+\s+\d+)\s+(.+)/i);
+                        if (dayTitleMatch) {
+                            const cityPart = dayTitleMatch[1].split(/[-–]/)[0].trim();
+                            city = cityPart.replace(/\(.+?\)/g, '').trim() || undefined;
+                        }
+
+                        days.push({
+                            day_number: dayNumber++,
+                            title: title.substring(0, 500),
+                            description: (description || '').substring(0, 2000),
+                            meals: undefined,
+                            hotel: undefined,
+                            city: city,
+                            activities: [],
+                            highlights: []
+                        });
                     }
-
-                    // Extraer ciudad del título
-                    const cityMatch = title.match(/([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)\s*[-–]\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)/);
-                    const city = cityMatch ? cityMatch[1].trim() : null;
-
-                    days.push({
-                        day_number: dayNumber++,
-                        title: title,
-                        description: description || '',
-                        meals: undefined,
-                        hotel: undefined,
-                        city: city || undefined,
-                        activities: [],
-                        highlights: []
-                    });
                 }
             }
 
-            return days;
+            console.log(`   📅 Circuito: ${days.length} días de itinerario`);
+
+            // ========== INCLUDES desde circuito.php ==========
+            const includes: string[] = [];
+            const includeHeading = $('h5').filter((i, el) => $(el).text().trim() === 'Incluye');
+            if (includeHeading.length > 0) {
+                includeHeading.nextAll().each((i, sibling) => {
+                    const $sib = $(sibling);
+                    if ($sib.is('h5')) return false; // Parar en siguiente sección
+                    $sib.find('li').each((j, li) => {
+                        const text = $(li).text().trim();
+                        if (text && text.length > 3) includes.push(text);
+                    });
+                });
+            }
+            console.log(`   ✅ Circuito: ${includes.length} includes`);
+
+            // ========== NOT INCLUDES desde circuito.php ==========
+            const not_includes: string[] = [];
+            const notIncHeading = $('h5').filter((i, el) => $(el).text().trim() === 'No Incluye');
+            if (notIncHeading.length > 0) {
+                notIncHeading.nextAll().each((i, sibling) => {
+                    const $sib = $(sibling);
+                    if ($sib.is('h5')) return false;
+                    $sib.find('li').each((j, li) => {
+                        const text = $(li).text().trim();
+                        if (text && text.length > 3) not_includes.push(text);
+                    });
+                });
+            }
+            console.log(`   ❌ Circuito: ${not_includes.length} not-includes`);
+
+            // ========== DURACIÓN ==========
+            let duration: string | null = null;
+            const durationBadge = $('span.badge').first();
+            if (durationBadge.length) {
+                const durationText = durationBadge.text().trim();
+                if (durationText.includes('Días') || durationText.includes('Noches')) {
+                    duration = durationText;
+                }
+            }
+
+            return { itinerary: days, includes, not_includes, duration };
 
         } catch (error) {
             console.error(`❌ Error scraping circuito.php para tour ${tourCode}:`, error);
-            return [];
+            return { itinerary: [], includes: [], not_includes: [], duration: null };
         }
     }
 
     /**
+     * @deprecated Use scrapeFromCircuito instead
+     */
+    static async scrapeItineraryFromCircuito(tourCode: string): Promise<ItineraryDay[]> {
+        const result = await this.scrapeFromCircuito(tourCode);
+        return result.itinerary;
+    }
+
+    /**
      * 1. SCRAPING DE ITINERARIO (Puppeteer + Cheerio)
+     * Mejorado: limpia HTML tags antes de aplicar regex para manejar tours
+     * cuyo itinerario tiene <br>, <strong>, <p> etc. mezclados en el texto.
+     * Recopila TODOS los sets de días y se queda con el más largo.
      */
     static async scrapeItinerary(
         $: cheerio.Root,
@@ -428,74 +523,88 @@ export class MegaTravelScrapingService {
         tourUrl: string
     ): Promise<ItineraryDay[]> {
         try {
-            const days: ItineraryDay[] = [];
+            let days: ItineraryDay[] = [];
 
-            // Estrategia A: Buscar itinerario en el HTML actual
+            // Estrategia A: Buscar elementos de itinerario estructurados
             const itinerarySection = $('#itinerario, .itinerary, .day-by-day, [id*="itinerario"]');
 
             if (itinerarySection.length > 0) {
-                console.log('📝 Itinerario encontrado en HTML estático');
+                console.log('\ud83d\udcdd Itinerario encontrado en HTML estático');
 
-                // Buscar días uno por uno
                 $('.day-item, .itinerary-day, [class*="day"]').each((i, elem) => {
                     const $day = $(elem);
                     const text = $day.text();
 
-                    // Extraer número de día (DÍA 01, DÍA 1, Day 1, etc.)
-                    const dayMatch = text.match(/D[ÍI]A\s+(\d+)|DAY\s+(\d+)/i);
+                    const dayMatch = text.match(/D[\u00cdI]A\s+(\d+)|DAY\s+(\d+)/i);
                     if (!dayMatch) return;
 
                     const dayNumber = parseInt(dayMatch[1] || dayMatch[2]);
-
-                    // Extraer título (primera línea después del número)
-                    const titleMatch = text.match(/D[ÍI]A\s+\d+\s+(.+?)(?:\n|Desayuno|\.)/i);
+                    const titleMatch = text.match(/D[\u00cdI]A\s+\d+\s+(.+?)(?:\n|Desayuno|\.)/i);
                     const title = titleMatch ? titleMatch[1].trim() : '';
-
-                    // Extraer descripción (resto del texto)
-                    const description = text
-                        .replace(/D[ÍI]A\s+\d+.+?\n/, '')
-                        .trim();
-
-                    // Extraer comidas (D, A, C)
+                    const description = text.replace(/D[\u00cdI]A\s+\d+.+?\n/, '').trim();
                     const mealsMatch = text.match(/\(([DAC,\s]+)\)/);
                     const meals = mealsMatch ? mealsMatch[1].replace(/\s/g, '') : undefined;
 
-                    days.push({
-                        day_number: dayNumber,
-                        title,
-                        description,
-                        meals
-                    });
+                    days.push({ day_number: dayNumber, title, description, meals });
                 });
             }
 
-            // Estrategia B: Si no encuentra días, parsear el texto completo
+            // Estrategia B: Parsear texto completo con limpieza de HTML
             if (days.length === 0) {
-                console.log('📄 Parseando itinerario desde texto completo');
+                console.log('\ud83d\udcc4 Parseando itinerario desde texto (con limpieza HTML)');
 
-                const fullText = $('body').text();
-                const dayRegex = /DÍA\s+(\d+)\s+([^\n]+)([\s\S]*?)(?=DÍA\s+\d+|$)/gi;
+                const bodyHtml = $('body').html() || '';
+
+                // Reemplazar <br>, </p>, </strong>, </div> con saltos de línea
+                const cleanedText = bodyHtml
+                    .replace(/<br\s*\/?>/gi, '\n')
+                    .replace(/<\/p>/gi, '\n')
+                    .replace(/<\/div>/gi, '\n')
+                    .replace(/<\/strong>/gi, ' ')
+                    .replace(/<\/b>/gi, ' ')
+                    .replace(/<[^>]+>/g, '')
+                    .replace(/&nbsp;/gi, ' ')
+                    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code)))
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/\n{3,}/g, '\n\n');
+
+                // Regex mejorado: busca "DÍA 01" o "DIA 01" o "Día 01"
+                const dayRegex = /D[\u00cdI\u00ed]A\s+0?(\d+)[:\s]+([^\n]+?(?:\n|$))([\s\S]*?)(?=D[\u00cdI\u00ed]A\s+0?\d+[:\s]|$)/gi;
                 let match;
 
-                while ((match = dayRegex.exec(fullText)) !== null) {
+                // Recopilar TODOS los matches (puede haber sets duplicados:
+                // resumen corto con 3 días + itinerario completo con 10 días)
+                const allMatches: ItineraryDay[] = [];
+
+                while ((match = dayRegex.exec(cleanedText)) !== null) {
                     const dayNumber = parseInt(match[1]);
-                    const title = match[2].trim();
+                    const title = match[2].trim().substring(0, 500);
                     const description = match[3]
                         .split('\n')
-                        .filter(line => line.trim().length > 0)
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0)
                         .join(' ')
                         .trim()
-                        .substring(0, 1000);  // Limitar a 1000 caracteres
+                        .substring(0, 2000);
 
-                    days.push({
-                        day_number: dayNumber,
-                        title,
-                        description
-                    });
+                    allMatches.push({ day_number: dayNumber, title, description });
+                }
+
+                // Si hay duplicados (ej: DÍA 1 aparece 2 veces), quedarse con
+                // la SEGUNDA ocurrencia de cada día (que es el itinerario completo)
+                if (allMatches.length > 0) {
+                    // Agrupar por day_number, la ÚLTIMA ocurrencia gana
+                    const dayMap = new Map<number, ItineraryDay>();
+                    for (const day of allMatches) {
+                        dayMap.set(day.day_number, day);
+                    }
+                    days = Array.from(dayMap.values()).sort((a, b) => a.day_number - b.day_number);
                 }
             }
 
-            console.log(`📅 Itinerario extraído: ${days.length} días`);
+            console.log(`\ud83d\udcc5 Itinerario extraído: ${days.length} días`);
             return days;
 
         } catch (error) {
@@ -728,6 +837,7 @@ export class MegaTravelScrapingService {
 
     /**
      * 6. SCRAPING DE IMÁGENES
+     * Mejorado: construye URL del mapa con patrón predecible cdnmega.com
      */
     static async scrapeImages($: cheerio.Root): Promise<{
         main: string | null;
@@ -747,7 +857,6 @@ export class MegaTravelScrapingService {
             $('img').each((i, elem) => {
                 const src = $(elem).attr('src');
                 if (src && src.includes('cdnmega.com/images/viajes')) {
-                    // Filtrar logos y otros elementos
                     if (!src.includes('logo') && !src.includes('icon') && !src.includes('brand')) {
                         tourImages.push(src);
                     }
@@ -759,31 +868,23 @@ export class MegaTravelScrapingService {
             const tourCodeMatch = pageUrl.match(/(\d+)\.html$/);
             const tourCode = tourCodeMatch ? tourCodeMatch[1] : null;
 
-            // Estrategia mejorada para detectar imagen principal:
-            // 1. Buscar imagen que contenga el código del tour en el nombre
-            // 2. Si no, buscar la primera imagen con /covers/ que NO sea de otro tour
+            // Detectar imagen principal
             let mainImage = null;
 
             if (tourCode) {
-                // Buscar imagen con el código del tour
                 mainImage = tourImages.find(img =>
                     img.includes('/covers/') &&
                     (img.includes(tourCode) || img.includes(`-${tourCode}-`))
                 );
             }
 
-            // Si no encontramos por código, buscar la primera imagen con /covers/
-            // que no tenga otro código de tour en el nombre
             if (!mainImage) {
                 mainImage = tourImages.find(img => {
                     if (!img.includes('/covers/')) return false;
-
-                    // Verificar que no sea de otro tour (no tenga otro código de 5 dígitos)
                     const otherTourCode = img.match(/(\d{5})-/);
                     if (otherTourCode && tourCode && otherTourCode[1] !== tourCode) {
-                        return false; // Es de otro tour
+                        return false;
                     }
-
                     return true;
                 });
             }
@@ -795,11 +896,33 @@ export class MegaTravelScrapingService {
             // El resto son galería (excluir la principal)
             images.gallery = tourImages.filter(img => img !== mainImage);
 
-            // Buscar imagen de mapa (si existe)
-            const mapImage = tourImages.find(img => img.includes('map') || img.includes('mapa'));
+            // ========== MAPA DEL TOUR ==========
+            // Estrategia 1: Buscar en imágenes existentes
+            let mapImage = tourImages.find(img =>
+                img.includes('map') || img.includes('mapa') || img.includes('mapas')
+            );
+
+            // Estrategia 2: Construir URL predecible del mapa si tenemos el código
+            // MegaTravel almacena mapas en: cdnmega.com/images/viajes/mapas/{code}.jpg
+            if (!mapImage && tourCode) {
+                const predictableMapUrl = `https://cdnmega.com/images/viajes/mapas/${tourCode}.jpg`;
+                mapImage = predictableMapUrl;
+                console.log(`   🗺️  Mapa construido: ${predictableMapUrl}`);
+            }
+
+            // Estrategia 3: Buscar en <img> con alt que contenga "mapa" o "recorrido"
+            if (!mapImage) {
+                $('img').each((i, elem) => {
+                    const alt = ($(elem).attr('alt') || '').toLowerCase();
+                    const src = $(elem).attr('src') || '';
+                    if ((alt.includes('mapa') || alt.includes('recorrido') || alt.includes('ruta')) && src) {
+                        mapImage = src;
+                    }
+                });
+            }
+
             if (mapImage) {
                 images.map = mapImage;
-                // Remover del gallery si está ahí
                 images.gallery = images.gallery.filter(img => img !== mapImage);
             }
 
@@ -1011,6 +1134,8 @@ export class MegaTravelScrapingService {
 
     /**
      * SCRAPING DE INCLUDES/NOT_INCLUDES
+     * Mejorado: Busca clases CSS .IncludeDetail/.NotIncludeDetail de MegaTravel,
+     * headings h4, y fallback con regex.
      */
     static async scrapeIncludesNotIncludes($: cheerio.Root): Promise<{
         includes: string[];
@@ -1020,60 +1145,135 @@ export class MegaTravelScrapingService {
             const includes: string[] = [];
             const not_includes: string[] = [];
 
-            // Estrategia 1: Buscar por ID #linkincluye
-            const includesSection = $('#linkincluye');
-            if (includesSection.length > 0) {
-                // Buscar todos los <li> dentro de la sección
-                includesSection.find('ul li').each((i, elem) => {
+            // ========== INCLUDES ==========
+            // Estrategia 0: Buscar por clase CSS .IncludeDetail (MegaTravel)
+            const includeDetailDiv = $('.IncludeDetail');
+            if (includeDetailDiv.length > 0) {
+                includeDetailDiv.find('li').each((i, elem) => {
                     const text = $(elem).text().trim();
-                    if (text && text.length > 3) {
-                        includes.push(text);
+                    if (text && text.length > 3) includes.push(text);
+                });
+                // Fallback: si no hay <li>, buscar <p>
+                if (includes.length === 0) {
+                    includeDetailDiv.find('p').each((i, elem) => {
+                        const text = $(elem).text().trim();
+                        if (text && text.length > 3) includes.push(text);
+                    });
+                }
+            }
+
+            // Estrategia 1: Buscar por ID #linkincluye
+            if (includes.length === 0) {
+                const includesSection = $('#linkincluye');
+                if (includesSection.length > 0) {
+                    includesSection.find('ul li').each((i, elem) => {
+                        const text = $(elem).text().trim();
+                        if (text && text.length > 3) includes.push(text);
+                    });
+                }
+            }
+
+            // Estrategia 2: Buscar heading h4 con texto "El viaje incluye"
+            if (includes.length === 0) {
+                $('h4, h3, h5').each((i, elem) => {
+                    const heading = $(elem).text().trim().toLowerCase();
+                    if (heading.includes('viaje incluye') && !heading.includes('no incluye')) {
+                        // Buscar en TODOS los hermanos siguientes (no solo el inmediato)
+                        $(elem).nextAll().each((j, sibling) => {
+                            const $sib = $(sibling);
+                            // Si llegamos a otro heading, parar
+                            if ($sib.is('h3, h4, h5')) return false;
+                            // Buscar <ul> con <li>
+                            $sib.find('li').each((k, li) => {
+                                const text = $(li).text().trim();
+                                if (text && text.length > 3) includes.push(text);
+                            });
+                            // Si el sibling mismo es un <ul>
+                            if ($sib.is('ul')) {
+                                $sib.children('li').each((k, li) => {
+                                    const text = $(li).text().trim();
+                                    if (text && text.length > 3) includes.push(text);
+                                });
+                            }
+                        });
                     }
                 });
             }
 
-            // Estrategia 2: Si no encontró por ID, buscar por texto "El viaje incluye"
+            // Estrategia 3: Regex en HTML como fallback
             if (includes.length === 0) {
                 const bodyHtml = $('body').html() || '';
                 const includesMatch = bodyHtml.match(/El viaje incluye([\s\S]*?)(?=El viaje no incluye|Itinerario|Mapa del tour|$)/i);
                 if (includesMatch) {
-                    const includesHtml = includesMatch[1];
-                    const $includes = cheerio.load(includesHtml);
-
-                    // Extraer items de lista
-                    $includes('li, p').each((i, elem) => {
-                        const text = $(elem).text().trim();
+                    const $inc = cheerio.load(includesMatch[1]);
+                    $inc('li, p').each((i, elem) => {
+                        const text = $inc(elem).text().trim();
                         if (text && text.length > 3 && !text.startsWith('El viaje')) {
-                            const cleanText = text.replace(/^[-•*]\s*/, '').trim();
-                            if (cleanText) {
-                                includes.push(cleanText);
-                            }
+                            const cleanText = text.replace(/^[-\u2022*]\s*/, '').trim();
+                            if (cleanText) includes.push(cleanText);
                         }
                     });
                 }
             }
 
-            // Buscar "El viaje no incluye" - primero intentar por patrón de texto
-            const bodyHtml = $('body').html() || '';
-            const notIncludesMatch = bodyHtml.match(/El viaje no incluye([\s\S]*?)(?=Itinerario|Mapa del tour|Tours opcionales|Información adicional|$)/i);
-            if (notIncludesMatch) {
-                const notIncludesHtml = notIncludesMatch[1];
-                const $notIncludes = cheerio.load(notIncludesHtml);
-
-                // Extraer items de lista
-                $notIncludes('li, p').each((i, elem) => {
+            // ========== NOT INCLUDES ==========
+            // Estrategia 0: Buscar por clase CSS .NotIncludeDetail (MegaTravel)
+            const notIncDetailDiv = $('.NotIncludeDetail');
+            if (notIncDetailDiv.length > 0) {
+                notIncDetailDiv.find('li').each((i, elem) => {
                     const text = $(elem).text().trim();
-                    if (text && text.length > 3 && !text.startsWith('El viaje')) {
-                        const cleanText = text.replace(/^[-•*]\s*/, '').trim();
-                        if (cleanText) {
-                            not_includes.push(cleanText);
-                        }
+                    if (text && text.length > 3) not_includes.push(text);
+                });
+                if (not_includes.length === 0) {
+                    notIncDetailDiv.find('p').each((i, elem) => {
+                        const text = $(elem).text().trim();
+                        if (text && text.length > 3) not_includes.push(text);
+                    });
+                }
+            }
+
+            // Estrategia 1: Buscar heading h4 con "El viaje no incluye"
+            if (not_includes.length === 0) {
+                $('h4, h3, h5').each((i, elem) => {
+                    const heading = $(elem).text().trim().toLowerCase();
+                    if (heading.includes('no incluye')) {
+                        // Buscar en TODOS los hermanos siguientes
+                        $(elem).nextAll().each((j, sibling) => {
+                            const $sib = $(sibling);
+                            if ($sib.is('h3, h4, h5')) return false;
+                            $sib.find('li').each((k, li) => {
+                                const text = $(li).text().trim();
+                                if (text && text.length > 3) not_includes.push(text);
+                            });
+                            if ($sib.is('ul')) {
+                                $sib.children('li').each((k, li) => {
+                                    const text = $(li).text().trim();
+                                    if (text && text.length > 3) not_includes.push(text);
+                                });
+                            }
+                        });
                     }
                 });
             }
 
-            console.log(`   ✅ Incluye: ${includes.length} items`);
-            console.log(`   ❌ No incluye: ${not_includes.length} items`);
+            // Estrategia 2: Regex en HTML como fallback
+            if (not_includes.length === 0) {
+                const bodyHtml = $('body').html() || '';
+                const notIncMatch = bodyHtml.match(/El viaje no incluye([\s\S]*?)(?=Itinerario|Mapa del tour|Tours opcionales|Hoteles|Tarifas|Cargando|$)/i);
+                if (notIncMatch) {
+                    const $ni = cheerio.load(notIncMatch[1]);
+                    $ni('li, p').each((i, elem) => {
+                        const text = $ni(elem).text().trim();
+                        if (text && text.length > 3 && !text.startsWith('El viaje') && !text.startsWith('Cargando')) {
+                            const cleanText = text.replace(/^[-\u2022*]\s*/, '').trim();
+                            if (cleanText) not_includes.push(cleanText);
+                        }
+                    });
+                }
+            }
+
+            console.log(`   \u2705 Incluye: ${includes.length} items`);
+            console.log(`   \u274c No incluye: ${not_includes.length} items`);
 
             return { includes, not_includes };
 

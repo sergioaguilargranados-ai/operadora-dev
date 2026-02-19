@@ -225,6 +225,14 @@ export default function MegaTravelAdminPage() {
                                     Forzar Sincronización
                                 </Button>
                             )}
+                            <Button
+                                onClick={() => router.push('/admin/megatravel-scraping')}
+                                variant="outline"
+                                className="border-purple-600 text-purple-600 hover:bg-purple-50"
+                            >
+                                <Download className="w-4 h-4 mr-2" />
+                                Scraping Completo
+                            </Button>
                         </div>
                     </div>
 
@@ -253,8 +261,8 @@ export default function MegaTravelAdminPage() {
                                             </div>
                                         </div>
                                         <span className={`text-xs px-2 py-1 rounded ${sync.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                                sync.status === 'failed' ? 'bg-red-100 text-red-800' :
-                                                    'bg-yellow-100 text-yellow-800'
+                                            sync.status === 'failed' ? 'bg-red-100 text-red-800' :
+                                                'bg-yellow-100 text-yellow-800'
                                             }`}>
                                             {sync.status}
                                         </span>
@@ -323,7 +331,7 @@ export default function MegaTravelAdminPage() {
             <footer className="bg-white border-t border-gray-200 mt-12 py-6">
                 <div className="container mx-auto px-4 text-center text-sm text-gray-600">
                     <p>© 2026 AS Operadora - Panel de Administración MegaTravel</p>
-                    <p className="text-xs mt-1 opacity-50">v2.254 | Build: 31 Ene 2026</p>
+                    <p className="text-xs mt-1 opacity-50">v2.320 | Build: 19 Feb 2026</p>
                 </div>
             </footer>
         </div>
