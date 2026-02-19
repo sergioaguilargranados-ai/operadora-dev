@@ -228,6 +228,12 @@ export class MegaTravelScrapingService {
         };
         includes: string[];
         not_includes: string[];
+        // NUEVOS: datos de ciudades, países y duración
+        cities: string[];
+        countries: string[];
+        main_country: string;
+        days: number;
+        nights: number;
     }> {
         console.log(`🔍 Scraping completo para: ${tourUrl}`);
 
@@ -273,14 +279,20 @@ export class MegaTravelScrapingService {
             // Parsear con Cheerio
             const $ = cheerio.load(html);
 
+            // Extraer código del tour
+            const tourCode = tourUrl.match(/(\d+)\.html$/)?.[1] || null;
+
             // Extraer cada tipo de dato
             const itinerary = await this.scrapeItinerary($, null, tourUrl); // page ya está cerrado
             const departures = await this.scrapeDepartures($);
             const policies = await this.scrapePolicies($);
             const additionalInfo = await this.scrapeAdditionalInfo($);
             const optionalTours = await this.scrapeOptionalTours($);
-            const images = await this.scrapeImages($);
+            const images = await this.scrapeImages($, tourCode);
             const tags = await this.scrapeClassifications($);
+
+            // NUEVO: Extraer ciudades, países y duración desde la página principal
+            const tourMeta = await this.scrapeCitiesAndCountries($);
 
             // Extraer precios estáticos (fallback si no hay dinámicos)
             const staticPricing = await this.scrapePricing($);
@@ -291,8 +303,7 @@ export class MegaTravelScrapingService {
             // Includes/Not-includes desde la página principal
             let { includes, not_includes } = await this.scrapeIncludesNotIncludes($);
 
-            // Extraer código del tour para obtener datos desde circuito.php (FUENTE PRINCIPAL)
-            const tourCode = tourUrl.match(/(\d+)\.html$/)?.[1];
+            // Obtener datos desde circuito.php (FUENTE PRINCIPAL)
             let fullItinerary = itinerary;
 
             if (tourCode) {
@@ -343,10 +354,15 @@ export class MegaTravelScrapingService {
                 optionalTours,
                 images,
                 tags,
-                // NUEVOS:
                 pricing,
                 includes,
-                not_includes
+                not_includes,
+                // NUEVOS: datos de ciudades, países y duración
+                cities: tourMeta.cities,
+                countries: tourMeta.countries,
+                main_country: tourMeta.main_country,
+                days: tourMeta.days,
+                nights: tourMeta.nights
             };
 
         } catch (error) {
@@ -840,10 +856,124 @@ export class MegaTravelScrapingService {
     }
 
     /**
+     * 5B. EXTRAER CIUDADES, PAÍSES Y DURACIÓN del HTML principal del tour
+     * Fuentes:
+     * - OG description: "Viaje desde México a Argentina, Brasil. Visitando: Río de Janeiro, Iguazú, Buenos Aires durante 11 días"
+     * - Texto "Visitando" en la página
+     * - Breadcrumb (viajes Sudamérica, etc.)
+     * - Badges de duración (11 Días / 9 Noches)
+     */
+    static async scrapeCitiesAndCountries($: cheerio.Root): Promise<{
+        cities: string[];
+        countries: string[];
+        main_country: string;
+        days: number;
+        nights: number;
+    }> {
+        try {
+            let cities: string[] = [];
+            let countries: string[] = [];
+            let mainCountry = '';
+            let days = 0;
+            let nights = 0;
+
+            // ========== CIUDADES ==========
+            // Estrategia 1: Desde OG description (meta tag)
+            // Formato: "Viaje desde México a Argentina, Brasil. Visitando: Río de Janeiro, Iguazú, Buenos Aires durante 11 días"
+            const ogDesc = $('meta[property="og:description"]').attr('content') || '';
+            const visitandoMatch = ogDesc.match(/Visitando:\s*(.+?)(?:\s+durante|\s*$)/i);
+            if (visitandoMatch) {
+                cities = visitandoMatch[1].split(',').map(c => c.trim()).filter(c => c.length > 1);
+                console.log(`   🏙️  Ciudades desde OG: ${cities.join(', ')}`);
+            }
+
+            // Estrategia 2: Texto "Visitando" en el HTML (más visible)
+            if (cities.length === 0) {
+                const bodyText = $('body').text();
+                const visitandoHTML = bodyText.match(/Visitando\s*\n?\s*(.+?)(?:\n|Desde|$)/i);
+                if (visitandoHTML) {
+                    const rawCities = visitandoHTML[1].trim();
+                    cities = rawCities.split(',').map(c => c.trim()).filter(c => c.length > 1 && c.length < 50);
+                    console.log(`   🏙️  Ciudades desde HTML: ${cities.join(', ')}`);
+                }
+            }
+
+            // ========== PAÍSES ==========
+            // Estrategia 1: Desde OG description
+            // "Viaje desde México a Argentina, Brasil."
+            const paisesMatch = ogDesc.match(/Viaje\s+desde\s+M[eé]xico\s+a\s+(.+?)\.\s*Visitando/i);
+            if (paisesMatch) {
+                countries = paisesMatch[1].split(',').map(c => c.trim()).filter(c => c.length > 1);
+                mainCountry = countries[0] || '';
+                console.log(`   🌍  Países desde OG: ${countries.join(', ')}`);
+            }
+
+            // Estrategia 2: Breadcrumb - "viajes Sudamérica" → categoría general
+            if (countries.length === 0) {
+                // El título del tour a menudo tiene los países: "Brasil y Argentina"
+                const ogTitle = $('meta[property="og:title"]').attr('content') || $('title').text() || '';
+                // Formato: "Viaje: Brasil y Argentina MT-52172"
+                const titleMatch = ogTitle.match(/Viaje:\s*(.+?)(?:\s+MT-|\s*$)/i);
+                if (titleMatch) {
+                    const titleCountries = titleMatch[1]
+                        .split(/\s+y\s+|\s*,\s*/i)
+                        .map(c => c.trim())
+                        .filter(c => c.length > 1);
+                    if (titleCountries.length > 0) {
+                        countries = titleCountries;
+                        mainCountry = countries[0] || '';
+                        console.log(`   🌍  Países desde título: ${countries.join(', ')}`);
+                    }
+                }
+            }
+
+            // ========== DURACIÓN ==========
+            // Buscar badges o texto con "X Días / Y Noches"
+            const daysMatch = ogDesc.match(/(\d+)\s*d[ií]as/i);
+            if (daysMatch) {
+                days = parseInt(daysMatch[1]);
+            }
+
+            // Buscar en badges de la página
+            $('span.badge, .badge').each((i, elem) => {
+                const text = $(elem).text().trim();
+                const dMatch = text.match(/(\d+)\s*D[ií]as/i);
+                const nMatch = text.match(/(\d+)\s*Noches/i);
+                if (dMatch && !days) days = parseInt(dMatch[1]);
+                if (nMatch && !nights) nights = parseInt(nMatch[1]);
+            });
+
+            // Fallback: buscar en todo el texto
+            if (!days || !nights) {
+                const bodyText = $('body').text();
+                const durMatch = bodyText.match(/(\d+)\s*D[ií]as\s*\/?\s*(\d+)\s*Noches/i);
+                if (durMatch) {
+                    if (!days) days = parseInt(durMatch[1]);
+                    if (!nights) nights = parseInt(durMatch[2]);
+                }
+            }
+
+            // Si no tenemos noches pero sí días, calcular
+            if (days > 0 && nights === 0) {
+                nights = days - 1;
+            }
+
+            console.log(`   📊 Tour meta: ${cities.length} ciudades, ${countries.length} países, ${days}d/${nights}n`);
+
+            return { cities, countries, main_country: mainCountry, days, nights };
+
+        } catch (error) {
+            console.error('Error extrayendo ciudades/países:', error);
+            return { cities: [], countries: [], main_country: '', days: 0, nights: 0 };
+        }
+    }
+
+    /**
      * 6. SCRAPING DE IMÁGENES
      * Mejorado: construye URL del mapa con patrón predecible cdnmega.com
+     * FILTRADO: excluye imágenes de portada genérica de categoría (ej: "EUROPA.jpg")
      */
-    static async scrapeImages($: cheerio.Root): Promise<{
+    static async scrapeImages($: cheerio.Root, tourCodeParam?: string | null): Promise<{
         main: string | null;
         gallery: string[];
         map: string | null;
@@ -855,59 +985,78 @@ export class MegaTravelScrapingService {
                 map: null as string | null
             };
 
+            // Extraer código del tour de la URL de la página O usar el parámetro
+            const pageUrl = $('link[rel="canonical"]').attr('href') || '';
+            const tourCodeMatch = pageUrl.match(/(\d+)\.html$/);
+            const tourCode = tourCodeParam || (tourCodeMatch ? tourCodeMatch[1] : null);
+
             // Buscar todas las imágenes del tour (cdnmega.com/images/viajes)
             const tourImages: string[] = [];
 
+            // Lista de palabras clave de portadas de categoría que NO son del tour específico
+            const categoryCovers = [
+                'europa', 'asia', 'turquia', 'japon', 'corea', 'medio-oriente',
+                'dubai', 'egipto', 'sudamerica', 'usa', 'canada', 'cruceros',
+                'africa', 'mexico', 'balcanes', 'centroamerica', 'caribe'
+            ];
+
             $('img').each((i, elem) => {
-                const src = $(elem).attr('src');
-                if (src && src.includes('cdnmega.com/images/viajes')) {
-                    if (!src.includes('logo') && !src.includes('icon') && !src.includes('brand')) {
+                const src = $(elem).attr('src') || '';
+                if (!src.includes('cdnmega.com/images/viajes')) return;
+                if (src.includes('logo') || src.includes('icon') || src.includes('brand')) return;
+
+                // FILTRAR portadas genéricas de categoría
+                // Ejemplo: "https://cdnmega.com/images/viajes/covers/europa-12345.jpg"
+                // La portada de categoría contiene un nombre de región pero NO el código del tour
+                const srcLower = src.toLowerCase();
+                const isCategoryCover = categoryCovers.some(cat => srcLower.includes(`/covers/${cat}`));
+
+                if (isCategoryCover) {
+                    // Solo aceptar si contiene el código del tour
+                    if (tourCode && src.includes(tourCode)) {
                         tourImages.push(src);
+                    } else {
+                        console.log(`   ⚠️  Imagen de categoría excluida: ${src.substring(0, 80)}...`);
                     }
+                } else {
+                    tourImages.push(src);
                 }
             });
 
-            // Extraer código del tour de la URL de la página
-            const pageUrl = $('link[rel="canonical"]').attr('href') || '';
-            const tourCodeMatch = pageUrl.match(/(\d+)\.html$/);
-            const tourCode = tourCodeMatch ? tourCodeMatch[1] : null;
-
-            // Detectar imagen principal
-            let mainImage = null;
+            // Detectar imagen principal - SOLO covers que contienen el código del tour
+            let mainImage: string | null = null;
 
             if (tourCode) {
                 mainImage = tourImages.find(img =>
                     img.includes('/covers/') &&
-                    (img.includes(tourCode) || img.includes(`-${tourCode}-`))
-                );
+                    img.includes(tourCode)
+                ) || null;
             }
 
+            // Fallback: primera imagen de covers que no sea de categoría
             if (!mainImage) {
-                mainImage = tourImages.find(img => {
-                    if (!img.includes('/covers/')) return false;
-                    const otherTourCode = img.match(/(\d{5})-/);
-                    if (otherTourCode && tourCode && otherTourCode[1] !== tourCode) {
-                        return false;
-                    }
-                    return true;
-                });
+                mainImage = tourImages.find(img => img.includes('/covers/')) || null;
+            }
+
+            // Si no encontramos covers, usar la URL predecible de MegaTravel
+            if (!mainImage && tourCode) {
+                mainImage = `https://cdnmega.com/images/viajes/covers/${tourCode}-cover.jpg`;
             }
 
             if (mainImage) {
                 images.main = mainImage;
             }
 
-            // El resto son galería (excluir la principal)
-            images.gallery = tourImages.filter(img => img !== mainImage);
+            // El resto son galería (excluir la principal y covers)
+            images.gallery = tourImages.filter(img => img !== mainImage && !img.includes('/covers/'));
 
             // ========== MAPA DEL TOUR ==========
             // Estrategia 1: Buscar en imágenes existentes
             let mapImage = tourImages.find(img =>
                 img.includes('map') || img.includes('mapa') || img.includes('mapas')
-            );
+            ) || null;
 
             // Estrategia 2: Construir URL predecible del mapa si tenemos el código
-            // MegaTravel almacena mapas en: cdnmega.com/images/viajes/mapas/{code}.jpg
             if (!mapImage && tourCode) {
                 const predictableMapUrl = `https://cdnmega.com/images/viajes/mapas/${tourCode}.jpg`;
                 mapImage = predictableMapUrl;
@@ -1408,6 +1557,12 @@ export class MegaTravelScrapingService {
             };
             includes?: string[];
             not_includes?: string[];
+            // NUEVOS: datos de ciudades, países y duración
+            cities?: string[];
+            countries?: string[];
+            main_country?: string;
+            days?: number;
+            nights?: number;
         },
         customPool?: any  // Pool personalizado opcional (para scripts)
     ): Promise<void> {
@@ -1607,6 +1762,51 @@ export class MegaTravelScrapingService {
                     `, priceUpdateValues);
 
                     console.log(`   💾 Precios e includes actualizados`);
+                }
+            }
+
+            // 7. Actualizar ciudades, países y duración si están disponibles
+            const hasCities = data.cities && data.cities.length > 0;
+            const hasCountries = data.countries && data.countries.length > 0;
+            const hasDays = data.days && data.days > 0;
+
+            if (hasCities || hasCountries || hasDays) {
+                const metaUpdateFields: string[] = [];
+                const metaUpdateValues: any[] = [];
+                let metaParamCounter = 1;
+
+                if (hasCities) {
+                    metaUpdateFields.push(`cities = $${metaParamCounter++}`);
+                    metaUpdateValues.push(data.cities);
+                }
+                if (hasCountries) {
+                    metaUpdateFields.push(`countries = $${metaParamCounter++}`);
+                    metaUpdateValues.push(data.countries);
+                }
+                if (data.main_country) {
+                    metaUpdateFields.push(`main_country = $${metaParamCounter++}`);
+                    metaUpdateValues.push(data.main_country);
+                }
+                if (hasDays) {
+                    metaUpdateFields.push(`days = $${metaParamCounter++}`);
+                    metaUpdateValues.push(data.days);
+                    if (data.nights && data.nights > 0) {
+                        metaUpdateFields.push(`nights = $${metaParamCounter++}`);
+                        metaUpdateValues.push(data.nights);
+                    }
+                }
+
+                if (metaUpdateFields.length > 0) {
+                    metaUpdateFields.push(`updated_at = NOW()`);
+                    metaUpdateValues.push(packageId);
+
+                    await client.query(`
+                        UPDATE megatravel_packages
+                        SET ${metaUpdateFields.join(', ')}
+                        WHERE id = $${metaParamCounter}
+                    `, metaUpdateValues);
+
+                    console.log(`   💾 Ciudades/países/duración actualizados: ${data.cities?.join(', ') || 'N/A'}`);
                 }
             }
 
