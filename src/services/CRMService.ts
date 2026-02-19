@@ -1548,9 +1548,8 @@ export class CRMService {
   async importExistingClients(): Promise<{ imported: number; skipped: number }> {
     // Obtener clientes de agencia que no tienen contacto CRM vinculado
     const clients = await query(`
-      SELECT ac.*, u.name, u.email AS user_email
+      SELECT ac.*
       FROM agency_clients ac
-      LEFT JOIN users u ON ac.user_id = u.id
       WHERE NOT EXISTS (
         SELECT 1 FROM crm_contacts cc WHERE cc.agency_client_id = ac.id
       )
@@ -1563,11 +1562,10 @@ export class CRMService {
       try {
         await this.createContact({
           tenant_id: client.tenant_id || client.agency_id,
-          user_id: client.user_id,
           agency_client_id: client.id,
           contact_type: 'client',
-          full_name: client.client_name || client.name || 'Sin nombre',
-          email: client.client_email || client.user_email,
+          full_name: client.client_name || 'Sin nombre',
+          email: client.client_email,
           phone: client.client_phone,
           source: client.source || 'referral',
           pipeline_stage: client.total_bookings > 0 ? 'won' : 'qualified',
