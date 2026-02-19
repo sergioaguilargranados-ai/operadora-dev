@@ -179,6 +179,24 @@ export default function MegaTravelScrapingPage() {
             setTotalTours(uniqueCodes.length);
         }
 
+        // Registrar sincronización en el historial
+        try {
+            await fetch('/api/admin/discover-tours', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    action: 'log-sync',
+                    totalFound: uniqueCodes.length,
+                    newTours: totalNew,
+                    updated: totalUpdated,
+                    deprecated: finalStatsRef.current.deprecated,
+                    triggeredBy: 'admin-panel'
+                })
+            });
+            addLog('📝 Sincronización registrada en historial');
+        } catch (e) { /* ignorar */ }
+
         return { allCodes: uniqueCodes, newCount: totalNew, updatedCount: totalUpdated };
     };
 
@@ -327,6 +345,20 @@ export default function MegaTravelScrapingPage() {
 
         addLog('🚀 Iniciando proceso completo de actualización MegaTravel...');
         addLog(`📅 ${new Date().toLocaleString('es-MX')}`);
+
+        // Limpiar syncs "running" que se quedaron pegadas
+        try {
+            const cleanRes = await fetch('/api/admin/discover-tours', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ action: 'cleanup-stale' })
+            });
+            const cleanData = await cleanRes.json();
+            if (cleanData.cleaned > 0) {
+                addLog(`🧹 ${cleanData.cleaned} sincronizaciones anteriores limpiadas`);
+            }
+        } catch (e) { /* ignorar */ }
 
         // FASE 1: Sincronización por categoría
         if (!abortRef.current) {

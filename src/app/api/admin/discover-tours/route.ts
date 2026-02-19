@@ -1,6 +1,6 @@
 // API endpoint para descubrir tours de UNA categoría de MegaTravel
 // Diseñado para ser llamado en batch desde el frontend (una categoría a la vez)
-// Build: 19 Feb 2026 - v2.322
+// Build: 19 Feb 2026 - v2.322 - Con last_sync_at + log-sync + cleanup
 
 import { NextRequest, NextResponse } from 'next/server';
 import { pool } from '@/lib/db';
@@ -28,20 +28,57 @@ export async function GET() {
     });
 }
 
-// POST: Descubrir tours de una categoría específica o deprecar tours
+// POST: Descubrir tours de una categoría específica o acciones especiales
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { action, categoryIndex, discoveredCodes } = body;
 
-        // ACCIÓN: Deprecar tours que ya no existen
+        // ===== ACCIÓN: Limpiar syncs "running" que se quedaron pegados =====
+        if (action === 'cleanup-stale') {
+            const cleanupResult = await pool.query(
+                `UPDATE megatravel_sync_log 
+                 SET status = 'failed', 
+                     completed_at = CURRENT_TIMESTAMP,
+                     error_message = 'Proceso interrumpido (timeout o cierre del navegador)'
+                 WHERE status = 'running' 
+                   AND started_at < CURRENT_TIMESTAMP - INTERVAL '10 minutes'
+                 RETURNING id`
+            );
+            return NextResponse.json({
+                success: true,
+                action: 'cleanup-stale',
+                cleaned: cleanupResult.rowCount || 0
+            });
+        }
+
+        // ===== ACCIÓN: Registrar una sincronización en el historial =====
+        if (action === 'log-sync') {
+            const { totalFound, newTours, updated, deprecated, triggeredBy } = body;
+            await pool.query(
+                `INSERT INTO megatravel_sync_log 
+                 (sync_type, started_at, completed_at, packages_found, packages_synced, packages_failed, status, triggered_by, details)
+                 VALUES ('discover', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $1, $2, $3, 'completed', $4, $5)`,
+                [
+                    totalFound || 0,
+                    (newTours || 0) + (updated || 0),
+                    deprecated || 0,
+                    triggeredBy || 'admin',
+                    JSON.stringify({ newTours, updated, deprecated, type: 'discover-tours' })
+                ]
+            );
+            return NextResponse.json({ success: true, action: 'log-sync' });
+        }
+
+        // ===== ACCIÓN: Deprecar tours que ya no existen =====
         if (action === 'deprecate' && Array.isArray(discoveredCodes) && discoveredCodes.length > 0) {
             const placeholders = discoveredCodes.map((_: string, i: number) => `$${i + 1}`).join(', ');
             const deprecatedResult = await pool.query(
                 `UPDATE megatravel_packages 
                  SET is_active = false, sync_status = 'deprecated', 
                      sync_error = 'Tour no encontrado en última sincronización', 
-                     updated_at = CURRENT_TIMESTAMP 
+                     updated_at = CURRENT_TIMESTAMP,
+                     last_sync_at = CURRENT_TIMESTAMP
                  WHERE is_active = true AND mt_code NOT IN (${placeholders})
                  RETURNING mt_code`,
                 discoveredCodes
@@ -56,7 +93,7 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // ACCIÓN: Descubrir tours de una categoría
+        // ===== ACCIÓN: Descubrir tours de una categoría =====
         if (typeof categoryIndex !== 'number' || categoryIndex < 0 || categoryIndex >= CATEGORIES.length) {
             return NextResponse.json({ success: false, error: 'categoryIndex inválido' }, { status: 400 });
         }
@@ -121,17 +158,18 @@ export async function POST(request: NextRequest) {
                 if (existing.rows.length === 0) {
                     // NUEVO tour - insertar
                     await pool.query(
-                        `INSERT INTO megatravel_packages (mt_code, mt_url, name, category, destination_region, is_active, sync_status, created_at, updated_at)
-                         VALUES ($1, $2, $3, $4, $5, true, 'synced', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+                        `INSERT INTO megatravel_packages (mt_code, mt_url, name, category, destination_region, is_active, sync_status, created_at, updated_at, last_sync_at)
+                         VALUES ($1, $2, $3, $4, $5, true, 'synced', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
                         [mtCode, url, name, categoryInfo.category, categoryInfo.category]
                     );
                     insertedCodes.push(mtCode);
                 } else {
-                    // Tour existente - actualizar URL y reactivar si estaba inactivo
+                    // Tour existente - actualizar URL, reactivar si estaba inactivo, y actualizar last_sync_at
                     await pool.query(
                         `UPDATE megatravel_packages 
                          SET mt_url = $1, category = $2, destination_region = $3, is_active = true, 
-                             sync_status = 'synced', sync_error = NULL, updated_at = CURRENT_TIMESTAMP
+                             sync_status = 'synced', sync_error = NULL, 
+                             updated_at = CURRENT_TIMESTAMP, last_sync_at = CURRENT_TIMESTAMP
                          WHERE mt_code = $4`,
                         [url, categoryInfo.category, categoryInfo.category, mtCode]
                     );
