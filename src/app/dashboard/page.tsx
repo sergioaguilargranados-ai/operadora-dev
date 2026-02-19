@@ -22,7 +22,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Loader2,
-  Shield
+  Shield,
+  Globe
 } from 'lucide-react'
 
 interface DashboardStats {
@@ -238,6 +239,14 @@ function DashboardContent() {
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Aprobaciones
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start bg-orange-600 text-white hover:bg-orange-700 hover:text-white"
+                onClick={() => router.push('/admin/megatravel')}
+              >
+                <Globe className="w-4 h-4 mr-2" />
+                🌍 MegaTravel — Tours y Scraping
               </Button>
               <Button
                 variant="outline"
