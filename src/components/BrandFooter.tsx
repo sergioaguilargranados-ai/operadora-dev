@@ -1,5 +1,5 @@
 // BrandFooter.tsx - Footer dinámico con branding del tenant actual
-// Build: 19 Feb 2026 - v2.317 - Fase 2 Multi-Empresa / White-Label + CRM + RRHH + Catálogo Clientes
+// Build: 19 Feb 2026 - v2.321 - Prefijo AS- tours + MegaTravel scraping manual + Dashboard link
 
 'use client';
 
@@ -92,7 +92,7 @@ export function BrandFooter() {
                         </p>
                     )}
                     <p className="text-xs mt-2 opacity-50">
-                        v2.317
+                        v2.321
                     </p>
                 </div>
             </div>

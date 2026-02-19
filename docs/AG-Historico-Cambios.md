@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 19 de Febrero de 2026 - 00:03 CST  
-**Versión actual:** v2.317  
+**Última actualización:** 19 de Febrero de 2026 - 01:49 CST  
+**Versión actual:** v2.321  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,60 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.321 - 19 de Febrero de 2026 - 01:49 CST
+
+**🏷️ Cambio de Prefijo de Código de Tours: MT- → AS-**
+
+**APIs Modificadas:**
+- ✅ `/api/groups/route.ts` — El campo `id` ahora devuelve `AS-XXXXX` en lugar de `MT-XXXXX` al frontend
+- ✅ `/api/groups/[code]/route.ts` — Acepta códigos con prefijo `AS-`, `MT-` o solo número. Devuelve `AS-XXXXX` al frontend
+- ✅ Internamente la BD sigue usando `MT-XXXXX` como clave (sin migración necesaria)
+
+**Impacto en Frontend (automático por cambio en API):**
+- ✅ URLs de tours: `/tours/AS-12534` en lugar de `/tours/MT-12534`
+- ✅ Mensajes de WhatsApp: incluye código `AS-XXXXX`
+- ✅ Página de cotización: `tourId` usa `AS-XXXXX`
+- ✅ Tarjetas de tours en catálogo: `key` usa `AS-XXXXX`
+
+**Otros cambios:**
+- ✅ Quitado cron `megatravel-sync` de `vercel.json` (Vercel Hobby no soporta crons)
+- ✅ Agregado botón "🌍 MegaTravel — Tours y Scraping" en Dashboard principal (`/dashboard`)
+- ✅ Actualizado footer a v2.321
+
+**Lecciones Aprendidas:**
+- El plan Hobby de Vercel no soporta cron jobs. Para ejecución programada usar servicios externos como cron-job.org
+- El cambio de prefijo se hace en la capa API para no requerir migración de BD ni cambios en múltiples archivos frontend
+
+---
+
+### v2.320 - 19 de Febrero de 2026 - 00:30 CST
+
+**🔄 Mejora Scraping MegaTravel + Panel Admin de Scraping**
+
+**Servicio de Scraping (`MegaTravelScrapingService.ts`):**
+- ✅ Nueva función `scrapeFromCircuito()` como fuente de datos principal desde `circuito.php`
+- ✅ Extracción detallada de itinerarios: soporte para "DÍA XX" y "FECHA CIUDAD" 
+- ✅ Extracción de incluye/no incluye desde clases CSS específicas
+- ✅ URL predecible para imágenes de mapa: `cdnmega.com/images/viajes/mapas/{code}.jpg`
+- ✅ `scrapeTourComplete()` prioriza datos de `circuito.php` sobre scraping de página general
+
+**Panel Admin de Scraping (`/admin/megatravel-scraping`):**
+- ✅ Autenticación basada en cookies de sesión
+- ✅ Visualización de métricas: días de itinerario, includes, not-includes por tour
+- ✅ Auto-scroll en registro de actividad
+- ✅ Soporte modo oscuro
+
+**API Scrape-All (`/api/admin/scrape-all`):**
+- ✅ Autenticación triple: cookie de sesión, Bearer JWT/CRON_SECRET, legacy ADMIN_SECRET_KEY
+- ✅ Resultados detallados: precio, itinerario, includes, not-includes por tour
+
+**Endpoint Cron (`/api/cron/megatravel-sync`):**
+- ✅ Creado endpoint para sync por lotes (5 tours a la vez, 2s pausa)
+- ✅ Prioriza tours no actualizados en últimas 20 horas
+- ⚠️ No activado en Vercel (plan Hobby no soporta crons), disponible para ejecución manual
+
+---
 
 ### v2.317 - 19 de Febrero de 2026 - 00:03 CST
 
