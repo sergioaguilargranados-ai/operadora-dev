@@ -976,27 +976,93 @@ export class MegaTravelSyncService {
     }
 
     /**
-     * Obtener un paquete por código
-     */
+ * Obtener un paquete por código — con TODA la información de tablas relacionadas
+ */
     static async getPackageByCode(mtCode: string): Promise<any | null> {
         try {
+            // 1. Datos base del paquete
             const result = await pool.query(`
-                SELECT 
-                    p.*,
-                    ROUND(p.price_usd * (1 + p.our_margin_percent / 100), 2) as sale_price_usd,
-                    ROUND(p.price_usd * (1 + p.our_margin_percent / 100) + COALESCE(p.taxes_usd, 0), 2) as total_price_usd,
-                    ROUND(p.price_usd * (1 + p.our_margin_percent / 100) * 0.10, 2) as savings_usd
-                FROM megatravel_packages p
-                WHERE p.mt_code = $1 AND p.is_active = true
-            `, [mtCode]);
+            SELECT 
+                p.*,
+                ROUND(p.price_usd * (1 + p.our_margin_percent / 100), 2) as sale_price_usd,
+                ROUND(p.price_usd * (1 + p.our_margin_percent / 100) + COALESCE(p.taxes_usd, 0), 2) as total_price_usd,
+                ROUND(p.price_usd * (1 + p.our_margin_percent / 100) * 0.10, 2) as savings_usd
+            FROM megatravel_packages p
+            WHERE p.mt_code = $1 AND p.is_active = true
+        `, [mtCode]);
 
-            return result.rows[0] || null;
+            if (!result.rows[0]) return null;
+            const pkg = result.rows[0];
+
+            // 2. Itinerario (de megatravel_itinerary)
+            try {
+                const itineraryResult = await pool.query(`
+                SELECT day_number, title, description, meals, hotel, city, activities, highlights
+                FROM megatravel_itinerary
+                WHERE package_id = $1
+                ORDER BY day_number
+            `, [pkg.id]);
+                if (itineraryResult.rows.length > 0) {
+                    pkg.itinerary = itineraryResult.rows;
+                }
+            } catch { /* tabla puede no existir */ }
+
+            // 3. Fechas de salida (de megatravel_departures)
+            try {
+                const departuresResult = await pool.query(`
+                SELECT departure_date, return_date, price_usd, price_variation,
+                       availability, status, min_passengers, max_passengers, notes
+                FROM megatravel_departures
+                WHERE package_id = $1
+                ORDER BY departure_date
+            `, [pkg.id]);
+                if (departuresResult.rows.length > 0) {
+                    pkg.departures = departuresResult.rows;
+                }
+            } catch { /* tabla puede no existir */ }
+
+            // 4. Políticas (de megatravel_policies)
+            try {
+                const policiesResult = await pool.query(`
+                SELECT cancellation_policy, change_policy, payment_policy,
+                       terms_conditions, document_requirements, visa_requirements,
+                       vaccine_requirements, insurance_requirements, age_restrictions, health_requirements
+                FROM megatravel_policies
+                WHERE package_id = $1
+            `, [pkg.id]);
+                if (policiesResult.rows[0]) {
+                    const pol = policiesResult.rows[0];
+                    pkg.visa_requirements = pol.visa_requirements;
+                    pkg.cancellation_policy = pol.cancellation_policy;
+                    pkg.payment_policy = pol.payment_policy;
+                    pkg.terms_conditions = pol.terms_conditions;
+                    pkg.document_requirements = pol.document_requirements;
+                }
+            } catch { /* tabla puede no existir */ }
+
+            // 5. Información adicional (de megatravel_additional_info)
+            try {
+                const additionalResult = await pool.query(`
+                SELECT important_notes, recommendations, what_to_bring,
+                       climate_info, local_currency, language, timezone, voltage
+                FROM megatravel_additional_info
+                WHERE package_id = $1
+            `, [pkg.id]);
+                if (additionalResult.rows[0]) {
+                    const info = additionalResult.rows[0];
+                    pkg.important_notes = info.important_notes;
+                    pkg.recommendations = info.recommendations;
+                    pkg.what_to_bring = info.what_to_bring;
+                    pkg.climate_info = info.climate_info;
+                }
+            } catch { /* tabla puede no existir */ }
+
+            return pkg;
         } catch (error) {
             console.error('Error getting package:', error);
             return null;
         }
     }
-
     /**
      * Obtener historial de sincronizaciones
      */
