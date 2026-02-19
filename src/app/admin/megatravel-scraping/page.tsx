@@ -293,10 +293,12 @@ export default function MegaTravelScrapingPage() {
         // Recargar total de tours (puede haber cambiado con la sync)
         let total = totalTours || 325;
         try {
-            const statsRes = await fetch('/api/admin/megatravel?action=stats');
+            const statsRes = await fetch('/api/admin/megatravel?action=stats', { credentials: 'include' });
             const statsData = await statsRes.json();
             if (statsData.success) {
-                total = statsData.data?.stats?.active_packages || statsData.data?.stats?.total_packages || total;
+                const ap = parseInt(statsData.data?.stats?.active_packages) || 0;
+                const tp = parseInt(statsData.data?.stats?.total_packages) || 0;
+                total = ap || tp || total;
                 setTotalTours(total);
             }
         } catch (e) { /* usar el último total conocido */ }
@@ -313,6 +315,8 @@ export default function MegaTravelScrapingPage() {
         let totalIncludes = 0;
         let totalNotIncludes = 0;
         let totalDeprecated = finalStatsRef.current.deprecated;
+
+        let emptyBatchStreak = 0; // Contador de batches vacíos consecutivos
 
         while (offset < total && !abortRef.current) {
             const batchNumber = Math.floor(offset / BATCH_SIZE) + 1;
@@ -413,6 +417,17 @@ export default function MegaTravelScrapingPage() {
                         finalStatsRef.current = updated;
                         return updated;
                     });
+
+                    // Detectar batches vacíos para parar antes
+                    if (data.processed === 0) {
+                        emptyBatchStreak++;
+                        if (emptyBatchStreak >= 2) {
+                            addLog('✅ No hay más tours por procesar. Finalizando scraping.');
+                            break;
+                        }
+                    } else {
+                        emptyBatchStreak = 0;
+                    }
 
                 } else {
                     addLog(`❌ Error en batch ${batchNumber}: ${data.error}`);

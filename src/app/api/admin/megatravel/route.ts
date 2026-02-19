@@ -6,11 +6,14 @@ import { MegaTravelSyncService } from '@/services/MegaTravelSyncService';
 import { verifyToken } from '@/services/AuthService';
 import { cookies } from 'next/headers';
 
+import { pool } from '@/lib/db';
+
 // Roles permitidos para acceder a esta API
 const ALLOWED_ROLES = ['SUPER_ADMIN', 'ADMIN'];
 
 /**
  * Verificar autenticación de admin
+ * Soporta: JWT cookie, Authorization header, y fallback as_user cookie + BD
  */
 async function verifyAdminAuth(request: NextRequest): Promise<{ authorized: boolean; user?: any; error?: string }> {
     try {
@@ -20,21 +23,35 @@ async function verifyAdminAuth(request: NextRequest): Promise<{ authorized: bool
 
         const token = tokenCookie?.value || authHeader?.replace('Bearer ', '');
 
-        if (!token) {
-            return { authorized: false, error: 'Token no proporcionado' };
+        if (token) {
+            try {
+                const decoded = await verifyToken(token);
+                if (decoded && ALLOWED_ROLES.includes(decoded.role)) {
+                    return { authorized: true, user: decoded };
+                }
+            } catch {
+                // JWT expirado o inválido, intentar fallback
+            }
         }
 
-        const decoded = await verifyToken(token);
-
-        if (!decoded) {
-            return { authorized: false, error: 'Token inválido' };
+        // Fallback: cookie as_user verificada contra BD
+        const userCookie = cookieStore.get('as_user');
+        if (userCookie?.value) {
+            try {
+                const userData = JSON.parse(decodeURIComponent(userCookie.value));
+                if (userData.email && userData.id) {
+                    const userCheck = await pool.query(
+                        'SELECT id, email, role FROM users WHERE id = $1 AND email = $2 LIMIT 1',
+                        [userData.id, userData.email]
+                    );
+                    if (userCheck.rows.length > 0 && ALLOWED_ROLES.includes(userCheck.rows[0].role)) {
+                        return { authorized: true, user: userCheck.rows[0] };
+                    }
+                }
+            } catch { /* cookie inválida */ }
         }
 
-        if (!ALLOWED_ROLES.includes(decoded.role)) {
-            return { authorized: false, error: 'No tienes permisos para esta acción' };
-        }
-
-        return { authorized: true, user: decoded };
+        return { authorized: false, error: 'No autorizado' };
     } catch (error) {
         console.error('Auth error:', error);
         return { authorized: false, error: 'Error de autenticación' };
