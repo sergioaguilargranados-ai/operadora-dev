@@ -195,45 +195,46 @@ function extractUserFromToken(request: NextRequest): { id: number; email: string
 
   const jwt = token || bearerToken
 
-  if (!jwt) {
-    // Intentar ver si hay cookie as_user (fallback para nuestro sistema basado en localStorage)
-    const userCookie = request.cookies.get('as_user')?.value
-    if (userCookie) {
-      try {
-        const user = JSON.parse(userCookie)
-        return {
-          id: parseInt(user.id) || 0,
-          email: user.email || '',
-          role: user.role || 'CLIENT'
+  if (jwt) {
+    try {
+      // Decodificar JWT payload (sin verificar firma, eso se hace en APIs)
+      const parts = jwt.split('.')
+      if (parts.length === 3) {
+        // Base64url decode del payload
+        const payload = parts[1]
+        const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+        const data = JSON.parse(decoded)
+
+        // Verificar expiración
+        if (!data.exp || Date.now() / 1000 <= data.exp) {
+          return {
+            id: data.id || data.userId || 0,
+            email: data.email || '',
+            role: data.role || data.user_type || 'CLIENT'
+          }
         }
-      } catch { return null }
+        // Si el JWT expiró, caemos al fallback de as_user cookie abajo
+      }
+    } catch {
+      // Error decodificando JWT, intentar fallback
     }
-    return null
   }
 
-  try {
-    // Decodificar JWT payload (sin verificar firma, eso se hace en APIs)
-    const parts = jwt.split('.')
-    if (parts.length !== 3) return null
-
-    // Base64url decode del payload
-    const payload = parts[1]
-    const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
-    const data = JSON.parse(decoded)
-
-    // Verificar expiración
-    if (data.exp && Date.now() / 1000 > data.exp) {
-      return null // Token expirado
-    }
-
-    return {
-      id: data.id || data.userId || 0,
-      email: data.email || '',
-      role: data.role || data.user_type || 'CLIENT'
-    }
-  } catch {
-    return null
+  // Fallback: cookie as_user (no tiene expiración de JWT, dura 7 días)
+  // Esto permite que el frontend renueve el JWT con refresh token sin perder la sesión
+  const userCookie = request.cookies.get('as_user')?.value
+  if (userCookie) {
+    try {
+      const user = JSON.parse(decodeURIComponent(userCookie))
+      return {
+        id: parseInt(user.id) || 0,
+        email: user.email || '',
+        role: user.role || 'CLIENT'
+      }
+    } catch { return null }
   }
+
+  return null
 }
 
 /**

@@ -30,11 +30,65 @@ export default function MegaTravelScrapingPage() {
     const abortRef = useRef(false);
     // Ref to track final stats for the summary
     const finalStatsRef = useRef(stats);
+    const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Auto-scroll logs
     useEffect(() => {
         logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [logs]);
+
+    // ==========================================
+    // AUTO-REFRESH DEL TOKEN (JWT expira en 15 min, refresh token dura 7 días)
+    // Refresca cada 10 minutos mientras el proceso está corriendo
+    // ==========================================
+    useEffect(() => {
+        if (isRunning) {
+            const refreshToken = async () => {
+                try {
+                    const storedRefresh = localStorage.getItem('as_refresh');
+                    if (!storedRefresh) {
+                        console.warn('⚠️ No hay refresh token disponible');
+                        return;
+                    }
+
+                    const res = await fetch('/api/auth/refresh', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ refreshToken: storedRefresh })
+                    });
+
+                    const data = await res.json();
+                    if (data.success && data.data?.accessToken) {
+                        // Actualizar en localStorage
+                        localStorage.setItem('as_token', data.data.accessToken);
+                        // Actualizar cookie para que el middleware y las APIs lo lean
+                        const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+                        document.cookie = `as_token=${encodeURIComponent(data.data.accessToken)};expires=${expires};path=/;samesite=lax`;
+                        console.log('🔄 Token renovado exitosamente');
+                    }
+                } catch (e) {
+                    console.error('⚠️ Error renovando token:', e);
+                }
+            };
+
+            // Refresh inmediatamente al iniciar y luego cada 10 min
+            refreshToken();
+            refreshIntervalRef.current = setInterval(refreshToken, 10 * 60 * 1000);
+
+            return () => {
+                if (refreshIntervalRef.current) {
+                    clearInterval(refreshIntervalRef.current);
+                    refreshIntervalRef.current = null;
+                }
+            };
+        } else {
+            // Limpiar interval cuando se detiene el proceso
+            if (refreshIntervalRef.current) {
+                clearInterval(refreshIntervalRef.current);
+                refreshIntervalRef.current = null;
+            }
+        }
+    }, [isRunning]);
 
     const addLog = (message: string) => {
         setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
@@ -51,6 +105,31 @@ export default function MegaTravelScrapingPage() {
             })
             .catch(() => setTotalTours(325));
     }, []);
+
+    // Helper: refrescar el token JWT manualmente
+    const autoRefreshToken = async (): Promise<boolean> => {
+        try {
+            const storedRefresh = localStorage.getItem('as_refresh');
+            if (!storedRefresh) return false;
+
+            const res = await fetch('/api/auth/refresh', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshToken: storedRefresh })
+            });
+
+            const data = await res.json();
+            if (data.success && data.data?.accessToken) {
+                localStorage.setItem('as_token', data.data.accessToken);
+                const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+                document.cookie = `as_token=${encodeURIComponent(data.data.accessToken)};expires=${expires};path=/;samesite=lax`;
+                return true;
+            }
+            return false;
+        } catch {
+            return false;
+        }
+    };
 
     const stopProcess = () => {
         abortRef.current = true;
@@ -249,8 +328,38 @@ export default function MegaTravelScrapingPage() {
 
                 if (!response.ok) {
                     if (response.status === 401) {
-                        addLog('❌ Error de autenticación. Redirigiendo al login...');
-                        router.push('/login');
+                        // Intentar refrescar el token y reintentar
+                        addLog('⚠️ Token expirado, renovando...');
+                        const refreshed = await autoRefreshToken();
+                        if (refreshed) {
+                            addLog('🔄 Token renovado, reintentando batch...');
+                            // Reintentar el mismo batch
+                            const retryRes = await fetch('/api/admin/scrape-all', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify({ limit: BATCH_SIZE, offset })
+                            });
+                            if (retryRes.ok) {
+                                // Continuar procesando normalmente
+                                const retryData = await retryRes.json();
+                                if (retryData.success) {
+                                    const batchSuccess = retryData.results.filter((r: any) => r.status === 'success').length;
+                                    const batchErrors = retryData.results.filter((r: any) => r.status === 'error').length;
+                                    totalProcessed += retryData.processed;
+                                    totalSuccess += batchSuccess;
+                                    totalErrors += batchErrors;
+                                    addLog(`   ✅ ${batchSuccess} OK | ❌ ${batchErrors} errores`);
+                                }
+                                offset += BATCH_SIZE;
+                                setProgress(50 + Math.min(Math.round((offset / total) * 50), 50));
+                                if (offset < total && !abortRef.current) {
+                                    await new Promise(resolve => setTimeout(resolve, 5000));
+                                }
+                                continue;
+                            }
+                        }
+                        addLog('❌ No se pudo renovar la sesión. Reanuda después de iniciar sesión.');
                         return;
                     }
                     throw new Error(`HTTP ${response.status}`);
