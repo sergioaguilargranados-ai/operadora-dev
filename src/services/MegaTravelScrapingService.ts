@@ -348,6 +348,21 @@ export class MegaTravelScrapingService {
                 }
             }
 
+            // COMPLEMENTAR ciudades desde los títulos del itinerario si aún están vacías
+            if (tourMeta.cities.length === 0 && fullItinerary.length > 0) {
+                const itinCities = new Set<string>();
+                for (const day of fullItinerary) {
+                    if (day.city && day.city.length > 1 && day.city.length < 40) {
+                        const normalized = day.city.charAt(0).toUpperCase() + day.city.slice(1).toLowerCase();
+                        itinCities.add(normalized);
+                    }
+                }
+                if (itinCities.size > 0) {
+                    tourMeta.cities = Array.from(itinCities);
+                    console.log(`   🏙️  Ciudades desde itinerario: ${tourMeta.cities.join(', ')}`);
+                }
+            }
+
             console.log(`✅ Scraping completo para ${tourUrl}:`, {
                 itinerary: fullItinerary.length + ' días',
                 departures: departures.length + ' salidas',
