@@ -292,7 +292,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                             src={allImages[currentImageIndex]}
                                             alt={tour.name}
                                             fill
-                                            className="object-cover"
+                                            className="object-cover object-top"
                                             priority
                                         />
                                     </motion.div>

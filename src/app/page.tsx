@@ -323,7 +323,7 @@ export default function Home() {
 
   // Estados para configuraciones de visibilidad
   const [homeSettings, setHomeSettings] = useState<Record<string, string>>({})
-  const [toursVideoUrl, setToursVideoUrl] = useState('https://www.youtube.com/embed/dQw4w9WgXcQ')
+  const [toursVideoUrl, setToursVideoUrl] = useState('')  // Se carga de settings: TOURS_PROMO_VIDEO_URL
   const [homeHeroVideoUrl, setHomeHeroVideoUrl] = useState('')  // Video de fondo del hero
   const [groupsTabVideoUrl, setGroupsTabVideoUrl] = useState('') // Video del tab de grupos
 
@@ -2049,6 +2049,7 @@ export default function Home() {
                     {/* Video promocional - usa GROUPS_TAB_VIDEO_URL o TOURS_PROMO_VIDEO_URL como fallback */}
                     {(() => {
                       const videoUrl = groupsTabVideoUrl || toursVideoUrl;
+                      if (!videoUrl) return null;  // No mostrar nada si no hay URL configurada
                       return (
                         <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden mb-6 bg-gray-900">
                           {videoUrl.includes('youtube') || videoUrl.includes('vimeo') ? (

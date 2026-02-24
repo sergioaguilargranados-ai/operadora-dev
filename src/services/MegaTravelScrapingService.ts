@@ -1177,7 +1177,11 @@ export class MegaTravelScrapingService {
             const categoryCovers = [
                 'europa', 'asia', 'turquia', 'japon', 'corea', 'medio-oriente',
                 'dubai', 'egipto', 'sudamerica', 'usa', 'canada', 'cruceros',
-                'africa', 'mexico', 'balcanes', 'centroamerica', 'caribe'
+                'africa', 'mexico', 'balcanes', 'centroamerica', 'caribe',
+                'alaska', 'india', 'china', 'rusia', 'australia', 'oceania',
+                'marruecos', 'peru', 'colombia', 'brasil', 'argentina', 'chile',
+                'escandinavia', 'mediterraneo', 'oriental', 'norteamerica',
+                'tierra-santa', 'israel', 'grecia', 'italia', 'espana', 'francia'
             ];
 
             $('img').each((i, elem) => {
@@ -1218,9 +1222,11 @@ export class MegaTravelScrapingService {
                 mainImage = tourImages.find(img => img.includes('/covers/')) || null;
             }
 
-            // Si no encontramos covers, usar la URL predecible de MegaTravel
-            if (!mainImage && tourCode) {
-                mainImage = `https://cdnmega.com/images/viajes/covers/${tourCode}-cover.jpg`;
+            // Fallback final: usar la primera imagen de galería disponible
+            // NO construir URLs predecibles sin verificar, causan imagenes rotas
+            if (!mainImage && tourImages.length > 0) {
+                mainImage = tourImages[0];
+                console.log(`   📷 Usando primera imagen disponible como principal: ${mainImage.substring(0, 80)}`);
             }
 
             if (mainImage) {
@@ -1236,14 +1242,7 @@ export class MegaTravelScrapingService {
                 img.includes('map') || img.includes('mapa') || img.includes('mapas')
             ) || null;
 
-            // Estrategia 2: Construir URL predecible del mapa si tenemos el código
-            if (!mapImage && tourCode) {
-                const predictableMapUrl = `https://cdnmega.com/images/viajes/mapas/${tourCode}.jpg`;
-                mapImage = predictableMapUrl;
-                console.log(`   🗺️  Mapa construido: ${predictableMapUrl}`);
-            }
-
-            // Estrategia 3: Buscar en <img> con alt que contenga "mapa" o "recorrido"
+            // Estrategia 2: Buscar en <img> con alt que contenga "mapa" o "recorrido"
             if (!mapImage) {
                 $('img').each((i, elem) => {
                     const alt = ($(elem).attr('alt') || '').toLowerCase();
