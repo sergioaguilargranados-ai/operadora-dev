@@ -96,6 +96,18 @@ interface TourDetail {
     notIncludes: string[]
     itinerary?: any[]
     optionalTours: any[]
+    departures?: Array<{
+        departure_date: string
+        return_date?: string
+        price_usd?: number
+        taxes_usd?: number
+        supplement_usd?: number
+        total_usd?: number
+        origin_city?: string
+        availability: string
+        status: string
+        notes?: string
+    }>
 
     // NUEVOS CAMPOS
     detailedHotels?: Array<{
@@ -144,6 +156,12 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
     const [showFullItinerary, setShowFullItinerary] = useState(false)
     const [numPersonas, setNumPersonas] = useState(1) // Selector de personas
     const [mapImageFailed, setMapImageFailed] = useState(false)
+    const [selectedDeparture, setSelectedDeparture] = useState<{
+        departure_date: string; return_date?: string; price_usd?: number;
+        taxes_usd?: number; supplement_usd?: number; total_usd?: number;
+        origin_city?: string; availability: string; status: string; notes?: string;
+    } | null>(null)
+    const [departureMonthFilter, setDepartureMonthFilter] = useState<string>('all')
 
     useEffect(() => {
         fetchTourDetail()
@@ -788,7 +806,18 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                             <Card className="p-6 border-2 border-blue-200">
                                 {/* Precio principal */}
                                 <div className="text-center mb-6">
-                                    {tour.pricing.basePrice > 0 ? (
+                                    {selectedDeparture && (selectedDeparture.price_usd || selectedDeparture.total_usd) ? (
+                                        <>
+                                            <div className="text-4xl font-bold text-blue-600 mb-2">
+                                                ${formatPrice(selectedDeparture.total_usd || selectedDeparture.price_usd || 0)}
+                                                <span className="text-lg text-gray-600 ml-2">USD</span>
+                                            </div>
+                                            <p className="text-sm text-gray-600">Por persona en habitación Doble</p>
+                                            <p className="text-xs text-green-600 mt-1">
+                                                📅 Salida: {new Date(selectedDeparture.departure_date + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            </p>
+                                        </>
+                                    ) : tour.pricing.basePrice > 0 ? (
                                         <>
                                             <div className="text-4xl font-bold text-blue-600 mb-2">
                                                 ${formatPrice(tour.pricing.basePrice)}
@@ -809,12 +838,24 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                 <div className="space-y-3 mb-6 pb-6 border-b">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-600">Precio base:</span>
-                                        <span className="font-semibold">${formatPrice(tour.pricing.basePrice)} USD</span>
+                                        <span className="font-semibold">
+                                            ${formatPrice(selectedDeparture?.price_usd || tour.pricing.basePrice)} USD
+                                        </span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-600">Impuestos:</span>
-                                        <span className="font-semibold">${formatPrice(tour.pricing.taxes || 0)} USD</span>
+                                        <span className="font-semibold">
+                                            ${formatPrice(selectedDeparture?.taxes_usd || tour.pricing.taxes || 0)} USD
+                                        </span>
                                     </div>
+                                    {selectedDeparture?.supplement_usd && selectedDeparture.supplement_usd > 0 && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-600">Suplemento:</span>
+                                            <span className="font-semibold text-orange-600">
+                                                ${formatPrice(selectedDeparture.supplement_usd)} USD
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Selector de número de personas */}
@@ -841,27 +882,35 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                 <div className="flex justify-between items-center mb-6 pb-6 border-b">
                                     <span className="text-lg font-bold text-gray-900">Total ({numPersonas} {numPersonas === 1 ? 'persona' : 'personas'}):</span>
                                     <span className="text-2xl font-bold text-blue-600">
-                                        {tour.pricing.totalPrice > 0 || tour.pricing.basePrice > 0
-                                            ? `$${formatPrice((tour.pricing.totalPrice || (tour.pricing.basePrice + (tour.pricing.taxes || 0))) * numPersonas)} USD`
-                                            : 'Consultar'
-                                        }
+                                        {(() => {
+                                            const unitPrice = selectedDeparture?.total_usd || selectedDeparture?.price_usd || tour.pricing.totalPrice || (tour.pricing.basePrice + (tour.pricing.taxes || 0))
+                                            return unitPrice > 0 ? `$${formatPrice(unitPrice * numPersonas)} USD` : 'Consultar'
+                                        })()}
                                     </span>
                                 </div>
 
-                                {/* Botón Cotizar Tour (reemplaza WhatsApp) */}
+                                {/* Botón Cotizar Tour */}
                                 <Button
                                     size="lg"
                                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
                                     onClick={() => {
-                                        const params = new URLSearchParams({
+                                        const queryParams: Record<string, string> = {
                                             tourId: tour.id,
                                             tourName: tour.name,
-                                            price: tour.pricing.basePrice.toString(),
+                                            price: (selectedDeparture?.price_usd || tour.pricing.basePrice).toString(),
                                             region: tour.region,
                                             duration: `${tour.days} días / ${tour.nights} noches`,
                                             cities: tour.cities.join(', '),
                                             personas: numPersonas.toString()
-                                        })
+                                        }
+                                        if (selectedDeparture) {
+                                            queryParams.fechaSalida = selectedDeparture.departure_date
+                                            if (selectedDeparture.total_usd) queryParams.totalPorPersona = selectedDeparture.total_usd.toString()
+                                            if (selectedDeparture.taxes_usd) queryParams.impuestos = selectedDeparture.taxes_usd.toString()
+                                            if (selectedDeparture.supplement_usd) queryParams.suplemento = selectedDeparture.supplement_usd.toString()
+                                            if (selectedDeparture.origin_city) queryParams.ciudadSalida = selectedDeparture.origin_city
+                                        }
+                                        const params = new URLSearchParams(queryParams)
                                         window.location.href = `/cotizar-tour?${params.toString()}`
                                     }}
                                 >
@@ -873,6 +922,150 @@ export default function TourDetailPage({ params }: { params: Promise<{ code: str
                                     Respuesta inmediata • Asesoría personalizada
                                 </p>
                             </Card>
+
+                            {/* Card de Fechas de Salida */}
+                            {tour.departures && tour.departures.length > 0 && (() => {
+                                // Agrupar fechas por mes
+                                const sortedDeps = [...tour.departures]
+                                    .filter(d => new Date(d.departure_date + 'T12:00:00') >= new Date())
+                                    .sort((a, b) => a.departure_date.localeCompare(b.departure_date))
+
+                                const months = [...new Set(sortedDeps.map(d => {
+                                    const date = new Date(d.departure_date + 'T12:00:00')
+                                    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+                                }))]
+
+                                const filteredDeps = departureMonthFilter === 'all'
+                                    ? sortedDeps
+                                    : sortedDeps.filter(d => d.departure_date.startsWith(departureMonthFilter))
+
+                                return (
+                                    <Card className="p-6 border-2 border-green-200">
+                                        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                            <Calendar className="w-5 h-5 text-green-600" />
+                                            Selecciona tu fecha de salida
+                                        </h3>
+
+                                        {/* Filtro por mes */}
+                                        {months.length > 1 && (
+                                            <div className="flex gap-2 mb-4 flex-wrap">
+                                                <button
+                                                    onClick={() => setDepartureMonthFilter('all')}
+                                                    className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${departureMonthFilter === 'all'
+                                                        ? 'bg-green-600 text-white'
+                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                        }`}
+                                                >
+                                                    Todas
+                                                </button>
+                                                {months.map(month => {
+                                                    const [y, m] = month.split('-')
+                                                    const monthName = new Date(parseInt(y), parseInt(m) - 1).toLocaleDateString('es-MX', { month: 'short' })
+                                                    return (
+                                                        <button
+                                                            key={month}
+                                                            onClick={() => setDepartureMonthFilter(month)}
+                                                            className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors capitalize ${departureMonthFilter === month
+                                                                ? 'bg-green-600 text-white'
+                                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                                }`}
+                                                        >
+                                                            {monthName} {y}
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
+
+                                        {/* Lista de fechas */}
+                                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                                            {filteredDeps.map((dep, i) => {
+                                                const date = new Date(dep.departure_date + 'T12:00:00')
+                                                const dateStr = date.toLocaleDateString('es-MX', {
+                                                    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+                                                })
+                                                const isSelected = selectedDeparture?.departure_date === dep.departure_date
+                                                const isLimited = dep.availability === 'limited'
+                                                const isSoldOut = dep.availability === 'sold_out'
+
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        onClick={() => !isSoldOut && setSelectedDeparture(dep)}
+                                                        className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${isSoldOut
+                                                            ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
+                                                            : isSelected
+                                                                ? 'border-green-500 bg-green-50 shadow-md'
+                                                                : 'border-gray-200 hover:border-green-300 hover:bg-green-50/30'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex-1">
+                                                                <p className="font-semibold text-gray-900 capitalize text-sm">
+                                                                    📅 {dateStr}
+                                                                </p>
+                                                                {dep.origin_city && (
+                                                                    <p className="text-xs text-gray-500 mt-0.5">{dep.origin_city}</p>
+                                                                )}
+                                                            </div>
+                                                            <div className="text-right">
+                                                                {dep.total_usd || dep.price_usd ? (
+                                                                    <p className="font-bold text-green-700 text-lg">
+                                                                        ${formatPrice(dep.total_usd || dep.price_usd || 0)}
+                                                                        <span className="text-xs font-normal text-gray-500 ml-1">USD</span>
+                                                                    </p>
+                                                                ) : null}
+                                                                {isLimited && (
+                                                                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">
+                                                                        ⚠ Limitada
+                                                                    </span>
+                                                                )}
+                                                                {isSoldOut && (
+                                                                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+                                                                        Agotada
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        {isSelected && (
+                                                            <div className="mt-2 pt-2 border-t border-green-200">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
+                                                                        const queryParams: Record<string, string> = {
+                                                                            tourId: tour.id,
+                                                                            tourName: tour.name,
+                                                                            price: (dep.price_usd || tour.pricing.basePrice).toString(),
+                                                                            region: tour.region,
+                                                                            duration: `${tour.days} días / ${tour.nights} noches`,
+                                                                            cities: tour.cities.join(', '),
+                                                                            personas: numPersonas.toString(),
+                                                                            fechaSalida: dep.departure_date
+                                                                        }
+                                                                        if (dep.total_usd) queryParams.totalPorPersona = dep.total_usd.toString()
+                                                                        if (dep.taxes_usd) queryParams.impuestos = dep.taxes_usd.toString()
+                                                                        if (dep.supplement_usd) queryParams.suplemento = dep.supplement_usd.toString()
+                                                                        if (dep.origin_city) queryParams.ciudadSalida = dep.origin_city
+                                                                        const params = new URLSearchParams(queryParams)
+                                                                        window.location.href = `/cotizar-tour?${params.toString()}`
+                                                                    }}
+                                                                    className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
+                                                                >
+                                                                    Cotizar ahora →
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+
+                                        {filteredDeps.length === 0 && (
+                                            <p className="text-sm text-gray-500 text-center py-4">No hay fechas disponibles para este mes</p>
+                                        )}
+                                    </Card>
+                                )
+                            })()}
                         </div>
                     </div>
                 </div>

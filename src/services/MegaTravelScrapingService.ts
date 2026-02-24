@@ -38,6 +38,10 @@ export interface Departure {
     departure_date: string;  // ISO date
     return_date?: string;
     price_usd?: number;
+    taxes_usd?: number;       // Impuestos
+    supplement_usd?: number;  // Suplemento
+    total_usd?: number;       // Total por persona
+    origin_city?: string;     // Ciudad de salida (ej: 'Ciudad de México (MEX)')
     price_variation?: number;  // Diferencia vs precio base
     availability: string;  // 'available', 'limited', 'sold_out'
     status: string;  // 'confirmed', 'pending', 'cancelled'
@@ -297,7 +301,7 @@ export class MegaTravelScrapingService {
 
             // Extraer cada tipo de dato
             const itinerary = await this.scrapeItinerary($, null, tourUrl); // page ya está cerrado
-            const departures = await this.scrapeDepartures($);
+            let departures = await this.scrapeDepartures($);
             const policies = await this.scrapePolicies($);
             const additionalInfo = await this.scrapeAdditionalInfo($);
             const optionalTours = await this.scrapeOptionalTours($);
@@ -341,6 +345,12 @@ export class MegaTravelScrapingService {
                     if (circuitoData.not_includes.length > not_includes.length) {
                         not_includes = circuitoData.not_includes;
                         console.log(`✅ Not-includes desde circuito.php: ${not_includes.length} items`);
+                    }
+
+                    // Usar fechas del circuito si tiene más que las del scraping principal
+                    if (circuitoData.departures && circuitoData.departures.length > departures.length) {
+                        departures = circuitoData.departures;
+                        console.log(`✅ Fechas de salida desde circuito.php: ${departures.length} fechas`);
                     }
 
                 } catch (error) {
@@ -412,6 +422,7 @@ export class MegaTravelScrapingService {
         includes: string[];
         not_includes: string[];
         duration: string | null;
+        departures: Departure[];
     }> {
         const url = `https://www.megatravel.com.mx/tools/circuito.php?domi=&domiviaja=&viaje=${tourCode}&txtColor=000000&thBG=666666&thTxColor=FFFFFF&ff=1`;
 
@@ -600,11 +611,61 @@ export class MegaTravelScrapingService {
                 }
             }
 
-            return { itinerary: days, includes, not_includes, duration };
+            // ========== FECHAS DE SALIDA desde circuito.php ==========
+            const departures: Departure[] = [];
+            const fechasHeading = $('h5').filter((i, el) => $(el).text().trim().toLowerCase().includes('fecha'));
+            if (fechasHeading.length > 0) {
+                let fechasContainer = fechasHeading.next();
+                const fechasText = fechasContainer.text().trim();
+                console.log(`   📅 Circuito fechas raw: "${fechasText.substring(0, 200)}"`);
+
+                // Formato: "Marzo: 28\nAbril: 04, 25\nMayo: 16, 30"
+                const currentYear = new Date().getFullYear();
+                const monthMap: Record<string, number> = {
+                    'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3,
+                    'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7,
+                    'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11
+                };
+
+                const lines = fechasText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                for (const line of lines) {
+                    // Formato: "Mes: día, día, día" o "Mes: día"
+                    const match = line.match(/^([a-záéíóúñ]+)\s*[:.]\s*(.+)$/i);
+                    if (match) {
+                        const monthName = match[1].toLowerCase();
+                        const monthIdx = monthMap[monthName];
+                        if (monthIdx !== undefined) {
+                            const dayParts = match[2].split(/[,y]+/).map(d => d.trim()).filter(d => /^\d+$/.test(d));
+                            for (const dayStr of dayParts) {
+                                const day = parseInt(dayStr);
+                                if (day >= 1 && day <= 31) {
+                                    // Si el mes ya pasó, usar el año siguiente
+                                    let year = currentYear;
+                                    const now = new Date();
+                                    if (monthIdx < now.getMonth() || (monthIdx === now.getMonth() && day < now.getDate())) {
+                                        year = currentYear + 1;
+                                    }
+                                    const date = new Date(year, monthIdx, day);
+                                    departures.push({
+                                        departure_date: date.toISOString().split('T')[0],
+                                        availability: 'available',
+                                        status: 'confirmed'
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+                console.log(`   📅 Circuito: ${departures.length} fechas de salida extraídas`);
+            } else {
+                console.log('   ⚠️  No se encontró sección de fechas de salida en circuito');
+            }
+
+            return { itinerary: days, includes, not_includes, duration, departures };
 
         } catch (error) {
             console.error(`❌ Error scraping circuito.php para tour ${tourCode}:`, error);
-            return { itinerary: [], includes: [], not_includes: [], duration: null };
+            return { itinerary: [], includes: [], not_includes: [], duration: null, departures: [] };
         }
     }
 
