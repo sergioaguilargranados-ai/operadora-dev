@@ -164,10 +164,27 @@ export async function POST(request: NextRequest) {
         const updateValues: any[] = [];
         let paramIdx = 1;
 
-        // Actualizar main_image si el scrape encontró una
-        if (scrapedData.images.main) {
+        // Actualizar main_image si el scrape encontró una NO genérica
+        const genericPatterns = [
+            'europa', 'asia', 'turquia', 'japon', 'corea', 'medio-oriente',
+            'dubai', 'egipto', 'sudamerica', 'usa-', 'canada', 'cruceros',
+            'africa', 'mexico', 'balcanes', 'centroamerica', 'caribe',
+            'bellezasde', 'banner-mega', 'celebrity-millennium', 'celebrity-milennium'
+        ];
+        const codeOnly = code.replace('MT-', '');
+        const isGenericImage = (url: string) => {
+            const lower = url.toLowerCase();
+            // Si contiene el código del tour, NO es genérica
+            if (lower.includes(codeOnly)) return false;
+            // Si contiene un patrón genérico, SÍ es genérica
+            return genericPatterns.some(p => lower.includes(p));
+        };
+
+        if (scrapedData.images.main && !isGenericImage(scrapedData.images.main)) {
             updateFields.push(`main_image = $${paramIdx++}`);
             updateValues.push(scrapedData.images.main);
+        } else if (scrapedData.images.main) {
+            console.log(`   ⚠️ Imagen genérica detectada, NO se guardará: ${scrapedData.images.main}`);
         }
 
         // Actualizar gallery
