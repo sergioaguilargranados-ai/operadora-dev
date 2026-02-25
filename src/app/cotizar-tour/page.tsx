@@ -278,12 +278,20 @@ function CotizarTourContent() {
         )
     }
 
-    // Calcular el total con impuestos - siempre sumar base + impuestos + suplemento
-    const totalPerPerson = tourData.totalPerPerson > tourData.price
-        ? tourData.totalPerPerson
-        : (tourData.price + (tourData.taxes || 0) + (tourData.supplement || 0))
+    // Calcular el total con impuestos - SIEMPRE sumar directamente
+    const totalPerPerson = (tourData.price || 0) + (tourData.taxes || 0) + (tourData.supplement || 0)
     const numPersonas = parseInt(formData.numPersonas) || 1
     const totalEstimado = totalPerPerson * numPersonas
+
+    // Debug en consola para verificar valores
+    console.log('🔢 DEBUG cotizar-tour:', {
+        price: tourData.price,
+        taxes: tourData.taxes,
+        supplement: tourData.supplement,
+        totalPerPerson,
+        totalEstimado,
+        tourDataTotalPerPerson: tourData.totalPerPerson
+    })
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
