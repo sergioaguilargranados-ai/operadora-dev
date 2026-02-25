@@ -589,7 +589,7 @@ export default function CotizacionTrackingPage({ params }: { params: Promise<{ f
                 <div className="container mx-auto px-4">
                     <div className="text-center text-sm text-gray-600">
                         <p>© 2026 AS Operadora de Viajes y Eventos. Todos los derechos reservados.</p>
-                        <p className="text-xs mt-2 opacity-50">v2.325 | Build: 25 Feb 2026</p>
+                        <p className="text-xs mt-2 opacity-50">v2.330 | Build: 25 Feb 2026</p>
                     </div>
                 </div>
             </footer>

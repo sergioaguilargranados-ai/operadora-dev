@@ -664,7 +664,7 @@ function CotizarTourContent() {
                     <div className="border-t pt-8 text-sm text-muted-foreground text-center">
                         <p>© 2026 AS Operadora de Viajes y Eventos. Todos los derechos reservados.</p>
                         <p className="text-xs mt-1">AS Viajando</p>
-                        <p className="text-xs mt-2 opacity-50">v2.325 | Build: 25 Feb 2026</p>
+                        <p className="text-xs mt-2 opacity-50">v2.330 | Build: 25 Feb 2026</p>
                     </div>
                 </div>
             </footer>
