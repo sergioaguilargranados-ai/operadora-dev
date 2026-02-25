@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 24 de Febrero de 2026 - 17:53 CST  
-**Versión actual:** v2.329  
+**Última actualización:** 25 de Febrero de 2026 - 00:09 CST  
+**Versión actual:** v2.331  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,59 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.331 - 25 de Febrero de 2026 - 00:09 CST
+
+**🐛 Fix Crítico: Cálculo de Totales con Impuestos en Cotización de Tours**
+
+**Problema reportado:**
+Los impuestos ($999 USD en Japón, $399 USD en Colombia) se mostraban en el sidebar pero NO se sumaban al "Total por persona" ni al "Total estimado". La fecha de salida mostraba "Invalid Date" en algunos casos.
+
+**Archivos modificados:**
+- ✅ `src/app/tours/[code]/page.tsx` — Botón "Cotizar Tour" y botón inline "Cotizar ahora"
+- ✅ `src/app/cotizar-tour/page.tsx` — Cálculo de totalPerPerson y página de confirmación
+- ✅ `src/app/cotizacion/[folio]/page.tsx` — Parsing de fecha de salida del DB
+- ✅ `src/components/BrandFooter.tsx` — Bump versión a v2.331
+
+**Correcciones específicas:**
+
+1. **Invalid Date al seleccionar fecha de salida:**
+   - **Causa raíz:** `departure_date` venía del DB como ISO completo (`2026-02-28T00:00:00.000Z`). Al concatenar `+ 'T12:00:00'` se generaba una fecha inválida.
+   - **Fix:** Aplicar `.substring(0, 10)` para extraer solo `YYYY-MM-DD` antes de crear objetos `Date`.
+   - **Archivos:** `tours/[code]/page.tsx`, `cotizar-tour/page.tsx`, `cotizacion/[folio]/page.tsx`
+
+2. **Impuestos no pasados como URL params:**
+   - **Causa raíz:** `if (selectedDeparture.taxes_usd)` fallaba cuando `taxes_usd` era `0` o `undefined`. Los impuestos estaban en `tour.pricing.taxes` pero el código no hacía fallback.
+   - **Fix:** Usar `selectedDeparture?.taxes_usd ?? tour.pricing.taxes ?? 0` con nullish coalescing.
+   - **Archivos:** `tours/[code]/page.tsx` (ambos botones de cotizar)
+
+3. **Total por persona no sumaba impuestos:**
+   - **Causa raíz:** `selectedDeparture.total_usd` contenía solo el precio base (e.g. $2,299), pero al ser truthy, el `||` nunca ejecutaba el cálculo que sumaba impuestos.
+   - **Fix:** Eliminar toda dependencia de `total_usd`. Calcular SIEMPRE como `price + taxes + supplement` directamente: `const totalPerPerson = (tourData.price || 0) + (tourData.taxes || 0) + (tourData.supplement || 0)`
+   - **Archivos:** `cotizar-tour/page.tsx` (línea 282)
+
+4. **Página de confirmación "¡Cotización Enviada!" no sumaba:**
+   - **Causa raíz:** Usaba `tourData.totalPerPerson` del URL param que contenía solo el precio base.
+   - **Fix:** Calcular total inline con la misma fórmula `price + taxes + supplement`.
+   - **Archivos:** `cotizar-tour/page.tsx` (sección `submitted`)
+
+**Lecciones aprendidas:**
+- ⚠️ **Nunca confiar en `total_usd` de la API de MegaTravel** — puede ser solo el precio base sin impuestos. Siempre calcular explícitamente.
+- ⚠️ **Usar `??` (nullish coalescing) en vez de `||`** cuando se necesita fallback solo para `null/undefined`, pero recordar que `??` NO captura `0`.
+- ⚠️ **Fechas del DB siempre pueden venir como ISO completo** — sanitizar con `.substring(0, 10)` antes de manipular.
+- ⚠️ **Agregar `console.log` de debug** temporalmente para diagnosticar valores en producción cuando el error es difícil de reproducir.
+
+---
+
+### v2.330 - 25 de Febrero de 2026 - 00:00 CST
+
+**🔄 Versión intermedia de diagnóstico**
+
+- Bump de versión en footer para verificar que Vercel estuviera desplegando correctamente
+- Primera iteración del fix de totalPerPerson (condicional `> price`) — insuficiente
+- Confirmó que el deploy sí se actualizaba pero el cálculo seguía incorrecto
+
+---
 
 ### v2.329 - 24 de Febrero de 2026 - 17:53 CST
 
