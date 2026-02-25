@@ -248,11 +248,15 @@ function CotizarTourContent() {
                                     <><strong>Ciudad de salida:</strong> {tourData.originCity}<br /></>
                                 )}
                                 <strong>Personas:</strong> {formData.numPersonas}<br />
-                                <strong>Precio por persona:</strong> ${formatPrice(tourData.totalPerPerson)} USD<br />
+                                <strong>Precio base:</strong> ${formatPrice(tourData.price)} USD<br />
                                 {tourData.taxes > 0 && (
-                                    <><span className="text-xs text-blue-500">(Incluye impuestos: ${formatPrice(tourData.taxes)} USD)</span><br /></>
+                                    <><strong>Impuestos:</strong> ${formatPrice(tourData.taxes)} USD<br /></>
                                 )}
-                                <strong>Total estimado:</strong> ${formatPrice(tourData.totalPerPerson * parseInt(formData.numPersonas))} USD
+                                {tourData.supplement > 0 && (
+                                    <><strong>Suplemento:</strong> ${formatPrice(tourData.supplement)} USD<br /></>
+                                )}
+                                <strong>Total por persona:</strong> ${formatPrice((tourData.price || 0) + (tourData.taxes || 0) + (tourData.supplement || 0))} USD<br />
+                                <strong>Total estimado:</strong> ${formatPrice(((tourData.price || 0) + (tourData.taxes || 0) + (tourData.supplement || 0)) * parseInt(formData.numPersonas))} USD
                             </p>
                         </div>
                         <div className="flex gap-3 justify-center flex-wrap">
