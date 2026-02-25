@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 19 de Febrero de 2026 - 01:49 CST  
-**Versión actual:** v2.321  
+**Última actualización:** 24 de Febrero de 2026 - 17:53 CST  
+**Versión actual:** v2.329  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -35,7 +35,213 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 
 ## 📅 HISTORIAL DE CAMBIOS
 
-### v2.321 - 19 de Febrero de 2026 - 01:49 CST
+### v2.329 - 24 de Febrero de 2026 - 17:53 CST
+
+**🖼️ Panel Admin de Gestión Manual de Imágenes de Tours**
+
+**Nuevo Endpoint API (`/api/admin/tour-image`):**
+- ✅ `GET ?missing=true` — Lista todos los tours sin imagen principal (21 detectados)
+- ✅ `GET ?code=MT-XXXXX` — Ver estado de imagen de un tour (detecta imágenes genéricas)
+- ✅ `POST ?code=MT-XXXXX` con body `{ "imageUrl": "..." }` — Establecer imagen manualmente
+- ✅ `POST ?code=MT-XXXXX&clear=true` — Limpiar imagen a null para identificar pendientes
+- ✅ Detección automática de imágenes genéricas de categoría (europa, cruceros, asia, etc.)
+
+**Nuevo Panel Admin (`/admin/tour-images` + pestaña en Gestión de Contenido):**
+- ✅ Dashboard visual con KPIs: tours sin imagen, instrucciones paso a paso
+- ✅ Buscador por nombre, código o región
+- ✅ Cards expandibles por tour con: código, nombre, región, país, duración
+- ✅ Link directo a MegaTravel para buscar la imagen correcta
+- ✅ Campo para pegar URL de imagen + vista previa inline
+- ✅ Botón guardar con feedback visual (animación, toast, auto-remove)
+- ✅ **Integrado como pestaña "Imágenes Tours" en Gestión de Contenido** (`/admin/content`) para evitar problemas de auth
+- ✅ Auth check: requiere SUPER_ADMIN, ADMIN o MANAGER
+
+**Mejora en Rescrape (`/api/admin/rescrape-tour`):**
+- ✅ Filtro de imágenes genéricas: al re-scrapear, imágenes de categoría (bellezasdeeuropa, etc.) NO se guardan como `main_image`
+- ✅ Solo imágenes específicas del tour se actualizan
+- ✅ Log de advertencia cuando se detecta imagen genérica
+
+**Acción ejecutada:**
+- ✅ Limpiada imagen genérica `bellezasdeeuropa` de tour MT-60968 → null
+- ✅ 21 tours identificados sin imagen para gestión manual
+
+**Archivos creados/modificados:**
+```
+src/app/api/admin/tour-image/route.ts          (NUEVO - API gestión imágenes)
+src/app/admin/tour-images/page.tsx             (NUEVO - Panel admin visual)
+src/app/api/admin/rescrape-tour/route.ts       (MODIFICADO - filtro imágenes genéricas)
+src/components/BrandFooter.tsx                 (MODIFICADO - footer v2.329)
+```
+
+---
+
+### v2.328 - 24 de Febrero de 2026 - 13:00 CST
+
+**📅 Fechas de Salida y Precios Dinámicos en Detalle de Tour**
+
+**Scraping de Fechas de Salida:**
+- ✅ Extracción de fechas de salida desde `circuito.php` de MegaTravel
+- ✅ Parseo de precios por fecha de salida (precio base, impuestos, total)
+- ✅ Almacenamiento en tabla `megatravel_departures`
+
+**UI Interactiva de Fechas:**
+- ✅ Sección "Fechas de Salida" en página de detalle del tour
+- ✅ Agrupación de fechas por mes con selector visual
+- ✅ Indicadores de disponibilidad (Disponible, Lugares limitados, Agotado)
+- ✅ Al seleccionar fecha, el precio se actualiza dinámicamente
+- ✅ Botón "Cotizar ahora" pasa la fecha seleccionada a la página de cotización
+- ✅ Helper `parseDepartureDate()` para manejo correcto de fechas ISO vs date-only
+
+**Endpoint Re-scrape Individual (`/api/admin/rescrape-tour`):**
+- ✅ `GET ?code=MT-XXXXX` — Muestra estado actual del tour antes de re-scrapear
+- ✅ `POST ?code=MT-XXXXX` — Ejecuta re-scrape completo y compara estado antes/después
+- ✅ Actualiza: imagen, galería, precio, impuestos, itinerario, departures, includes, cities, tags
+
+**Archivos creados/modificados:**
+```
+src/app/tours/[code]/page.tsx                  (MODIFICADO - UI fechas + parseDepartureDate)
+src/app/api/admin/rescrape-tour/route.ts       (NUEVO - Re-scrape individual)
+```
+
+---
+
+### v2.327 - 24 de Febrero de 2026 - 10:45 CST
+
+**🖼️ Fix Video e Imágenes de Tours + Limpieza de Galerías**
+
+**Imágenes y Video:**
+- ✅ Fix reproducción de video embebido en detalle del tour
+- ✅ Galería con `object-contain` (imagen completa sin recortar) + fondo difuminado premium
+- ✅ API para limpiar imágenes genéricas de categoría (`/api/admin/fix-tour-images`)
+- ✅ Limpieza mejorada: detecta y elimina imágenes de galería que no pertenecen al tour
+
+**Patrones de imágenes genéricas detectados:**
+- Regiones: europa, asia, turquia, japon, corea, medio-oriente, dubai, egipto, etc.
+- Cruceros: celebrity-millennium, grandeur-of-the-seas
+- Banners: banner-mega, covers de categoría MegaTravel
+
+**Archivos creados/modificados:**
+```
+src/app/tours/[code]/page.tsx                  (MODIFICADO - galería+video)
+src/app/api/admin/fix-tour-images/route.ts     (NUEVO - API limpieza imágenes)
+```
+
+---
+
+### v2.326 - 24 de Febrero de 2026 - 09:00 CST
+
+**🗺️ Mapa de Tour Robusto con 3 Niveles de Fallback**
+
+**TourMap Mejorado:**
+- ✅ Nivel 1: Mapa interactivo Google Maps con geocoding por contexto de país
+- ✅ Nivel 2: Imagen estática de Google Maps Static API cuando interactivo falla
+- ✅ Nivel 3: Texto con nombre de ciudades cuando todo lo demás falla
+- ✅ Timeout de 10 segundos con try-catch global para robustez
+- ✅ Loading state visual durante carga del mapa
+
+**Archivos modificados:**
+```
+src/app/tours/[code]/page.tsx                  (MODIFICADO - TourMap robusto)
+```
+
+---
+
+### v2.325 - 24 de Febrero de 2026 - 08:00 CST
+
+**🔧 Fix Crítico: Extracción de Metadatos OG y Parsing de Itinerario**
+
+**Scraping Mejorado:**
+- ✅ Extracción de meta OG con `page.evaluate()` antes de cerrar browser (fix Puppeteer)
+- ✅ Parsing de itinerario mejorado: descripciones en mismo párrafo
+- ✅ Fallback a texto plano cuando Cheerio falla
+- ✅ Múltiples fuentes para ciudades/países (meta OG, títulos itinerario, contenido)
+- ✅ Fallback: extraer ciudades desde títulos del itinerario cuando OG meta falla
+
+**Archivos modificados:**
+```
+src/services/MegaTravelScrapingService.ts      (MODIFICADO)
+src/components/BrandFooter.tsx                 (MODIFICADO - versión)
+```
+
+---
+
+### v2.324 - 23 de Febrero de 2026 CST
+
+**📦 Extracción de Ciudades/Países/Duración + Filtro de Imágenes Genéricas**
+
+**Mejoras en Scraping:**
+- ✅ Extracción de ciudades/países/duración desde datos del tour
+- ✅ Filtro de imágenes de categoría genérica (logos de EUROPA, ASIA, etc.)
+- ✅ Actualización de `saveScrapedData` con metadatos adicionales
+
+**Mejoras en API de Detalle:**
+- ✅ `getPackageByCode` ahora trae itinerario, departures, policies y additional info de tablas relacionadas
+- ✅ Fix precio 'Consultar' cuando no hay tarifa disponible
+- ✅ Mapa MegaTravel como imagen + Google Maps fallback
+
+**Documentación:**
+- ✅ Handoff document creado: `AG-Handoff-Tour-Details-v2.324.md`
+
+**Archivos modificados:**
+```
+src/services/MegaTravelScrapingService.ts      (MODIFICADO)
+src/app/api/groups/[code]/route.ts             (MODIFICADO)
+src/app/tours/[code]/page.tsx                  (MODIFICADO)
+docs/AG-Handoff-Tour-Details-v2.324.md         (NUEVO)
+```
+
+---
+
+### v2.323 - 19 de Febrero de 2026 - 11:12 CST
+
+**🔐 Mejoras Auth MegaTravel + Fix Precio NaN**
+
+**Autenticación MegaTravel:**
+- ✅ Auth fallback `as_user` cookie + verificación BD en API MegaTravel
+- ✅ Auto-refresh JWT cada 10 min durante scraping largo
+- ✅ Middleware fallback `as_user` cookie cuando JWT expira
+- ✅ Retry automático en errores 401
+
+**Sincronización:**
+- ✅ Detener batches vacíos automáticamente
+- ✅ `parseInt` correcto para `active_packages`
+- ✅ `last_sync_at` en discover-tours, limpieza de syncs 'running' stale
+- ✅ Registro de sync en historial
+
+**Archivos modificados:**
+```
+src/app/api/admin/scrape-all/route.ts          (MODIFICADO)
+src/middleware.ts                              (MODIFICADO)
+src/contexts/AuthContext.tsx                    (MODIFICADO)
+```
+
+---
+
+### v2.322 - 19 de Febrero de 2026 - 02:00 CST
+
+**🔄 Sincronización MegaTravel: Descubrimiento Real + Panel Unificado**
+
+**Descubrimiento de Tours:**
+- ✅ Endpoint `discover-tours` para descubrimiento real desde MegaTravel
+- ✅ Detección de tours deprecados/descontinuados
+- ✅ Sync por categoría sin timeout (fetch+cheerio)
+- ✅ Scraping solo tours activos (`is_active=true`)
+- ✅ `active_packages` para conteo total correcto
+
+**Panel Admin Unificado:**
+- ✅ Panel unificado Sync+Scraping con logs en tiempo real
+- ✅ Botón "Detener scraping" para cancelar operaciones en curso
+- ✅ MegaTravel movido a "Gestión de Contenido" (quitado del dashboard principal)
+- ✅ `puppeteer-core` para compatibilidad con Vercel
+
+**Archivos creados/modificados:**
+```
+src/app/api/admin/discover-tours/route.ts      (NUEVO)
+src/app/admin/megatravel/page.tsx              (MODIFICADO - panel unificado)
+src/services/MegaTravelSyncService.ts          (MODIFICADO)
+```
+
+---
 
 **🏷️ Cambio de Prefijo de Código de Tours: MT- → AS-**
 

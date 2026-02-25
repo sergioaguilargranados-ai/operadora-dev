@@ -1,5 +1,5 @@
 // BrandFooter.tsx - Footer dinámico con branding del tenant actual
-// Build: 19 Feb 2026 - v2.321 - Prefijo AS- tours + MegaTravel scraping manual + Dashboard link
+// Build: 24 Feb 2026 - v2.329 - Gestión manual de imágenes de tours + fechas de salida
 
 'use client';
 
@@ -92,7 +92,7 @@ export function BrandFooter() {
                         </p>
                     )}
                     <p className="text-xs mt-2 opacity-50">
-                        v2.327 | 24 Feb 2026 10:45
+                        v2.329 | 24 Feb 2026 18:00
                     </p>
                 </div>
             </div>

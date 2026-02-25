@@ -13,7 +13,8 @@ import { ContentModal } from "@/components/admin/ContentModal"
 import { VideoUrlEditor } from "@/components/admin/VideoUrlEditor"
 import {
   Plus, Edit, Trash2, DollarSign, Calendar, Plane, Hotel, Package,
-  Home, Globe, CheckCircle2, AlertCircle, X, RefreshCw
+  Home, Globe, CheckCircle2, AlertCircle, X, RefreshCw,
+  Image as ImageIcon, Search, Eye, Save, ExternalLink, ChevronDown, ChevronUp, AlertTriangle
 } from "lucide-react"
 
 export default function AdminContentPage() {
@@ -31,6 +32,16 @@ export default function AdminContentPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("hero")
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null)
+
+  // Tour Images state
+  const [tourImagesList, setTourImagesList] = useState<any[]>([])
+  const [tourImagesLoading, setTourImagesLoading] = useState(false)
+  const [tourImagesCount, setTourImagesCount] = useState(0)
+  const [tourImgSearch, setTourImgSearch] = useState('')
+  const [tourImgInputs, setTourImgInputs] = useState<Record<string, string>>({})
+  const [tourImgSaving, setTourImgSaving] = useState<Record<string, boolean>>({})
+  const [tourImgExpanded, setTourImgExpanded] = useState<string | null>(null)
+  const [tourImgPreview, setTourImgPreview] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated || !user?.role || !['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(user.role)) {
@@ -65,6 +76,23 @@ export default function AdminContentPage() {
       showToast('Error al cargar contenido', 'error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadTourImages = async () => {
+    try {
+      setTourImagesLoading(true)
+      const res = await fetch('/api/admin/tour-image?missing=true')
+      const data = await res.json()
+      if (data.success) {
+        setTourImagesList(data.tours)
+        setTourImagesCount(data.count)
+      }
+    } catch (error) {
+      console.error('Error loading tour images:', error)
+      showToast('Error al cargar tours', 'error')
+    } finally {
+      setTourImagesLoading(false)
     }
   }
 
@@ -395,7 +423,7 @@ export default function AdminContentPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-8">
+          <TabsList className="grid w-full grid-cols-7 mb-8">
             <TabsTrigger value="hero" className="flex items-center gap-2">
               <Home className="w-4 h-4" />
               Banner
@@ -415,6 +443,12 @@ export default function AdminContentPage() {
             <TabsTrigger value="videos" className="flex items-center gap-2">
               <Globe className="w-4 h-4" />
               Videos/URLs
+            </TabsTrigger>
+            <TabsTrigger value="tour-images" className="flex items-center gap-2" onClick={() => {
+              if (tourImagesList.length === 0) loadTourImages()
+            }}>
+              <ImageIcon className="w-4 h-4" />
+              Imágenes Tours
             </TabsTrigger>
             <TabsTrigger value="megatravel" className="flex items-center gap-2">
               <RefreshCw className="w-4 h-4" />
@@ -772,6 +806,200 @@ export default function AdminContentPage() {
               </div>
             </Card>
           </TabsContent>
+
+          {/* TOUR IMAGES TAB */}
+          <TabsContent value="tour-images">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">🖼️ Imágenes de Tours</h2>
+                <Button
+                  variant="outline"
+                  onClick={loadTourImages}
+                  disabled={tourImagesLoading}
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${tourImagesLoading ? 'animate-spin' : ''}`} />
+                  Actualizar
+                </Button>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="border border-red-200 bg-red-50 rounded-xl p-4 flex items-center gap-3">
+                  <div className="p-2 bg-red-100 rounded-lg">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-red-600 font-medium">Tours sin imagen</p>
+                    <p className="text-2xl font-bold text-red-800">{tourImagesCount}</p>
+                  </div>
+                </div>
+                <div className="border border-blue-200 bg-blue-50 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-amber-800">
+                      <p className="font-semibold mb-1">¿Cómo actualizar una imagen?</p>
+                      <ol className="list-decimal list-inside space-y-0.5 text-xs text-amber-700">
+                        <li>Clic en <strong>"Ver en MegaTravel"</strong></li>
+                        <li>Clic derecho en la imagen → <strong>"Copiar dirección de imagen"</strong></li>
+                        <li>Pega la URL en el campo y haz clic en <strong>"Guardar"</strong></li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Search */}
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre, código o región..."
+                  value={tourImgSearch}
+                  onChange={(e) => setTourImgSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {tourImgSearch && (
+                  <button onClick={() => setTourImgSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
+                )}
+              </div>
+
+              {/* Image Preview Modal */}
+              {tourImgPreview && (
+                <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => setTourImgPreview(null)}>
+                  <div className="relative max-w-3xl">
+                    <button onClick={() => setTourImgPreview(null)} className="absolute -top-3 -right-3 bg-white rounded-full p-1 shadow-lg hover:bg-gray-100 z-10">
+                      <X className="w-5 h-5" />
+                    </button>
+                    <img src={tourImgPreview} alt="Preview" className="max-w-full max-h-[70vh] object-contain rounded-xl shadow-2xl" />
+                  </div>
+                </div>
+              )}
+
+              {/* Tour List */}
+              {tourImagesLoading ? (
+                <div className="text-center py-12">
+                  <RefreshCw className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-3" />
+                  <p className="text-gray-500">Cargando tours...</p>
+                </div>
+              ) : tourImagesList.length === 0 ? (
+                <div className="text-center py-12">
+                  <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-3" />
+                  <p className="text-lg font-semibold text-gray-700">¡Todos los tours tienen imagen!</p>
+                  <p className="text-sm text-gray-500 mt-1">Haz clic en "Actualizar" para verificar</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {tourImagesList
+                    .filter(t => !tourImgSearch ||
+                      t.name.toLowerCase().includes(tourImgSearch.toLowerCase()) ||
+                      t.code.toLowerCase().includes(tourImgSearch.toLowerCase()) ||
+                      t.region.toLowerCase().includes(tourImgSearch.toLowerCase())
+                    )
+                    .map((tour: any) => {
+                      const isExp = tourImgExpanded === tour.code
+                      const isSaving = tourImgSaving[tour.code] || false
+                      const inputUrl = tourImgInputs[tour.code] || ''
+
+                      return (
+                        <div key={tour.code} className={`border rounded-lg transition-all ${isExp ? 'border-blue-300 shadow-md' : 'hover:border-blue-200'}`}>
+                          {/* Row */}
+                          <div className="p-3 flex items-center gap-3 cursor-pointer" onClick={() => setTourImgExpanded(isExp ? null : tour.code)}>
+                            <div className="w-14 h-10 rounded bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center flex-shrink-0">
+                              {inputUrl ? (
+                                <img src={inputUrl} alt="" className="w-full h-full object-cover rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                              ) : (
+                                <ImageIcon className="w-4 h-4 text-gray-400" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-mono bg-gray-100 px-1.5 py-0.5 rounded">{tour.code}</span>
+                                <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">{tour.region}</span>
+                              </div>
+                              <p className="font-medium text-sm truncate mt-0.5">{tour.name}</p>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span className="flex items-center gap-1 text-orange-500 text-xs">
+                                <AlertTriangle className="w-3 h-3" /> Sin imagen
+                              </span>
+                              {isExp ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                            </div>
+                          </div>
+
+                          {/* Expanded */}
+                          {isExp && (
+                            <div className="px-3 pb-3 pt-0 border-t">
+                              <div className="mt-3 space-y-3">
+                                <a href={tour.mtUrl} target="_blank" rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline font-medium"
+                                  onClick={(e) => e.stopPropagation()}>
+                                  <ExternalLink className="w-3.5 h-3.5" /> Ver en MegaTravel →
+                                </a>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Pega aquí la URL de la imagen..."
+                                    value={inputUrl}
+                                    onChange={(e) => setTourImgInputs(prev => ({ ...prev, [tour.code]: e.target.value }))}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex-1 px-3 py-2 rounded-lg border text-sm focus:ring-2 focus:ring-blue-500"
+                                  />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {inputUrl && (
+                                    <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setTourImgPreview(inputUrl) }}>
+                                      <Eye className="w-3.5 h-3.5 mr-1" /> Vista previa
+                                    </Button>
+                                  )}
+                                  <Button size="sm" disabled={!inputUrl || isSaving}
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                    onClick={async (e) => {
+                                      e.stopPropagation()
+                                      try { new URL(inputUrl) } catch { showToast('URL no válida', 'error'); return }
+                                      setTourImgSaving(prev => ({ ...prev, [tour.code]: true }))
+                                      try {
+                                        const res = await fetch(`/api/admin/tour-image?code=${tour.code}`, {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ imageUrl: inputUrl })
+                                        })
+                                        const data = await res.json()
+                                        if (data.success) {
+                                          showToast(`✅ Imagen de ${tour.code} guardada`, 'success')
+                                          setTimeout(() => {
+                                            setTourImagesList(prev => prev.filter(t => t.code !== tour.code))
+                                            setTourImagesCount(prev => prev - 1)
+                                          }, 1000)
+                                        } else {
+                                          showToast(`❌ Error: ${data.error}`, 'error')
+                                        }
+                                      } catch { showToast('❌ Error de red', 'error') }
+                                      setTourImgSaving(prev => ({ ...prev, [tour.code]: false }))
+                                    }}
+                                  >
+                                    {isSaving ? <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1" />}
+                                    Guardar
+                                  </Button>
+                                </div>
+                                {inputUrl && (
+                                  <div className="p-2 bg-gray-50 rounded-lg">
+                                    <p className="text-xs text-gray-500 mb-1">Vista previa:</p>
+                                    <img src={inputUrl} alt={tour.name} className="max-w-[200px] h-24 object-cover rounded border" />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                </div>
+              )}
+            </Card>
+          </TabsContent>
+
         </Tabs>
       </div>
     </div>
