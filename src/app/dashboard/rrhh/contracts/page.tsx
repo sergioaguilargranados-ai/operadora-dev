@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FileText, Search, Plus, Eye, Calendar, DollarSign, AlertTriangle, X, CheckCircle2 } from 'lucide-react'
+import { PageHeader } from '@/components/PageHeader'
 
 export default function ContractsPage() {
     const [contracts, setContracts] = useState<any[]>([])
@@ -62,7 +63,11 @@ export default function ContractsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/20 to-gray-50">
-            <div className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-10">
+            <PageHeader backButtonText="RRHH" backButtonHref="/dashboard/rrhh">
+                <span className="text-lg font-bold text-gray-800">Contratos</span>
+            </PageHeader>
+
+            <div className="bg-white/60 backdrop-blur-sm border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div><h1 className="text-lg font-bold text-gray-900 flex items-center gap-2"><FileText className="w-5 h-5 text-indigo-600" />Contratos</h1>
                         <p className="text-xs text-gray-500 mt-0.5">{contracts.length} contratos</p></div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FolderOpen, Search, Upload, Eye, CheckCircle2, XCircle, AlertTriangle, Clock } from 'lucide-react'
+import { PageHeader } from '@/components/PageHeader'
 
 export default function HRDocumentsPage() {
     const [documents, setDocuments] = useState<any[]>([])
@@ -22,7 +23,11 @@ export default function HRDocumentsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-rose-50/20 to-gray-50">
-            <div className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-10">
+            <PageHeader backButtonText="RRHH" backButtonHref="/dashboard/rrhh">
+                <span className="text-lg font-bold text-gray-800">Expediente Digital</span>
+            </PageHeader>
+
+            <div className="bg-white/60 backdrop-blur-sm border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div>
