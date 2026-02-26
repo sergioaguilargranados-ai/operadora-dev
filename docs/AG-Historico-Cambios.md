@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 25 de Febrero de 2026 - 00:09 CST  
-**Versión actual:** v2.331  
+**Última actualización:** 26 de Febrero de 2026 - 17:10 CST  
+**Versión actual:** v2.334  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,104 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.334 - 26 de Febrero de 2026 - 17:10 CST
+
+**🎟️ Módulo de Reservas & Pagos — Acciones, PDFs Premium, Pasarela de Pagos**
+
+**Puntos implementados:**
+
+1. **Auto-crear reserva al confirmar cotización:**
+   - Al cambiar status de cotización de tour a `confirmed`, se crea automáticamente un registro en `bookings`
+   - Mapea: tour_name → destination, precios → total_price, contacto → lead_traveler_*
+   - Todo lo que no cabe en columnas específicas va a `special_requests` como JSON
+   - Envía email de confirmación automático al cliente
+   - Archivo: `src/app/api/tours/quote/[folio]/route.ts`
+
+2. **Acciones en lista de reservas (`/mis-reservas`):**
+   - Botón **Ver** (ojo) — navega a detalle de reserva
+   - Botón **PDF** (impresora) — genera y descarga PDF oficial de reserva
+   - Botón **Pago** (tarjeta, verde) — navega a checkout (solo si payment_status ≠ paid)
+   - Botón **Facturar** (documento, púrpura) — navega a módulo de facturas (solo staff)
+   - Archivo: `src/app/mis-reservas/page.tsx`
+
+3. **Acciones en detalle de reserva (`/reserva/[id]`):**
+   - Botón **Descargar PDF** (azul sólido) — siempre visible
+   - Botón **Realizar Pago** (verde) — navega a checkout
+   - Botón **Facturar** (púrpura) — navega a facturas
+   - Botón **Enviar por Email** — existente
+   - Botón **Cancelar Reserva** (rojo) — solo si confirmada
+   - Archivo: `src/app/reserva/[id]/page.tsx`
+
+4. **PDF oficial de Reserva — diseño premium institucional:**
+   - Cabecera: logo AS serif, nombre empresa, badge de referencia azul
+   - Línea dorada separadora + contacto empresa
+   - Card de status con color (verde confirmada, amarillo pendiente, rojo cancelada)
+   - Sección "Datos del Viajero" con nombre y email
+   - Sección "Detalles del Servicio" con soporte especial para tours (nombre, cotización, fecha salida, ciudad origen, pasajeros, servicios incluidos, notas)
+   - Tabla "Resumen Financiero" con desglose (precio base, impuestos, suplemento, total por persona)
+   - Barra de total azul con monto formateado
+   - Términos y condiciones
+   - Footer navy/gold con logo, fecha de generación y contacto
+   - Archivo: `src/services/PDFService.ts` → `generateBookingVoucher()`
+
+5. **PDF Comprobante de Pago — diseño premium institucional:**
+   - Cabecera: logo AS serif, título verde "COMPROBANTE DE PAGO", badge transacción verde
+   - Card verde "✓ PAGO COMPLETADO" con fecha
+   - Secciones: Datos del Pago (ID, método, tarjeta, moneda), Datos del Cliente, Reserva Asociada
+   - Barra de total azul "MONTO PAGADO" con monto
+   - Nota legal sobre facturación
+   - Footer navy/gold institucional
+   - Archivo: `src/services/PDFService.ts` → `generatePaymentReceipt()`
+
+6. **Pasarela de pagos conectada:**
+   - Checkout `/checkout/[bookingId]` ya soporta Stripe, PayPal, Mercado Pago
+   - `create-payment-intent` crea registro `pending` en `payment_transactions`
+   - `confirm-payment` actualiza a `completed` + actualiza booking a `confirmed/paid`
+   - Los pagos se reflejan en "Transacciones de Pago" del dashboard
+
+**Archivos modificados:**
+- ✅ `src/app/api/tours/quote/[folio]/route.ts` — Auto-crear reserva al confirmar
+- ✅ `src/app/mis-reservas/page.tsx` — Botones Ver/PDF/Pago/Facturar
+- ✅ `src/app/reserva/[id]/page.tsx` — Botones PDF/Pago/Facturar en detalle
+- ✅ `src/services/PDFService.ts` — PDF Reserva premium + PDF Comprobante de Pago
+- ✅ `src/components/BrandFooter.tsx` — Bump v2.334
+- ✅ `src/app/page.tsx` — Build comment v2.334
+- ✅ `docs/AG-Contexto-Proyecto.md` — Módulo Reservas y Pagos documentado
+- ✅ `docs/AG-Historico-Cambios.md` — Esta entrada
+
+**SQL necesario (ejecutar manualmente en Neon si no existe):**
+```sql
+-- Migración 019: Tablas para cotizaciones generales
+CREATE TABLE IF NOT EXISTS quotes (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  tenant_id INTEGER NOT NULL DEFAULT 1,
+  folio VARCHAR(50) UNIQUE NOT NULL,
+  customer_name VARCHAR(255),
+  customer_email VARCHAR(255),
+  customer_phone VARCHAR(50),
+  status VARCHAR(50) DEFAULT 'draft',
+  notes TEXT,
+  total NUMERIC(12, 2) DEFAULT 0,
+  currency VARCHAR(10) DEFAULT 'MXN',
+  valid_until TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS quote_items (
+  id SERIAL PRIMARY KEY,
+  quote_id INTEGER REFERENCES quotes(id) ON DELETE CASCADE,
+  description TEXT NOT NULL,
+  quantity INTEGER DEFAULT 1,
+  unit_price NUMERIC(12, 2) DEFAULT 0,
+  total NUMERIC(12, 2) DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+---
 
 ### v2.332 - 25 de Febrero de 2026 - 15:31 CST
 

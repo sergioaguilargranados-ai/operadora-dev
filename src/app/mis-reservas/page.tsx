@@ -18,10 +18,17 @@ import {
   X,
   CheckCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Printer,
+  CreditCard,
+  FileText,
+  Loader2
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/use-toast'
 import { motion } from 'framer-motion'
+import PDFService from '@/services/PDFService'
 
 interface Booking {
   id: number
@@ -29,17 +36,36 @@ interface Booking {
   booking_type: string
   status: string
   total_amount: number
+  total_price: number
   currency: string
+  payment_status: string
+  lead_traveler_name: string
+  lead_traveler_email: string
+  destination: string
+  service_name: string
   created_at: string
   booking_details: any
+  special_requests: any
+  traveler_info: any
+}
+
+// Helper: parseo seguro de JSON
+function safeParseJSON(value: any, fallback: any = {}) {
+  if (value === null || value === undefined) return fallback
+  if (typeof value === 'object') return value
+  try { return JSON.parse(value) } catch { return fallback }
 }
 
 export default function MisReservasPage() {
   const router = useRouter()
   const { isAuthenticated, user } = useAuth()
+  const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [filter, setFilter] = useState<string>('all')
+  const [generatingPDFId, setGeneratingPDFId] = useState<number | null>(null)
+
+  const isStaff = user?.role && ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(user.role)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -246,32 +272,87 @@ export default function MisReservasPage() {
 
                       {/* Precio y acciones */}
                       <div className="flex flex-col items-end justify-between">
-                        <div className="text-right mb-4">
+                        <div className="text-right mb-3">
                           <p className="text-2xl font-bold text-primary">
-                            {formatCurrency(booking.total_amount, booking.currency)}
+                            {formatCurrency(booking.total_price || booking.total_amount, booking.currency)}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             Monto total
                           </p>
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex gap-1.5 flex-wrap justify-end">
+                          {/* Ver detalles */}
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => router.push(`/reserva/${booking.id}`)}
+                            className="h-8 px-2.5 gap-1"
                           >
-                            Ver detalles
+                            <Eye className="w-3.5 h-3.5" />
+                            Ver
                           </Button>
-                          {booking.status === 'confirmed' && (
+
+                          {/* PDF de reserva */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={generatingPDFId === booking.id}
+                            onClick={async () => {
+                              setGeneratingPDFId(booking.id)
+                              try {
+                                const travelerInfo = safeParseJSON(booking.traveler_info || booking.special_requests, {})
+                                const bookingDetails = safeParseJSON(booking.booking_details || booking.special_requests, {})
+                                const voucherData = {
+                                  bookingReference: booking.booking_reference,
+                                  customerName: booking.lead_traveler_name || travelerInfo.name || bookingDetails.contact_name || 'Cliente',
+                                  customerEmail: booking.lead_traveler_email || travelerInfo.email || '',
+                                  bookingType: booking.booking_type || 'general',
+                                  status: booking.status,
+                                  totalAmount: parseFloat(String(booking.total_price || booking.total_amount)) || 0,
+                                  currency: booking.currency || 'MXN',
+                                  createdAt: booking.created_at,
+                                  details: bookingDetails
+                                }
+                                const pdf = PDFService.generateBookingVoucher(voucherData)
+                                PDFService.downloadPDF(pdf, `Reserva_${booking.booking_reference}.pdf`)
+                                toast({ title: '📄 PDF descargado' })
+                              } catch (err) {
+                                console.error('Error PDF:', err)
+                                toast({ title: 'Error', description: 'No se pudo generar el PDF', variant: 'destructive' })
+                              } finally {
+                                setGeneratingPDFId(null)
+                              }
+                            }}
+                            className="h-8 px-2.5 gap-1"
+                          >
+                            {generatingPDFId === booking.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
+                            PDF
+                          </Button>
+
+                          {/* Pago */}
+                          {booking.payment_status !== 'paid' && (
                             <Button
                               size="sm"
-                              variant="default"
-                              className="gap-1"
-                              onClick={() => router.push(`/reserva/${booking.id}`)}
+                              variant="outline"
+                              onClick={() => router.push(`/checkout/${booking.id}`)}
+                              className="h-8 px-2.5 gap-1 text-green-600 border-green-300 hover:bg-green-50"
                             >
-                              <Download className="w-4 h-4" />
-                              Voucher
+                              <CreditCard className="w-3.5 h-3.5" />
+                              Pago
+                            </Button>
+                          )}
+
+                          {/* Facturar (solo staff) */}
+                          {isStaff && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => router.push(`/dashboard/invoices?booking_id=${booking.id}&ref=${booking.booking_reference}`)}
+                              className="h-8 px-2.5 gap-1 text-purple-600 border-purple-300 hover:bg-purple-50"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              Facturar
                             </Button>
                           )}
                         </div>

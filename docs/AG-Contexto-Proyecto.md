@@ -1,7 +1,7 @@
 # 🎯 AG-Contexto-Proyecto - AS Operadora
 
-**Última actualización:** 25 de Febrero de 2026 - 15:31 CST  
-**Versión actual:** v2.332  
+**Última actualización:** 26 de Febrero de 2026 - 17:10 CST  
+**Versión actual:** v2.334  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity, trabajar de esta manera es para tener un mejor control de los cambios que se hacen en el proyecto y asegurar que todo funcione correctamente. 
 
@@ -23,7 +23,7 @@ Sergio Aguilar Granados
 Sistema completo de gestión de viajes corporativos con búsqueda, reservas, aprobaciones, pagos, reportes y dashboard ejecutivo. Competir con plataformas como Expedia con funcionalidades superiores.
 
 ### AL VERSIONAR CONSERVAR V0.000 CON FECHA Y HORA
-- **Versión:** V2.332 2026-02-25 15:31:00 CST 
+- **Versión:** V2.334 2026-02-26 17:10:00 CST 
 La fecha y hora tiempo del CDMX
 
 
@@ -695,6 +695,17 @@ Antes de finalizar cualquier sesión:
 - **API:** `/api/tours/quote`
 - **Tabla:** `tour_quotes` (21 campos)
 - **Lección:** Este módulo es CRÍTICO, no debe perderse en futuras actualizaciones
+
+### Módulo de Reservas y Pagos (v2.334)
+- **Funcionalidad:** Gestión completa de reservas con acciones: Ver detalles, PDF oficial, Pago (pasarela Stripe/PayPal/MercadoPago), Facturar
+- **Páginas:** `/mis-reservas` (listado) y `/reserva/[id]` (detalle)
+- **Checkout:** `/checkout/[bookingId]` con Stripe, PayPal, Mercado Pago
+- **API:** `/api/bookings`, `/api/payments/stripe/*`, `/api/payments/paypal/*`, `/api/payments/mercadopago/*`
+- **Tablas:** `bookings`, `payment_transactions`
+- **PDFs Oficiales:** Reserva con diseño premium institucional (logo AS serif, barra dorada, detalles del tour, resumen financiero, T&C, footer navy/gold)
+- **PDF Comprobante de Pago:** Diseño premium con sello verde "PAGO COMPLETADO", datos de transacción, tarjeta, reserva asociada
+- **Auto-crear reserva:** Al confirmar cotización de tour, se crea reserva automáticamente en `bookings`
+- **Lección:** Los detalles del servicio se guardan como JSON en `special_requests` para flexibilidad
 
 ---
 

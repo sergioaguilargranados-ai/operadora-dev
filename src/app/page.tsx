@@ -1,6 +1,6 @@
 ﻿"use client"
 
-// Build: 04 Feb 2026 - v2.299 - Actividades navega a /actividades, ocultar MXN, botones consistentes
+// Build: 26 Feb 2026 - v2.334 - Reservas: acciones PDF/Pago/Facturar, PDF premium, comprobante de pago
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"

@@ -505,25 +505,46 @@ export default function BookingDetailsPage() {
                 <Separator className="my-4" />
 
                 <div className="space-y-2">
-                  {booking.status === 'confirmed' && (
+                  {/* PDF de Reserva */}
+                  <Button
+                    onClick={handleDownloadVoucher}
+                    disabled={generatingPDF}
+                    className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {generatingPDF ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Generando...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        Descargar PDF
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Realizar Pago */}
+                  {booking.payment_status !== 'paid' && (
                     <Button
-                      onClick={handleDownloadVoucher}
-                      disabled={generatingPDF}
-                      className="w-full gap-2"
+                      variant="outline"
+                      className="w-full gap-2 text-green-600 border-green-300 hover:bg-green-50"
+                      onClick={() => router.push(`/checkout/${booking.id}`)}
                     >
-                      {generatingPDF ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Generando...
-                        </>
-                      ) : (
-                        <>
-                          <Download className="w-4 h-4" />
-                          Descargar Voucher
-                        </>
-                      )}
+                      <CreditCard className="w-4 h-4" />
+                      Realizar Pago
                     </Button>
                   )}
+
+                  {/* Facturar */}
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 text-purple-600 border-purple-300 hover:bg-purple-50"
+                    onClick={() => router.push(`/dashboard/invoices?booking_id=${booking.id}&ref=${booking.booking_reference}`)}
+                  >
+                    <FileText className="w-4 h-4" />
+                    Facturar
+                  </Button>
 
                   <Button variant="outline" className="w-full gap-2">
                     <Mail className="w-4 h-4" />
