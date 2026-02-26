@@ -87,13 +87,12 @@ const STATUS_CONFIG: Record<string, any> = {
 
 const STAFF_ROLES = ['SUPER_ADMIN', 'ADMIN', 'MANAGER']
 
-// Construir URL de MegaTravel desde tour_id (ej: MT-60966)
+// Construir URL de MegaTravel desde tour_id (ej: AS-60966, MT-60966, o 60966)
 function getMegaTravelUrl(tourId: string): string {
-    // tour_id puede ser "MT-60966" o "60966"
-    const code = tourId.replace('MT-', '')
-    // Formato URL: https://www.megatravel.com.mx/viaje/SLUG-CODE.html
-    // Sin el slug exacto, usamos la búsqueda
-    return `https://www.megatravel.com.mx/busqueda?q=${code}`
+    // Extraer solo la parte numérica del código
+    const code = tourId.replace(/^(AS-|MT-)/, '')
+    // URL directa al circuito (más confiable que la búsqueda)
+    return `https://www.megatravel.com.mx/tools/circuito.php?viaje=${code}`
 }
 
 export default function CotizacionTrackingPage({ params }: { params: Promise<{ folio: string }> }) {
