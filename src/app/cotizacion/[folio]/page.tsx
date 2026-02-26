@@ -264,19 +264,42 @@ export default function CotizacionTrackingPage({ params }: { params: Promise<{ f
 
     return (
         <>
-            {/* ===== ESTILOS PARA IMPRESIÓN ===== */}
+            {/* ===== ESTILOS PARA IMPRESIÓN - DISEÑO INSTITUCIONAL ===== */}
             <style jsx global>{`
                 @media print {
                     .no-print { display: none !important; }
                     .print-only { display: block !important; }
-                    body { background: white !important; }
-                    .print-area { 
-                        padding: 0 !important; 
-                        margin: 0 !important;
-                        box-shadow: none !important;
+                    .print-flex { display: flex !important; }
+                    body { 
+                        background: white !important; 
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        font-size: 11pt;
+                        color: #1a1a1a;
                     }
+                    * { box-shadow: none !important; }
+                    .container { max-width: 100% !important; padding: 0 !important; }
+                    .min-h-screen { min-height: auto !important; background: white !important; }
+                    .bg-gradient-to-br { background: white !important; }
+                    /* Forzar colores en la tabla de precios */
+                    .pdf-price-header { background-color: #0066FF !important; color: white !important; }
+                    .pdf-price-row-alt { background-color: #f0f7ff !important; }
+                    .pdf-accent-bar { background-color: #0066FF !important; }
+                    .pdf-accent-bar-gold { background-color: #b8860b !important; }
+                    .pdf-footer-bar { background-color: #1e3a5f !important; color: white !important; }
+                    /* Grid para impresión */
+                    .lg\\:grid-cols-3 { display: block !important; }
+                    .lg\\:col-span-2, .lg\\:col-span-1 { width: 100% !important; }
+                    .sticky { position: relative !important; top: auto !important; }
+                    /* Cards sin bordes redondeados excesivos */
+                    .rounded-lg, .rounded-xl { border-radius: 4px !important; }
+                    .rounded-full { border-radius: 4px !important; }
+                    /* Evitar cortes */
+                    .pdf-no-break { page-break-inside: avoid; }
+                    @page { margin: 15mm 15mm 20mm 15mm; size: A4; }
                 }
                 .print-only { display: none; }
+                .print-flex { display: none; }
             `}</style>
 
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
@@ -314,18 +337,47 @@ export default function CotizacionTrackingPage({ params }: { params: Promise<{ f
 
                 <div className="container mx-auto px-4 py-8 max-w-4xl" ref={printRef}>
 
-                    {/* ===== CABECERA PDF (solo al imprimir) ===== */}
-                    <div className="print-only mb-8 border-b-2 border-blue-600 pb-6">
-                        <div className="flex items-start justify-between">
+                    {/* ===== CABECERA PDF INSTITUCIONAL (solo al imprimir) ===== */}
+                    <div className="print-only mb-6">
+                        {/* Barra azul superior */}
+                        <div className="pdf-accent-bar h-2 w-full mb-6" style={{ backgroundColor: '#0066FF' }}></div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            {/* Lado izquierdo - Logo y empresa */}
                             <div>
-                                <h1 className="text-3xl font-bold text-blue-800">AS Operadora de Viajes y Eventos</h1>
-                                <p className="text-gray-600">AS Viajando · viajes@asoperadora.com · {WHATSAPP_NUMBER}</p>
+                                <div style={{ fontFamily: 'Georgia, serif', fontSize: '36pt', fontWeight: 'bold', lineHeight: '1', color: '#000' }}>
+                                    AS
+                                </div>
+                                <div style={{ fontFamily: 'Georgia, serif', fontSize: '8pt', letterSpacing: '0.15em', fontWeight: 600, textTransform: 'uppercase', color: '#000', marginTop: '2px' }}>
+                                    AS OPERADORA DE VIAJES Y EVENTOS
+                                </div>
+                                <div style={{ fontFamily: 'Georgia, serif', fontSize: '8pt', color: '#555', marginTop: '1px' }}>
+                                    AS Viajando
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-sm text-gray-500">Cotización</p>
-                                <p className="text-xl font-bold text-blue-700">{quote.folio}</p>
-                                <p className="text-sm text-gray-500">{format(new Date(quote.created_at), "d 'de' MMMM 'de' yyyy", { locale: es })}</p>
+
+                            {/* Lado derecho - Datos del documento */}
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '10pt', color: '#666', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>
+                                    Cotización de Tour
+                                </div>
+                                <div className="pdf-accent-bar" style={{ backgroundColor: '#0066FF', color: 'white', padding: '6px 16px', marginTop: '6px', fontSize: '13pt', fontWeight: 'bold', display: 'inline-block' }}>
+                                    {quote.folio}
+                                </div>
+                                <div style={{ fontSize: '9pt', color: '#888', marginTop: '6px' }}>
+                                    {format(new Date(quote.created_at), "d 'de' MMMM 'de' yyyy", { locale: es })}
+                                </div>
                             </div>
+                        </div>
+
+                        {/* Línea separadora dorada */}
+                        <div className="pdf-accent-bar-gold" style={{ backgroundColor: '#b8860b', height: '1px', width: '100%', marginTop: '16px' }}></div>
+
+                        {/* Datos de contacto empresa en línea */}
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', fontSize: '8pt', color: '#666', marginTop: '8px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>
+                            <span>📧 viajes@asoperadora.com</span>
+                            <span>📱 {WHATSAPP_NUMBER}</span>
+                            <span>🌐 app.asoperadora.com</span>
                         </div>
                     </div>
 
@@ -697,12 +749,129 @@ export default function CotizacionTrackingPage({ params }: { params: Promise<{ f
                         </div>
                     </div>
 
-                    {/* ===== PIE DE PDF (solo impresión) ===== */}
-                    <div className="print-only mt-8 pt-6 border-t border-gray-300 text-center text-xs text-gray-500">
-                        <p>AS Operadora de Viajes y Eventos · AS Viajando</p>
-                        <p>viajes@asoperadora.com · {WHATSAPP_NUMBER} · app.asoperadora.com</p>
-                        <p className="mt-1">Folio: {quote.folio} · Generado el {format(new Date(), "d 'de' MMMM 'de' yyyy", { locale: es })}</p>
-                        <p className="mt-1 text-gray-400">* Los precios son referenciales y pueden variar según disponibilidad y fechas definitivas.</p>
+                    {/* ===== SECCIÓN PDF COMPLETA (solo impresión) ===== */}
+                    <div className="print-only mt-6">
+                        {/* Tabla de precios formal */}
+                        <div className="pdf-no-break" style={{ marginBottom: '20px' }}>
+                            <div className="pdf-accent-bar" style={{ backgroundColor: '#0066FF', color: 'white', padding: '8px 16px', fontSize: '11pt', fontWeight: 'bold' }}>
+                                💰 Desglose de Precios
+                            </div>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10pt' }}>
+                                <thead>
+                                    <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
+                                        <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600 }}>Concepto</th>
+                                        <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600 }}>Precio USD</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style={{ borderBottom: '1px solid #eee' }}>
+                                        <td style={{ padding: '8px 12px' }}>Precio base por persona</td>
+                                        <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 500 }}>${formatPrice(quote.price_per_person)}</td>
+                                    </tr>
+                                    {parseFloat(quote.taxes) > 0 && (
+                                        <tr className="pdf-price-row-alt" style={{ borderBottom: '1px solid #eee', backgroundColor: '#f0f7ff' }}>
+                                            <td style={{ padding: '8px 12px' }}>Impuestos aéreos por persona</td>
+                                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 500 }}>${formatPrice(quote.taxes)}</td>
+                                        </tr>
+                                    )}
+                                    {parseFloat(quote.supplement) > 0 && (
+                                        <tr style={{ borderBottom: '1px solid #eee' }}>
+                                            <td style={{ padding: '8px 12px' }}>Suplemento por persona</td>
+                                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 500 }}>${formatPrice(quote.supplement)}</td>
+                                        </tr>
+                                    )}
+                                    <tr style={{ borderTop: '2px solid #0066FF', backgroundColor: '#f0f7ff' }}>
+                                        <td style={{ padding: '10px 12px', fontWeight: 'bold', fontSize: '11pt' }}>Total por persona</td>
+                                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', fontSize: '13pt', color: '#0066FF' }}>${formatPrice(displayTotalPP)} USD</td>
+                                    </tr>
+                                    <tr style={{ backgroundColor: '#0066FF', color: 'white' }}>
+                                        <td style={{ padding: '10px 12px', fontWeight: 'bold', fontSize: '11pt' }}>
+                                            Total estimado ({quote.num_personas} {quote.num_personas === 1 ? 'persona' : 'personas'})
+                                        </td>
+                                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', fontSize: '14pt' }}>${formatPrice(quote.total_price)} USD</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Datos del cliente */}
+                        <div className="pdf-no-break" style={{ marginBottom: '20px', border: '1px solid #dee2e6', padding: '16px' }}>
+                            <div style={{ fontSize: '10pt', fontWeight: 'bold', color: '#333', marginBottom: '10px', borderBottom: '1px solid #eee', paddingBottom: '6px' }}>
+                                👤 Datos del Cliente
+                            </div>
+                            <div style={{ display: 'flex', gap: '40px', fontSize: '9pt' }}>
+                                <div>
+                                    <div style={{ color: '#888', fontSize: '8pt' }}>Nombre</div>
+                                    <div style={{ fontWeight: 600 }}>{quote.contact_name}</div>
+                                </div>
+                                <div>
+                                    <div style={{ color: '#888', fontSize: '8pt' }}>Email</div>
+                                    <div>{quote.contact_email}</div>
+                                </div>
+                                {quote.contact_phone && (
+                                    <div>
+                                        <div style={{ color: '#888', fontSize: '8pt' }}>Teléfono</div>
+                                        <div>{quote.contact_phone}</div>
+                                    </div>
+                                )}
+                                <div>
+                                    <div style={{ color: '#888', fontSize: '8pt' }}>Personas</div>
+                                    <div style={{ fontWeight: 600 }}>{quote.num_personas}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Servicios incluidos (si hay) */}
+                        {parsedItems.length > 0 && (
+                            <div className="pdf-no-break" style={{ marginBottom: '20px', border: '1px solid #dee2e6', padding: '16px' }}>
+                                <div style={{ fontSize: '10pt', fontWeight: 'bold', color: '#333', marginBottom: '10px', borderBottom: '1px solid #eee', paddingBottom: '6px' }}>
+                                    ✅ Servicios Incluidos
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 24px', fontSize: '9pt' }}>
+                                    {parsedItems.map((item: string, idx: number) => (
+                                        <div key={idx} style={{ padding: '3px 0', borderBottom: '1px dotted #eee' }}>• {item}</div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Comentarios especiales */}
+                        {quote.special_requests && (
+                            <div className="pdf-no-break" style={{ marginBottom: '20px', border: '1px solid #dee2e6', padding: '16px', backgroundColor: '#fffdf5' }}>
+                                <div style={{ fontSize: '10pt', fontWeight: 'bold', color: '#333', marginBottom: '6px' }}>
+                                    💬 Comentarios del Cliente
+                                </div>
+                                <div style={{ fontSize: '9pt', color: '#555', fontStyle: 'italic' }}>{quote.special_requests}</div>
+                            </div>
+                        )}
+
+                        {/* Términos y condiciones */}
+                        <div className="pdf-no-break" style={{ marginTop: '24px', padding: '12px 16px', border: '1px solid #e0e0e0', fontSize: '7pt', color: '#888', lineHeight: '1.5' }}>
+                            <div style={{ fontWeight: 'bold', fontSize: '8pt', color: '#666', marginBottom: '4px' }}>TÉRMINOS Y CONDICIONES</div>
+                            <div>
+                                1. Los precios son referenciales y están sujetos a disponibilidad y tipo de cambio al momento de la reservación.
+                                2. La cotización tiene una vigencia de 7 días naturales a partir de la fecha de emisión.
+                                3. Precios por persona en base a habitación doble, salvo indicación contraria.
+                                4. Los impuestos aéreos pueden variar sin previo aviso según la aerolínea.
+                                5. No incluye servicios no especificados en esta cotización.
+                                6. Aplican políticas de cancelación y penalizaciones del proveedor.
+                            </div>
+                        </div>
+
+                        {/* Pie de página institucional */}
+                        <div style={{ marginTop: '20px' }}>
+                            <div className="pdf-accent-bar-gold" style={{ backgroundColor: '#b8860b', height: '1px', width: '100%' }}></div>
+                            <div className="pdf-footer-bar" style={{ backgroundColor: '#1e3a5f', color: 'white', padding: '12px 16px', marginTop: '0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '8pt' }}>
+                                <div>
+                                    <span style={{ fontFamily: 'Georgia, serif', fontWeight: 'bold', fontSize: '10pt' }}>AS</span>
+                                    <span style={{ marginLeft: '8px' }}>Operadora de Viajes y Eventos · AS Viajando</span>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div>Folio: {quote.folio}</div>
+                                    <div style={{ opacity: 0.7 }}>Generado el {format(new Date(), "d 'de' MMMM 'de' yyyy, HH:mm", { locale: es })} hrs</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -711,7 +880,7 @@ export default function CotizacionTrackingPage({ params }: { params: Promise<{ f
                     <div className="container mx-auto px-4">
                         <div className="text-center text-sm text-gray-600">
                             <p>© 2026 AS Operadora de Viajes y Eventos. Todos los derechos reservados.</p>
-                            <p className="text-xs mt-2 opacity-50">v2.332 | Build: 25 Feb 2026</p>
+                            <p className="text-xs mt-2 opacity-50">v2.332</p>
                         </div>
                     </div>
                 </footer>
