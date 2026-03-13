@@ -18,7 +18,7 @@ import { exportToExcel } from '@/utils/exportHelpers'
 import {
   Plus, FileText, Send, Eye, Check, X, Trash2, Edit, ArrowLeft,
   DollarSign, Calendar, User, Mail, Phone, Building, Download, FileSpreadsheet,
-  MessageCircle, Printer, HelpCircle, Bell
+  MessageCircle, Printer, HelpCircle, Bell, AlertTriangle, CheckCircle2, Info
 } from 'lucide-react'
 
 const WHATSAPP_NUMBER = '+527208156804'
@@ -61,6 +61,17 @@ export default function QuotesPage() {
   const [activeTab, setActiveTab] = useState('list')
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null)
   const [sendingId, setSendingId] = useState<number | null>(null)
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean
+    title: string
+    message: string
+    type: 'question' | 'warning' | 'info'
+    onConfirm: () => void
+  } | null>(null)
+
+  const showConfirm = (opts: { title: string; message: string; type?: 'question' | 'warning' | 'info'; onConfirm: () => void }) => {
+    setConfirmDialog({ open: true, type: opts.type || 'question', ...opts })
+  }
 
   // Form states
   const [formData, setFormData] = useState({
@@ -177,34 +188,40 @@ export default function QuotesPage() {
   }
 
   const handleTourEmail = async (quote: Quote) => {
-    if (!confirm(`¿Enviar cotización por email a ${quote.customer_email}?`)) return
-    setSendingId(quote.id)
-    try {
-      const res = await fetch('/api/tours/quote/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          folio: quote.quote_number,
-          to: quote.customer_email,
-          customerName: quote.customer_name,
-          tourName: quote.title,
-          total: quote.total,
-          currency: quote.currency,
-          trackingUrl: `${window.location.origin}/cotizacion/${quote.quote_number}`
-        })
-      })
-      const data = await res.json()
-      if (data.success) {
-        toast({ title: '📧 Email enviado', description: `Cotización enviada a ${quote.customer_email}` })
-      } else {
-        toast({ title: 'Error', description: data.error || 'No se pudo enviar el email', variant: 'destructive' })
+    showConfirm({
+      title: 'Enviar cotización por email',
+      message: `¿Enviar la cotización ${quote.quote_number} a ${quote.customer_email}?`,
+      type: 'question',
+      onConfirm: async () => {
+        setConfirmDialog(null)
+        setSendingId(quote.id)
+        try {
+          const res = await fetch('/api/tours/quote/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              folio: quote.quote_number,
+              to: quote.customer_email,
+              customerName: quote.customer_name,
+              tourName: quote.title,
+              total: quote.total,
+              currency: quote.currency,
+              trackingUrl: `${window.location.origin}/cotizacion/${quote.quote_number}`
+            })
+          })
+          const data = await res.json()
+          if (data.success) {
+            toast({ title: '📧 Email enviado', description: `Cotización enviada a ${quote.customer_email}` })
+          } else {
+            toast({ title: 'Error', description: data.error || 'No se pudo enviar el email', variant: 'destructive' })
+          }
+        } catch (error) {
+          toast({ title: 'Error', description: 'Error de conexión al enviar email', variant: 'destructive' })
+        } finally {
+          setSendingId(null)
+        }
       }
-    } catch (error) {
-      console.error('Error sending email:', error)
-      toast({ title: 'Error', description: 'Error de conexión al enviar email', variant: 'destructive' })
-    } finally {
-      setSendingId(null)
-    }
+    })
   }
 
   // ====== ACCIONES PARA COTIZACIONES GENERALES ======
@@ -223,15 +240,23 @@ export default function QuotesPage() {
   }
 
   const handleSendEmail = async (quoteId: number) => {
-    if (!confirm('¿Enviar cotización por email al cliente?')) return
-    try {
-      const res = await fetch(`/api/quotes/${quoteId}/send`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customMessage: '' }) })
-      const data = await res.json()
-      if (data.success) { toast({ title: '✅ Enviado', description: `Cotización enviada a ${data.sentTo}` }); loadQuotes() }
-      else { toast({ title: 'Error', description: data.error, variant: 'destructive' }) }
-    } catch (error) {
-      toast({ title: 'Error', description: 'Error al enviar email', variant: 'destructive' })
-    }
+    const quote = quotes.find(q => q.id === quoteId)
+    showConfirm({
+      title: 'Enviar cotización',
+      message: quote ? `¿Enviar cotización al cliente ${quote.customer_name} (${quote.customer_email})?` : '¿Enviar cotización por email al cliente?',
+      type: 'question',
+      onConfirm: async () => {
+        setConfirmDialog(null)
+        try {
+          const res = await fetch(`/api/quotes/${quoteId}/send`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customMessage: '' }) })
+          const data = await res.json()
+          if (data.success) { toast({ title: '✅ Enviado', description: `Cotización enviada a ${data.sentTo}` }); loadQuotes() }
+          else { toast({ title: 'Error', description: data.error, variant: 'destructive' }) }
+        } catch (error) {
+          toast({ title: 'Error', description: 'Error al enviar email', variant: 'destructive' })
+        }
+      }
+    })
   }
 
   const handleExportToExcel = () => {
@@ -301,8 +326,55 @@ export default function QuotesPage() {
     )
   }
 
+  // ===== MODAL DE CONFIRMACIÓN ====================================================
+  const ConfirmModal = () => {
+    if (!confirmDialog?.open) return null
+    const icons = {
+      question: <CheckCircle2 className="w-10 h-10 text-blue-500" />,
+      warning:  <AlertTriangle className="w-10 h-10 text-amber-500" />,
+      info:     <Info className="w-10 h-10 text-sky-500" />
+    }
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+        {/* Fondo traslúcido */}
+        <div
+          className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+          onClick={() => setConfirmDialog(null)}
+        />
+        {/* Panel glassmorphism */}
+        <div className="relative z-10 w-full max-w-sm mx-4 bg-white/90 backdrop-blur-xl border border-white/60 rounded-2xl shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200">
+          {/* Icono */}
+          <div className="flex justify-center mb-4">
+            <div className="p-3 bg-blue-50 rounded-full">
+              {icons[confirmDialog.type]}
+            </div>
+          </div>
+          {/* Texto */}
+          <h3 className="text-lg font-bold text-gray-900 text-center mb-2">{confirmDialog.title}</h3>
+          <p className="text-gray-600 text-sm text-center mb-6 leading-relaxed">{confirmDialog.message}</p>
+          {/* Botones */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => setConfirmDialog(null)}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmDialog.onConfirm}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-md shadow-blue-200"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+      <ConfirmModal />
       {/* ===== HEADER ESTÁNDAR (cenefa blanco translúcido) ===== */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
         <div className="container mx-auto px-4 py-4">
