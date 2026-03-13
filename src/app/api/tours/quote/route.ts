@@ -208,6 +208,7 @@ export async function POST(request: NextRequest) {
         // ENVÍO DE EMAIL (automático con HTML de marca)
         // ============================================
         let emailSent = false
+        let emailError: string | null = null
         const shouldSendEmail = !notificationMethod || notificationMethod === 'email' || notificationMethod === 'both'
 
         if (shouldSendEmail && contactEmail) {
@@ -225,8 +226,10 @@ export async function POST(request: NextRequest) {
                     messageType: 'tour_quote'
                 })
                 console.log(`${emailSent ? '✅' : '❌'} Email cotización a: ${contactEmail}`)
-            } catch (emailError) {
-                console.error('⚠️ Error enviando email:', emailError)
+                if (!emailSent) emailError = 'sendEmail returned false — credenciales SMTP o configuración incorrecta'
+            } catch (err: any) {
+                emailError = err?.message || 'Error desconocido en email'
+                console.error('⚠️ Error SMTP:', err?.message, '| code:', err?.code, '| response:', err?.response)
             }
         }
 
@@ -315,7 +318,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             message: `¡Cotización ${quoteFolio} creada exitosamente! ${emailSent ? 'Te enviamos un correo de confirmación.' : 'Te contactaremos pronto.'}`,
-            data: { id: quoteId, folio: quoteFolio, trackingUrl, totalPrice, totalPerPerson: totalPP, emailSent }
+            data: { id: quoteId, folio: quoteFolio, trackingUrl, totalPrice, totalPerPerson: totalPP, emailSent, emailError }
         }, { status: 201 })
 
     } catch (error: any) {
