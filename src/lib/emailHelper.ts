@@ -7,8 +7,24 @@ import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
 
-// Crear transporter
+// Crear transporter — SendGrid SMTP relay si hay API key, sino SMTP directo
 const createTransporter = () => {
+    const sendgridKey = (process.env.SENDGRID_API_KEY || '').trim()
+
+    if (sendgridKey) {
+        // SendGrid SMTP relay — no tiene bloqueos de IP desde Vercel/AWS
+        return nodemailer.createTransport({
+            host: 'smtp.sendgrid.net',
+            port: 587,
+            secure: false,
+            auth: {
+                user: 'apikey',          // Siempre literal 'apikey'
+                pass: sendgridKey        // El API Key de SendGrid
+            }
+        } as any);
+    }
+
+    // Fallback: SMTP directo (SiteGround / cPanel)
     return nodemailer.createTransport({
         host: (process.env.SMTP_HOST || '').trim(),
         port: parseInt(process.env.SMTP_PORT || '465'),
@@ -104,7 +120,7 @@ export const sendEmail = async (options: {
         const transporter = createTransporter();
 
         const result = await transporter.sendMail({
-            from: `"AS Operadora" <${process.env.SMTP_USER}>`,
+            from: `"AS Operadora" <${(process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_USER || '').trim()}>`,
             to: options.to,
             subject: options.subject,
             html: options.html,
