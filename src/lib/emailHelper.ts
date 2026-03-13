@@ -14,9 +14,11 @@ const createTransporter = () => {
         port: parseInt(process.env.SMTP_PORT || '465'),
         secure: process.env.SMTP_PORT === '465',
         auth: {
+            type: 'LOGIN' as const,
             user: (process.env.SMTP_USER || '').trim(),
             pass: (process.env.SMTP_PASS || '').replace(/^"|"$/g, '').trim()
-        }
+        },
+        tls: { rejectUnauthorized: false }
     });
 };
 

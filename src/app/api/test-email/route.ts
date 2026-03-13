@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     let verifyResult: any = null
     let verifyError: any = null
     try {
-        const transporter = nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } })
+        const transporter = nodemailer.createTransport({ host, port, secure: port === 465, auth: { type: 'LOGIN' as const, user, pass }, tls: { rejectUnauthorized: false } })
         await transporter.verify()
         verifyResult = 'OK — conexión SMTP exitosa'
     } catch (err: any) {
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     let sendError: any = null
     if (!verifyError && to) {
         try {
-            const transporter = nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } })
+            const transporter = nodemailer.createTransport({ host, port, secure: port === 465, auth: { type: 'LOGIN' as const, user, pass }, tls: { rejectUnauthorized: false } })
             const info = await transporter.sendMail({
                 from: `"AS Operadora TEST" <${user}>`,
                 to,
