@@ -12,7 +12,8 @@ import { useToast } from "@/hooks/use-toast"
 import { PageHeader } from "@/components/PageHeader"
 import {
   MessageCircle, Send, Search, Filter, Archive, AlertCircle,
-  Clock, CheckCircle2, Circle, Paperclip, MoreVertical, X, Plus
+  Clock, CheckCircle2, Circle, Paperclip, MoreVertical, X, Plus,
+  Mail, XCircle, AlertTriangle, Wifi
 } from "lucide-react"
 
 export default function ComunicacionPage() {
@@ -22,6 +23,7 @@ export default function ComunicacionPage() {
   const [threads, setThreads] = useState<any[]>([])
   const [selectedThread, setSelectedThread] = useState<any>(null)
   const [messages, setMessages] = useState<any[]>([])
+  const [deliveries, setDeliveries] = useState<Record<number, any[]>>({})
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [filter, setFilter] = useState('all')
@@ -81,9 +83,34 @@ export default function ComunicacionPage() {
 
       if (data.success) {
         setMessages(data.data)
+        // Cargar deliveries para mensajes outbound del sistema
+        loadDeliveries(data.data)
       }
     } catch (error) {
       console.error('Error loading messages:', error)
+    }
+  }
+
+  // Cargar estado de entrega desde message_deliveries
+  const loadDeliveries = async (msgs: any[]) => {
+    const outboundIds = msgs
+      .filter(m => m.sender_type === 'system' || m.sender_type === 'agent')
+      .map(m => m.id)
+    if (outboundIds.length === 0) return
+    try {
+      const res = await fetch(`/api/communication/messages/deliveries?ids=${outboundIds.join(',')}`)
+      const data = await res.json()
+      if (data.success) {
+        // Agrupar deliveries por message_id
+        const map: Record<number, any[]> = {}
+        for (const d of data.data) {
+          if (!map[d.message_id]) map[d.message_id] = []
+          map[d.message_id].push(d)
+        }
+        setDeliveries(map)
+      }
+    } catch {
+      // Silencioso — no afecta UI principal
     }
   }
 
@@ -344,12 +371,48 @@ export default function ComunicacionPage() {
                     messages.map((message) => {
                       const isOwn = message.sender_id === currentUserId
                       const isSystem = message.sender_type === 'system'
+                      const isOutbound = isSystem || message.sender_type === 'agent'
+                      const msgDeliveries = deliveries[message.id] || []
+
+                      // Indicador de estado de entrega
+                      const DeliveryBadge = () => {
+                        if (!isOutbound || msgDeliveries.length === 0) return null
+                        const hasFailed = msgDeliveries.some(d => d.status === 'failed' || d.status === 'bounced' || d.status === 'rejected')
+                        const hasSent = msgDeliveries.some(d => d.status === 'sent' || d.status === 'delivered')
+                        const channels = [...new Set(msgDeliveries.map(d => d.channel))].join(', ')
+
+                        if (hasFailed) {
+                          const failedD = msgDeliveries.find(d => d.status === 'failed' || d.status === 'bounced' || d.status === 'rejected')
+                          return (
+                            <div className="flex items-center gap-1 mt-2 px-2 py-1 bg-red-50 border border-red-200 rounded-md text-xs text-red-700">
+                              <XCircle className="w-3 h-3 flex-shrink-0" />
+                              <span><strong>No entregado</strong> · {channels} · {failedD?.error_message || failedD?.status || 'Error desconocido'}</span>
+                            </div>
+                          )
+                        }
+                        if (hasSent) {
+                          const sentD = msgDeliveries.find(d => d.status === 'sent' || d.status === 'delivered')
+                          return (
+                            <div className="flex items-center gap-1 mt-2 px-2 py-1 bg-green-50 border border-green-200 rounded-md text-xs text-green-700">
+                              <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
+                              <span>Enviado · {channels}{sentD?.sent_at ? ` · ${formatDate(sentD.sent_at)}` : ''}</span>
+                            </div>
+                          )
+                        }
+                        return (
+                          <div className="flex items-center gap-1 mt-2 px-2 py-1 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
+                            <Clock className="w-3 h-3 flex-shrink-0" />
+                            <span>Pendiente · {channels}</span>
+                          </div>
+                        )
+                      }
 
                       if (isSystem) {
                         return (
                           <div key={message.id} className="flex justify-center">
                             <div className="bg-gray-100 rounded-lg px-4 py-2 text-sm text-muted-foreground max-w-md text-center">
                               {message.body}
+                              <DeliveryBadge />
                             </div>
                           </div>
                         )
@@ -370,6 +433,7 @@ export default function ComunicacionPage() {
                                 <CheckCircle2 className="w-3 h-3 inline ml-1" />
                               )}
                             </div>
+                            <DeliveryBadge />
 
                             {message.requires_moderation && message.moderation_status === 'pending' && (
                               <Badge variant="secondary" className="mt-2">

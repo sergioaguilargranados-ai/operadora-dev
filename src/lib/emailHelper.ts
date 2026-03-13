@@ -139,8 +139,26 @@ export const sendEmail = async (options: {
         }
 
         return true;
-    } catch (error) {
+    } catch (error: any) {
         console.error(`❌ Error enviando email a ${options.to}:`, error);
+        // Registrar el fallo en message_deliveries para visibilidad en Centro de Comunicación
+        try {
+            const { query } = await import('@/lib/db');
+            await query(
+                `INSERT INTO message_deliveries
+                 (message_id, channel, recipient, status, provider, error_message, sent_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, NOW())
+                 ON CONFLICT DO NOTHING`,
+                [
+                    0,
+                    'email',
+                    options.to,
+                    'failed',
+                    'smtp',
+                    error?.message || 'Error desconocido'
+                ]
+            );
+        } catch { /* silencioso */ }
         return false;
     }
 };
