@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 12 de Marzo de 2026 - 17:25 CST  
-**Versión actual:** v2.336  
+**Última actualización:** 13 de Marzo de 2026 - 10:32 CST  
+**Versión actual:** v2.341  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -34,6 +34,62 @@ Esto permite detectar si se perdieron tablas/campos entre versiones.
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.341 - 13 de Marzo de 2026 - 10:32 CST
+
+**📬 Centro de Comunicación: estado de entrega visible en cada mensaje**
+
+**Puntos implementados:**
+
+1. **Badge de estado de entrega en mensajes (Centro de Comunicación):**
+   - Cada mensaje outbound (sistema/agente) muestra un badge de estado: ✅ Enviado, ❌ No entregado, ⏳ Pendiente
+   - El error exacto del servidor SMTP se muestra en el badge rojo (ej: "535 Incorrect authentication data")
+   - Aplica a cotizaciones de tour, respuestas automáticas y cualquier comunicación saliente
+
+2. **Nuevo endpoint `/api/communication/messages/deliveries`:**
+   - Consulta `message_deliveries` por IDs de mensaje
+   - Agrupa por `message_id` para mapeo en UI
+   - Robusto ante tabla inexistente (devuelve array vacío en lugar de error)
+
+3. **emailHelper.ts — registro de fallos SMTP:**
+   - Cuando el SMTP rechaza el email, guarda `status='failed'` con el `error_message` exacto en `message_deliveries`
+   - Permite trazabilidad completa de comunicaciones fallidas
+
+---
+
+### v2.340 - 13 de Marzo de 2026 - 10:07 CST
+
+**🔍 Diagnóstico SMTP + logging mejorado**
+
+1. **Endpoint `/api/test-email`:** Diagnóstico SMTP en producción con respuesta JSON detallada (config activa, error exacto del servidor, resultado del envío)
+2. **`emailError` en respuesta API de cotizaciones:** La API devuelve el motivo exacto del fallo en el campo `emailError`
+3. **Logging SMTP mejorado:** Captura `message`, `code` y `response` del servidor SMTP en logs de Vercel
+
+---
+
+### v2.339 - 13 de Marzo de 2026 - 09:54 CST
+
+**🎨 Modal elegante reemplaza confirm() nativo del browser**
+
+1. **Modal glassmorphism** en Dashboard de Cotizaciones reemplaza el diálogo nativo `window.confirm()`:
+   - Fondo negro 30% + backdrop-blur-sm
+   - Panel `bg-white/90 backdrop-blur-xl` con bordes redondeados 2xl
+   - Iconos: CheckCircle2 (pregunta), AlertTriangle (warning), Info (info)
+   - Botones: Cancelar neutro | Aceptar azul #0066FF con letras blancas
+   - Animación: fade-in + zoom-in-95
+
+---
+
+### v2.338 - 13 de Marzo de 2026 - 09:21 CST
+
+**🧮 Fix error matemático en cálculo de totales de cotización**
+
+1. **Total por persona siempre calculado desde componentes:** `base + impuestos + suplemento` — no confía en `total_per_person` del DB que podía estar guardado incompleto en registros históricos
+2. **Lógica a prueba de registros anteriores:** Si `total_per_person` del DB ≤ `price_per_person`, recalcula desde componentes
+3. **Corrige vista web Y PDF** — ambas secciones usaban `quote.total_price` del DB que era incorrecto
+4. **`displayTotalPrice`** calculado como `displayTotalPP × num_personas` — consistente en toda la página
+
+---
 
 ### v2.336 - 12 de Marzo de 2026 - 17:25 CST
 
