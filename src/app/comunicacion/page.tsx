@@ -55,17 +55,11 @@ export default function ComunicacionPage() {
 
   const loadThreads = async () => {
     try {
-      const params = new URLSearchParams({
-        userId: currentUserId.toString(),
-        userType,
-        tenantId: tenantId.toString()
-      })
+      // Admin: obtener TODOS los threads sin restricción de usuario
+      const params = new URLSearchParams()
+      if (filter !== 'all') params.append('status', filter)
 
-      if (filter !== 'all') {
-        params.append('status', filter)
-      }
-
-      const res = await fetch(`/api/communication/threads?${params}`)
+      const res = await fetch(`/api/communication/threads/all?${params}`)
       const data = await res.json()
 
       if (data.success) {
@@ -487,6 +481,11 @@ export default function ComunicacionPage() {
             )}
           </Card>
         </div>
+      </div>
+
+      {/* Footer con versión */}
+      <div className="text-center py-3 text-xs text-muted-foreground border-t">
+        AS Operadora · Centro de Comunicación · v2.342 · 2026-03-15 18:14 CST
       </div>
     </div>
   )
