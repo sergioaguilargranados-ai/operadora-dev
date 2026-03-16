@@ -1,5 +1,5 @@
 // BrandFooter.tsx - Footer dinámico con branding del tenant actual
-// Build: 12 Mar 2026 - 17:25 CST - v2.336 - Email automático + pre-llenado contactos + Communication Center bidireccional
+// Build: 15 Mar 2026 - 18:28 CST - v2.342 - Email Resend + Centro Comunicación admin sin restricciones
 
 'use client';
 
@@ -92,7 +92,7 @@ export function BrandFooter() {
                         </p>
                     )}
                     <p className="text-xs mt-2 opacity-50">
-                        v2.336 | 12 Mar 2026 17:25 CST
+                        v2.342 | 15 Mar 2026 18:28 CST
                     </p>
                 </div>
             </div>
