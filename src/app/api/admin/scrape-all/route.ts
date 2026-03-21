@@ -72,7 +72,10 @@ export async function POST(request: NextRequest) {
             const userCookie = cookieStore.get('as_user');
             if (userCookie?.value) {
                 try {
-                    const userData = JSON.parse(decodeURIComponent(userCookie.value));
+                    // Intentar decodificar el valor (puede venir con o sin encodeURIComponent)
+                    let rawValue = userCookie.value;
+                    try { rawValue = decodeURIComponent(rawValue); } catch { /* ya estaba sin encode */ }
+                    const userData = JSON.parse(rawValue);
                     if (userData.email && userData.id) {
                         // Verificar contra la BD que el usuario existe y tiene rol admin
                         const userCheck = await pool.query(
@@ -81,12 +84,16 @@ export async function POST(request: NextRequest) {
                         );
                         if (userCheck.rows.length > 0 && ALLOWED_ROLES.includes(userCheck.rows[0].role)) {
                             authenticated = true;
-                            console.log(`🔑 Scrape-all auth via as_user cookie fallback: ${userData.email}`);
+                            console.log(`🔑 Scrape-all auth via as_user cookie fallback: ${userData.email} (role: ${userCheck.rows[0].role})`);
+                        } else {
+                            console.warn(`⚠️ Scrape-all: as_user cookie encontrada pero usuario no tiene rol admin. Email: ${userData.email}`);
                         }
                     }
-                } catch (e) {
-                    // Cookie as_user inválida
+                } catch (e: any) {
+                    console.error(`❌ Scrape-all: Error parseando as_user cookie:`, e?.message);
                 }
+            } else {
+                console.warn('⚠️ Scrape-all: No hay cookie as_token, as_user ni Authorization header válidos');
             }
         }
 

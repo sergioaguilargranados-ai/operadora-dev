@@ -1,5 +1,5 @@
 // BrandFooter.tsx - Footer dinámico con branding del tenant actual
-// Build: 15 Mar 2026 - 18:28 CST - v2.342 - Email Resend + Centro Comunicación admin sin restricciones
+// Build: 21 Mar 2026 - 13:07 CST - v2.342 - Fix Token MegaTravel (renovación proactiva + fallback robusto)
 
 'use client';
 
@@ -92,7 +92,7 @@ export function BrandFooter() {
                         </p>
                     )}
                     <p className="text-xs mt-2 opacity-50">
-                        v2.342 | 15 Mar 2026 18:28 CST
+                        v2.342 | 21 Mar 2026 13:07 CST
                     </p>
                 </div>
             </div>

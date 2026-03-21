@@ -1,9 +1,45 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 13 de Marzo de 2026 - 10:32 CST  
-**Versión actual:** v2.341  
+**Última actualización:** 21 de Marzo de 2026 - 13:07 CST  
+**Versión actual:** v2.342  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
+
+---
+
+## 📅 HISTORIAL DE CAMBIOS
+
+### v2.342 - 21 de Marzo de 2026 - 13:07 CST
+
+**🔑 Fix Token MegaTravel — Proceso completo no interrumpido por JWT expirado**
+
+**Problema resuelto:**
+Al ejecutar el proceso completo (Sync + Scraping) desde `/admin/megatravel-scraping`, la Fase 2 fallaba inmediatamente en el Batch 1 con `⚠️ Token expirado, renovando... ❌ No se pudo renovar la sesión`. Causa raíz: el JWT de acceso dura 15 minutos, y si el `refresh_token` en BD (`active_sessions`) ya estaba expirado o nunca existió en localStorage, la renovación fallaba silenciosamente.
+
+**Correcciones aplicadas:**
+
+1. **Renovación proactiva al iniciar proceso (`page.tsx`):**
+   - Antes de arrancar Fase 1 y Fase 2, el sistema ahora llama a `autoRefreshToken()` sincrónicamente
+   - Si no puede renovar, muestra aviso claro: `⚠️ Continúa con sesión existente... (si falla 401, inicia sesión y reintenta)`
+   - Si renueva correctamente: `✅ Sesión verificada y renovada correctamente`
+
+2. **Renovación periódica en Fase 2 cada 5 batches (`page.tsx`):**
+   - El proceso de scraping tarda 60-120 min. El token de 15 min expiraría varias veces
+   - Ahora se renueva proactivamente en los batches 6, 11, 16, 21... (~cada 25 min de proceso)
+   - Evita llegar al 401 antes de que ocurra
+
+3. **Fallback `as_user` más robusto en API (`scrape-all/route.ts`):**
+   - El Método 4 de autenticación ahora maneja cookies con y sin `encodeURIComponent`
+   - Logs de diagnóstico: si el usuario no tiene rol admin, o si la cookie no se puede parsear, aparece en consola del servidor
+   - Advertencia explícita cuando ningún método de auth funciona
+
+**Acción requerida por el usuario:** Iniciar sesión antes de ejecutar el proceso (garantiza sesión activa en `active_sessions` y `as_refresh` válido en localStorage).
+
+**Archivos modificados:**
+```
+src/app/admin/megatravel-scraping/page.tsx     (MODIFICADO - renovación proactiva)
+src/app/api/admin/scrape-all/route.ts          (MODIFICADO - fallback as_user robusto)
+```
 
 ---
 

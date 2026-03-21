@@ -1,6 +1,6 @@
 // src/app/admin/megatravel-scraping/page.tsx
 // Panel unificado: Sincronización + Scraping MegaTravel
-// Build: 19 Feb 2026 11:12 - v2.323 - Sync por categoría (sin timeout) + Scraping por batch
+// Build: 21 Mar 2026 13:22 - v2.342 - Fix Token: renovación proactiva + fallback as_user robusto
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -322,6 +322,14 @@ export default function MegaTravelScrapingPage() {
             const batchNumber = Math.floor(offset / BATCH_SIZE) + 1;
             addLog(`📦 Batch ${batchNumber}/${totalBatches} (Tours ${offset + 1}-${Math.min(offset + BATCH_SIZE, total)})`);
 
+            // Renovar token proactivamente cada 5 batches (~25 min de proceso)
+            if (batchNumber % 5 === 1 && batchNumber > 1) {
+                const renewed = await autoRefreshToken();
+                if (renewed) {
+                    addLog('🔑 Sesión renovada proactivamente');
+                }
+            }
+
             try {
                 const response = await fetch('/api/admin/scrape-all', {
                     method: 'POST',
@@ -483,6 +491,16 @@ export default function MegaTravelScrapingPage() {
                 addLog(`🧹 ${cleanData.cleaned} sincronizaciones anteriores limpiadas`);
             }
         } catch (e) { /* ignorar */ }
+
+        // Renovar token ANTES de empezar para evitar expiración durante el proceso
+        addLog('🔑 Verificando sesión antes de iniciar...');
+        const preRefreshed = await autoRefreshToken();
+        if (!preRefreshed) {
+            addLog('⚠️ No se pudo renovar el token de sesión. Continuando con sesión existente...');
+            addLog('   (Si el proceso falla con 401, vuelve a iniciar sesión y reintenta)');
+        } else {
+            addLog('✅ Sesión verificada y renovada correctamente');
+        }
 
         // FASE 1: Sincronización por categoría
         if (!abortRef.current) {
