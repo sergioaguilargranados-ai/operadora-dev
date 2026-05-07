@@ -593,7 +593,7 @@ async function handleGenerate(body: {
       }
 
       // Obtener propuesta completa
-      const proposal = await getProposalById(proposalId)
+      const proposal = await getProposalById(proposalId as number)
 
       return NextResponse.json({
         success: true,
@@ -622,7 +622,7 @@ async function handleGenerate(body: {
     [proposalId]
   )
 
-  const proposal = await getProposalById(proposalId)
+  const proposal = await getProposalById(proposalId as number)
 
   return NextResponse.json({
     success: true,
@@ -707,7 +707,7 @@ async function handleGet(body: { proposal_id?: number; folio?: string }) {
 
   let proposal
   if (proposal_id) {
-    proposal = await getProposalById(proposal_id)
+    proposal = await getProposalById(proposal_id as number)
   } else {
     const result = await pool.query(
       `SELECT * FROM ai_trip_proposals WHERE folio = $1`,
