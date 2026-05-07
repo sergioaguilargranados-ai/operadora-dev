@@ -1,6 +1,6 @@
 // src/app/admin/megatravel-scraping/page.tsx
 // Panel unificado: Sincronización + Scraping MegaTravel
-// Build: 07 May 2026 13:00 - v2.343 - Fix Token MegaTravel Scraping + Auth Resilience
+// Build: 07 May 2026 14:00 - v2.344 - Fix Token MegaTravel Scraping + Auth Resilience
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -155,11 +155,22 @@ export default function MegaTravelScrapingPage() {
         // Obtener lista de categorías
         let categories: Array<{ index: number; url: string; category: string }> = [];
         try {
-            const catRes = await fetch('/api/admin/discover-tours', { credentials: 'include' });
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            const adminSecret = localStorage.getItem('as_admin_secret');
+            if (adminSecret) headers['Authorization'] = `Bearer ${adminSecret}`;
+
+            const catRes = await fetch('/api/admin/discover-tours', { 
+                credentials: 'include',
+                headers
+            });
             const catData = await catRes.json();
             if (catData.success) {
                 categories = catData.categories;
                 addLog(`🔍 ${categories.length} categorías para explorar`);
+            } else if (catRes.status === 401) {
+                addLog('❌ Error 401: No autorizado para obtener categorías.');
+                addLog('💡 Intenta cerrar sesión y volver a entrar o verifica tu ADMIN_SECRET_KEY.');
+                return { allCodes: [], newCount: 0, updatedCount: 0 };
             }
         } catch (e) {
             addLog('❌ Error obteniendo categorías');
@@ -178,9 +189,13 @@ export default function MegaTravelScrapingPage() {
             setProgress(Math.round(((i) / categories.length) * 50)); // 0-50% para sync
 
             try {
+                const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+                const adminSecret = localStorage.getItem('as_admin_secret');
+                if (adminSecret) headers['Authorization'] = `Bearer ${adminSecret}`;
+
                 const response = await fetch('/api/admin/discover-tours', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers,
                     credentials: 'include',
                     body: JSON.stringify({ categoryIndex: cat.index })
                 });
@@ -337,9 +352,13 @@ export default function MegaTravelScrapingPage() {
             }
 
             try {
+                const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+                const adminSecret = localStorage.getItem('as_admin_secret');
+                if (adminSecret) headers['Authorization'] = `Bearer ${adminSecret}`;
+
                 const response = await fetch('/api/admin/scrape-all', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers,
                     credentials: 'include',
                     body: JSON.stringify({ limit: BATCH_SIZE, offset })
                 });
@@ -808,7 +827,7 @@ export default function MegaTravelScrapingPage() {
 
                 {/* Footer */}
                 <div className="text-center text-xs text-gray-400 mt-6 py-4">
-                    v2.323 | 19 Feb 2026 11:12 | AS Operadora — Panel MegaTravel
+                    v2.344 | 07 May 2026 14:00 | AS Operadora — Panel MegaTravel
                 </div>
             </div>
         </div>

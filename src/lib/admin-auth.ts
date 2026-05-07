@@ -66,17 +66,23 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthRe
                 try { rawValue = decodeURIComponent(rawValue); } catch { /* ya estaba sin encode */ }
                 const userData = JSON.parse(rawValue);
 
-                if (userData.email && (userData.id || userData.userId)) {
-                    const userId = userData.id || userData.userId;
+                const email = userData.email;
+                const id = userData.id || userData.userId;
+
+                if (email && id) {
+                    // Asegurar que el ID sea numérico si es posible para la consulta
+                    const numericId = typeof id === 'string' && /^\d+$/.test(id) ? parseInt(id) : id;
+
                     const userRes = await pool.query(
-                        'SELECT id, email, role FROM users WHERE id = $1 AND email = $2 LIMIT 1',
-                        [userId, userData.email]
+                        'SELECT id, email, role FROM users WHERE (id = $1 OR id::text = $1::text) AND email = $2 LIMIT 1',
+                        [numericId, email]
                     );
 
                     if (userRes.rows.length > 0) {
                         const user = userRes.rows[0];
-                        if (ALLOWED_ROLES.includes(user.role.toUpperCase())) {
-                            console.log(`AdminAuth: Autenticado vía as_user fallback: ${user.email}`);
+                        const userRole = (user.role || '').toUpperCase();
+                        if (ALLOWED_ROLES.includes(userRole)) {
+                            console.log(`✅ AdminAuth: Autenticado vía as_user fallback: ${user.email} (${userRole})`);
                             return { 
                                 authorized: true, 
                                 user: { 
@@ -86,12 +92,20 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthRe
                                 }, 
                                 status: 200 
                             };
+                        } else {
+                            console.warn(`⚠️ AdminAuth: Usuario ${email} no tiene rol administrativo: ${userRole}`);
                         }
+                    } else {
+                        console.warn(`⚠️ AdminAuth: No se encontró usuario en DB con id=${id} y email=${email}`);
                     }
+                } else {
+                    console.warn('⚠️ AdminAuth: Cookie as_user presente pero malformada (falta id o email)');
                 }
             } catch (e: any) {
-                console.error('AdminAuth: Error en fallback as_user:', e.message);
+                console.error('❌ AdminAuth: Error en fallback as_user:', e.message);
             }
+        } else {
+            console.log('ℹ️ AdminAuth: No se encontró cookie as_token ni as_user');
         }
 
         return { authorized: false, error: 'No autorizado o sesión expirada', status: 401 };
