@@ -543,12 +543,16 @@ export default function MegaTravelScrapingPage() {
 
         // Renovar token ANTES de empezar para evitar expiración durante el proceso
         addLog('🔑 Verificando sesión antes de iniciar...');
+        const hasSecret = !!localStorage.getItem('as_admin_secret');
         const preRefreshed = await autoRefreshToken();
-        if (!preRefreshed) {
-            addLog('⚠️ No se pudo renovar el token de sesión. Continuando con sesión existente...');
-            addLog('   (Si el proceso falla con 401, vuelve a iniciar sesión y reintenta)');
-        } else {
+        
+        if (preRefreshed) {
             addLog('✅ Sesión verificada y renovada correctamente');
+        } else if (hasSecret) {
+            addLog('🔒 Sesión reforzada con Admin Secret Key (Hardened)');
+        } else {
+            addLog('⚠️ No se pudo renovar el token de sesión. Continuando con sesión existente...');
+            addLog('   (Si el proceso falla con 401, vuelve a iniciar sesión o configura la Secret Key)');
         }
 
         // FASE 1: Sincronización por categoría
@@ -876,7 +880,7 @@ export default function MegaTravelScrapingPage() {
 
                 {/* Footer */}
                 <div className="text-center text-xs text-gray-400 mt-6 py-4">
-                    v2.345 | 07 May 2026 14:05 | AS Operadora — Panel MegaTravel
+                    v2.346 | 07 May 2026 14:35 | AS Operadora — Panel MegaTravel
                 </div>
             </div>
         </div>
