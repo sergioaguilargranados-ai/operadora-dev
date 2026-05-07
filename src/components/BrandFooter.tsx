@@ -1,5 +1,5 @@
 // BrandFooter.tsx - Footer dinámico con branding del tenant actual
-// Build: 21 Mar 2026 - 13:07 CST - v2.342 - Fix Token MegaTravel (renovación proactiva + fallback robusto)
+// Build: 07 May 2026 - 13:00 CST - v2.343 - Fix Token MegaTravel Scraping + Auth Resilience
 
 'use client';
 
@@ -92,7 +92,7 @@ export function BrandFooter() {
                         </p>
                     )}
                     <p className="text-xs mt-2 opacity-50">
-                        v2.342 | 21 Mar 2026 13:07 CST
+                        v2.343 | 07 May 2026 13:00 CST
                     </p>
                 </div>
             </div>

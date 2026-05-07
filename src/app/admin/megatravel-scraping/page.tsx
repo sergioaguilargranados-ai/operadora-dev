@@ -1,6 +1,6 @@
 // src/app/admin/megatravel-scraping/page.tsx
 // Panel unificado: Sincronización + Scraping MegaTravel
-// Build: 21 Mar 2026 13:22 - v2.342 - Fix Token: renovación proactiva + fallback as_user robusto
+// Build: 07 May 2026 13:00 - v2.343 - Fix Token MegaTravel Scraping + Auth Resilience
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
