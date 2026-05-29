@@ -119,7 +119,7 @@ export default function AgencyDashboardPage() {
     const [commFilterDateTo, setCommFilterDateTo] = useState('')
 
     // Obtener el ID de agencia del usuario autenticado, con fallback para desarrollo
-    const agencyId = user?.tenant_id || 2
+    const agencyId = (user as any)?.tenant_id || 2
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -313,7 +313,7 @@ export default function AgencyDashboardPage() {
                         <Building2 className="w-5 h-5" />
                         Dashboard de Agencia
                     </h1>
-                    <p className="text-sm text-muted-foreground">{user?.company_name || 'Mi Agencia'}</p>
+                    <p className="text-sm text-muted-foreground">{(user as any)?.company_name || 'Mi Agencia'}</p>
                 </div>
             </PageHeader>
 

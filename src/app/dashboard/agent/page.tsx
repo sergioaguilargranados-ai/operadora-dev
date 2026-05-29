@@ -92,7 +92,7 @@ function AgentDashboardContent() {
     const [reviewStats, setReviewStats] = useState<any>(null)
 
     // Prioridad: query param (admin navega desde agencia) > usuario autenticado > fallback
-    const agentId = searchParams.get('agent_id') || user?.agent_id?.toString() || '1'
+    const agentId = searchParams.get('agent_id') || (user as any)?.agent_id?.toString() || '1'
 
     useEffect(() => {
         if (!isAuthenticated) {
