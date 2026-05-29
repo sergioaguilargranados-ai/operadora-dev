@@ -474,10 +474,27 @@ git push origin main
 4. Documentar cambios importantes
 
 ### 3. Al Finalizar Cambios
-1. Incrementar versión (v2.XXX → v2.XXX+1)
-2. Actualizar footer en `src/app/page.tsx`
-3. Actualizar documentos:
-   - `AG-Historico-Cambios.md` (agregar entrada)
+1. Incrementar versión
+
+### 🔢 SISTEMA DE VERSIONAMIENTO
+
+El proyecto usa una versión semántica estructurada (ej. `v2.344`).
+
+**Actualización Automática de Fecha y Hora de Compilación:**
+El proyecto ahora cuenta con un script automático (`scripts/update-version.js`) que se ejecuta durante cada compilación (`npm run build`). Este script:
+1. Extrae la fecha y hora exacta (Zona Horaria CST - Ciudad de México).
+2. Actualiza automáticamente los archivos del footer (`src/components/BrandFooter.tsx` y `src/app/admin/megatravel-scraping/page.tsx`).
+3. Mantiene la versión actual del documento pero actualiza el timestamp justo antes de que Next.js genere el *build*.
+
+Para actualizar a una **nueva versión**, se puede ejecutar el script manualmente pasando el argumento de la versión, o hacerlo en los archivos y la próxima compilación ajustará la hora automáticamente:
+```bash
+# Actualizar los footers a una versión específica
+node scripts/update-version.js v2.345
+```
+
+**Registro de Cambios:**
+Las versiones también deben quedar registradas manualmente en el documento `docs/AG-Historico-Cambios.md` para mantener una bitácora detallada de cada nueva funcionalidad.
+
    - `AG-Contexto-Proyecto.md` (si cambió configuración)
    - `README.md` (si aplica)
 4. Commit a Git con mensaje descriptivo
