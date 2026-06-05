@@ -19,11 +19,35 @@ export async function GET(request: Request) {
                 mobile_enabled = true
         `);
 
+        // Habilitar las configuraciones del Home (Buscador de hoteles, secciones, etc)
+        const homeSettingsKeys = [
+            'HOME_SEARCH_HOTELS',
+            'HOME_PACKAGES_CTA',
+            'HOME_OFFERS_SECTION',
+            'HOME_FLIGHTS_SECTION',
+            'HOME_ACCOMMODATION_SECTION',
+            'HOME_WEEKEND_SECTION',
+            'HOME_VACATION_PACKAGES',
+            'HOME_UNIQUE_STAYS',
+            'HOME_EXPLORE_WORLD'
+        ];
+
+        let settingsUpdated = 0;
+        for (const key of homeSettingsKeys) {
+            const res = await pool.query(`
+                INSERT INTO app_settings (key, value, description) 
+                VALUES ($1, 'true', 'Autogenerado por script dev')
+                ON CONFLICT (key) DO UPDATE SET value = 'true';
+            `, [key]);
+            settingsUpdated += res.rowCount || 0;
+        }
+
         return NextResponse.json({
             success: true,
-            message: 'Todas las banderas de funcionalidades han sido activadas en la base de datos.',
+            message: 'Todas las banderas de funcionalidades y configuraciones del Home han sido activadas.',
             features_updated: featuresResult.rowCount,
             roles_updated: rolesResult.rowCount,
+            settings_updated: settingsUpdated,
             codes: featuresResult.rows.map(r => r.code)
         });
     } catch (error: any) {
