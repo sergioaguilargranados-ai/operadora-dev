@@ -194,6 +194,18 @@ Aplicación en vivo
 Conecta a NEON (base de datos)
 ```
 
+### Flujo Multi-Equipo (con `chats/`)
+
+```
+Equipo A                    Equipo B
+────────────────────        ────────────────────
+git pull                    git pull
+"Lee chats/ y retoma" ←──  (mismo archivo en repo)
+Trabaja...                  Trabaja...
+"Guarda sesión en chats/"   "Guarda sesión en chats/"
+git push ──────────────►    git push
+```
+
 ### Comandos Git
 
 **IMPORTANTE:** Git se ejecuta desde la raíz del workspace
@@ -275,6 +287,36 @@ Package Manager: npm
 | **AG-Historico-Cambios.md** | `docs/` | Histórico de versiones | Cada versión nueva |
 | **README.md** | raíz | Documentación pública GitHub | Cambios importantes |
 
+### 💬 Carpeta `chats/` — Continuidad Multi-Equipo
+
+**Propósito:** Permite retomar el trabajo con AntiGravity desde cualquier equipo sin perder contexto.
+
+**Archivos en `chats/`:**
+
+| Archivo | Descripción |
+|---------|-------------|
+| `AG-COMO-USAR-ESTA-CARPETA.md` | Guía completa de uso |
+| `AG-sesion-YYMMDD-[tema].md` | Resumen de cada sesión de trabajo |
+
+**Reglas obligatorias:**
+- ✅ **Al iniciar sesión:** leer el archivo más reciente en `chats/` para retomar contexto
+- ✅ **Al terminar sesión:** el agente escribe/actualiza `AG-sesion-YYMMDD-[tema].md` con lo hecho, archivos modificados y próximos pasos
+- ✅ **Siempre hacer commit** de los archivos en `chats/` junto con los cambios de código
+- ❌ **NUNCA** incluir API keys, passwords ni credenciales en archivos de `chats/`
+
+**Para iniciar en cualquier equipo:**
+```bash
+git pull origin main
+# Luego decirle al agente:
+# "Lee el último archivo en chats/ y retoma desde donde quedamos"
+```
+
+**Para cerrar sesión:**
+```
+# Decirle al agente:
+# "Guarda el resumen de esta sesión en chats/"
+```
+
 ### Documentos de Sesión (con fecha)
 
 Formato: `AG-[nombre]-YYMMDD.md`
@@ -294,6 +336,7 @@ Ejemplos:
 **Ejemplos:**
 - ✅ `AG-Contexto-Proyecto.md`
 - ✅ `AG-Historico-Cambios.md`
+- ✅ `AG-sesion-260605-PWA-APIs-Local.md` (en `chats/`)
 - ✅ `AG-task-260117.md`
 - ✅ `AG-Plan-Integracion-APIs-260120.md`
 - ❌ `contexto.md` (sin prefijo)
@@ -462,10 +505,11 @@ git push origin main
 ## 🎯 FLUJO DE TRABAJO PARA CAMBIOS
 
 ### 1. Inicio de Sesión
-1. Leer este documento (`AG-Contexto-Proyecto.md`)
-2. Revisar `AG-Historico-Cambios.md` para ver últimos cambios
-3. Verificar versión actual
-4. Preguntar al usuario qué necesita
+1. Leer el archivo más reciente en `chats/` para retomar contexto de sesión anterior
+2. Leer este documento (`AG-Contexto-Proyecto.md`)
+3. Revisar `AG-Historico-Cambios.md` para ver últimos cambios
+4. Verificar versión actual
+5. Preguntar al usuario qué necesita
 
 ### 2. Durante Desarrollo
 1. Hacer cambios en código
@@ -474,7 +518,8 @@ git push origin main
 4. Documentar cambios importantes
 
 ### 3. Al Finalizar Cambios
-1. Incrementar versión
+1. Escribir/actualizar resumen de sesión en `chats/AG-sesion-YYMMDD-[tema].md`
+2. Incrementar versión
 
 ### 🔢 SISTEMA DE VERSIONAMIENTO
 
@@ -650,11 +695,12 @@ git push origin main
 7. **Zona horaria:** Siempre usar hora de Ciudad de México (CST / UTC-6). NO usar UTC ni otra zona horaria.
 
 ### Al Finalizar
-1. Actualizar documentos necesarios
-2. Incrementar versión
-3. Actualizar `AG-Historico-Cambios.md`
-4. Commit y push a GitHub (`operadora-dev.git`)
-5. Verificar deploy automático
+1. Escribir resumen de sesión en `chats/AG-sesion-YYMMDD-[tema].md`
+2. Actualizar documentos necesarios
+3. Incrementar versión
+4. Actualizar `AG-Historico-Cambios.md`
+5. Commit y push a GitHub (`operadora-dev.git`) — **incluir archivos de `chats/`**
+6. Verificar deploy automático
 
 ### Frases Clave del Usuario
 
