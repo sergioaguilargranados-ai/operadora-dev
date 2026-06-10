@@ -1,5 +1,5 @@
 // BrandFooter.tsx - Footer dinámico con branding del tenant actual
-// Build: 06 Jun 2026 - 10:40 CST - v2.345 - Fix buscador hoteles en home (HOME_SEARCH_HOTELS habilitado)
+// Build: 10 Jun 2026 - 16:55 CST - v2.346 - Landing Page Expo y Registro
 
 'use client';
 
@@ -92,7 +92,7 @@ export function BrandFooter() {
                         </p>
                     )}
                     <p className="text-xs mt-2 opacity-50">
-                        v2.345
+                        v2.346
                     </p>
                 </div>
             </div>
