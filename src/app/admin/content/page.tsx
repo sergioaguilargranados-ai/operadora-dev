@@ -11,6 +11,7 @@ import { Logo } from "@/components/Logo"
 import { useAuth } from "@/contexts/AuthContext"
 import { ContentModal } from "@/components/admin/ContentModal"
 import { VideoUrlEditor } from "@/components/admin/VideoUrlEditor"
+import { ExpoContentManager } from "@/components/admin/ExpoContentManager"
 import {
   Plus, Edit, Trash2, DollarSign, Calendar, Plane, Hotel, Package,
   Home, Globe, CheckCircle2, AlertCircle, X, RefreshCw,
@@ -453,6 +454,10 @@ export default function AdminContentPage() {
             <TabsTrigger value="megatravel" className="flex items-center gap-2">
               <RefreshCw className="w-4 h-4" />
               MegaTravel
+            </TabsTrigger>
+            <TabsTrigger value="expo" className="flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              Landing Expo
             </TabsTrigger>
           </TabsList>
 
@@ -997,6 +1002,16 @@ export default function AdminContentPage() {
                     })}
                 </div>
               )}
+            </Card>
+          </TabsContent>
+
+          {/* EXPO TAB */}
+          <TabsContent value="expo">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">Landing Page Promocional (Expo)</h2>
+              </div>
+              <ExpoContentManager showToast={showToast} />
             </Card>
           </TabsContent>
 
