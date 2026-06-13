@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Playfair_Display, Inter } from 'next/font/google';
 import { Building, Briefcase, Plane, Users, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
@@ -8,7 +8,7 @@ import { Building, Briefcase, Plane, Users, ArrowLeft, Loader2, CheckCircle2 } f
 const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '600', '700'] });
 const inter = Inter({ subsets: ['latin'], weight: ['300', '400', '500', '600'] });
 
-export default function RegistroLanding() {
+function RegistroForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialType = searchParams.get('type') || 'Viajero';
@@ -193,5 +193,13 @@ export default function RegistroLanding() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegistroLanding() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#F4F4F6]">Cargando...</div>}>
+      <RegistroForm />
+    </Suspense>
   );
 }
