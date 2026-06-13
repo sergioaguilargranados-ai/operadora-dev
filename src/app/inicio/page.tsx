@@ -70,7 +70,7 @@ export default function InicioLanding() {
           <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent lg:hidden"></div>
         </div>
 
-        <div className="container mx-auto px-4 lg:px-8 relative z-10 flex pt-12 lg:pt-0">
+        <div className="container mx-auto px-4 lg:px-8 relative z-10 flex pt-32 lg:pt-32 pb-12">
           <div className="w-full lg:w-[50%] lg:pr-8">
             <h1 className={`text-5xl md:text-6xl lg:text-[4.5rem] font-medium text-black mb-6 leading-[1.1] tracking-tight ${playfair.className}`}>
               Viajes y eventos diseñados para inspirar, conectar y crecer.
