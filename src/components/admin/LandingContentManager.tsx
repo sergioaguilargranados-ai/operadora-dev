@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ImageUploadInput } from "@/components/admin/ImageUploadInput";
 import { Save, Video, Layout, List, Map, Briefcase, Star, Users } from "lucide-react";
 
 export function LandingContentManager({ showToast }: { showToast: (msg: string, type: 'success' | 'error') => void }) {
@@ -123,9 +124,9 @@ export function LandingContentManager({ showToast }: { showToast: (msg: string, 
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-1 block">URL de Imagen/Video de Fondo</label>
-            <Input 
+            <ImageUploadInput 
               value={content.hero_video_url} 
-              onChange={e => setContent({...content, hero_video_url: e.target.value})}
+              onChange={val => setContent({...content, hero_video_url: val})}
               placeholder="/inicio/WhatsApp Image... o URL externa"
             />
           </div>
@@ -169,7 +170,7 @@ export function LandingContentManager({ showToast }: { showToast: (msg: string, 
                 </div>
                 <div>
                   <label className="text-xs font-medium block">Imagen (ruta)</label>
-                  <Input className="text-xs" value={item.img || ''} onChange={e => updateItem('ayudas', i, 'img', e.target.value)} />
+                  <ImageUploadInput className="text-xs h-9" value={item.img || ''} onChange={val => updateItem('ayudas', i, 'img', val)} />
                 </div>
                 <div>
                   <label className="text-xs font-medium block">Viñetas (separar por coma)</label>
@@ -220,7 +221,7 @@ export function LandingContentManager({ showToast }: { showToast: (msg: string, 
                 </div>
                 <div>
                   <label className="text-xs font-medium block">Imagen (ruta)</label>
-                  <Input className="text-xs" value={item.img || ''} onChange={e => updateItem('destinos', i, 'img', e.target.value)} />
+                  <ImageUploadInput className="text-xs h-9" value={item.img || ''} onChange={val => updateItem('destinos', i, 'img', val)} />
                 </div>
               </div>
             ))}
@@ -259,7 +260,7 @@ export function LandingContentManager({ showToast }: { showToast: (msg: string, 
                 </div>
                 <div>
                   <label className="text-xs font-medium block">Imagen (ruta)</label>
-                  <Input className="text-xs" value={item.img || ''} onChange={e => updateItem('servicios', i, 'img', e.target.value)} />
+                  <ImageUploadInput className="text-xs h-9" value={item.img || ''} onChange={val => updateItem('servicios', i, 'img', val)} />
                 </div>
               </div>
             ))}
@@ -314,7 +315,7 @@ export function LandingContentManager({ showToast }: { showToast: (msg: string, 
             </div>
             <div>
               <label className="text-sm font-medium block">Imagen Lateral (ruta)</label>
-              <Input value={sj?.aliado?.img || ''} onChange={e => updateSection('aliado', 'img', e.target.value)} />
+              <ImageUploadInput className="h-10" value={sj?.aliado?.img || ''} onChange={val => updateSection('aliado', 'img', val)} />
             </div>
           </div>
           <h4 className="font-semibold text-sm mt-4">Puntos Clave</h4>

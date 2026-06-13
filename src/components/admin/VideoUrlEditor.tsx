@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ImageUploadInput } from '@/components/admin/ImageUploadInput'
 import { Check, Loader2, ExternalLink, Play } from 'lucide-react'
 
 interface VideoUrlEditorProps {
@@ -77,10 +78,10 @@ export function VideoUrlEditor({ settingKey, label, onSave }: VideoUrlEditorProp
     return (
         <div className="space-y-3">
             <div className="flex gap-2">
-                <Input
+                <ImageUploadInput
                     value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="https://www.youtube.com/embed/..."
+                    onChange={(val) => setUrl(val)}
+                    placeholder="https://www.youtube.com/embed/... o subir foto/video"
                     className="flex-1"
                 />
                 <Button
