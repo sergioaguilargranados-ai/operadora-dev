@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Playfair_Display, Inter } from 'next/font/google';
 import { Plane, Building, Users, Briefcase, ChevronRight, Shield, Star, HeartHandshake, Globe, ArrowRight, Menu } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { BrandFooter } from '@/components/BrandFooter';
