@@ -11,11 +11,11 @@ import { Logo } from "@/components/Logo"
 import { useAuth } from "@/contexts/AuthContext"
 import { ContentModal } from "@/components/admin/ContentModal"
 import { VideoUrlEditor } from "@/components/admin/VideoUrlEditor"
-import { ExpoContentManager } from "@/components/admin/ExpoContentManager"
+import { LandingContentManager } from "@/components/admin/LandingContentManager"
 import {
   Plus, Edit, Trash2, DollarSign, Calendar, Plane, Hotel, Package,
   Home, Globe, CheckCircle2, AlertCircle, X, RefreshCw,
-  Image as ImageIcon, Search, Eye, Save, ExternalLink, ChevronDown, ChevronUp, AlertTriangle
+  Image as ImageIcon, Search, Eye, Save, ExternalLink, ChevronDown, ChevronUp, AlertTriangle, Star
 } from "lucide-react"
 
 export default function AdminContentPage() {
@@ -456,8 +456,8 @@ export default function AdminContentPage() {
               MegaTravel
             </TabsTrigger>
             <TabsTrigger value="expo" className="flex items-center gap-2">
-              <Globe className="w-4 h-4" />
-              Landing Expo
+              <Star className="w-4 h-4" />
+              Landing Principal
             </TabsTrigger>
           </TabsList>
 
@@ -1047,13 +1047,13 @@ export default function AdminContentPage() {
             </Card>
           </TabsContent>
 
-          {/* EXPO TAB */}
+          {/* LANDING PRINCIPAL TAB */}
           <TabsContent value="expo">
             <Card className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Landing Page Promocional (Expo)</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Landing Page Principal (/inicio)</h2>
               </div>
-              <ExpoContentManager showToast={showToast} />
+              <LandingContentManager showToast={showToast} />
             </Card>
           </TabsContent>
 
