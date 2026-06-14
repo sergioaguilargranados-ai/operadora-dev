@@ -186,7 +186,7 @@ export default function InicioLanding() {
             ].map((dest, i) => (
               <div key={i} className="flex flex-col group cursor-pointer">
                 <div className="aspect-[4/3] rounded-sm overflow-hidden mb-4">
-                  <img src={`/inicio/${dest.img}`} alt={dest.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <img src={dest.img?.startsWith('http') ? dest.img : (dest.img?.startsWith('/') ? dest.img : `/inicio/${dest.img}`)} alt={dest.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 </div>
                 <h4 className={`text-lg font-medium mb-1 ${playfair.className}`}>{dest.name}</h4>
                 <p className="text-xs text-gray-500 mb-3">{dest.desc}</p>
