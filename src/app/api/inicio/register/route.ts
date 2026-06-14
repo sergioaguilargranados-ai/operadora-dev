@@ -6,16 +6,21 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { 
-      contact_name, 
-      contact_phone, 
-      agency_name, 
+      contact_name, fullName,
+      contact_phone, phone,
+      agency_name, company,
       website, 
       social_media, 
       email, 
-      job_title 
+      job_title, type
     } = body;
     
-    if (!contact_name) {
+    const final_name = contact_name || fullName;
+    const final_phone = contact_phone || phone;
+    const final_agency = agency_name || company;
+    const final_job = job_title || type;
+    
+    if (!final_name) {
       return NextResponse.json({ success: false, error: 'El nombre es requerido' }, { status: 400 });
     }
 
@@ -30,13 +35,13 @@ export async function POST(request: Request) {
         job_title
       ) VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *`,
-      [contact_name, contact_phone, agency_name, website, social_media, email, job_title]
+      [final_name, final_phone, final_agency, website, social_media, email, final_job]
     );
 
     // Enviar correo de bienvenida si hay un email
     if (email) {
       const emailHtml = `
-<p>Hola, ${contact_name}.</p>
+<p>Hola, ${final_name}.</p>
 <p>Gracias por registrarte en AS Operadora de Viajes y Eventos.</p>
 <p>Hemos recibido correctamente tu solicitud de registro y la informaci&oacute;n proporcionada ha sido enviada a nuestro equipo para su revisi&oacute;n.</p>
 <p>Nuestro proceso de validaci&oacute;n puede tomar hasta 30 d&iacute;as naturales. Durante este periodo verificaremos la informaci&oacute;n recibida para brindarte la mejor atenci&oacute;n y habilitar los servicios que correspondan a tu perfil.</p>
