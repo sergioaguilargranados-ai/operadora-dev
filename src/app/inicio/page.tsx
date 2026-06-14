@@ -140,7 +140,7 @@ export default function InicioLanding() {
               <div key={i} className="flex flex-col group">
                 <div className="relative mb-6">
                   <div className="h-48 overflow-hidden rounded-sm">
-                    <img src={`/inicio/${item.img}`} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <img src={item.img?.startsWith('http') ? item.img : (item.img?.startsWith('/') ? item.img : `/inicio/${item.img}`)} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   </div>
                   {/* Icono flotante */}
                   <div className="absolute -bottom-6 left-6 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
@@ -215,8 +215,8 @@ export default function InicioLanding() {
             ].map((serv, i) => (
               <div key={i} className="flex flex-col group">
                 <div className="relative mb-6">
-                  <div className="h-56 overflow-hidden rounded-sm">
-                    <img src={`/inicio/${serv.img}`} alt={serv.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="relative h-64 overflow-hidden rounded-sm mb-4">
+                    <img src={serv.img?.startsWith('http') ? serv.img : (serv.img?.startsWith('/') ? serv.img : `/inicio/${serv.img}`)} alt={serv.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   </div>
                   <div className="absolute -bottom-6 left-6 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
                     <serv.icon className="w-5 h-5 text-black" strokeWidth={1.5} />
@@ -295,7 +295,7 @@ export default function InicioLanding() {
           </div>
           
           <div className="w-full lg:w-1/2 min-h-[400px] relative">
-            <img src={`/inicio/${sj?.aliado?.img || "13WhatsApp_Image_2026-06-12_at_12.23.41_PM.jpeg"}`} alt={sj?.aliado?.title || "Aliado de negocios"} className="absolute inset-0 w-full h-full object-cover" />
+            <img src={sj?.aliado?.img?.startsWith('http') ? sj.aliado.img : (sj?.aliado?.img?.startsWith('/') ? sj.aliado.img : `/inicio/${sj?.aliado?.img || "13WhatsApp_Image_2026-06-12_at_12.23.41_PM.jpeg"}`)} alt={sj?.aliado?.title || "Aliado de negocios"} className="absolute inset-0 w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-r from-[#0f1115] to-transparent hidden lg:block"></div>
             <div className="absolute inset-0 bg-gradient-to-t from-[#0f1115] to-transparent lg:hidden"></div>
           </div>
