@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const result = await query(
-      'SELECT id, hero_video_url, hero_title, hero_subtitle, sections_json FROM expo_landing_content ORDER BY id DESC LIMIT 1'
+      'SELECT id, hero_video_url, hero_title, hero_subtitle, sections_json FROM expo_landing_content WHERE id = 1'
     );
     
     if (result.rows.length === 0) {
