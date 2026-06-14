@@ -114,8 +114,7 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
           >
             <Button
               onClick={() => setIsOpen(true)}
-              className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110"
-              style={{ backgroundColor: 'var(--brand-primary)' }}
+              className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 bg-black"
             >
               <MessageCircle className="w-6 h-6 text-white" />
             </Button>
@@ -134,7 +133,7 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
           >
             <Card className="flex flex-col h-full overflow-hidden shadow-2xl border-2">
               {/* Header */}
-              <div className="text-white p-4 flex items-center justify-between" style={{ backgroundColor: 'var(--brand-primary)' }}>
+              <div className="bg-black text-white p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                     <Bot className="w-6 h-6" />
@@ -175,18 +174,18 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
                           }`}
                       >
                         {message.role === 'assistant' && (
-                          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center flex-shrink-0">
                             <Bot className="w-5 h-5 text-white" />
                           </div>
                         )}
                         <div
                           className={`max-w-[75%] rounded-2xl px-4 py-2 ${message.role === 'user'
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-black text-white'
                             : 'bg-white border border-gray-200 text-gray-900'
                             }`}
                         >
                           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                          <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-blue-100' : 'text-gray-400'
+                          <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-gray-300' : 'text-gray-400'
                             }`}>
                             {message.timestamp.toLocaleTimeString('es-MX', {
                               hour: '2-digit',
@@ -203,7 +202,7 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
                     ))}
                     {loading && (
                       <div className="flex gap-2 justify-start">
-                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center flex-shrink-0">
                           <Bot className="w-5 h-5 text-white" />
                         </div>
                         <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2">
@@ -232,7 +231,7 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
                       <Button
                         onClick={handleSend}
                         disabled={!input.trim() || loading}
-                        style={{ backgroundColor: 'var(--brand-primary)' }}
+                        className="bg-black text-white hover:bg-gray-800"
                       >
                         {loading ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
