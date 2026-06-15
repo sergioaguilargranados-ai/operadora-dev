@@ -43,15 +43,15 @@ export function InstallPrompt() {
     const handler = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e as BeforeInstallPromptEvent)
-      // Mostrar después de 30 segundos de navegación
-      setTimeout(() => setShowBanner(true), 30000)
+      // Mostrar después de 5 segundos de navegación
+      setTimeout(() => setShowBanner(true), 5000)
     }
 
     window.addEventListener('beforeinstallprompt', handler)
 
-    // Para iOS — mostrar instrucciones después de 60 segundos
+    // Para iOS — mostrar instrucciones después de 5 segundos
     if (isIOSDevice) {
-      setTimeout(() => setShowBanner(true), 60000)
+      setTimeout(() => setShowBanner(true), 5000)
     }
 
     return () => window.removeEventListener('beforeinstallprompt', handler)
