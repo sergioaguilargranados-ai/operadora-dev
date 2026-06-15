@@ -57,6 +57,7 @@ export default function RootLayout({
     <html lang="es" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
         {/* PWA Meta Tags */}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
