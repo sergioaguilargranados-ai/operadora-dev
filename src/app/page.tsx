@@ -28,7 +28,7 @@ export default function InicioLanding() {
   }, []);
 
   const handleRegister = (type: string) => {
-    router.push(`/registro?type=${encodeURIComponent(type)}`);
+    router.push(`/registro-leads?type=${encodeURIComponent(type)}`);
   };
 
   if (loading) {
