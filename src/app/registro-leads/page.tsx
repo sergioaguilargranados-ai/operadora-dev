@@ -67,7 +67,7 @@ function RegistroForm() {
             Hemos recibido tu información correctamente. Nuestro equipo validará tu perfil y en breve recibirás un correo electrónico con los siguientes pasos.
           </p>
           <button 
-            onClick={() => router.push('/inicio')}
+            onClick={() => router.push('/')}
             className="bg-black text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors w-full"
           >
             Volver al Inicio
@@ -82,7 +82,7 @@ function RegistroForm() {
       {/* Lado Izquierdo: Formulario */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-12 md:px-16 lg:px-24 bg-white relative">
         <button 
-          onClick={() => router.push('/inicio')}
+          onClick={() => router.push('/')}
           className="absolute top-8 left-8 text-gray-500 hover:text-black flex items-center gap-2 font-medium"
         >
           <ArrowLeft className="w-5 h-5" /> Volver
