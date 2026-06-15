@@ -91,7 +91,7 @@ export function UserMenu() {
                             className="fixed inset-0 z-10"
                             onClick={() => setShowUserMenu(false)}
                         />
-                        <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border z-20 py-2">
+                        <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border z-20 py-2 max-h-[85vh] overflow-y-auto">
                             <div className="px-4 py-3 border-b">
                                 <p className="font-semibold">{user.name}</p>
                                 <p className="text-sm text-muted-foreground">{user.email}</p>

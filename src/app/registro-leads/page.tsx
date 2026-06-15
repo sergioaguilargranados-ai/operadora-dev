@@ -78,9 +78,9 @@ function RegistroForm() {
   }
 
   return (
-    <div className={`min-h-screen flex ${inter.className}`}>
-      {/* Lado Izquierdo: Formulario */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-12 md:px-16 lg:px-24 bg-white relative">
+    <div className={`min-h-screen flex items-center justify-center bg-[#F4F4F6] py-12 px-4 ${inter.className}`}>
+      {/* Contenedor Central: Formulario */}
+      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl flex flex-col justify-center px-6 py-12 md:px-16 relative">
         <button 
           onClick={() => router.push('/')}
           className="absolute top-8 left-8 text-gray-500 hover:text-black flex items-center gap-2 font-medium"
@@ -179,19 +179,6 @@ function RegistroForm() {
         </div>
       </div>
 
-      {/* Lado Derecho: Imagen Decorativa */}
-      <div className="hidden lg:block w-1/2 bg-gray-100 relative overflow-hidden">
-        <img 
-          src="/inicio/13WhatsApp_Image_2026-06-12_at_12.23.41_PM.jpeg" 
-          alt="Decoración" 
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/30"></div>
-        <div className="absolute bottom-16 left-16 right-16 text-white">
-          <h2 className={`text-4xl font-bold mb-4 ${playfair.className}`}>Descubre destinos extraordinarios</h2>
-          <p className="text-lg text-white/90">Únete a la plataforma líder para agencias, empresas y viajeros exigentes. Tu próximo gran viaje comienza aquí.</p>
-        </div>
-      </div>
     </div>
   );
 }
