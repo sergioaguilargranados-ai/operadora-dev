@@ -27,7 +27,7 @@ export default function LoginPage() {
     try {
       const success = await login(email, password)
       if (success) {
-        router.push("/")
+        router.push("/portal")
       } else {
         setError("Email o contraseña incorrectos")
       }

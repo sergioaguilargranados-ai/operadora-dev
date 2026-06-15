@@ -880,7 +880,7 @@ export default function MegaTravelScrapingPage() {
 
                 {/* Footer */}
                 <div className="text-center text-xs text-gray-400 mt-6 py-4">
-                    v2.350 | 13 Jun 2026 11:34 CST | AS Operadora — Panel MegaTravel
+                    v2.352 | 15 Jun 2026 10:59 CST | AS Operadora — Panel MegaTravel
                 </div>
             </div>
         </div>

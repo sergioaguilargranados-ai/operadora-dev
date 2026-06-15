@@ -35,6 +35,8 @@ const PROTECTED_ROUTES: RouteRule[] = [
   { path: '/dashboard/payments', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'CLIENT', 'admin', 'user', 'HR_MANAGER'], requireAuth: true },
   { path: '/dashboard/corporate', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'CLIENT', 'admin', 'user', 'HR_MANAGER'], requireAuth: true },
   { path: '/dashboard', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'CLIENT', 'admin', 'user', 'HR_MANAGER'], requireAuth: true },
+  // Portal Principal
+  { path: '/portal', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'CLIENT', 'admin', 'user', 'HR_MANAGER'], requireAuth: true },
   // Mis reservas
   { path: '/mis-reservas', roles: ['SUPER_ADMIN', 'AGENCY_ADMIN', 'AGENT', 'CLIENT', 'admin', 'user'], requireAuth: true },
   // Aprobaciones
@@ -135,7 +137,17 @@ export async function middleware(request: NextRequest) {
   }
 
   // ─────────────────────────────────────────────
-  // 3. Protección de rutas por rol (Sprint 6)
+  // 3. Redirección de Landing a Portal si hay sesión
+  // ─────────────────────────────────────────────
+  if (pathname === '/') {
+    const userPayload = extractUserFromToken(request)
+    if (userPayload) {
+      return NextResponse.redirect(new URL('/portal', request.url))
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // 4. Protección de rutas por rol (Sprint 6)
   // ─────────────────────────────────────────────
   const matchedRoute = PROTECTED_ROUTES.find(r => pathname.startsWith(r.path))
 

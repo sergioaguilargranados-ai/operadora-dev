@@ -1,13 +1,24 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 13 de Junio de 2026 - 19:55 CST  
-**Versión actual:** v2.351  
+**Última actualización:** 15 de Junio de 2026 - 10:59 CST  
+**Versión actual:** v2.352  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.352 - 15 de Junio de 2026 - 10:59 CST
+
+**🚀 Reestructuración Arquitectónica de Rutas (Landing vs Portal)**
+- **Landing Pública en Raíz:** Se movió la landing informativa de `/inicio` a `/`.
+- **Portal Privado:** Se reubicó todo el portal transaccional de `/` a `/portal`.
+- **Middleware Actualizado:** Se implementó protección de la ruta `/portal` y redirección inteligente (si un usuario con sesión entra a `/`, es redirigido automáticamente a `/portal`).
+- **Flujo de Login:** Al iniciar sesión exitosamente en `/login`, el usuario ahora es redirigido a `/portal`.
+- **Respaldos de Seguridad:** Se crearon copias de los archivos originales como `.backup-landing` y `.backup-portal` por si se requiere un reverso rápido.
+
+---
 
 ### v2.351 - 13 de Junio de 2026 - 19:55 CST
 
