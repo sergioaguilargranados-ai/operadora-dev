@@ -181,6 +181,7 @@ export default function LoginPage() {
             </p>
           </div>
 
+          {/* Ocultado temporalmente por proceso de registro de lista
           <div className="mt-8 pt-6 border-t">
             <p className="text-xs text-center text-muted-foreground mb-4">
               O continúa con
@@ -249,6 +250,7 @@ export default function LoginPage() {
               </Button>
             </div>
           </div>
+          */}
         </Card>
       </div>
     </div>

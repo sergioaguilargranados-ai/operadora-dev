@@ -28,7 +28,7 @@ export default function InicioLanding() {
   }, []);
 
   const handleRegister = (type: string) => {
-    router.push(`/inicio/registro?type=${encodeURIComponent(type)}`);
+    router.push(`/registro?type=${encodeURIComponent(type)}`);
   };
 
   if (loading) {
@@ -334,8 +334,8 @@ export default function InicioLanding() {
         </div>
       </section>
 
-      {/* FOOTER OFICIAL */}
-      <BrandFooter />
+      {/* FOOTER OFICIAL (Oculto en landing por petición) */}
+      {/* <BrandFooter /> */}
     </div>
   );
 }
