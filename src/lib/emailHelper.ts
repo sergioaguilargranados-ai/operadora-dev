@@ -998,8 +998,8 @@ export const sendLandingWelcomeEmail = async (data: {
             subject: 'Recepción de Solicitud de Registro - AS Operadora',
             html: rawHtml
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error enviando correo de bienvenida de landing:', error);
-        return false;
+        throw error;
     }
 };
