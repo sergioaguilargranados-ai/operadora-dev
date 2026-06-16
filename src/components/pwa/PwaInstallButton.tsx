@@ -23,7 +23,10 @@ export function PwaInstallButton() {
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      alert("Diagnóstico PWA: El navegador no ha emitido el evento de instalación (beforeinstallprompt). Esto significa que la aplicación aún no cumple con todos los requisitos de PWA en la nube (ej. Service Worker, Manifest, o HTTPS), o ya está instalada.");
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
@@ -31,16 +34,16 @@ export function PwaInstallButton() {
     }
   };
 
-  if (!deferredPrompt) return null;
-
+  // FORZAR MOSTRAR EL BOTÓN (Quitamos el if (!deferredPrompt) return null;)
+  
   return (
     <button
       onClick={handleInstall}
-      className="text-gray-400 hover:text-white transition-colors text-[10px] flex items-center gap-1 opacity-50 hover:opacity-100"
+      className={`transition-colors text-[10px] flex items-center gap-1 ${deferredPrompt ? 'text-green-500 hover:text-green-400 font-bold opacity-100' : 'text-gray-400 hover:text-white opacity-50'}`}
       title="Instalar como Aplicación"
     >
       <Download className="w-3 h-3" />
-      Instalar App
+      Instalar App {deferredPrompt ? '(Lista)' : '(Diagnostic)'}
     </button>
   );
 }
