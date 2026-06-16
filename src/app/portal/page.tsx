@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 // Build: 26 Feb 2026 - v2.334 - Reservas: acciones PDF/Pago/Facturar, PDF premium, comprobante de pago
 import { useState, useEffect } from "react"
@@ -568,7 +568,13 @@ export default function Home() {
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4 md:gap-8">
-            <Logo className="py-2" />
+            <a href="/" onClick={async (e) => {
+              e.preventDefault();
+              await logout();
+              router.push('/');
+            }} className="cursor-pointer">
+              <Logo className="py-2" />
+            </a>
           </div>
           <div className="flex items-center gap-3 md:gap-6 text-sm">
             <button
