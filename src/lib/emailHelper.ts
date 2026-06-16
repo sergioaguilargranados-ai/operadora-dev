@@ -191,12 +191,16 @@ export const sendEmail = async (options: {
         }
         */
 
-        if (success) {
+        if (!success) {
+            console.error('❌ Todos los métodos de envío fallaron para:', options.to)
+            throw new Error(errorMsg || 'Fallo desconocido al enviar correo');
+        } else {
             console.log(`✅ Email enviado via ${provider} a: ${options.to}`)
         }
     } catch (error: any) {
         errorMsg = error?.message || 'Error desconocido'
         console.error(`❌ Error enviando email a ${options.to}:`, errorMsg)
+        throw error;
     }
 
     // ---- Guardar en Centro de Comunicación ----

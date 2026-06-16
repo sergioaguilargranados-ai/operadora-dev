@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     );
 
     // Enviar correo de bienvenida con formato corporativo si hay un email
-    let emailResult = null;
+    let emailResult: any = null;
     if (email) {
       emailResult = await sendLandingWelcomeEmail({
         name: final_name,
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
         providerProduct: providerProduct
       }).catch(err => {
         console.error('Error al enviar el correo corporativo de registro:', err);
-        return false;
+        return { error: err.message };
       });
     }
 

@@ -74,7 +74,12 @@ function RegistroForm() {
           
           {emailStatus === false && (
              <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm">
-                <strong>Debug Info:</strong> El correo no pudo enviarse. El servidor API retornó emailSent: false.
+                <strong>Debug Info:</strong> El correo no pudo enviarse. Falló silenciosamente.
+             </div>
+          )}
+          {emailStatus && emailStatus.error && (
+             <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm">
+                <strong>Error Exacto de Vercel/SiteGround:</strong> {emailStatus.error}
              </div>
           )}
 
