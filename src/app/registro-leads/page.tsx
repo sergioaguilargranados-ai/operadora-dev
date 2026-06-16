@@ -34,6 +34,8 @@ function RegistroForm() {
     { id: 'Proveedor', icon: Globe }
   ];
 
+  const [emailStatus, setEmailStatus] = useState<any>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -48,6 +50,7 @@ function RegistroForm() {
       const data = await res.json();
       
       if (data.success) {
+        setEmailStatus(data.emailSent);
         setSuccess(true);
       } else {
         setError(data.error || 'Ocurrió un error al procesar tu solicitud.');
@@ -68,6 +71,13 @@ function RegistroForm() {
           <p className="text-gray-600 mb-8 leading-relaxed">
             Hemos recibido tu información correctamente. Nuestro equipo validará tu perfil y en breve recibirás un correo electrónico con los siguientes pasos.
           </p>
+          
+          {emailStatus === false && (
+             <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm">
+                <strong>Debug Info:</strong> El correo no pudo enviarse. El servidor API retornó emailSent: false.
+             </div>
+          )}
+
           <button 
             onClick={() => router.push('/')}
             className="bg-black text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors w-full"
