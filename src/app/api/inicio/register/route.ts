@@ -26,7 +26,8 @@ export async function POST(request: Request) {
     }
 
     if (email) {
-      const existing = await query(`SELECT id FROM expo_leads WHERE email = $1 LIMIT 1`, [email]);
+      // Validar contra el CRM principal
+      const existing = await query(`SELECT id FROM crm_contacts WHERE email = $1 LIMIT 1`, [email]);
       if (existing.rows.length > 0) {
         return NextResponse.json({ success: false, error: 'Este correo electrónico ya está registrado.' }, { status: 400 });
       }
