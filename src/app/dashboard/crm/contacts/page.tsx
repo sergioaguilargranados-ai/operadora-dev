@@ -8,10 +8,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageHeader } from '@/components/PageHeader'
 import { useToast } from '@/hooks/use-toast'
+import {
     Users, UserPlus, Search, Filter, ChevronRight, ChevronLeft,
     Flame, Mail, Phone, MessageSquare, MapPin, Calendar,
     ArrowUpDown, X, Download, Loader2, Eye, MoreHorizontal,
     Target, TrendingUp, Star, Clock, Briefcase, Building2, Trash2
+} from 'lucide-react'
 
 // ═══════════════════════════════════════════
 // TYPES
