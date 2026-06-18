@@ -41,6 +41,17 @@ export class HotelbedsAdapter implements IProveedorHotel {
   async buscarHoteles(params: ParametrosBusquedaHotel): Promise<RespuestaBusqueda<HotelUnificado>> {
     const inicio = Date.now();
     try {
+      // Validación estricta para Hotelbeds (máximo 3 caracteres para destination code)
+      if (params.destino.length > 3) {
+        console.warn(`[HotelbedsAdapter] Destino "${params.destino}" excede 3 caracteres. Hotelbeds ignorado.`);
+        return {
+          exito: true,
+          resultados: [],
+          proveedorInfo: this.nombreProveedor,
+          tiempoRespuestaMs: Date.now() - inicio
+        };
+      }
+
       // 1. Mapear parámetros a formato Hotelbeds (Availability API)
       const occupancies = params.habitaciones.map((hab, index) => ({
         rooms: 1,
