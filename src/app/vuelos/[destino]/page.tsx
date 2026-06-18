@@ -43,6 +43,7 @@ interface Vuelo {
   cambios: string
   amenidades: string[]
   tarifa: string
+  provider?: string
 }
 
 interface DatePrice {
@@ -454,7 +455,8 @@ async function buscarVuelos(origen: string, destino: string, fecha: string, pasa
         equipaje: vuelo.baggage || '1 maleta incluida',
         cambios: vuelo.flexibility || 'Cambios permitidos',
         amenidades: vuelo.amenities || ['Wifi'],
-        tarifa: vuelo.fareType || 'Standard'
+        tarifa: vuelo.fareType || 'Standard',
+        provider: vuelo.provider || 'AMADEUS'
       }))
     }
     return todosVuelos
@@ -1130,12 +1132,17 @@ export default function VuelosDestinoPage() {
                 {vuelosFiltrados.map((vuelo) => (
                   <Card
                     key={vuelo.id}
-                    className={`p-4 hover:shadow-lg transition-shadow ${
+                    className={`p-4 hover:shadow-lg transition-shadow relative ${
                       vuelo.precioIda === precioMasBarato ? 'ring-2 ring-green-500' : ''
                     }`}
                   >
                     {vuelo.precioIda === precioMasBarato && (
                       <Badge className="bg-green-600 mb-2">Mejor precio</Badge>
+                    )}
+                    {vuelo.provider && (
+                      <span className="absolute top-4 right-4 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 border border-slate-200">
+                        {vuelo.provider}
+                      </span>
                     )}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">

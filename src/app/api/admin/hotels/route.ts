@@ -12,7 +12,11 @@ export async function GET(request: NextRequest) {
     const token = authHeader.split(' ')[1];
     const decoded = await verifyToken(token);
 
-    if (!decoded || !['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(decoded.role)) {
+    if (!decoded) {
+      return NextResponse.json({ success: false, error: 'Token inválido o expirado' }, { status: 401 });
+    }
+
+    if (!['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(decoded.role)) {
       return NextResponse.json({ success: false, error: 'Acceso denegado' }, { status: 403 });
     }
 

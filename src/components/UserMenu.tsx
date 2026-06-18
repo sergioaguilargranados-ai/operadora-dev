@@ -212,14 +212,7 @@ export function UserMenu() {
                                             <Calendar className="w-4 h-4" />
                                             Itinerarios
                                         </button>
-                                        <button
-                                            onClick={() => router.push('/admin/features')}
-                                            className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-blue-600 font-medium"
-                                        >
-                                            <Shield className="w-4 h-4" />
-                                            Administración de Funciones
-                                        </button>
-                                    </>
+                                        </>
                                 )}
                             </div>
                             <div className="border-t pt-2">
