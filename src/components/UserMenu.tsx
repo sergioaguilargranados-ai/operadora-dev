@@ -153,6 +153,7 @@ export function UserMenu() {
 
                                 {/* Opciones de Admin/SuperAdmin */}
                                 {user.role && ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(user.role) && (
+                                    <>
                                         <div className="border-t my-2"></div>
                                         <button
                                             onClick={() => router.push('/admin/features')}
