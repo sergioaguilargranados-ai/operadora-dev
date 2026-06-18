@@ -1,13 +1,23 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
 **Última actualización:** 15 de Junio de 2026 - 10:59 CST  
-**Versión actual:** v2.352  
+**Versión actual:** v2.353  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.353 - 18 de Junio de 2026 - 11:25 CST
+
+**✈️🏨 Arquitectura Multi-Proveedor (Duffel, Hotelbeds, RateHawk)**
+- **Modelos Unificados**: Se implementó una capa Core de modelos e interfaces comunes en `src/types/unified-travel.ts` y `src/types/providers.ts`.
+- **Patrón Adaptador**: Se crearon `DuffelAdapter`, `HotelbedsAdapter` y `RatehawkAdapter` para encapsular la lógica propietaria de cada API.
+- **Agregadores Paralelos**: Se añadieron `FlightAggregator` y `HotelAggregator` que consultan APIs concurrentemente y deduplican ofertas.
+- **Interfaces Web**: Se crearon `/vuelos` y `/hoteles` con formularios integrados a la nueva capa de agregación.
+- **Auth Hotelbeds**: Se configuró firma segura (SHA256) requerida por el API de disponibilidad.
+- **SDK Duffel**: Instalación e integración base con `@duffel/api`.
 
 ### v2.352 - 15 de Junio de 2026 - 10:59 CST
 
