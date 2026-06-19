@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { FlightAggregator } from '@/services/aggregators/FlightAggregator';
 import { VueloUnificado } from '@/types/unified-travel';
+import { db } from '@/lib/db';
 
 // Mapper to adapt Unified Model to the Legacy Frontend format
-function mapToFrontendFlight(vuelo: VueloUnificado, adults: number) {
+function mapToFrontendFlight(vuelo: VueloUnificado, adults: number, airlinesMap: Record<string, any>) {
   const ida = vuelo.itinerarios[0];
   const numSegmentos = ida.segmentos.length;
   const primerSegmento = ida.segmentos[0];
@@ -17,10 +18,15 @@ function mapToFrontendFlight(vuelo: VueloUnificado, adults: number) {
   // Extraer precio por persona asumiendo partes iguales
   const pricePerPerson = vuelo.precioTotal / (adults || 1);
 
+  const iataCode = primerSegmento.aerolinea.iataCode;
+  const catalogAirline = airlinesMap[iataCode];
+  const finalLogo = catalogAirline?.logo_url || primerSegmento.aerolinea.logoUrl || `https://pics.avs.io/200/200/${iataCode}.png`;
+  const finalName = catalogAirline?.name || primerSegmento.aerolinea.nombre || iataCode;
+
   return {
     id: vuelo.id,
-    airline: primerSegmento.aerolinea.nombre || primerSegmento.aerolinea.iataCode,
-    logo: primerSegmento.aerolinea.logoUrl || `https://pics.avs.io/200/200/${primerSegmento.aerolinea.iataCode}.png`,
+    airline: finalName,
+    logo: finalLogo,
     flightNumber: primerSegmento.numeroVuelo,
     origin: primerSegmento.origen.iataCode,
     destination: ultimoSegmento.destino.iataCode,
@@ -58,6 +64,15 @@ export async function GET(request: NextRequest) {
     const cleanOrigin = origin.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '').substring(0, 3).toUpperCase();
     const cleanDestination = destination.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '').substring(0, 3).toUpperCase();
 
+    // Cargar catálogo de aerolíneas local
+    let airlinesMap: Record<string, any> = {};
+    try {
+      const res = await db.query('SELECT * FROM airlines_catalog');
+      res.rows.forEach((r: any) => { airlinesMap[r.iata_code] = r; });
+    } catch (e) {
+      // Ignore if table doesn't exist yet
+    }
+
     // Invocar al Agregador
     const aggregator = new FlightAggregator();
     
@@ -70,7 +85,7 @@ export async function GET(request: NextRequest) {
       claseCabina: cabinClass as any
     });
 
-    const outboundFlights = outboundResult.resultados.map(v => mapToFrontendFlight(v, adults));
+    const outboundFlights = outboundResult.resultados.map(v => mapToFrontendFlight(v, adults, airlinesMap));
 
     // Vuelos de Regreso
     let returnFlights: any[] = [];
@@ -82,7 +97,33 @@ export async function GET(request: NextRequest) {
         pasajeros: [{ tipo: 'adult', cantidad: adults }],
         claseCabina: cabinClass as any
       });
-      returnFlights = returnResult.resultados.map(v => mapToFrontendFlight(v, adults));
+      returnFlights = returnResult.resultados.map(v => mapToFrontendFlight(v, adults, airlinesMap));
+    }
+
+    // Identificar y guardar aerolíneas nuevas asincrónicamente
+    const allFlights = [...outboundResult.resultados, ...(returnDate ? returnFlights : [])];
+    const missingAirlines = new Map<string, {name: string, logo: string}>();
+    allFlights.forEach((v: any) => {
+      const seg = v.itinerarios?.[0]?.segmentos?.[0] || v;
+      const iata = seg.aerolinea?.iataCode || seg.airline;
+      if (iata && !airlinesMap[iata]) {
+        missingAirlines.set(iata, {
+          name: seg.aerolinea?.nombre || seg.airline || iata,
+          logo: seg.aerolinea?.logoUrl || seg.logo || `https://pics.avs.io/200/200/${iata}.png`
+        });
+      }
+    });
+
+    if (missingAirlines.size > 0) {
+      // No bloqueamos la respuesta del API para insertar
+      setTimeout(async () => {
+        try {
+          await db.query(`CREATE TABLE IF NOT EXISTS airlines_catalog (iata_code VARCHAR(10) PRIMARY KEY, name VARCHAR(255), logo_url TEXT, is_custom BOOLEAN DEFAULT false, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+          for (const [iata, data] of missingAirlines.entries()) {
+            await db.query(`INSERT INTO airlines_catalog (iata_code, name, logo_url) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`, [iata, data.name, data.logo]);
+          }
+        } catch(e) {}
+      }, 0);
     }
 
     return NextResponse.json({

@@ -21,7 +21,8 @@ import {
     RefreshCw,
     Check,
     X,
-    Loader2
+    Loader2,
+    BarChart3
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { UserMenu } from '@/components/UserMenu';
@@ -58,6 +59,7 @@ export default function AdminFeaturesPage() {
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);
+    const [providerMetrics, setProviderMetrics] = useState<any[]>([]);
 
     // Obtener token del localStorage
     useEffect(() => {
@@ -87,14 +89,21 @@ export default function AdminFeaturesPage() {
             setLoading(true);
             setError(null);
 
-            const response = await fetch('/api/admin/features', {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const [featuresRes, metricsRes] = await Promise.all([
+                fetch('/api/admin/features', {
+                    headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
+                }),
+                fetch('/api/admin/analytics/providers', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                }).catch(() => ({ json: async () => ({ success: false }) }))
+            ]);
 
-            const data = await response.json();
+            const data = await featuresRes.json();
+            const metricsData = await (metricsRes as any).json();
+
+            if (metricsData.success && metricsData.data) {
+                setProviderMetrics(metricsData.data);
+            }
 
             if (data.success) {
                 setFeatures(data.data.features || []);
@@ -444,6 +453,47 @@ export default function AdminFeaturesPage() {
                             <p className="text-3xl font-bold text-purple-600">{categories.length}</p>
                             <p className="text-sm text-gray-600">Categorías</p>
                         </div>
+                    </div>
+                    {/* SECCIÓN DE MÉTRICAS DE PROVEEDORES */}
+                    <div className="mt-12 mb-8">
+                        <div className="flex items-center gap-2 mb-6">
+                            <BarChart3 className="w-6 h-6 text-[#0066FF]" />
+                            <h2 className="text-2xl font-bold">Rendimiento de Proveedores</h2>
+                        </div>
+                        <Card className="p-6">
+                            {providerMetrics.length === 0 ? (
+                                <p className="text-muted-foreground text-center py-8">Aún no hay suficientes datos de búsquedas para mostrar métricas.</p>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-sm">
+                                        <thead>
+                                            <tr className="border-b bg-gray-50">
+                                                <th className="p-3 font-semibold">Proveedor</th>
+                                                <th className="p-3 font-semibold">Servicio</th>
+                                                <th className="p-3 font-semibold text-right">Consultas Totales</th>
+                                                <th className="p-3 font-semibold text-right">Éxito</th>
+                                                <th className="p-3 font-semibold text-right">Tiempo Promedio (ms)</th>
+                                                <th className="p-3 font-semibold text-right">Resultados Promedio</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {providerMetrics.map((metric, i) => (
+                                                <tr key={i} className="border-b hover:bg-gray-50/50">
+                                                    <td className="p-3 font-medium">{metric.provider_name}</td>
+                                                    <td className="p-3 capitalize">{metric.service_type}</td>
+                                                    <td className="p-3 text-right">{metric.total_requests}</td>
+                                                    <td className="p-3 text-right text-green-600">
+                                                        {Math.round((metric.successful_requests / metric.total_requests) * 100)}%
+                                                    </td>
+                                                    <td className="p-3 text-right">{metric.avg_response_time}ms</td>
+                                                    <td className="p-3 text-right">{metric.avg_results} res/búsqueda</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </Card>
                     </div>
                 </Card>
             </main>

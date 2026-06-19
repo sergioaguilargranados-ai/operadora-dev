@@ -51,6 +51,17 @@ export default function AdminContentPage() {
   const [hotelsCount, setHotelsCount] = useState(0)
   const [hotelsSearch, setHotelsSearch] = useState('')
 
+  // Hotels Sync state
+  const [syncStatus, setSyncStatus] = useState<{ isSyncing: boolean, progress: number, currentBatch: number, totalBatches: number, logs: string[] }>({
+    isSyncing: false, progress: 0, currentBatch: 0, totalBatches: 0, logs: []
+  })
+
+  // Airlines Catalog state
+  const [airlinesList, setAirlinesList] = useState<any[]>([])
+  const [airlinesLoading, setAirlinesLoading] = useState(false)
+  const [airlinesSearch, setAirlinesSearch] = useState('')
+  const [editingAirline, setEditingAirline] = useState<any>(null)
+
   useEffect(() => {
     if (!isAuthenticated || !user?.role || !['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(user.role)) {
       router.push('/')
@@ -124,9 +135,103 @@ export default function AdminContentPage() {
     }
   }
 
+  const loadAirlines = async (searchQuery = '') => {
+    try {
+      setAirlinesLoading(true)
+      const token = localStorage.getItem('as_token')
+      const res = await fetch(`/api/admin/airlines?search=${searchQuery}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.success) setAirlinesList(data.data)
+    } catch (error) {
+      console.error('Error loading airlines:', error)
+      showToast('Error al cargar aerolíneas', 'error')
+    } finally {
+      setAirlinesLoading(false)
+    }
+  }
+
+  const saveAirlineLogo = async (iata: string, name: string, url: string) => {
+    try {
+      const token = localStorage.getItem('as_token')
+      const res = await fetch('/api/admin/airlines', {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ iata_code: iata, name, logo_url: url })
+      })
+      const data = await res.json()
+      if (data.success) {
+        showToast('Logo actualizado', 'success')
+        loadAirlines(airlinesSearch)
+        setEditingAirline(null)
+      } else {
+        showToast(data.error || 'Error al guardar logo', 'error')
+      }
+    } catch (error) {
+      showToast('Error de conexión', 'error')
+    }
+  }
+
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type })
     setTimeout(() => setToast(null), 3000)
+  }
+
+  // SYNC LOGIC
+  const handleStartSync = async () => {
+    try {
+      setSyncStatus({ isSyncing: true, progress: 0, currentBatch: 0, totalBatches: 0, logs: ['[Iniciando] Solicitando total de hoteles...'] })
+      const token = localStorage.getItem('as_token')
+      const res = await fetch('/api/admin/hotels/sync/start', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const data = await res.json()
+      
+      if (!data.success) {
+        setSyncStatus(prev => ({ ...prev, isSyncing: false, logs: [...prev.logs, `[Error] ${data.error}`] }))
+        showToast(data.error || 'Error al iniciar sync', 'error')
+        return
+      }
+
+      setSyncStatus(prev => ({ 
+        ...prev, 
+        totalBatches: data.totalBatches, 
+        logs: [...prev.logs, `[Descubrimiento] ${data.total} hoteles encontrados. Iniciando proceso por lotes...`] 
+      }))
+
+      // Process batches sequentially
+      for (let i = 1; i <= data.totalBatches; i++) {
+        // Checar si el usuario no cerró o canceló la sync
+        const batchRes = await fetch('/api/admin/hotels/sync/process', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ batch: i })
+        })
+        const batchData = await batchRes.json()
+        
+        if (!batchData.success) {
+          setSyncStatus(prev => ({ ...prev, isSyncing: false, logs: [...prev.logs, `[Error en Lote ${i}] ${batchData.error}`] }))
+          break
+        }
+
+        setSyncStatus(prev => ({
+          ...prev,
+          currentBatch: i,
+          progress: Math.round((i / data.totalBatches) * 100),
+          logs: [...prev.logs, ...(batchData.logs || [])]
+        }))
+      }
+
+      setSyncStatus(prev => ({ ...prev, isSyncing: false, logs: [...prev.logs, '[Proceso Completado] Todos los lotes han sido procesados exitosamente.'] }))
+      loadHotels() // Reload grid
+      showToast('Sincronización completada', 'success')
+    } catch (error) {
+      console.error(error)
+      setSyncStatus(prev => ({ ...prev, isSyncing: false, logs: [...prev.logs, '[Fallo Crítico] Error de conexión o servidor'] }))
+      showToast('Error en la sincronización', 'error')
+    }
   }
 
   // HERO HANDLERS
@@ -474,6 +579,12 @@ export default function AdminContentPage() {
               <Hotel className="w-4 h-4" />
               Catálogo Hoteles
             </TabsTrigger>
+            <TabsTrigger value="airlines" className="flex items-center gap-2" onClick={() => {
+              if (airlinesList.length === 0) loadAirlines()
+            }}>
+              <Plane className="w-4 h-4" />
+              Catálogo Aerolíneas
+            </TabsTrigger>
             <TabsTrigger value="videos" className="flex items-center gap-2">
               <Globe className="w-4 h-4" />
               Videos/URLs
@@ -745,11 +856,57 @@ export default function AdminContentPage() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold">Catálogo de Hoteles</h2>
-                <Button className="bg-[#0066FF] hover:bg-[#0052CC]" onClick={() => showToast('Iniciando sincronización...', 'success')}>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Sincronizar Fotos (Content API)
+                <Button 
+                  className="bg-[#0066FF] hover:bg-[#0052CC]" 
+                  onClick={handleStartSync}
+                  disabled={syncStatus.isSyncing}
+                >
+                  {syncStatus.isSyncing ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                  )}
+                  {syncStatus.isSyncing ? 'Sincronizando...' : 'Sincronizar Fotos (Content API)'}
                 </Button>
               </div>
+
+              {/* BARRA DE PROGRESO Y TERMINAL */}
+              {(syncStatus.isSyncing || syncStatus.logs.length > 0) && (
+                <div className="mb-8 space-y-4">
+                  {/* Progress bar */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden relative">
+                      <div 
+                        className="absolute top-0 left-0 h-full bg-blue-600 transition-all duration-500"
+                        style={{ width: `${syncStatus.progress}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium text-blue-600 w-12 text-right">{syncStatus.progress}%</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground px-1">
+                    <span>Fase: Descarga de proveedores</span>
+                    <span>{syncStatus.currentBatch} de {syncStatus.totalBatches} lotes completados</span>
+                  </div>
+                  
+                  {/* Terminal Log */}
+                  <div className="bg-[#0d1117] rounded-lg border border-gray-800 p-4 font-mono text-[11px] h-64 overflow-y-auto mt-4 text-green-400">
+                    <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-800 text-gray-400">
+                      <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> Registro de Actividad</span>
+                      <button onClick={() => setSyncStatus(prev => ({...prev, logs: []}))} className="hover:text-white">Limpiar</button>
+                    </div>
+                    <div className="space-y-1 mt-3">
+                      {syncStatus.logs.map((log, i) => (
+                        <div key={i} className={log.includes('[Error') ? 'text-red-400' : log.includes('✅') ? 'text-blue-300' : ''}>
+                          {log}
+                        </div>
+                      ))}
+                      {syncStatus.isSyncing && (
+                        <div className="animate-pulse text-gray-500 mt-2">_</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex mb-6 gap-4">
                 <div className="relative flex-1">
@@ -802,6 +959,110 @@ export default function AdminContentPage() {
                 </>
               )}
             </Card>
+          </TabsContent>
+
+          {/* AIRLINES CATALOG TAB */}
+          <TabsContent value="airlines">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">Catálogo de Aerolíneas</h2>
+                <Button className="bg-[#0066FF] hover:bg-[#0052CC]" onClick={() => setEditingAirline({})}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Agregar Aerolínea
+                </Button>
+              </div>
+
+              <div className="flex mb-6 gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Buscar por código IATA o nombre..." 
+                    value={airlinesSearch}
+                    onChange={(e) => setAirlinesSearch(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && loadAirlines(airlinesSearch)}
+                    className="pl-9"
+                  />
+                </div>
+                <Button onClick={() => loadAirlines(airlinesSearch)}>Buscar</Button>
+              </div>
+
+              {airlinesLoading ? (
+                <div className="py-12 text-center">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#0066FF]" />
+                  <p className="mt-4 text-muted-foreground">Cargando aerolíneas...</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {airlinesList.map((airline) => (
+                    <Card key={airline.iata_code} className="p-4 flex flex-col items-center justify-between hover:shadow-md transition-shadow relative">
+                      {airline.is_custom && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-500" title="Logo Personalizado" />}
+                      <div className="w-16 h-12 flex items-center justify-center bg-white rounded border mb-3 overflow-hidden p-1">
+                        {airline.logo_url ? (
+                          <img src={airline.logo_url} alt={airline.name} className="max-w-full max-h-full object-contain" />
+                        ) : (
+                          <Plane className="w-6 h-6 text-gray-300" />
+                        )}
+                      </div>
+                      <div className="text-center mb-4">
+                        <p className="font-bold">{airline.iata_code}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1" title={airline.name}>{airline.name}</p>
+                      </div>
+                      <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => setEditingAirline(airline)}>
+                        Editar Logo
+                      </Button>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            {editingAirline && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <Card className="w-full max-w-md p-6 animate-in zoom-in-95 duration-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-lg">{editingAirline.iata_code ? 'Editar Aerolínea' : 'Nueva Aerolínea'}</h3>
+                    <Button variant="ghost" size="icon" onClick={() => setEditingAirline(null)}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Código IATA (ej. AM)</label>
+                      <Input 
+                        value={editingAirline.iata_code || ''} 
+                        onChange={e => setEditingAirline({...editingAirline, iata_code: e.target.value.toUpperCase()})}
+                        disabled={!!editingAirline.is_custom || editingAirline.name}
+                        placeholder="AM"
+                        maxLength={3}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Nombre de Aerolínea</label>
+                      <Input 
+                        value={editingAirline.name || ''} 
+                        onChange={e => setEditingAirline({...editingAirline, name: e.target.value})}
+                        placeholder="Aeroméxico"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">URL del Logo (Airhex o URL pública)</label>
+                      <Input 
+                        value={editingAirline.logo_url || ''} 
+                        onChange={e => setEditingAirline({...editingAirline, logo_url: e.target.value})}
+                        placeholder="https://ejemplo.com/logo.png"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Recomendado formato PNG transparente (max 200x200px).</p>
+                    </div>
+                    
+                    <div className="pt-4 flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setEditingAirline(null)}>Cancelar</Button>
+                      <Button onClick={() => saveAirlineLogo(editingAirline.iata_code, editingAirline.name, editingAirline.logo_url)}>Guardar</Button>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            )}
           </TabsContent>
 
           {/* VIDEOS TAB */}
