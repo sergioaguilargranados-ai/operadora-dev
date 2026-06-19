@@ -131,6 +131,8 @@ export async function GET(request: NextRequest) {
         outbound: outboundFlights,
         return: returnFlights
       },
+      aggregatorInfo: outboundResult.proveedorInfo,
+      aggregatorErrors: outboundResult.errores,
       searchParams: {
         origin: cleanOrigin,
         destination: cleanDestination,

@@ -1,6 +1,7 @@
 // Build: 03 Jun 2026 - 16:30 CST - v2.342
 
 import { DuffelAdapter } from '../providers/duffel/DuffelAdapter';
+import { AmadeusFlightProvider } from '../providers/amadeus/AmadeusFlightProvider';
 import { IProveedorVuelo, ParametrosBusquedaVuelo, RespuestaBusqueda } from '@/types/providers';
 import { VueloUnificado } from '@/types/unified-travel';
 import { query } from '@/lib/db';
@@ -11,7 +12,7 @@ export class FlightAggregator {
   constructor() {
     // Inicializar y registrar los proveedores disponibles
     this.proveedores.push(new DuffelAdapter());
-    // En el futuro: this.proveedores.push(new AmadeusAdapter());
+    this.proveedores.push(new AmadeusFlightProvider());
   }
 
   /**

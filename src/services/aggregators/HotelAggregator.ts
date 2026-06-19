@@ -37,15 +37,14 @@ export class HotelAggregator {
           if (resultado.value.errores) errores.push(...resultado.value.errores);
 
           query(`
-            INSERT INTO provider_metrics (search_type, destination, provider_name, results_found, results_returned, response_time_ms)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO provider_metrics (provider_name, service_type, response_time_ms, results_count, success)
+            VALUES ($1, $2, $3, $4, $5)
           `, [
-            'hotel',
-            params.destino || 'UNKNOWN',
             nombreProveedor,
+            'hoteles',
+            Date.now() - inicio,
             cantidadLeidos,
-            cantidadLeidos,
-            Date.now() - inicio
+            true
           ]).catch(e => console.error('[Metrics] Error:', e));
 
         } else {
@@ -54,15 +53,15 @@ export class HotelAggregator {
           errores.push(`[${nombreProveedor}] ${msg}`);
 
           query(`
-            INSERT INTO provider_metrics (search_type, destination, provider_name, results_found, results_returned, response_time_ms)
+            INSERT INTO provider_metrics (provider_name, service_type, response_time_ms, results_count, success, error_message)
             VALUES ($1, $2, $3, $4, $5, $6)
           `, [
-            'hotel',
-            params.destino || 'UNKNOWN',
             nombreProveedor,
+            'hoteles',
+            Date.now() - inicio,
             0,
-            0,
-            Date.now() - inicio
+            false,
+            msg
           ]).catch(e => console.error('[Metrics] Error:', e));
         }
       });
