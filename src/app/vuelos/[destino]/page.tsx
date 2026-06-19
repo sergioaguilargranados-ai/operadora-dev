@@ -434,7 +434,7 @@ async function buscarVuelos(origen: string, destino: string, fecha: string, pasa
     const response = await fetch(`/api/search/flights?origin=${origen}&destination=${destino}&date=${fecha}&adults=${pasajeros}`)
     if (!response.ok) {
       console.warn('Error en API Amadeus, usando datos mock')
-      return todosVuelos
+      return todosVuelos.map(v => ({ ...v, provider: 'AMADEUS (MOCK)' }))
     }
     const data = await response.json()
     if (data.success && data.data?.length > 0) {
@@ -459,10 +459,10 @@ async function buscarVuelos(origen: string, destino: string, fecha: string, pasa
         provider: vuelo.provider || 'AMADEUS'
       }))
     }
-    return todosVuelos
+    return todosVuelos.map(v => ({ ...v, provider: 'AMADEUS (MOCK)' }))
   } catch (error) {
     console.error('Error buscando vuelos:', error)
-    return todosVuelos
+    return todosVuelos.map(v => ({ ...v, provider: 'AMADEUS (MOCK)' }))
   }
 }
 
@@ -471,6 +471,7 @@ function generarVuelosRegreso(vueloIda: Vuelo, fechaRegreso: string): Vuelo[] {
   return todosVuelos.map((vuelo, index) => ({
     ...vuelo,
     id: vuelo.id + 100,
+    provider: 'AMADEUS (MOCK)',
     origen: vueloIda.destino,
     destino: vueloIda.origen,
     codigoVuelo: vuelo.codigoVuelo.replace(/\d+/, (n) => String(parseInt(n) + 100)),
@@ -492,7 +493,7 @@ export default function VuelosDestinoPage() {
   const [vuelosRegreso, setVuelosRegreso] = useState<Vuelo[]>([])
 
   // Estados de búsqueda
-  const [vuelos, setVuelos] = useState<Vuelo[]>(todosVuelos)
+  const [vuelos, setVuelos] = useState<Vuelo[]>(todosVuelos.map(v => ({ ...v, provider: 'AMADEUS (MOCK)' })))
   const [loading, setLoading] = useState(false)
   const [tipoViaje, setTipoViaje] = useState<'ida_vuelta' | 'solo_ida'>('ida_vuelta')
   const [origen, setOrigen] = useState('MEX')
