@@ -94,7 +94,7 @@ export function BrandFooter() {
                     )}
                     <div className="flex items-center justify-center gap-4 mt-2">
                         <p className="text-xs opacity-50">
-                            v2.359 | {new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City', dateStyle: 'medium', timeStyle: 'short' })}
+                            v2.359 | 19 Jun 2026 14:12 CST
                         </p>
                         <PwaInstallButton />
                     </div>
