@@ -89,19 +89,20 @@ export async function GET(request: NextRequest) {
 
     // Vuelos de Regreso
     let returnFlights: any[] = [];
+    let returnResult: any = null;
     if (returnDate) {
-      const returnResult = await aggregator.buscarVuelos({
+      returnResult = await aggregator.buscarVuelos({
         origen: cleanDestination,
         destino: cleanOrigin,
         fechaSalida: returnDate,
         pasajeros: [{ tipo: 'adult', cantidad: adults }],
         claseCabina: cabinClass as any
       });
-      returnFlights = returnResult.resultados.map(v => mapToFrontendFlight(v, adults, airlinesMap));
+      returnFlights = returnResult.resultados.map((v: any) => mapToFrontendFlight(v, adults, airlinesMap));
     }
 
     // Identificar y guardar aerolíneas nuevas asincrónicamente usando el modelo unificado
-    const allFlightsUnified = [...outboundResult.resultados, ...(returnDate && returnResult ? returnResult.resultados : [])];
+    const allFlightsUnified = [...outboundResult.resultados, ...(returnResult ? returnResult.resultados : [])];
     const missingAirlines = new Map<string, {name: string, logo: string}>();
     allFlightsUnified.forEach((v: VueloUnificado) => {
       v.itinerarios.forEach(iti => {
