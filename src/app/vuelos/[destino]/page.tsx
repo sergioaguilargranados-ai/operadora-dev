@@ -437,27 +437,30 @@ async function buscarVuelos(origen: string, destino: string, fecha: string, pasa
       return todosVuelos.map(v => ({ ...v, provider: 'AMADEUS (MOCK)' }))
     }
     const data = await response.json()
-    if (data.success && data.data?.length > 0) {
-      return data.data.map((vuelo: any, index: number) => ({
-        id: index + 1,
-        aerolinea: vuelo.airline || 'Aerolínea',
-        logo: AIRLINE_LOGOS[vuelo.airline] || 'https://airhex.com/images/airline-logos/alt/aeromexico.png',
-        codigoVuelo: vuelo.flightNumber || `FL${index + 100}`,
-        origen: vuelo.origin || origen,
-        destino: vuelo.destination || destino,
-        salida: vuelo.departureTime || '08:00',
-        llegada: vuelo.arrivalTime || '10:30',
-        duracion: vuelo.duration || '2h 30m',
-        escalas: vuelo.stops || 0,
-        precio: vuelo.price || 5000,
-        precioIda: vuelo.price ? vuelo.price / 2 : 2500,
-        clase: vuelo.cabinClass || 'Economy',
-        equipaje: vuelo.baggage || '1 maleta incluida',
-        cambios: vuelo.flexibility || 'Cambios permitidos',
-        amenidades: vuelo.amenities || ['Wifi'],
-        tarifa: vuelo.fareType || 'Standard',
-        provider: vuelo.provider || 'AMADEUS'
-      }))
+    if (data.success) {
+      if (data.data?.outbound?.length > 0) {
+        return data.data.outbound.map((vuelo: any, index: number) => ({
+          id: index + 1,
+          aerolinea: vuelo.airline || 'Aerolínea',
+          logo: AIRLINE_LOGOS[vuelo.airline] || 'https://airhex.com/images/airline-logos/alt/aeromexico.png',
+          codigoVuelo: vuelo.flightNumber || `FL${index + 100}`,
+          origen: vuelo.origin || origen,
+          destino: vuelo.destination || destino,
+          salida: vuelo.departureTime || '08:00',
+          llegada: vuelo.arrivalTime || '10:30',
+          duracion: vuelo.duration || '2h 30m',
+          escalas: vuelo.stops || 0,
+          precio: vuelo.price || 5000,
+          precioIda: vuelo.price ? vuelo.price / 2 : 2500,
+          clase: vuelo.cabinClass || 'Economy',
+          equipaje: vuelo.baggage || '1 maleta incluida',
+          cambios: vuelo.flexibility || 'Cambios permitidos',
+          amenidades: vuelo.amenities || ['Wifi'],
+          tarifa: vuelo.fareType || 'Standard',
+          provider: vuelo.provider || 'AMADEUS'
+        }))
+      }
+      return [] // Return empty if no flights
     }
     return todosVuelos.map(v => ({ ...v, provider: 'AMADEUS (MOCK)' }))
   } catch (error) {
