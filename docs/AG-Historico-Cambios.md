@@ -1,13 +1,19 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 15 de Junio de 2026 - 10:59 CST  
-**Versión actual:** v2.353  
+**Última actualización:** 25 de Junio de 2026 - 10:10 CST  
+**Versión actual:** v2.355  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.355 - 25 de Junio de 2026 - 10:10 CST
+**📱 Aplicación Móvil en formato PWA & Panel Administrador**
+- **Base de Datos**: Se implementó la tabla `mobile_app_content` con aislamiento por Tenant para almacenar frase de bienvenida, logotipos, banners de inicio y tienda y contactos de soporte.
+- **Ruta PWA móvil (`/mobile`)**: Se maquetaron las pantallas responsivas de Login, Home Premium, Tienda de viajes y Mapa interactivo geolocalizado, con redirección y seguridad dinámica en base al inquilino (Tenant) del usuario en sesión.
+- **Panel Administrativo**: Se integró la pestaña **App Móvil PWA** en la sección de administración de contenido con subida automática de archivos a Vercel Blob e inyección de datos semilla (Seed) iniciales.
 
 ### v2.354 - 22 de Junio de 2026 - 11:25 CST
 

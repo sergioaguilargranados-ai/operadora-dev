@@ -13,9 +13,10 @@ import { useAuth } from "@/contexts/AuthContext"
 import { ContentModal } from "@/components/admin/ContentModal"
 import { VideoUrlEditor } from "@/components/admin/VideoUrlEditor"
 import { LandingContentManager } from "@/components/admin/LandingContentManager"
+import { MobileAppContentManager } from "@/components/admin/MobileAppContentManager"
 import {
   Plus, Edit, Trash2, DollarSign, Calendar, Plane, Hotel, Package,
-  Home, Globe, CheckCircle2, AlertCircle, X, RefreshCw,
+  Home, Globe, CheckCircle2, AlertCircle, X, RefreshCw, Smartphone,
   Image as ImageIcon, Search, Eye, Save, ExternalLink, ChevronDown, ChevronUp, AlertTriangle, Star, MapPin, Loader2
 } from "lucide-react"
 
@@ -556,7 +557,7 @@ export default function AdminContentPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-8">
+          <TabsList className="flex flex-wrap h-auto p-1.5 bg-muted rounded-xl w-full mb-8 gap-1.5">
             <TabsTrigger value="hero" className="flex items-center gap-2">
               <Home className="w-4 h-4" />
               Banner
@@ -602,6 +603,10 @@ export default function AdminContentPage() {
             <TabsTrigger value="expo" className="flex items-center gap-2">
               <Star className="w-4 h-4" />
               Landing Principal
+            </TabsTrigger>
+            <TabsTrigger value="mobile-app" className="flex items-center gap-2">
+              <Smartphone className="w-4 h-4" />
+              App Móvil PWA
             </TabsTrigger>
           </TabsList>
 
@@ -1412,6 +1417,16 @@ export default function AdminContentPage() {
                 <h2 className="text-2xl font-bold">Landing Page Principal (/inicio)</h2>
               </div>
               <LandingContentManager showToast={showToast} />
+            </Card>
+          </TabsContent>
+
+          {/* APP MOVIL PWA TAB */}
+          <TabsContent value="mobile-app">
+            <Card className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Contenido de Aplicación Móvil PWA</h2>
+              </div>
+              <MobileAppContentManager showToast={showToast} />
             </Card>
           </TabsContent>
 
