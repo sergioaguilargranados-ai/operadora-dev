@@ -6,6 +6,7 @@ import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { useRouter, usePathname } from "next/navigation"
 import { Loader2, Home, Compass, User, LogOut } from "lucide-react"
 import Link from "next/link"
+import { OfflineBanner } from "@/components/ui/OfflineBanner"
 
 export default function MobileLayout({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, loading, logout } = useAuth()
@@ -51,7 +52,16 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
     }
   }
 
-  if (loading || (fetchingContent && !isLoginPage)) {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#0066FF]" />
+      </div>
+    )
+  }
+
+  // If we are on login, we don't care about fetchingContent blocking the view.
+  if (fetchingContent && !isLoginPage && isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-[#0066FF]" />
@@ -61,6 +71,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center">
+      <OfflineBanner />
       {/* Mobile Frame Container */}
       <div className="w-full max-w-md bg-white min-h-screen flex flex-col shadow-2xl relative border-x border-gray-200 overflow-hidden pb-16">
         {/* Main Content Area */}
