@@ -225,7 +225,6 @@ export async function DELETE(
       }, { status: 400 })
     }
 
-    const body = await request.json().catch(() => ({}))
     const cancellationReason = body.reason || 'User requested cancellation'
 
     // Intentar cancelar en el proveedor
