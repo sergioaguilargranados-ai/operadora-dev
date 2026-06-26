@@ -1,0 +1,3 @@
+id,referencia,tipo,estado,monto_total,moneda,nombre_cliente,email_cliente,destino,servicio,fecha_reserva
+1,RES-0001,flight,confirmed,12500,MXN,Juan Perez,juan@example.com,Cancun,Vuelo Redondo,2026-06-20
+2,RES-0002,package,pending,35000,MXN,Maria Gomez,maria@example.com,Europa,Paquete 15 Dias,2026-06-25

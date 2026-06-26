@@ -1,0 +1,4 @@
+nombre,email,rol,estado
+Admin Principal,admin@asoperadora.com,SUPER_ADMIN,active
+Vendedor 1,ventas1@asoperadora.com,AGENT,active
+Manager RH,rh@asoperadora.com,MANAGER,active

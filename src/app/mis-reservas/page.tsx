@@ -194,8 +194,8 @@ export default function MisReservasPage() {
               variant="outline" 
               onClick={() => {
                 const link = document.createElement("a");
-                link.href = "/plantilla_reservas.xlsx";
-                link.download = "plantilla_reservas.xlsx";
+                link.href = "/plantilla_reservas.csv";
+                link.download = "plantilla_reservas.csv";
                 link.click();
               }}
             >

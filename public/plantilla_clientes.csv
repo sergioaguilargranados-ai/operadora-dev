@@ -1,0 +1,3 @@
+nombre_completo,email,telefono,whatsapp,empresa,tipo_contacto,origen
+Juan Perez,juan@example.com,5512345678,5512345678,Empresa A,client,web
+Maria Gomez,maria@example.com,5598765432,5598765432,Agencia B,lead,referral

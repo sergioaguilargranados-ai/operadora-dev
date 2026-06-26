@@ -76,8 +76,8 @@ export default function UsersAdminPage() {
                             variant="outline"
                             onClick={() => {
                                 const link = document.createElement("a");
-                                link.href = "/plantilla_usuarios.xlsx";
-                                link.download = "plantilla_usuarios.xlsx";
+                                link.href = "/plantilla_usuarios.csv";
+                                link.download = "plantilla_usuarios.csv";
                                 link.click();
                             }}
                         >

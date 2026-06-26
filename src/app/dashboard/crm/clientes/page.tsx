@@ -292,8 +292,8 @@ export default function CatalogoClientesPage() {
                             size="sm"
                             onClick={() => {
                                 const link = document.createElement("a");
-                                link.href = "/plantilla_clientes.xlsx";
-                                link.download = "plantilla_clientes.xlsx";
+                                link.href = "/plantilla_clientes.csv";
+                                link.download = "plantilla_clientes.csv";
                                 link.click();
                             }}
                             className="text-xs"
