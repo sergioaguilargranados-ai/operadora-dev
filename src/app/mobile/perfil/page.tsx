@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Bell, User, Calendar, Mail, Phone, Shield, Users, ChevronRight, Plus, Upload, X, Loader2 } from "lucide-react"
+import { ChevronLeft, Bell, User, Calendar, Mail, Phone, Shield, Users, ChevronRight, Plus, Upload, X, Loader2, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
@@ -16,7 +16,7 @@ interface DocumentItem {
 
 export default function MobileProfilePage() {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const { logoUrl } = useWhiteLabel()
   const { toast } = useToast()
 
@@ -222,6 +222,21 @@ export default function MobileProfilePage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Logout Button */}
+        <div className="pb-8">
+          <Button 
+            onClick={() => {
+              logout()
+              router.push("/mobile/login")
+            }}
+            variant="outline"
+            className="w-full h-14 bg-white border border-gray-200 text-red-500 font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            Cerrar sesión
+          </Button>
         </div>
 
       </div>
