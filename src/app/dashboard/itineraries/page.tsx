@@ -284,6 +284,17 @@ export default function ItinerariesPage() {
   }
 
   const handleSubmit = async () => {
+    const missing = []
+    if (!formData.title) missing.push('Título del viaje')
+    if (!formData.destination) missing.push('Destino')
+    if (!formData.start_date) missing.push('Fecha inicio')
+    if (!formData.end_date) missing.push('Fecha fin')
+
+    if (missing.length > 0) {
+      alert(`No se puede guardar. Faltan por capturar los siguientes campos obligatorios:\n- ${missing.join('\n- ')}`)
+      return
+    }
+
     const payload = {
       ...formData,
       user_id: user?.id,
@@ -392,18 +403,22 @@ export default function ItinerariesPage() {
 
       const pkg = data.data
 
+      const startDateToUse = formData.start_date || new Date().toISOString().split('T')[0]
+      const endDateToUse = pkg.days
+        ? new Date(new Date(startDateToUse + 'T12:00:00Z').getTime() + (pkg.days - 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        : formData.end_date
+
       setFormData(prev => ({
         ...prev,
         title: pkg.name || prev.title,
         destination: pkg.region || prev.destination,
         description: pkg.description || prev.description,
-        end_date: (prev.start_date && pkg.days)
-          ? new Date(new Date(prev.start_date).getTime() + (pkg.days - 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-          : prev.end_date
+        start_date: startDateToUse,
+        end_date: endDateToUse
       }))
 
       if (pkg.itinerary && pkg.itinerary.length > 0) {
-        const baseStartDate = formData.start_date ? new Date(formData.start_date) : new Date()
+        const baseStartDate = new Date(startDateToUse + 'T12:00:00Z')
 
         const generatedDays = pkg.itinerary.map((dayItem: any, index: number) => {
           const currentDate = new Date(baseStartDate)
@@ -904,7 +919,6 @@ export default function ItinerariesPage() {
                 <Button
                   onClick={handleSubmit}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 h-12"
-                  disabled={!formData.title || !formData.destination || !formData.start_date || !formData.end_date}
                 >
                   <Check className="w-5 h-5 mr-2" />
                   {editingItinerary ? 'Actualizar Itinerario' : 'Crear Itinerario'}
@@ -936,6 +950,17 @@ export default function ItinerariesPage() {
               </button>
             </div>
             
+            {activeCivitatisDay !== null && days[activeCivitatisDay]?.activities?.length > 0 && (
+              <div className="bg-pink-50 p-4 border-b">
+                <h4 className="font-semibold text-sm text-pink-900 mb-2">Actividades seleccionadas para el {days[activeCivitatisDay].title}:</h4>
+                <ul className="list-disc pl-5 text-sm text-pink-800 space-y-1">
+                  {days[activeCivitatisDay].activities.map((act, idx) => (
+                    <li key={idx}><span className="font-medium">{act.title || 'Actividad sin título'}</span></li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <div className="p-6 overflow-y-auto bg-gray-50 flex-1">
               {civitatisLoading ? (
                 <div className="flex flex-col items-center justify-center h-48 space-y-4">

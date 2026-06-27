@@ -17,13 +17,49 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         const res = await fetch(`/api/itineraries/${params.id}`)
         const data = await res.json()
         if (data.success && data.data) {
-          setItinerary(data.data)
-          const days = data.data.days || []
+          let fetchedItinerary = data.data
+          if (typeof fetchedItinerary.days === 'string') {
+            try {
+              fetchedItinerary.days = JSON.parse(fetchedItinerary.days)
+            } catch (e) {
+              fetchedItinerary.days = []
+            }
+          }
+          setItinerary(fetchedItinerary)
+          const days = fetchedItinerary.days || []
           const index = parseInt(params.dayIndex, 10) || 0
           if (days.length > index) {
             setDayData(days[index])
           } else if (days.length > 0) {
             setDayData(days[0])
+          }
+        } else {
+          // Fallback a MegaTravel si no existe itinerario personalizado
+          const resGroup = await fetch(`/api/groups/${params.id}`)
+          const dataGroup = await resGroup.json()
+          if (dataGroup.success && dataGroup.data) {
+            const pkg = dataGroup.data
+            const generatedDays = (pkg.itinerary || []).map((dayItem: any, index: number) => ({
+              day: dayItem.day || index + 1,
+              title: dayItem.title || `Día ${index + 1}`,
+              description: dayItem.description || '',
+              hero_image: pkg.images?.main || '',
+              places: [{ name: pkg.region || 'Ubicación' }]
+            }))
+            
+            setItinerary({
+              title: pkg.name,
+              destination: pkg.region,
+              description: pkg.description,
+              days: generatedDays
+            })
+            
+            const index = parseInt(params.dayIndex, 10) || 0
+            if (generatedDays.length > index) {
+              setDayData(generatedDays[index])
+            } else if (generatedDays.length > 0) {
+              setDayData(generatedDays[0])
+            }
           }
         }
       } catch (error) {

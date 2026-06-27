@@ -24,7 +24,37 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
         const dataItinerary = await resItinerary.json()
         
         if (dataItinerary.success && dataItinerary.data) {
-          setItinerary(dataItinerary.data)
+          let dbItinerary = dataItinerary.data
+          if (typeof dbItinerary.days === 'string') {
+            try {
+              dbItinerary.days = JSON.parse(dbItinerary.days)
+            } catch (e) {
+              dbItinerary.days = []
+            }
+          }
+          setItinerary(dbItinerary)
+        } else {
+          // Fallback a MegaTravel si no existe itinerario personalizado
+          const resGroup = await fetch(`/api/groups/${params.id}`)
+          const dataGroup = await resGroup.json()
+          if (dataGroup.success && dataGroup.data) {
+            const pkg = dataGroup.data
+            const generatedDays = (pkg.itinerary || []).map((dayItem: any, index: number) => ({
+              day: dayItem.day || index + 1,
+              title: dayItem.title || `Día ${index + 1}`,
+              desc: dayItem.description || '',
+              description: dayItem.description || '',
+              hero_image: pkg.images?.main || '',
+              places: [{ name: pkg.region || 'Ubicación' }]
+            }))
+            
+            setItinerary({
+              title: pkg.name,
+              destination: pkg.region,
+              description: pkg.description,
+              days: generatedDays
+            })
+          }
         }
 
         // 2. Obtener todas las reservas del usuario para el selector
@@ -172,7 +202,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
               
               <div className="flex items-end justify-between gap-4">
                 <p className="text-xs text-gray-600 leading-relaxed flex-1 line-clamp-2">
-                  {day.desc || `Disfruta de ${day.title} y sus maravillas.`}
+                  {day.description || day.desc || `Disfruta de ${day.title} y sus maravillas.`}
                 </p>
                 <button 
                   onClick={(e) => { e.stopPropagation(); alert('Redirigiendo a tours...'); }}
