@@ -261,13 +261,15 @@ function RestaurantResultsContent() {
                                             {restaurant.photos?.[0] ? (
                                                 <img
                                                     src={
-                                                        restaurant.photos[0].photo_reference.startsWith('mock_')
-                                                            ? 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80'
-                                                            : restaurant.photos[0].photo_reference.includes('places/')
-                                                                // Google Places API (New) Image URL
-                                                                ? `https://places.googleapis.com/v1/${restaurant.photos[0].photo_reference}/media?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&maxWidthPx=400`
-                                                                // Legacy API Image URL
-                                                                : `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${restaurant.photos[0].photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}`
+                                                        restaurant.photos[0].photo_reference.startsWith('http')
+                                                            ? restaurant.photos[0].photo_reference
+                                                            : restaurant.photos[0].photo_reference.startsWith('mock_')
+                                                                ? 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80'
+                                                                : restaurant.photos[0].photo_reference.includes('places/')
+                                                                    // Google Places API (New) Image URL
+                                                                    ? `https://places.googleapis.com/v1/${restaurant.photos[0].photo_reference}/media?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&maxWidthPx=400`
+                                                                    // Legacy API Image URL
+                                                                    : `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${restaurant.photos[0].photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}`
                                                     }
                                                     alt={restaurant.name}
                                                     className="w-full h-full object-cover"
