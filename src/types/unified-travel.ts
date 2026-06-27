@@ -106,3 +106,51 @@ export interface PoliticaCancelacion {
   fechaLimiteGratuita?: string; // ISO 8601
   penalidad?: number;
 }
+
+// ==========================================
+// RESTAURANTES (RESTAURANTS)
+// ==========================================
+
+export interface RestauranteUnificado {
+  id: string;
+  proveedor: string; // 'google', 'opentable', etc.
+  referenciaProveedor: string;
+  nombre: string;
+  imagenes: string[];
+  rating: number;
+  totalResenas: number;
+  nivelPrecio: number; // 1-4
+  direccion: string;
+  coordenadas: { lat: number; lng: number };
+  abiertoAhora: boolean;
+  cocina: string[];
+  etiquetas: string[];
+  urlReserva?: string; 
+  permiteReservaNativa?: boolean; 
+}
+
+// ==========================================
+// ACTIVIDADES Y TOURS (ACTIVITIES)
+// ==========================================
+
+export interface ActividadUnificada {
+  id: string;
+  proveedor: string; // 'civitatis', 'viator', etc.
+  referenciaProveedor: string;
+  titulo: string;
+  destino: string;
+  imagenPrincipal: string;
+  galeria: string[];
+  precioDesde: number;
+  moneda: string;
+  duracion: string;
+  rating: number;
+  totalResenas: number;
+  descripcionCorta: string;
+  descripcionLarga?: string;
+  incluye?: string[];
+  noIncluye?: string[];
+  puntoEncuentro?: string;
+  fechasDisponibles?: string[];
+  categoriasPrecio?: { id: string; nombre: string; precio: number }[];
+}

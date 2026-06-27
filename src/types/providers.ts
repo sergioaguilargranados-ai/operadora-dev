@@ -63,3 +63,27 @@ export interface IProveedorHotel {
   // verificarTarifa(ofertaId: string): Promise<any>;
   // reservarHotel(ofertaId: string, huespedesInfo: any): Promise<any>;
 }
+
+import { RestauranteUnificado, ActividadUnificada } from './unified-travel';
+
+export interface ParametrosBusquedaRestaurante {
+  destino: string; // Ciudad, barrio o coordenadas
+  fecha?: string;
+  comensales?: number;
+  cocina?: string[];
+}
+
+export interface IProveedorRestaurante {
+  nombreProveedor: string;
+  buscarRestaurantes(params: ParametrosBusquedaRestaurante): Promise<RespuestaBusqueda<RestauranteUnificado>>;
+}
+
+export interface ParametrosBusquedaActividad {
+  destino: string; // Ciudad o id destino
+  fecha?: string; // opcional
+}
+
+export interface IProveedorActividad {
+  nombreProveedor: string;
+  buscarActividades(params: ParametrosBusquedaActividad): Promise<RespuestaBusqueda<ActividadUnificada>>;
+}
