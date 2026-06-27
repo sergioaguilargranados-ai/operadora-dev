@@ -300,83 +300,73 @@ export default function ItinerariesPage() {
     setActiveTab('form')
   }
 
-  const handleSyncTour = () => {
+  const handleSyncTour = async () => {
     if (!formData.tour_id) {
-      alert('Ingresa una Clave de Tour para sincronizar (Ej. MT-1234)')
+      alert('Ingresa una Clave de Tour para sincronizar (Ej. MT-1234 o AS-1234)')
       return
     }
     setLoading(true)
-    setTimeout(() => {
-      const baseStartDate = formData.start_date ? new Date(formData.start_date) : new Date();
-      const endDate = new Date(baseStartDate);
-      endDate.setDate(endDate.getDate() + 18);
+
+    try {
+      const res = await fetch(`/api/groups/${formData.tour_id}`)
+      const data = await res.json()
+
+      if (!data.success || !data.data) {
+        alert('No se encontró el tour en la base de datos local. Verifica la clave e intenta de nuevo.')
+        setLoading(false)
+        return
+      }
+
+      const pkg = data.data
 
       setFormData(prev => ({
         ...prev,
-        title: `Gran Tour (Sincronizado ${formData.tour_id})`,
-        destination: prev.destination || 'Múltiples Destinos',
-        description: 'Itinerario completo sincronizado desde MegaTravel con 19 días de recorrido. Incluye gastronomía y lugares de interés sugeridos.',
-        start_date: prev.start_date || baseStartDate.toISOString().split('T')[0],
-        end_date: prev.end_date || endDate.toISOString().split('T')[0]
+        title: pkg.name || prev.title,
+        destination: pkg.region || prev.destination,
+        description: pkg.description || prev.description,
+        end_date: (prev.start_date && pkg.days)
+          ? new Date(new Date(prev.start_date).getTime() + (pkg.days - 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+          : prev.end_date
       }))
 
-      const generatedDays = Array.from({ length: 19 }).map((_, i) => {
-        const currentDate = new Date(baseStartDate);
-        // Arreglar problema de zonas horarias al sumar días
-        currentDate.setUTCDate(currentDate.getUTCDate() + i);
-        
-        let title = `Recorrido Día ${i + 1}`;
-        let hero = '';
-        let foods: any[] = [];
-        let places: any[] = [];
-        let souvenirs: any[] = [];
-        let phrases: any[] = [];
-        
-        if (i === 0) {
-          title = 'Llegada a París';
-          hero = 'https://images.unsplash.com/photo-1502602881469-4478d1033230?auto=format&fit=crop&q=80';
-          foods = [{ name: 'Croissant', description: 'Prueba la repostería local cerca del hotel', image: 'https://images.unsplash.com/photo-1555507036-ab1e4006aaeb?auto=format&fit=crop&q=80'}];
-          places = [{ name: 'Torre Eiffel', description: 'Visita icónica por la tarde', image: 'https://images.unsplash.com/photo-1543349689-9a4d426bee8e?auto=format&fit=crop&q=80'}];
-          phrases = [{ es: 'Hola', local: 'Bonjour' }, { es: 'Gracias', local: 'Merci' }];
-        } else if (i === 3) {
-          title = 'Llegada a Venecia';
-          hero = 'https://images.unsplash.com/photo-1514890547357-a9ee288728e0?auto=format&fit=crop&q=80';
-          places = [{ name: 'Gran Canal', description: 'Paseo en Góndola', image: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&q=80'}];
-          foods = [{ name: 'Gelato', description: 'Heladería artesanal local', image: 'https://images.unsplash.com/photo-1563805042-7684c8a9e9cb?auto=format&fit=crop&q=80'}];
-          phrases = [{ es: 'Buenos días', local: 'Buongiorno' }];
-        } else if (i === 7) {
-          title = 'Descubriendo Roma';
-          hero = 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&q=80';
-          places = [{ name: 'Coliseo Romano', description: 'Visita guiada al anfiteatro', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&q=80'}];
-          foods = [{ name: 'Pasta Carbonara', description: 'Cena en trattoria típica', image: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&q=80'}];
-          souvenirs = [{ name: 'Limoncello', description: 'Licor tradicional italiano', image: ''}];
-          phrases = [{ es: 'Gracias', local: 'Grazie' }];
-        } else if (i === 18) {
-          title = 'Regreso a Casa';
-          hero = 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&q=80';
-        }
+      if (pkg.itinerary && pkg.itinerary.length > 0) {
+        const baseStartDate = formData.start_date ? new Date(formData.start_date) : new Date()
 
-        return {
-          day: i + 1,
-          date: currentDate.toISOString().split('T')[0],
-          title: title,
-          description: i === 18 ? 'Traslado al aeropuerto para vuelo de regreso.' : `Actividades libres y tours programados para el día ${i + 1}.`,
-          hero_image: hero,
-          activities: [
-            { time: '08:00', title: 'Desayuno', description: 'Desayuno incluido en el hotel', location: 'Hotel' },
-            { time: '09:30', title: 'Tour Local', description: 'Recorrido por las calles principales', location: 'Centro Ciudad' }
-          ],
-          foods,
-          places,
-          souvenirs,
-          phrases
-        }
-      });
+        const generatedDays = pkg.itinerary.map((dayItem: any, index: number) => {
+          const currentDate = new Date(baseStartDate)
+          currentDate.setUTCDate(currentDate.getUTCDate() + index)
 
-      setDays(generatedDays);
+          return {
+            day: dayItem.day || index + 1,
+            date: currentDate.toISOString().split('T')[0],
+            title: dayItem.title || `Día ${index + 1}`,
+            description: dayItem.description || '',
+            hero_image: '',
+            activities: [{
+              time: '09:00',
+              title: dayItem.title || 'Actividad programada',
+              description: dayItem.description?.substring(0, 100) + '...' || '',
+              location: ''
+            }],
+            foods: [],
+            places: [],
+            souvenirs: [],
+            phrases: []
+          }
+        })
+
+        setDays(generatedDays)
+      } else {
+        alert('El tour existe, pero no tiene un itinerario cargado en la base de datos.')
+      }
+
+      alert(`Sincronización exitosa desde la Base de Datos. Se cargaron ${pkg.itinerary?.length || 0} días del tour: ${pkg.name}`)
+    } catch (error) {
+      console.error('Error syncing tour:', error)
+      alert('Hubo un error de conexión al intentar sincronizar el tour.')
+    } finally {
       setLoading(false)
-      alert('Sincronización simulada exitosa: Se han generado 19 días de itinerario automáticamente.')
-    }, 1500)
+    }
   }
 
   const resetForm = () => {
