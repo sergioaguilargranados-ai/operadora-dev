@@ -24,11 +24,22 @@ interface Activity {
   location: string
 }
 
+interface Place { name: string; description: string; image: string }
+interface Food { name: string; description: string; image: string }
+interface Souvenir { name: string; description: string; image: string }
+interface Phrase { es: string; local: string }
+
 interface Day {
   day: number
   date: string
   title: string
+  description?: string
+  hero_image?: string
   activities: Activity[]
+  foods?: Food[]
+  places?: Place[]
+  souvenirs?: Souvenir[]
+  phrases?: Phrase[]
 }
 
 interface Itinerary {
@@ -70,12 +81,18 @@ export default function ItinerariesPage() {
       day: 1,
       date: '',
       title: 'Día 1',
+      description: '',
+      hero_image: '',
       activities: [{
         time: '09:00',
         title: '',
         description: '',
         location: ''
-      }]
+      }],
+      foods: [],
+      places: [],
+      souvenirs: [],
+      phrases: []
     }
   ])
 
@@ -114,12 +131,18 @@ export default function ItinerariesPage() {
       day: days.length + 1,
       date: '',
       title: `Día ${days.length + 1}`,
+      description: '',
+      hero_image: '',
       activities: [{
         time: '09:00',
         title: '',
         description: '',
         location: ''
-      }]
+      }],
+      foods: [],
+      places: [],
+      souvenirs: [],
+      phrases: []
     }
     setDays([...days, newDay])
   }
@@ -161,6 +184,28 @@ export default function ItinerariesPage() {
       ...newDays[dayIndex].activities[activityIndex],
       [field]: value
     }
+    setDays(newDays)
+  }
+
+  const handleAddListItem = (dayIndex: number, listName: 'foods'|'places'|'souvenirs'|'phrases', emptyItem: any) => {
+    const newDays = [...days]
+    const list = newDays[dayIndex][listName] || []
+    newDays[dayIndex][listName] = [...list, emptyItem] as any
+    setDays(newDays)
+  }
+
+  const handleRemoveListItem = (dayIndex: number, listName: 'foods'|'places'|'souvenirs'|'phrases', itemIndex: number) => {
+    const newDays = [...days]
+    const list = newDays[dayIndex][listName] || []
+    newDays[dayIndex][listName] = list.filter((_, i) => i !== itemIndex) as any
+    setDays(newDays)
+  }
+
+  const handleListItemChange = (dayIndex: number, listName: 'foods'|'places'|'souvenirs'|'phrases', itemIndex: number, field: string, value: string) => {
+    const newDays = [...days]
+    const list = [...(newDays[dayIndex][listName] || [])]
+    list[itemIndex] = { ...list[itemIndex] as any, [field]: value }
+    newDays[dayIndex][listName] = list as any
     setDays(newDays)
   }
 
@@ -246,7 +291,11 @@ export default function ItinerariesPage() {
     })
     setDays((itinerary.days || []).map(day => ({
       ...day,
-      activities: day.activities || []
+      activities: day.activities || [],
+      foods: day.foods || [],
+      places: day.places || [],
+      souvenirs: day.souvenirs || [],
+      phrases: day.phrases || []
     })))
     setActiveTab('form')
   }
@@ -266,9 +315,15 @@ export default function ItinerariesPage() {
       setDays([
         {
           day: 1,
-          date: prev.start_date,
+          date: formData.start_date,
           title: 'Llegada al destino',
-          activities: [{ time: '10:00', title: 'Traslado', description: 'Traslado al hotel', location: '' }]
+          description: '',
+          hero_image: '',
+          activities: [{ time: '10:00', title: 'Traslado', description: 'Traslado al hotel', location: '' }],
+          foods: [],
+          places: [],
+          souvenirs: [],
+          phrases: []
         }
       ])
       setLoading(false)
@@ -601,6 +656,102 @@ export default function ItinerariesPage() {
                             </div>
                           </div>
                         ))}
+                      </div>
+
+                      {/* Nuevas secciones de detalles (Gastronomía, Multimedia, etc) */}
+                      <div className="mt-4 border-t pt-4">
+                        <label className="block text-xs font-medium mb-1">Imagen Principal del Día (URL)</label>
+                        <Input
+                          className="h-9 mb-4"
+                          value={day.hero_image || ''}
+                          onChange={(e) => handleDayChange(dayIndex, 'hero_image', e.target.value)}
+                          placeholder="https://ejemplo.com/imagen.jpg"
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Gastronomía */}
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <p className="text-sm font-medium">Gastronomía</p>
+                              <Button size="sm" variant="outline" onClick={() => handleAddListItem(dayIndex, 'foods', { name: '', description: '', image: '' })}>
+                                <Plus className="w-3 h-3 mr-1" /> Agregar
+                              </Button>
+                            </div>
+                            {(day.foods || []).map((item, idx) => (
+                              <div key={idx} className="bg-white border rounded p-3 mb-2 grid grid-cols-2 gap-2">
+                                <div className="col-span-2 flex justify-between items-center">
+                                  <span className="text-xs font-bold text-gray-500">Platillo {idx + 1}</span>
+                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemoveListItem(dayIndex, 'foods', idx)}><X className="w-3 h-3 text-red-500" /></Button>
+                                </div>
+                                <Input className="h-8 text-xs" placeholder="Nombre" value={item.name} onChange={(e) => handleListItemChange(dayIndex, 'foods', idx, 'name', e.target.value)} />
+                                <Input className="h-8 text-xs" placeholder="URL Imagen" value={item.image} onChange={(e) => handleListItemChange(dayIndex, 'foods', idx, 'image', e.target.value)} />
+                                <Textarea className="col-span-2 text-xs" rows={2} placeholder="Descripción" value={item.description} onChange={(e) => handleListItemChange(dayIndex, 'foods', idx, 'description', e.target.value)} />
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Lugares */}
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <p className="text-sm font-medium">Lugares</p>
+                              <Button size="sm" variant="outline" onClick={() => handleAddListItem(dayIndex, 'places', { name: '', description: '', image: '' })}>
+                                <Plus className="w-3 h-3 mr-1" /> Agregar
+                              </Button>
+                            </div>
+                            {(day.places || []).map((item, idx) => (
+                              <div key={idx} className="bg-white border rounded p-3 mb-2 grid grid-cols-2 gap-2">
+                                <div className="col-span-2 flex justify-between items-center">
+                                  <span className="text-xs font-bold text-gray-500">Lugar {idx + 1}</span>
+                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemoveListItem(dayIndex, 'places', idx)}><X className="w-3 h-3 text-red-500" /></Button>
+                                </div>
+                                <Input className="h-8 text-xs" placeholder="Nombre" value={item.name} onChange={(e) => handleListItemChange(dayIndex, 'places', idx, 'name', e.target.value)} />
+                                <Input className="h-8 text-xs" placeholder="URL Imagen" value={item.image} onChange={(e) => handleListItemChange(dayIndex, 'places', idx, 'image', e.target.value)} />
+                                <Textarea className="col-span-2 text-xs" rows={2} placeholder="Descripción" value={item.description} onChange={(e) => handleListItemChange(dayIndex, 'places', idx, 'description', e.target.value)} />
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Souvenirs */}
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <p className="text-sm font-medium">Souvenirs</p>
+                              <Button size="sm" variant="outline" onClick={() => handleAddListItem(dayIndex, 'souvenirs', { name: '', description: '', image: '' })}>
+                                <Plus className="w-3 h-3 mr-1" /> Agregar
+                              </Button>
+                            </div>
+                            {(day.souvenirs || []).map((item, idx) => (
+                              <div key={idx} className="bg-white border rounded p-3 mb-2 grid grid-cols-2 gap-2">
+                                <div className="col-span-2 flex justify-between items-center">
+                                  <span className="text-xs font-bold text-gray-500">Souvenir {idx + 1}</span>
+                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemoveListItem(dayIndex, 'souvenirs', idx)}><X className="w-3 h-3 text-red-500" /></Button>
+                                </div>
+                                <Input className="h-8 text-xs" placeholder="Nombre" value={item.name} onChange={(e) => handleListItemChange(dayIndex, 'souvenirs', idx, 'name', e.target.value)} />
+                                <Input className="h-8 text-xs" placeholder="URL Imagen" value={item.image} onChange={(e) => handleListItemChange(dayIndex, 'souvenirs', idx, 'image', e.target.value)} />
+                                <Textarea className="col-span-2 text-xs" rows={2} placeholder="Descripción" value={item.description} onChange={(e) => handleListItemChange(dayIndex, 'souvenirs', idx, 'description', e.target.value)} />
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Frases */}
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <p className="text-sm font-medium">Frases Locales</p>
+                              <Button size="sm" variant="outline" onClick={() => handleAddListItem(dayIndex, 'phrases', { es: '', local: '' })}>
+                                <Plus className="w-3 h-3 mr-1" /> Agregar
+                              </Button>
+                            </div>
+                            {(day.phrases || []).map((item, idx) => (
+                              <div key={idx} className="bg-white border rounded p-3 mb-2 grid grid-cols-2 gap-2">
+                                <div className="col-span-2 flex justify-between items-center">
+                                  <span className="text-xs font-bold text-gray-500">Frase {idx + 1}</span>
+                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemoveListItem(dayIndex, 'phrases', idx)}><X className="w-3 h-3 text-red-500" /></Button>
+                                </div>
+                                <Input className="h-8 text-xs" placeholder="Español (Ej: Gracias)" value={item.es} onChange={(e) => handleListItemChange(dayIndex, 'phrases', idx, 'es', e.target.value)} />
+                                <Input className="h-8 text-xs" placeholder="Local (Ej: Merci)" value={item.local} onChange={(e) => handleListItemChange(dayIndex, 'phrases', idx, 'local', e.target.value)} />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
