@@ -65,6 +65,12 @@ export default function ItinerariesPage() {
   const [activeTab, setActiveTab] = useState('list')
   const [editingItinerary, setEditingItinerary] = useState<Itinerary | null>(null)
 
+  // Civitatis Integration State
+  const [civitatisModalOpen, setCivitatisModalOpen] = useState(false)
+  const [civitatisActivities, setCivitatisActivities] = useState<any[]>([])
+  const [civitatisLoading, setCivitatisLoading] = useState(false)
+  const [activeCivitatisDay, setActiveCivitatisDay] = useState<number | null>(null)
+
   const [formData, setFormData] = useState({
     title: '',
     destination: '',
@@ -201,6 +207,74 @@ export default function ItinerariesPage() {
     setDays(newDays)
   }
 
+  const handleRemoveItem = (dayIndex: number, listName: 'activities' | 'foods' | 'places' | 'souvenirs' | 'phrases', itemIndex: number) => {
+    setDays(prevDays => {
+      const newDays = [...prevDays]
+      newDays[dayIndex][listName] = (newDays[dayIndex][listName] as any).filter((_: any, idx: number) => idx !== itemIndex)
+      return newDays
+    })
+  }
+
+  const handleAddItem = (dayIndex: number, listName: 'activities' | 'foods' | 'places' | 'souvenirs' | 'phrases') => {
+    setDays(prevDays => {
+      const newDays = [...prevDays]
+      const newItem = listName === 'activities' ? { time: '09:00', title: '', description: '', location: '' } : { name: '', description: '', image: '' }
+      newDays[dayIndex][listName] = [...(newDays[dayIndex][listName] || []), newItem] as any
+      return newDays
+    })
+  }
+
+  const handleOpenCivitatis = async (dayIndex: number) => {
+    setActiveCivitatisDay(dayIndex)
+    setCivitatisModalOpen(true)
+    setCivitatisLoading(true)
+    try {
+      const dayTitle = days[dayIndex].title.toLowerCase()
+      let searchCity = formData.destination || 'roma'
+      if (dayTitle.includes('parís') || dayTitle.includes('paris')) searchCity = 'parís'
+      if (dayTitle.includes('roma')) searchCity = 'roma'
+      if (dayTitle.includes('madrid')) searchCity = 'madrid'
+      if (dayTitle.includes('venecia')) searchCity = 'venecia'
+      if (dayTitle.includes('nueva york')) searchCity = 'nueva york'
+      if (dayTitle.includes('cancun') || dayTitle.includes('cancún')) searchCity = 'cancún'
+
+      const res = await fetch(`/api/civitatis/activities?q=${searchCity}`)
+      const data = await res.json()
+      if (data.success) {
+        setCivitatisActivities(data.data)
+      } else {
+        setCivitatisActivities([])
+      }
+    } catch (e) {
+      console.error(e)
+      setCivitatisActivities([])
+    } finally {
+      setCivitatisLoading(false)
+    }
+  }
+
+  const handleSelectCivitatisActivity = (activity: any) => {
+    if (activeCivitatisDay === null) return
+    
+    setDays(prevDays => {
+      const newDays = [...prevDays]
+      newDays[activeCivitatisDay].activities.push({
+        time: 'Por definir',
+        title: activity.title,
+        description: activity.description,
+        location: activity.destination
+      })
+      newDays[activeCivitatisDay].places = [
+        ...(newDays[activeCivitatisDay].places || []),
+        { name: activity.title, description: `Tour de Civitatis (${activity.duration}) - ⭐ ${activity.rating}`, image: activity.image }
+      ]
+      return newDays
+    })
+    
+    alert(`¡"${activity.title}" agregado al itinerario!`)
+    setCivitatisModalOpen(false)
+  }
+
   const handleListItemChange = (dayIndex: number, listName: 'foods'|'places'|'souvenirs'|'phrases', itemIndex: number, field: string, value: string) => {
     const newDays = [...days]
     const list = [...(newDays[dayIndex][listName] || [])]
@@ -267,7 +341,6 @@ export default function ItinerariesPage() {
       const data = await res.json()
 
       if (data.success) {
-        // Copiar link al portapapeles
         navigator.clipboard.writeText(data.share_url)
         alert(`Link copiado al portapapeles:\n${data.share_url}`)
       }
@@ -434,7 +507,6 @@ export default function ItinerariesPage() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Lista */}
           <TabsContent value="list">
             <Card className="p-6">
               <div className="flex justify-between items-center mb-6">
@@ -518,10 +590,8 @@ export default function ItinerariesPage() {
             </Card>
           </TabsContent>
 
-          {/* Formulario */}
           <TabsContent value="form">
             <div className="space-y-6">
-              {/* Info general */}
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Información General</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -582,7 +652,6 @@ export default function ItinerariesPage() {
                 </div>
               </Card>
 
-              {/* Días del itinerario */}
               <Card className="p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-semibold">Itinerario Día por Día</h3>
@@ -627,16 +696,32 @@ export default function ItinerariesPage() {
                       </div>
 
                       <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <p className="text-sm font-medium">Actividades</p>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleAddActivity(dayIndex)}
-                          >
-                            <Plus className="w-3 h-3 mr-1" />
-                            Agregar actividad
-                          </Button>
+                        <div className="flex justify-between items-center mb-4">
+                          <div className="flex gap-2 items-center">
+                            <h4 className="font-semibold text-gray-700">Actividades</h4>
+                            <Badge variant="outline" className="bg-pink-50 text-pink-700 border-pink-200 ml-2">
+                              Recomendado
+                            </Badge>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenCivitatis(dayIndex)}
+                              className="text-pink-600 border-pink-200 hover:bg-pink-50"
+                            >
+                              <Globe className="w-4 h-4 mr-1" /> Buscar en Civitatis
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAddItem(dayIndex, 'activities')}
+                            >
+                              <Plus className="w-4 h-4 mr-1" /> Actividad Manual
+                            </Button>
+                          </div>
                         </div>
 
                         {(day.activities || []).map((activity, actIndex) => (
@@ -647,7 +732,7 @@ export default function ItinerariesPage() {
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() => handleRemoveActivity(dayIndex, actIndex)}
+                                  onClick={() => handleRemoveItem(dayIndex, 'activities', actIndex)}
                                 >
                                   <X className="w-3 h-3 text-red-500" />
                                 </Button>
@@ -696,7 +781,6 @@ export default function ItinerariesPage() {
                         ))}
                       </div>
 
-                      {/* Nuevas secciones de detalles (Gastronomía, Multimedia, etc) */}
                       <div className="mt-4 border-t pt-4">
                         <label className="block text-xs font-medium mb-1">Imagen Principal del Día (URL)</label>
                         <Input
@@ -707,11 +791,10 @@ export default function ItinerariesPage() {
                         />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Gastronomía */}
                           <div>
                             <div className="flex justify-between items-center mb-2">
                               <p className="text-sm font-medium">Gastronomía</p>
-                              <Button size="sm" variant="outline" onClick={() => handleAddListItem(dayIndex, 'foods', { name: '', description: '', image: '' })}>
+                              <Button size="sm" variant="outline" onClick={() => handleAddItem(dayIndex, 'foods')}>
                                 <Plus className="w-3 h-3 mr-1" /> Agregar
                               </Button>
                             </div>
@@ -719,7 +802,7 @@ export default function ItinerariesPage() {
                               <div key={idx} className="bg-white border rounded p-3 mb-2 grid grid-cols-2 gap-2">
                                 <div className="col-span-2 flex justify-between items-center">
                                   <span className="text-xs font-bold text-gray-500">Platillo {idx + 1}</span>
-                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemoveListItem(dayIndex, 'foods', idx)}><X className="w-3 h-3 text-red-500" /></Button>
+                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemoveItem(dayIndex, 'foods', idx)}><X className="w-3 h-3 text-red-500" /></Button>
                                 </div>
                                 <Input className="h-8 text-xs" placeholder="Nombre" value={item.name} onChange={(e) => handleListItemChange(dayIndex, 'foods', idx, 'name', e.target.value)} />
                                 <Input className="h-8 text-xs" placeholder="URL Imagen" value={item.image} onChange={(e) => handleListItemChange(dayIndex, 'foods', idx, 'image', e.target.value)} />
@@ -728,11 +811,10 @@ export default function ItinerariesPage() {
                             ))}
                           </div>
 
-                          {/* Lugares */}
                           <div>
                             <div className="flex justify-between items-center mb-2">
                               <p className="text-sm font-medium">Lugares</p>
-                              <Button size="sm" variant="outline" onClick={() => handleAddListItem(dayIndex, 'places', { name: '', description: '', image: '' })}>
+                              <Button size="sm" variant="outline" onClick={() => handleAddItem(dayIndex, 'places')}>
                                 <Plus className="w-3 h-3 mr-1" /> Agregar
                               </Button>
                             </div>
@@ -740,7 +822,7 @@ export default function ItinerariesPage() {
                               <div key={idx} className="bg-white border rounded p-3 mb-2 grid grid-cols-2 gap-2">
                                 <div className="col-span-2 flex justify-between items-center">
                                   <span className="text-xs font-bold text-gray-500">Lugar {idx + 1}</span>
-                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemoveListItem(dayIndex, 'places', idx)}><X className="w-3 h-3 text-red-500" /></Button>
+                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemoveItem(dayIndex, 'places', idx)}><X className="w-3 h-3 text-red-500" /></Button>
                                 </div>
                                 <Input className="h-8 text-xs" placeholder="Nombre" value={item.name} onChange={(e) => handleListItemChange(dayIndex, 'places', idx, 'name', e.target.value)} />
                                 <Input className="h-8 text-xs" placeholder="URL Imagen" value={item.image} onChange={(e) => handleListItemChange(dayIndex, 'places', idx, 'image', e.target.value)} />
@@ -749,11 +831,10 @@ export default function ItinerariesPage() {
                             ))}
                           </div>
 
-                          {/* Souvenirs */}
                           <div>
                             <div className="flex justify-between items-center mb-2">
                               <p className="text-sm font-medium">Souvenirs</p>
-                              <Button size="sm" variant="outline" onClick={() => handleAddListItem(dayIndex, 'souvenirs', { name: '', description: '', image: '' })}>
+                              <Button size="sm" variant="outline" onClick={() => handleAddItem(dayIndex, 'souvenirs')}>
                                 <Plus className="w-3 h-3 mr-1" /> Agregar
                               </Button>
                             </div>
@@ -761,7 +842,7 @@ export default function ItinerariesPage() {
                               <div key={idx} className="bg-white border rounded p-3 mb-2 grid grid-cols-2 gap-2">
                                 <div className="col-span-2 flex justify-between items-center">
                                   <span className="text-xs font-bold text-gray-500">Souvenir {idx + 1}</span>
-                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemoveListItem(dayIndex, 'souvenirs', idx)}><X className="w-3 h-3 text-red-500" /></Button>
+                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemoveItem(dayIndex, 'souvenirs', idx)}><X className="w-3 h-3 text-red-500" /></Button>
                                 </div>
                                 <Input className="h-8 text-xs" placeholder="Nombre" value={item.name} onChange={(e) => handleListItemChange(dayIndex, 'souvenirs', idx, 'name', e.target.value)} />
                                 <Input className="h-8 text-xs" placeholder="URL Imagen" value={item.image} onChange={(e) => handleListItemChange(dayIndex, 'souvenirs', idx, 'image', e.target.value)} />
@@ -770,11 +851,10 @@ export default function ItinerariesPage() {
                             ))}
                           </div>
 
-                          {/* Frases */}
                           <div>
                             <div className="flex justify-between items-center mb-2">
                               <p className="text-sm font-medium">Frases Locales</p>
-                              <Button size="sm" variant="outline" onClick={() => handleAddListItem(dayIndex, 'phrases', { es: '', local: '' })}>
+                              <Button size="sm" variant="outline" onClick={() => handleAddItem(dayIndex, 'phrases')}>
                                 <Plus className="w-3 h-3 mr-1" /> Agregar
                               </Button>
                             </div>
@@ -782,7 +862,7 @@ export default function ItinerariesPage() {
                               <div key={idx} className="bg-white border rounded p-3 mb-2 grid grid-cols-2 gap-2">
                                 <div className="col-span-2 flex justify-between items-center">
                                   <span className="text-xs font-bold text-gray-500">Frase {idx + 1}</span>
-                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemoveListItem(dayIndex, 'phrases', idx)}><X className="w-3 h-3 text-red-500" /></Button>
+                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemoveItem(dayIndex, 'phrases', idx)}><X className="w-3 h-3 text-red-500" /></Button>
                                 </div>
                                 <Input className="h-8 text-xs" placeholder="Español (Ej: Gracias)" value={item.es} onChange={(e) => handleListItemChange(dayIndex, 'phrases', idx, 'es', e.target.value)} />
                                 <Input className="h-8 text-xs" placeholder="Local (Ej: Merci)" value={item.local} onChange={(e) => handleListItemChange(dayIndex, 'phrases', idx, 'local', e.target.value)} />
@@ -796,7 +876,6 @@ export default function ItinerariesPage() {
                 </div>
               </Card>
 
-              {/* Notas y recomendaciones */}
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Notas y Recomendaciones</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -821,7 +900,6 @@ export default function ItinerariesPage() {
                 </div>
               </Card>
 
-              {/* Botones */}
               <div className="flex gap-4">
                 <Button
                   onClick={handleSubmit}
@@ -844,6 +922,66 @@ export default function ItinerariesPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {civitatisModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="p-4 border-b flex justify-between items-center bg-pink-600 text-white">
+              <div className="flex items-center gap-2">
+                <Globe className="w-5 h-5" />
+                <h3 className="font-bold text-lg">Catálogo Civitatis</h3>
+              </div>
+              <button onClick={() => setCivitatisModalOpen(false)} className="text-white hover:text-pink-200 transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto bg-gray-50 flex-1">
+              {civitatisLoading ? (
+                <div className="flex flex-col items-center justify-center h-48 space-y-4">
+                  <div className="w-10 h-10 border-4 border-pink-600 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-gray-500 font-medium">Buscando las mejores actividades...</p>
+                </div>
+              ) : civitatisActivities.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {civitatisActivities.map((act) => (
+                    <div key={act.id} className="bg-white rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col">
+                      <div className="h-40 overflow-hidden relative">
+                        <img src={act.image} alt={act.title} className="w-full h-full object-cover transition-transform hover:scale-105" />
+                        <div className="absolute top-2 right-2 bg-white/90 backdrop-blur text-pink-600 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                          {act.price} {act.currency}
+                        </div>
+                      </div>
+                      <div className="p-4 flex-1 flex flex-col">
+                        <h4 className="font-bold text-gray-800 text-sm mb-1 line-clamp-2">{act.title}</h4>
+                        <div className="flex items-center text-xs text-gray-500 mb-2 gap-3">
+                          <span className="flex items-center"><MapPin className="w-3 h-3 mr-1"/> {act.destination}</span>
+                          <span className="flex items-center"><Clock className="w-3 h-3 mr-1"/> {act.duration}</span>
+                        </div>
+                        <p className="text-xs text-gray-600 mb-4 line-clamp-2 flex-1">{act.description}</p>
+                        
+                        <Button 
+                          onClick={() => handleSelectCivitatisActivity(act)}
+                          className="w-full bg-pink-600 hover:bg-pink-700 text-white"
+                          size="sm"
+                        >
+                          <Plus className="w-4 h-4 mr-2" /> Agregar al Itinerario
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Globe className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-lg">No se encontraron actividades de Civitatis para este destino.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
