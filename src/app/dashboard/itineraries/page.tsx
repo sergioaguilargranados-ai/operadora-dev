@@ -244,7 +244,10 @@ export default function ItinerariesPage() {
       notes: itinerary.notes || '',
       recommendations: itinerary.recommendations || ''
     })
-    setDays(itinerary.days || [])
+    setDays((itinerary.days || []).map(day => ({
+      ...day,
+      activities: day.activities || []
+    })))
     setActiveTab('form')
   }
 
@@ -543,11 +546,11 @@ export default function ItinerariesPage() {
                           </Button>
                         </div>
 
-                        {day.activities.map((activity, actIndex) => (
+                        {(day.activities || []).map((activity, actIndex) => (
                           <div key={actIndex} className="bg-white border rounded p-4">
                             <div className="flex justify-between items-start mb-3">
                               <p className="text-xs font-medium text-gray-500">Actividad {actIndex + 1}</p>
-                              {day.activities.length > 1 && (
+                              {(day.activities?.length || 0) > 1 && (
                                 <Button
                                   size="sm"
                                   variant="ghost"
