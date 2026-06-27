@@ -16,9 +16,9 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { exportToExcel } from '@/utils/exportHelpers'
 import {
-  Plus, FileText, Send, Eye, Check, X, Trash2, Edit, ArrowLeft,
+  Plus, FileText, Send, Eye, Check, X, Trash2, Edit, ArrowLeft, BookOpen,
   DollarSign, Calendar, User, Mail, Phone, Building, Download, FileSpreadsheet,
-  MessageCircle, Printer, HelpCircle, Bell, AlertTriangle, CheckCircle2, Info
+  MessageCircle, Printer, HelpCircle, Bell, AlertTriangle, CheckCircle2, Info, Loader2
 } from 'lucide-react'
 
 const WHATSAPP_NUMBER = '+527208156804'
@@ -71,6 +71,84 @@ export default function QuotesPage() {
 
   const showConfirm = (opts: { title: string; message: string; type?: 'question' | 'warning' | 'info'; onConfirm: () => void }) => {
     setConfirmDialog({ open: true, type: opts.type || 'question', ...opts })
+  }
+
+  // Booking Modal States
+  const [bookingModal, setBookingModal] = useState<{ open: boolean; quote: Quote | null }>({ open: false, quote: null })
+  const [bookingForm, setBookingForm] = useState({ lead_traveler_name: '', lead_traveler_email: '', lead_traveler_phone: '', adults: 1, travel_start_date: '' })
+  const [creatingBooking, setCreatingBooking] = useState(false)
+
+  const handleOpenBookingModal = (quote: Quote) => {
+    setBookingModal({ open: true, quote })
+    setBookingForm({
+      lead_traveler_name: quote.customer_name || '',
+      lead_traveler_email: quote.customer_email || '',
+      lead_traveler_phone: quote.customer_phone || '',
+      adults: 1,
+      travel_start_date: quote.travel_start_date || ''
+    })
+  }
+
+  const handleCreateBooking = async () => {
+    if (!bookingModal.quote) return
+    if (!bookingForm.lead_traveler_name || !bookingForm.lead_traveler_email || !bookingForm.travel_start_date) {
+      toast({ title: 'Atención', description: 'Por favor completa los campos obligatorios.', variant: 'destructive' })
+      return
+    }
+
+    try {
+      setCreatingBooking(true)
+      const q = bookingModal.quote
+
+      // 1. Create Booking
+      const bookingRes = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: q.source === 'tour' ? 'tour' : 'general',
+          service_name: q.title || 'Servicio de Cotización',
+          total_price: q.total,
+          currency: q.currency || 'MXN',
+          status: 'pending',
+          payment_status: 'pending',
+          user_id: user?.id,
+          details: {
+            destination: q.destination,
+            fecha_inicio: bookingForm.travel_start_date,
+            pasajeros: bookingForm.adults,
+            contacto: {
+              nombre: bookingForm.lead_traveler_name,
+              email: bookingForm.lead_traveler_email,
+              telefono: bookingForm.lead_traveler_phone
+            }
+          }
+        })
+      })
+
+      const bookingData = await bookingRes.json()
+      if (!bookingData.success) throw new Error(bookingData.error || 'Error al crear reserva')
+
+      // 2. Update Quote Status
+      await fetch('/api/quotes/status', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: q.id,
+          type: q.source,
+          status: 'confirmed'
+        })
+      })
+
+      toast({ title: '✅ Reserva Creada', description: `La cotización ${q.quote_number} ha sido convertida a reserva.` })
+      setBookingModal({ open: false, quote: null })
+      loadQuotes()
+
+    } catch (error: any) {
+      console.error('Error creating booking:', error)
+      toast({ title: 'Error', description: error.message || 'Error al procesar la reserva', variant: 'destructive' })
+    } finally {
+      setCreatingBooking(false)
+    }
   }
 
   // Form states
@@ -395,9 +473,101 @@ export default function QuotesPage() {
     )
   }
 
+  // ===== MODAL DE CONVERTIR A RESERVA ==============================================
+  const BookingModal = () => {
+    if (!bookingModal.open) return null
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => !creatingBooking && setBookingModal({ open: false, quote: null })} />
+        <div className="relative z-10 w-full max-w-md mx-4 bg-white/90 backdrop-blur-xl border border-white/60 rounded-2xl shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200">
+          <h3 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-blue-600" />
+            Convertir a Reserva
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">Confirma los datos principales para crear la reserva de esta cotización.</p>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Nombre Completo (Titular)</label>
+              <Input
+                value={bookingForm.lead_traveler_name}
+                onChange={(e) => setBookingForm({ ...bookingForm, lead_traveler_name: e.target.value })}
+                placeholder="Nombre del pasajero principal"
+                disabled={creatingBooking}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
+                <Input
+                  type="email"
+                  value={bookingForm.lead_traveler_email}
+                  onChange={(e) => setBookingForm({ ...bookingForm, lead_traveler_email: e.target.value })}
+                  placeholder="email@ejemplo.com"
+                  disabled={creatingBooking}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Teléfono</label>
+                <Input
+                  value={bookingForm.lead_traveler_phone}
+                  onChange={(e) => setBookingForm({ ...bookingForm, lead_traveler_phone: e.target.value })}
+                  placeholder="+52..."
+                  disabled={creatingBooking}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Fecha de Inicio</label>
+                <Input
+                  type="date"
+                  value={bookingForm.travel_start_date}
+                  onChange={(e) => setBookingForm({ ...bookingForm, travel_start_date: e.target.value })}
+                  disabled={creatingBooking}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Pasajeros</label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={bookingForm.adults}
+                  onChange={(e) => setBookingForm({ ...bookingForm, adults: parseInt(e.target.value) || 1 })}
+                  disabled={creatingBooking}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <Button
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => setBookingModal({ open: false, quote: null })}
+              disabled={creatingBooking}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200"
+              onClick={handleCreateBooking}
+              disabled={creatingBooking}
+            >
+              {creatingBooking ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Procesando...</>
+              ) : (
+                <><Check className="w-4 h-4 mr-2" /> Confirmar Reserva</>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
       <ConfirmModal />
+      <BookingModal />
       {/* ===== HEADER ESTÁNDAR (cenefa blanco translúcido) ===== */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
         <div className="container mx-auto px-4 py-4">
@@ -512,6 +682,19 @@ export default function QuotesPage() {
                       <TableCell className="text-sm">{new Date(quote.created_at).toLocaleDateString('es-MX')}</TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
+                          {/* ACCION GLOBAL: Convertir a Reserva */}
+                          {!['confirmed', 'accepted', 'rejected', 'cancelled'].includes(quote.status) && (
+                            <Button
+                              size="sm"
+                              className="h-8 px-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                              title="Convertir a Reserva"
+                              onClick={() => handleOpenBookingModal(quote)}
+                            >
+                              <BookOpen className="w-3.5 h-3.5 mr-1" />
+                              Reservar
+                            </Button>
+                          )}
+                          
                           {/* ACCIONES PARA TOUR */}
                           {quote.source === 'tour' && (
                             <>
