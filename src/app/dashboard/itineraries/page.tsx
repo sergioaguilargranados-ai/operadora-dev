@@ -260,18 +260,14 @@ export default function ItinerariesPage() {
       const newDays = [...prevDays]
       newDays[activeCivitatisDay].activities.push({
         time: 'Por definir',
-        title: activity.title,
-        description: activity.description,
+        title: `Civitatis: ${activity.title}`,
+        description: `Tour de Civitatis (${activity.duration}) - ⭐ ${activity.rating}. ${activity.description}`,
         location: activity.destination
       })
-      newDays[activeCivitatisDay].places = [
-        ...(newDays[activeCivitatisDay].places || []),
-        { name: activity.title, description: `Tour de Civitatis (${activity.duration}) - ⭐ ${activity.rating}`, image: activity.image }
-      ]
       return newDays
     })
     
-    alert(`¡"${activity.title}" agregado al itinerario!`)
+    alert(`¡"${activity.title}" agregado a las Actividades del día!`)
     setCivitatisModalOpen(false)
   }
 
@@ -283,15 +279,19 @@ export default function ItinerariesPage() {
     setDays(newDays)
   }
 
-  const handleSubmit = async () => {
+  const getMissingFields = () => {
     const missing = []
-    if (!formData.title) missing.push('Título del viaje')
+    if (!formData.title) missing.push('Título')
     if (!formData.destination) missing.push('Destino')
     if (!formData.start_date) missing.push('Fecha inicio')
     if (!formData.end_date) missing.push('Fecha fin')
+    return missing
+  }
+
+  const handleSubmit = async () => {
+    const missing = getMissingFields()
 
     if (missing.length > 0) {
-      alert(`No se puede guardar. Faltan por capturar los siguientes campos obligatorios:\n- ${missing.join('\n- ')}`)
       return
     }
 
@@ -403,7 +403,28 @@ export default function ItinerariesPage() {
 
       const pkg = data.data
 
-      const startDateToUse = formData.start_date || new Date().toISOString().split('T')[0]
+      let bookingStartDate = null;
+      try {
+        const token = localStorage.getItem('token') || ''
+        const resBookings = await fetch('/api/bookings?userId=all', { headers: { 'Authorization': `Bearer ${token}` } })
+        if (resBookings.ok) {
+          const dataBookings = await resBookings.json()
+          const tourBooking = (dataBookings.data || []).find((b: any) => {
+            try {
+              const details = typeof b.special_requests === 'string' ? JSON.parse(b.special_requests) : (b.special_requests || {})
+              return details.tour_id === formData.tour_id
+            } catch(e) { return false }
+          })
+          if (tourBooking) {
+            const details = typeof tourBooking.special_requests === 'string' ? JSON.parse(tourBooking.special_requests) : (tourBooking.special_requests || {})
+            bookingStartDate = details.start_date || tourBooking.travel_date || tourBooking.created_at
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching booking date', e)
+      }
+
+      const startDateToUse = bookingStartDate ? new Date(bookingStartDate).toISOString().split('T')[0] : (formData.start_date || new Date().toISOString().split('T')[0])
       const endDateToUse = pkg.days
         ? new Date(new Date(startDateToUse + 'T12:00:00Z').getTime() + (pkg.days - 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
         : formData.end_date
@@ -915,22 +936,30 @@ export default function ItinerariesPage() {
                 </div>
               </Card>
 
-              <div className="flex gap-4">
-                <Button
-                  onClick={handleSubmit}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 h-12"
-                >
-                  <Check className="w-5 h-5 mr-2" />
-                  {editingItinerary ? 'Actualizar Itinerario' : 'Crear Itinerario'}
-                </Button>
-                <Button
-                  onClick={() => { resetForm(); setActiveTab('list'); }}
-                  variant="outline"
-                  className="h-12"
-                >
-                  <X className="w-5 h-5 mr-2" />
-                  Cancelar
-                </Button>
+              <div className="flex flex-col gap-2">
+                {getMissingFields().length > 0 && (
+                  <div className="text-sm text-red-500 font-medium">
+                    Faltan campos obligatorios: {getMissingFields().join(', ')}
+                  </div>
+                )}
+                <div className="flex gap-4 items-center">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={getMissingFields().length > 0}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 h-12"
+                  >
+                    <Check className="w-5 h-5 mr-2" />
+                    {editingItinerary ? 'Actualizar Itinerario' : 'Crear Itinerario'}
+                  </Button>
+                  <Button
+                    onClick={() => { resetForm(); setActiveTab('list'); }}
+                    variant="outline"
+                    className="h-12"
+                  >
+                    <X className="w-5 h-5 mr-2" />
+                    Cancelar
+                  </Button>
+                </div>
               </div>
             </div>
           </TabsContent>

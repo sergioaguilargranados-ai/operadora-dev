@@ -14,7 +14,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<boolean>
+  login: (email: string, password: string) => Promise<{ success: boolean; needsSetup?: boolean }>
   register: (name: string, email: string, password: string, phone?: string) => Promise<boolean>
   logout: () => void
   isAuthenticated: boolean
@@ -82,8 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    if (!mounted) return false
+  const login = async (email: string, password: string): Promise<{ success: boolean; needsSetup?: boolean }> => {
+    if (!mounted) return { success: false }
 
     try {
       console.log('🔵 LOGIN INICIADO:', email)
@@ -111,14 +111,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setToStorage('as_refresh', data.refreshToken)
         }
         console.log('✅ LOGIN EXITOSO:', data.user.email)
-        return true
+        return { success: true }
       }
 
       console.log('❌ LOGIN FALLIDO:', data.error)
-      return false
+      if (data.error?.code === 'AUTH_NEEDS_SETUP') {
+        return { success: false, needsSetup: true }
+      }
+      return { success: false }
     } catch (error) {
       console.error('❌ LOGIN ERROR:', error)
-      return false
+      return { success: false }
     }
   }
 

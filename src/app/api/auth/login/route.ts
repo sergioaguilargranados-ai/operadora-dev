@@ -66,6 +66,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(responseBody, { status: 200, headers: { 'X-API-Version': '1.0' } })
   } catch (error: any) {
     const message = error?.message || 'Credenciales inválidas'
+    if (message === 'NEEDS_SETUP') {
+      return NextResponse.json(
+        errorResponse('AUTH_NEEDS_SETUP', 'Debes configurar tu contraseña. Revisa tu correo.'),
+        { status: 403, headers: { 'X-API-Version': '1.0' } }
+      )
+    }
     const status = message.includes('inválidas') ? 401 : 500
     return NextResponse.json(
       errorResponse('AUTH_INVALID', message),

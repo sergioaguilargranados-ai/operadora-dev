@@ -118,26 +118,34 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         </button>
       </div>
 
+      {/* Background Blobs for Premium Feel */}
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-60"></div>
+        <div className="absolute top-1/4 -left-20 w-72 h-72 bg-purple-50 rounded-full blur-3xl opacity-60"></div>
+      </div>
+
       {/* Hero Image Section */}
       <div className="px-4 pt-4 mb-4">
-        <div className="relative w-full h-[240px] rounded-3xl overflow-hidden shadow-sm">
+        <div className="relative w-full h-[320px] rounded-[32px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
           <img 
             src={dayData?.hero_image || "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=800&q=80"} 
             alt={dayData?.title || "Destino"} 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
           
-          <div className="absolute bottom-4 left-4 right-4 text-white">
-            <p className="text-xs font-bold uppercase tracking-wider mb-1">
-              Día {dayData?.day || 1} {dayData?.date ? `- ${dayData.date}` : ''}
-            </p>
-            <h1 className="text-4xl font-serif font-bold mb-2 text-white">
+          <div className="absolute bottom-6 left-6 right-6 text-white">
+            <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-flex mb-3 border border-white/30">
+              <p className="text-xs font-bold uppercase tracking-wider text-white">
+                Día {dayData?.day || 1} {dayData?.date ? `- ${dayData.date}` : ''}
+              </p>
+            </div>
+            <h1 className="text-4xl font-serif font-bold mb-2 text-white leading-tight">
               {dayData?.title || itinerary?.title || "Destino"}
             </h1>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5 text-blue-200">
               <MapPin className="w-4 h-4" />
-              <span className="text-sm font-medium">{itinerary?.destination || "Internacional"}</span>
+              <span className="text-sm font-medium tracking-wide">{itinerary?.destination || "Internacional"}</span>
             </div>
           </div>
         </div>
@@ -145,12 +153,12 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
 
       {/* Descripción General */}
       <div className="px-4 mb-8">
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex gap-4">
-          <div className="w-6 h-6 rounded-full border-2 border-blue-500 text-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <Info className="w-4 h-4" />
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex gap-4">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20">
+            <Info className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-900 mb-2">Descripción general</h3>
+            <h3 className="font-bold text-gray-900 mb-2 font-serif text-lg">Descripción general</h3>
             <p className="text-sm text-gray-600 leading-relaxed">
               {dayData?.description || itinerary?.description || "Tu destino te espera con increíbles experiencias. Disfruta de la gastronomía, cultura y paisajes únicos que hemos preparado para ti."}
             </p>

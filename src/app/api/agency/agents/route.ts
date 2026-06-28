@@ -1,92 +1,86 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { agencyService } from '@/services/AgencyService'
+import { NextResponse } from 'next/server'
+import { pool } from '@/lib/db'
 
-export const runtime = 'nodejs'
-
-/**
- * GET /api/agency/agents?agency_id=X
- * Listar agentes de una agencia
- */
-export async function GET(request: NextRequest) {
+export async function GET(req: Request) {
     try {
-        const agencyId = request.nextUrl.searchParams.get('agency_id')
-        const status = request.nextUrl.searchParams.get('status') || undefined
-        const search = request.nextUrl.searchParams.get('search') || undefined
+        const { searchParams } = new URL(req.url)
+        const tenantId = searchParams.get('tenant_id') || 1 
 
-        if (!agencyId) {
-            return NextResponse.json({ success: false, error: 'agency_id is required' }, { status: 400 })
+        const client = await pool.connect()
+        try {
+            // Fetch agents (users with AGENT role in tenant_users)
+            const result = await client.query(`
+                SELECT 
+                    u.id as user_id, u.name, u.email, u.phone, u.avatar_url, u.address,
+                    tu.id as agent_id, tu.referral_code, tu.agent_commission_split, tu.agent_status, tu.created_at
+                FROM tenant_users tu
+                JOIN users u ON tu.user_id = u.id
+                WHERE tu.tenant_id = $1 AND tu.role = 'AGENT'
+                ORDER BY u.name ASC
+            `, [tenantId])
+
+            return NextResponse.json({ success: true, data: result.rows })
+        } finally {
+            client.release()
         }
-
-        const agents = await agencyService.getAgents(parseInt(agencyId), { status, search })
-
-        return NextResponse.json({
-            success: true,
-            data: agents,
-            total: agents.length
-        })
     } catch (error) {
         console.error('Error fetching agents:', error)
-        return NextResponse.json({
-            success: false,
-            error: 'Failed to fetch agents',
-            message: (error as Error).message
-        }, { status: 500 })
+        return NextResponse.json({ success: false, error: 'Database error' }, { status: 500 })
     }
 }
 
-/**
- * POST /api/agency/agents
- * Crear un nuevo agente (con o sin usuario)
- */
-export async function POST(request: NextRequest) {
+export async function PUT(req: Request) {
     try {
-        const body = await request.json()
-        const { agency_id, user_id, name, email, phone, password, role, commission_split } = body
+        const body = await req.json()
+        const { user_id, agent_commission_split, agent_status, avatar_url, address, phone } = body
 
-        if (!agency_id) {
-            return NextResponse.json({ success: false, error: 'agency_id is required' }, { status: 400 })
+        if (!user_id) {
+            return NextResponse.json({ success: false, error: 'User ID required' }, { status: 400 })
         }
 
-        let result
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
 
-        if (user_id) {
-            // Vincular usuario existente como agente
-            result = await agencyService.createAgent(parseInt(agency_id), {
-                userId: parseInt(user_id),
-                role: role || 'AGENT',
-                phone,
-                commissionSplit: commission_split || 0
-            })
-        } else {
-            // Crear usuario + agente
-            if (!name || !email || !password) {
-                return NextResponse.json({
-                    success: false,
-                    error: 'name, email, and password are required when creating a new agent'
-                }, { status: 400 })
+            // Update user table info
+            if (avatar_url !== undefined || address !== undefined || phone !== undefined) {
+                const userUpdates = []
+                const userValues = []
+                let i = 1
+                if (avatar_url !== undefined) { userUpdates.push(`avatar_url = $${i++}`); userValues.push(avatar_url) }
+                if (address !== undefined) { userUpdates.push(`address = $${i++}`); userValues.push(address) }
+                if (phone !== undefined) { userUpdates.push(`phone = $${i++}`); userValues.push(phone) }
+                
+                if (userUpdates.length > 0) {
+                    userValues.push(user_id)
+                    await client.query(`UPDATE users SET ${userUpdates.join(', ')} WHERE id = $${i}`, userValues)
+                }
             }
 
-            result = await agencyService.createAgentWithUser(parseInt(agency_id), {
-                name,
-                email,
-                phone,
-                password,
-                role: role || 'AGENT',
-                commissionSplit: commission_split || 0
-            })
-        }
+            // Update tenant_users info
+            if (agent_commission_split !== undefined || agent_status !== undefined) {
+                const tuUpdates = []
+                const tuValues = []
+                let j = 1
+                if (agent_commission_split !== undefined) { tuUpdates.push(`agent_commission_split = $${j++}`); tuValues.push(agent_commission_split) }
+                if (agent_status !== undefined) { tuUpdates.push(`agent_status = $${j++}`); tuValues.push(agent_status) }
+                
+                if (tuUpdates.length > 0) {
+                    tuValues.push(user_id)
+                    await client.query(`UPDATE tenant_users SET ${tuUpdates.join(', ')} WHERE user_id = $${j} AND role = 'AGENT'`, tuValues)
+                }
+            }
 
-        return NextResponse.json({
-            success: true,
-            data: result,
-            message: 'Agent created successfully'
-        }, { status: 201 })
+            await client.query('COMMIT')
+            return NextResponse.json({ success: true })
+        } catch(e) {
+            await client.query('ROLLBACK')
+            throw e
+        } finally {
+            client.release()
+        }
     } catch (error) {
-        console.error('Error creating agent:', error)
-        return NextResponse.json({
-            success: false,
-            error: 'Failed to create agent',
-            message: (error as Error).message
-        }, { status: 500 })
+        console.error('Error updating agent:', error)
+        return NextResponse.json({ success: false, error: 'Database error' }, { status: 500 })
     }
 }

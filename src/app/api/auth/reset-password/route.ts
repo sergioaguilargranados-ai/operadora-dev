@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
         // Actualizar contraseña del usuario
         await query(
-            'UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2',
+            'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
             [hashedPassword, resetToken.user_id]
         );
 

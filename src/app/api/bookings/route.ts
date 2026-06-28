@@ -141,31 +141,78 @@ export async function POST(request: NextRequest) {
       created_at: booking.created_at
     }
 
-    // Enviar correo de confirmación de reserva
-    if (booking.lead_traveler_email) {
+    // Gestionar el Cliente/Usuario (Onboarding)
+    const travelerEmail = booking.lead_traveler_email?.toLowerCase().trim();
+    if (travelerEmail) {
       try {
-        const { sendBookingConfirmationEmail } = await import('@/lib/emailHelper');
-        await sendBookingConfirmationEmail({
-          name: booking.lead_traveler_name,
-          email: booking.lead_traveler_email,
-          bookingId: booking.id,
-          serviceName: booking.destination,
-          bookingDate: new Date().toLocaleDateString('es-MX', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          }),
-          travelDate: details?.fecha_inicio || details?.checkIn || '',
-          passengers: booking.adults || 1,
-          destination: booking.destination,
-          totalPrice: parseFloat(booking.total_price) || 0,
-          currency: booking.currency
-        });
-        console.log('📧 Correo de confirmación de reserva enviado a:', booking.lead_traveler_email);
-      } catch (emailError) {
-        console.error('⚠️ Error enviando correo de confirmación de reserva:', emailError);
-        // No fallar la reserva si el correo falla
+        const { queryOne } = await import('@/lib/db');
+        const crypto = await import('crypto');
+
+        // 1. Buscar si el usuario ya existe
+        let user = await queryOne<any>(
+          'SELECT id FROM users WHERE email = $1',
+          [travelerEmail]
+        );
+
+        let setupUrl = '';
+
+        if (!user) {
+          // Crear usuario con password pendiente de setup
+          user = await queryOne<any>(
+            `INSERT INTO users (name, email, password_hash, role, email_verified, created_at)
+             VALUES ($1, $2, 'PENDING_SETUP', 'CLIENT', false, NOW()) RETURNING id`,
+            [booking.lead_traveler_name || 'Viajero', travelerEmail]
+          );
+
+          // Generar Setup Token (Magic Link)
+          const token = crypto.randomBytes(32).toString('hex');
+          const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hrs
+          
+          await query(
+            `INSERT INTO password_reset_tokens (user_id, token, expires_at, ip_address, user_agent)
+             VALUES ($1, $2, $3, 'system', 'onboarding')`,
+            [user.id, token, expiresAt]
+          );
+
+          setupUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/setup-password?token=${token}`;
+          console.log(`✅ Nuevo usuario creado y Setup Token generado para: ${travelerEmail}`);
+        }
+
+        // 2. Enviar correos
+        const { sendBookingConfirmationEmail, sendAccountSetupEmail } = await import('@/lib/emailHelper');
+        
+        if (setupUrl) {
+          // Es un usuario nuevo, mandarle el Magic Link de Onboarding
+          await sendAccountSetupEmail({
+            name: booking.lead_traveler_name || 'Viajero',
+            email: travelerEmail,
+            setupUrl
+          });
+          console.log('📧 Correo de Account Setup (Magic Link) enviado.');
+        } else {
+          // Usuario existente, mandarle la confirmación normal
+          await sendBookingConfirmationEmail({
+            name: booking.lead_traveler_name || 'Viajero',
+            email: travelerEmail,
+            bookingId: booking.id,
+            serviceName: booking.destination,
+            bookingDate: new Date().toLocaleDateString('es-MX', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }),
+            travelDate: details?.fecha_inicio || details?.checkIn || '',
+            passengers: booking.adults || 1,
+            destination: booking.destination,
+            totalPrice: parseFloat(booking.total_price) || 0,
+            currency: booking.currency
+          });
+          console.log('📧 Correo de confirmación de reserva enviado a:', travelerEmail);
+        }
+
+      } catch (userErr) {
+        console.error('❌ Error gestionando usuario/correos al crear reserva:', userErr);
       }
     }
 

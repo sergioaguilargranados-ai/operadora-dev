@@ -176,6 +176,16 @@ export class AuthService {
 
       const user = result.rows[0]
 
+      if (user.password_hash === 'PENDING_SETUP') {
+        await this.logAccess({
+          ip_address: data.ip_address || '0.0.0.0',
+          action: 'login_failed',
+          action_details: { email: data.email, reason: 'needs_setup' },
+          success: false
+        })
+        throw new Error('NEEDS_SETUP')
+      }
+
       // Verificar contraseña
       const isValidPassword = await bcrypt.compare(data.password, user.password_hash)
 

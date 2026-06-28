@@ -238,6 +238,34 @@ export const sendWelcomeEmail = async (data: {
     }
 };
 
+// Enviar correo de configuración de cuenta (Magic Link)
+export const sendAccountSetupEmail = async (data: {
+    name: string;
+    email: string;
+    setupUrl: string;
+}): Promise<boolean> => {
+    try {
+        // Usa la misma plantilla de password-reset, pero ajusta los textos en los parámetros
+        // o asume que el token se comporta igual.
+        const html = renderTemplate('password-reset', {
+            CUSTOMER_NAME: data.name,
+            EMAIL: data.email,
+            RESET_URL: data.setupUrl,
+            EXPIRY_TIME: '24 horas',
+            SUBJECT: 'Activa tu cuenta de AS Operadora'
+        });
+
+        return await sendEmail({
+            to: data.email,
+            subject: 'Viaje confirmado - ¡Activa tu cuenta! ✈️',
+            html
+        });
+    } catch (error) {
+        console.error('Error enviando correo de configuración:', error);
+        return false;
+    }
+};
+
 // Enviar confirmación de reserva
 export const sendBookingConfirmationEmail = async (data: {
     name: string;

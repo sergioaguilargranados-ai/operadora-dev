@@ -68,23 +68,20 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
             const bookingsList = dataBookings.data || []
             
             // Extraer solo aquellas reservas que tengan un tour_id en special_requests
-            const userTours = bookingsList
-              .map((b: any) => {
-                try {
-                  const details = typeof b.special_requests === 'string' ? JSON.parse(b.special_requests) : (b.special_requests || {})
-                  if (details.tour_id) {
-                    return {
-                      tour_id: details.tour_id,
-                      name: b.service_name || details.tour_name || 'Viaje',
-                      date: new Date(b.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
-                    }
-                  }
-                } catch(e) {}
-                return null
-              })
-              .filter(Boolean)
-              
-            setTours(userTours)
+            const userToursMap = new Map()
+            bookingsList.forEach((b: any) => {
+              try {
+                const details = typeof b.special_requests === 'string' ? JSON.parse(b.special_requests) : (b.special_requests || {})
+                if (details.tour_id && !userToursMap.has(details.tour_id)) {
+                  userToursMap.set(details.tour_id, {
+                    tour_id: details.tour_id,
+                    name: b.service_name || details.tour_name || 'Viaje',
+                    date: new Date(b.travel_date || b.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+                  })
+                }
+              } catch(e) {}
+            })
+            setTours(Array.from(userToursMap.values()))
           }
         }
       } catch (error) {
@@ -173,43 +170,43 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
       {/* Days List */}
       <div className="px-4 space-y-4">
         {days.length === 0 ? (
-          <div className="text-center text-gray-500 py-10">
-            No hay días configurados para este itinerario.
+          <div className="text-center py-12 bg-white/70 backdrop-blur-lg rounded-3xl shadow-sm border border-gray-100">
+            <CalendarIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500 font-medium">Aún no hay días configurados en este itinerario.</p>
           </div>
         ) : (
           days.map((day: any, index: number) => (
             <div 
               key={index}
               onClick={() => router.push(`/mobile/itinerario/${params.id}/dia/${index}`)}
-              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3 cursor-pointer active:scale-[0.98] transition-transform"
+              className="relative overflow-hidden bg-white/80 backdrop-blur-xl rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 flex flex-col gap-3 cursor-pointer hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 group"
             >
+              {/* Subtle background gradient for each card */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl opacity-60 -z-10 transition-transform group-hover:scale-150"></div>
+              
               <div className="flex gap-4">
-                <img src={day.hero_image || "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=400&q=80"} alt={day.title} className="w-24 h-24 rounded-xl object-cover flex-shrink-0" />
+                <img src={day.hero_image || "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=400&q=80"} alt={day.title} className="w-24 h-24 rounded-2xl object-cover flex-shrink-0 shadow-sm" />
                 <div className="flex-1">
                   <div className="flex justify-between items-start">
-                    <p className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">
+                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-full mb-1 inline-block">
                       Día {day.day || index + 1}
                     </p>
-                    <ChevronRight className="w-5 h-5 text-black" />
+                    <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-black transition-colors">
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+                    </div>
                   </div>
                   <h3 className="font-serif font-bold text-gray-900 text-xl leading-tight mb-1">{day.title}</h3>
                   <div className="flex items-center gap-1 text-gray-500 mb-2">
-                    <MapPin className="w-3 h-3" />
+                    <MapPin className="w-3 h-3 text-blue-400" />
                     <span className="text-xs">{day.places?.[0]?.name || "Ubicación"}</span>
                   </div>
                 </div>
               </div>
               
-              <div className="flex items-end justify-between gap-4">
-                <p className="text-xs text-gray-600 leading-relaxed flex-1 line-clamp-2">
+              <div className="flex items-end justify-between gap-4 mt-2">
+                <p className="text-xs text-gray-600 leading-relaxed flex-1 line-clamp-2 bg-white/50 p-2 rounded-xl border border-gray-50">
                   {day.description || day.desc || `Disfruta de ${day.title} y sus maravillas.`}
                 </p>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); alert('Redirigiendo a tours...'); }}
-                  className="bg-black text-white text-xs font-bold px-4 py-2 rounded-lg flex-shrink-0"
-                >
-                  Reservar tours
-                </button>
               </div>
             </div>
           ))
