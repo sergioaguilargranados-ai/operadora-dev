@@ -18,6 +18,22 @@ export default function MobileLoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [mobileContent, setMobileContent] = useState<any>(null)
+
+  useEffect(() => {
+    const fetchMobileContent = async () => {
+      try {
+        const res = await fetch("/api/mobile/content?tenant_id=1")
+        const data = await res.json()
+        if (data.success && data.data) {
+          setMobileContent(data.data)
+        }
+      } catch (err) {
+        console.error("Error fetching mobile content", err)
+      }
+    }
+    fetchMobileContent()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,15 +54,23 @@ export default function MobileLoginPage() {
     }
   }
 
+  // Usar los del CMS Móvil si existen, si no, caer a la marca blanca
+  const finalLogoUrl = mobileContent?.logo_url || logoUrl || "/logo.png"
+  const loginBannerUrl = mobileContent?.sections_json?.login_banner_url || ""
+
   return (
-    <div className="min-h-screen bg-white flex flex-col relative overflow-hidden">
+    <div className="min-h-screen flex flex-col relative overflow-hidden" style={loginBannerUrl ? { backgroundImage: `url(${loginBannerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { backgroundColor: '#ffffff' }}>
+      
+      {/* Dark overlay if there is a background image */}
+      {loginBannerUrl && <div className="absolute inset-0 bg-black/40 z-0"></div>}
+
       {/* Content Container */}
-      <div className="flex-1 flex flex-col px-6 pt-12 pb-6 relative z-10">
+      <div className={`flex-1 flex flex-col px-6 pt-12 pb-6 relative z-10 ${loginBannerUrl ? 'bg-white/90 backdrop-blur-md m-4 rounded-3xl shadow-xl' : ''}`}>
         
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <img
-            src={logoUrl || "/logo.png"}
+            src={finalLogoUrl}
             alt={companyName || "AS Operadora"}
             className="h-20 object-contain mb-4"
             onError={(e) => {
@@ -124,11 +148,32 @@ export default function MobileLoginPage() {
           </div>
 
           {/* Terms */}
-          <div className="flex items-start gap-3 mt-8">
-            <ShieldCheck className="w-5 h-5 text-gray-700 flex-shrink-0 mt-0.5" />
-            <p className="text-[11px] text-gray-600 leading-tight">
-              Al continuar, declaras que leíste y aceptas nuestros <a href="#" className="underline font-medium">términos y condiciones</a>, <a href="#" className="underline font-medium">aviso de privacidad</a> y los <a href="#" className="underline font-medium">términos del programa de lealtad</a>.
-            </p>
+          <div className="mt-8 flex flex-col items-center gap-3 text-xs text-gray-500">
+            {mobileContent?.sections_json?.docs?.terms_url ? (
+              <a href={mobileContent.sections_json.docs.terms_url} target="_blank" rel="noreferrer" className="hover:text-gray-800 transition-colors">
+                Términos y Condiciones
+              </a>
+            ) : (
+              <Link href="#" className="hover:text-gray-800 transition-colors">Términos y Condiciones</Link>
+            )}
+            
+            <div className="flex gap-4">
+              {mobileContent?.sections_json?.docs?.privacy_url ? (
+                <a href={mobileContent.sections_json.docs.privacy_url} target="_blank" rel="noreferrer" className="hover:text-gray-800 transition-colors">
+                  Aviso de Privacidad
+                </a>
+              ) : (
+                <Link href="#" className="hover:text-gray-800 transition-colors">Aviso de Privacidad</Link>
+              )}
+              
+              {mobileContent?.sections_json?.docs?.loyalty_url ? (
+                <a href={mobileContent.sections_json.docs.loyalty_url} target="_blank" rel="noreferrer" className="hover:text-gray-800 transition-colors">
+                  Programa de Lealtad
+                </a>
+              ) : (
+                <Link href="#" className="hover:text-gray-800 transition-colors">Programa de Lealtad</Link>
+              )}
+            </div>
           </div>
 
           {/* Submit */}

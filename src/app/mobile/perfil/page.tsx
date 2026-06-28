@@ -20,13 +20,81 @@ export default function MobileProfilePage() {
   const { logoUrl } = useWhiteLabel()
   const { toast } = useToast()
 
-  const [documents, setDocuments] = useState<DocumentItem[]>([
-    { id: '1', name: 'INE', fileName: null }
-  ])
+  const [documents, setDocuments] = useState<DocumentItem[]>([])
+  const [profileData, setProfileData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   const [uploadingId, setUploadingId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [activeDocId, setActiveDocId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchProfile()
+    }
+  }, [user])
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/mobile/profile?user_id=${user?.id}`)
+      const data = await res.json()
+      if (data.success) {
+        setProfileData(data.data)
+        const dbDocs = data.data.documents?.map((d: any) => ({
+          id: d.id,
+          name: d.name,
+          fileName: d.url
+        })) || []
+        setDocuments(dbDocs.length > 0 ? dbDocs : [{ id: '1', name: 'INE', fileName: null }])
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateProfile = async (updates: any) => {
+    try {
+      const res = await fetch('/api/mobile/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: user?.id, ...updates })
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: 'Actualizado', description: 'Datos actualizados correctamente' })
+        fetchProfile()
+      } else {
+        toast({ title: 'Error', description: 'Error al actualizar', variant: 'destructive' })
+      }
+    } catch (err) {
+      console.error(err)
+      toast({ title: 'Error', description: 'Error al actualizar', variant: 'destructive' })
+    }
+  }
+
+  const handleEditName = () => {
+    const newName = prompt("Escribe tu nuevo nombre completo:", profileData?.name || '')
+    if (newName && newName !== profileData?.name) {
+      updateProfile({ name: newName })
+    }
+  }
+
+  const handleEditPhone = () => {
+    const newPhone = prompt("Escribe tu número de teléfono:", profileData?.phone || '')
+    if (newPhone && newPhone !== profileData?.phone) {
+      updateProfile({ phone: newPhone })
+    }
+  }
+
+  const handleEditInsurance = () => {
+    const wants = confirm(`Actualmente ${profileData?.wants_travel_insurance ? 'SÍ' : 'NO'} deseas el Seguro de Viajero.\n\n¿Deseas solicitar que un agente te llame para adquirirlo?`)
+    if (wants !== profileData?.wants_travel_insurance) {
+      updateProfile({ wants_travel_insurance: wants })
+    }
+  }
 
   const handleAddDocument = () => {
     const docName = prompt("Escribe el nombre del documento (Ej. Visa, Pasaporte):")
@@ -113,13 +181,13 @@ export default function MobileProfilePage() {
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
           
           {/* Item */}
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer">
+          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEditName}>
             <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
               <User className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Nombre</h3>
-              <p className="text-xs text-gray-500">Actualiza tu nombre completo.</p>
+              <p className="text-xs text-gray-500">{profileData?.name || 'Actualiza tu nombre completo.'}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
@@ -141,29 +209,29 @@ export default function MobileProfilePage() {
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Correo</h3>
-              <p className="text-xs text-gray-500">Actualiza tu correo electrónico.</p>
+              <p className="text-xs text-gray-500">{profileData?.email || 'Actualiza tu correo electrónico.'}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
 
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer">
+          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEditPhone}>
             <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
               <Phone className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Teléfono</h3>
-              <p className="text-xs text-gray-500">Actualiza tu número de teléfono.</p>
+              <p className="text-xs text-gray-500">{profileData?.phone || 'Actualiza tu número de teléfono.'}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
 
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer">
+          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEditInsurance}>
             <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
               <Shield className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Seguro de Viajero</h3>
-              <p className="text-xs text-gray-500">Consulta y gestiona tu seguro de viaje.</p>
+              <p className="text-xs text-gray-500">{profileData?.wants_travel_insurance ? '✅ Seguro Solicitado' : 'Consulta y adquiere tu seguro.'}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
@@ -212,12 +280,22 @@ export default function MobileProfilePage() {
                 {uploadingId === doc.id ? (
                   <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
                 ) : (
-                  <button 
-                    onClick={() => handleUploadClick(doc.id)} 
-                    className="p-2 text-gray-400 hover:text-black"
-                  >
-                    {doc.fileName ? <ChevronRight className="w-5 h-5" /> : <Upload className="w-5 h-5" />}
-                  </button>
+                  <div className="flex gap-2">
+                    {doc.fileName && (
+                      <button 
+                        onClick={() => window.open(doc.fileName!, '_blank')} 
+                        className="p-2 text-blue-500 hover:text-blue-700"
+                      >
+                        Ver
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => handleUploadClick(doc.id)} 
+                      className="p-2 text-gray-400 hover:text-black"
+                    >
+                      <Upload className="w-5 h-5" />
+                    </button>
+                  </div>
                 )}
               </div>
             ))}

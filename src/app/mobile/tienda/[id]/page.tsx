@@ -42,7 +42,7 @@ export default function MobileProductDetail({ params }: { params: { id: string }
           <button className="text-gray-900 active:scale-95 transition-transform p-2 rounded-full hover:bg-gray-100">
             <Share2 className="w-5 h-5" />
           </button>
-          <button className="text-gray-900 active:scale-95 transition-transform p-2 rounded-full hover:bg-gray-100 relative">
+          <button onClick={() => router.push('/mobile/tienda/carrito')} className="text-gray-900 active:scale-95 transition-transform p-2 rounded-full hover:bg-gray-100 relative">
             <ShoppingCart className="w-5 h-5" />
             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></span>
           </button>

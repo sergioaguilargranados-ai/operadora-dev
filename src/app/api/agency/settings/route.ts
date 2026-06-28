@@ -15,7 +15,7 @@ export async function GET(req: Request) {
                     id, company_name, legal_name, tax_id, email, phone, 
                     address, legal_representative, b2b_agent_number,
                     support_email, support_phone, support_whatsapp,
-                    logo_url, mobile_logo_url, primary_color, secondary_color, 
+                    logo_url, mobile_logo_url, logo_dark_url, primary_color, secondary_color, 
                     accent_color, slogan, custom_domain, is_active
                 FROM tenants
                 WHERE id = $1
@@ -41,7 +41,7 @@ export async function PUT(req: Request) {
         const { 
             id, company_name, legal_name, address, legal_representative, b2b_agent_number,
             support_email, support_phone, support_whatsapp,
-            logo_url, mobile_logo_url, primary_color, secondary_color, accent_color, slogan, custom_domain
+            logo_url, mobile_logo_url, logo_dark_url, primary_color, secondary_color, accent_color, slogan, custom_domain
         } = body
 
         if (!id) {
@@ -68,13 +68,14 @@ export async function PUT(req: Request) {
                     accent_color = COALESCE($14, accent_color),
                     slogan = COALESCE($15, slogan),
                     custom_domain = COALESCE($16, custom_domain),
+                    logo_dark_url = COALESCE($17, logo_dark_url),
                     updated_at = NOW()
                 WHERE id = $1
             `
             const values = [
                 id, company_name, legal_name, address, legal_representative, b2b_agent_number,
                 support_email, support_phone, support_whatsapp,
-                logo_url, mobile_logo_url, primary_color, secondary_color, accent_color, slogan, custom_domain
+                logo_url, mobile_logo_url, primary_color, secondary_color, accent_color, slogan, custom_domain, logo_dark_url
             ]
             
             await client.query(query, values)

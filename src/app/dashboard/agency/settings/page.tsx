@@ -19,6 +19,7 @@ interface AgencySettings {
     support_whatsapp: string
     logo_url: string
     mobile_logo_url: string
+    logo_dark_url: string
     primary_color: string
     secondary_color: string
     accent_color: string
@@ -212,8 +213,25 @@ export default function AgencySettingsPage() {
                                             ) : (
                                                 <>
                                                     <UploadCloud className="w-8 h-8 text-gray-400 mb-2" />
-                                                    <p className="text-sm font-medium text-gray-700">Logo Versión Web</p>
+                                                    <p className="text-sm font-medium text-gray-700">Logo Versión Web (Claro)</p>
                                                     <Button size="sm" variant="outline" className="mt-2" onClick={() => handleFileUpload('logo_url')}>Seleccionar Archivo</Button>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center text-center bg-gray-900">
+                                            {formData.logo_dark_url ? (
+                                                <div className="mb-3 relative group">
+                                                    <img src={formData.logo_dark_url} alt="Logo Oscuro" className="max-h-20 object-contain" />
+                                                    <div className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center rounded-lg">
+                                                        <Button size="sm" variant="secondary" onClick={() => handleFileUpload('logo_dark_url')}>Cambiar</Button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <UploadCloud className="w-8 h-8 text-gray-300 mb-2" />
+                                                    <p className="text-sm font-medium text-gray-200">Logo Tienda (Oscuro)</p>
+                                                    <Button size="sm" variant="outline" className="mt-2 border-gray-600 text-gray-300" onClick={() => handleFileUpload('logo_dark_url')}>Seleccionar Archivo</Button>
                                                 </>
                                             )}
                                         </div>

@@ -225,6 +225,15 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
           </div>
 
           <div>
+            <label className="text-sm font-medium mb-1 block">Banner de Login Móvil (Fondo Inferior)</label>
+            <ImageUploadInput 
+              value={content.sections_json?.login_banner_url || ''} 
+              onChange={val => updateSection('login_banner_url', '', val)}
+              placeholder="Fondo o imagen del login..."
+            />
+          </div>
+
+          <div>
             <label className="text-sm font-medium mb-1 block">Banner de la Tienda Móvil</label>
             <ImageUploadInput 
               value={content.store_banner_url} 
@@ -314,6 +323,66 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
                 placeholder="Imagen de paquetes..."
               />
             </div>
+          </div>
+        </Card>
+      </div>
+      {/* NUEVAS SECCIONES: DOCS E INVITACIONES */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <Card className="p-6 border-gray-200 space-y-4">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 border-b pb-2">
+            <FileText className="w-5 h-5 text-gray-500" />
+            Documentos Oficiales
+          </h3>
+          <p className="text-xs text-gray-500 mb-2">Sube los documentos en PDF. Serán visibles en el Login y el Menú de la App Móvil.</p>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Términos y Condiciones</label>
+            <Input 
+              value={content.sections_json?.docs?.terms_url || ''} 
+              onChange={e => updateSection('docs', 'terms_url', e.target.value)}
+              placeholder="https://blob.../terminos.pdf"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Aviso de Privacidad</label>
+            <Input 
+              value={content.sections_json?.docs?.privacy_url || ''} 
+              onChange={e => updateSection('docs', 'privacy_url', e.target.value)}
+              placeholder="https://blob.../privacidad.pdf"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Programa de Lealtad (Términos)</label>
+            <Input 
+              value={content.sections_json?.docs?.loyalty_url || ''} 
+              onChange={e => updateSection('docs', 'loyalty_url', e.target.value)}
+              placeholder="https://blob.../lealtad.pdf"
+            />
+          </div>
+        </Card>
+
+        <Card className="p-6 border-gray-200 space-y-4">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 border-b pb-2">
+            <Smartphone className="w-5 h-5 text-gray-500" />
+            Textos de Invitación (Crea tu Grupo)
+          </h3>
+          <p className="text-xs text-gray-500 mb-2">Mensaje e imagen promocional por defecto que se adjunta al invitar a amigos a un grupo de viaje.</p>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Mensaje Base de Invitación</label>
+            <textarea 
+              rows={3}
+              value={content.sections_json?.invitation?.message || ''} 
+              onChange={e => updateSection('invitation', 'message', e.target.value)}
+              placeholder="¡Acompáñame a este increíble viaje! Únete a mi grupo..."
+              className="w-full border border-gray-300 rounded-md p-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Imagen Promocional del Viaje</label>
+            <ImageUploadInput 
+              value={content.sections_json?.invitation?.image_url || ''} 
+              onChange={val => updateSection('invitation', 'image_url', val)}
+              placeholder="Subir imagen de promoción..."
+            />
           </div>
         </Card>
       </div>

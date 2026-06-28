@@ -14,7 +14,23 @@ export default function MobileHomePage() {
   const { logoUrl } = useWhiteLabel()
   const router = useRouter()
   
-  const [loading, setLoading] = useState(false) // Fake loading just to not break existing flow
+  const [loading, setLoading] = useState(false)
+  const [mobileContent, setMobileContent] = useState<any>(null)
+
+  useEffect(() => {
+    const fetchMobileContent = async () => {
+      try {
+        const res = await fetch("/api/mobile/content?tenant_id=1")
+        const data = await res.json()
+        if (data.success && data.data) {
+          setMobileContent(data.data)
+        }
+      } catch (err) {
+        console.error("Error fetching mobile content", err)
+      }
+    }
+    fetchMobileContent()
+  }, [])
 
   if (loading) {
     return (
@@ -25,6 +41,9 @@ export default function MobileHomePage() {
   }
 
   const name = user?.name?.split(' ')[0] || "Admin AS"
+  const finalLogoUrl = mobileContent?.logo_url || logoUrl || "/logo-white.png"
+  const finalBannerUrl = mobileContent?.home_banner_url || "https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=800&q=80"
+  const welcomePhrase = mobileContent?.welcome_phrase || "¿Listo para tu próxima experiencia?"
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FDFDFD] pb-24 font-sans">
@@ -36,8 +55,8 @@ export default function MobileHomePage() {
         
         {/* Background Image */}
         <img 
-          src="https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=800&q=80" 
-          alt="Airplane wing over clouds" 
+          src={finalBannerUrl} 
+          alt="Banner principal" 
           className="w-full h-full object-cover"
         />
         
@@ -47,27 +66,22 @@ export default function MobileHomePage() {
             <Menu className="w-6 h-6" />
           </button>
           <img 
-            src={logoUrl || "/logo-white.png"} 
-            alt="AS Operadora" 
-            className="h-8 invert" 
+            src={finalLogoUrl} 
+            alt="Logo" 
+            className="h-8 object-contain" 
             onError={(e) => (e.currentTarget.src = '/logo.png')} 
           />
-          <button className="p-2 -mr-2 text-white hover:text-gray-300">
+          <button onClick={() => router.push('/mobile/notificaciones')} className="p-2 -mr-2 text-white hover:text-gray-300">
             <Bell className="w-6 h-6" />
           </button>
         </div>
 
         {/* Hero Text */}
-        <div className="absolute bottom-16 left-6 right-6 z-20 text-white flex items-center">
-          <h1 className="text-3xl font-serif font-bold drop-shadow-md">
-            Hola, {name}
+        <div className="absolute bottom-6 left-6 z-20">
+          <h1 className="text-3xl font-light text-white mb-1">
+            Hola, <span className="font-semibold">{name}</span>
           </h1>
-          <Plane className="w-6 h-6 ml-3 fill-black stroke-white drop-shadow-md" strokeWidth={1.5} />
-        </div>
-        <div className="absolute bottom-10 left-6 right-6 z-20 text-white">
-          <p className="text-sm text-gray-200 max-w-[200px] leading-relaxed drop-shadow-md">
-            ¿Listo para tu próxima experiencia?
-          </p>
+          <p className="text-gray-200 text-sm">{welcomePhrase}</p>
         </div>
       </div>
 

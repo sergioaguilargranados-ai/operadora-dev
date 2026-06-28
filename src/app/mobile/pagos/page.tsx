@@ -1,67 +1,39 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Bell, CreditCard, Calendar as CalendarIcon, Shield, Plane, Wallet } from "lucide-react"
+import { ChevronLeft, Bell, CreditCard, Calendar as CalendarIcon, Shield, Plane, Wallet, Loader2 } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
+import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
+import { useEffect, useState } from "react"
 
 export default function MobilePaymentsPage() {
   const router = useRouter()
 
-  const payments = [
-    {
-      id: "PAY-0001",
-      title: "Depósito inicial",
-      trip: "Viaje a Grecia y Turquía",
-      amount: "$1,000.00 USD",
-      status: "Pagado",
-      date: "15 Ene 2024",
-      icon: CreditCard
-    },
-    {
-      id: "PAY-0002",
-      title: "Pago 2 de 4",
-      trip: "Viaje a Grecia y Turquía",
-      amount: "$1,000.00 USD",
-      status: "Pagado",
-      date: "15 Feb 2024",
-      icon: CalendarIcon
-    },
-    {
-      id: "PAY-0003",
-      title: "Pago 3 de 4",
-      trip: "Viaje a Grecia y Turquía",
-      amount: "$1,000.00 USD",
-      status: "Pagado",
-      date: "15 Mar 2024",
-      icon: CalendarIcon
-    },
-    {
-      id: "PAY-0004",
-      title: "Pago final",
-      trip: "Viaje a Grecia y Turquía",
-      amount: "$1,000.00 USD",
-      status: "Pagado",
-      date: "15 Abr 2024",
-      icon: CalendarIcon
-    },
-    {
-      id: "INS-0001",
-      title: "Seguro de viaje",
-      trip: "Viaje a Grecia y Turquía",
-      amount: "$200.00 USD",
-      status: "Pagado",
-      date: "15 Abr 2024",
-      icon: Shield
-    },
-    {
-      id: "EXC-0001",
-      title: "Excursión Santorini",
-      trip: "Viaje a Grecia y Turquía",
-      amount: "$150.00 USD",
-      status: "Pagado",
-      date: "20 Abr 2024",
-      icon: Plane
+  const { user } = useAuth()
+  const { logoUrl } = useWhiteLabel()
+  const [payments, setPayments] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchPayments()
     }
-  ]
+  }, [user])
+
+  const fetchPayments = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/mobile/payments?user_id=${user?.id}`)
+      const data = await res.json()
+      if (data.success) {
+        setPayments(data.data)
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] font-sans pb-28">
@@ -72,12 +44,12 @@ export default function MobilePaymentsPage() {
           <ChevronLeft className="w-7 h-7" />
         </button>
         <img
-          src="/logo.png"
+          src={logoUrl || "/logo.png"}
           alt="AS Operadora"
           className="h-10 object-contain"
           onError={(e) => (e.currentTarget.src = "/logo.png")}
         />
-        <button className="text-black hover:text-gray-600 p-2 -mr-2">
+        <button onClick={() => router.push('/mobile/notificaciones')} className="text-black hover:text-gray-600 p-2 -mr-2">
           <Bell className="w-6 h-6" />
         </button>
       </div>
@@ -92,28 +64,36 @@ export default function MobilePaymentsPage() {
 
       {/* Payment List */}
       <div className="px-4 space-y-4">
-        {payments.map((payment) => (
+        {loading ? (
+          <div className="text-center text-gray-500 py-10">Cargando pagos...</div>
+        ) : payments.length === 0 ? (
+          <div className="text-center text-gray-500 py-10 bg-gray-50 rounded-2xl border border-gray-100">
+            <Wallet className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+            No tienes pagos registrados
+          </div>
+        ) : payments.map((payment) => (
           <div key={payment.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex items-start gap-4 active:bg-gray-50 transition-colors cursor-pointer">
             <div className="w-12 h-12 rounded-xl border border-blue-100 bg-blue-50/50 flex items-center justify-center flex-shrink-0 text-[#003366]">
-              <payment.icon className="w-6 h-6" strokeWidth={1.5} />
+              <CreditCard className="w-6 h-6" strokeWidth={1.5} />
             </div>
             
-            <div className="flex-1 min-w-0 pt-0.5">
+            <div className="flex-1">
               <div className="flex justify-between items-start mb-1">
-                <h3 className="font-bold text-gray-900 text-sm">{payment.title}</h3>
-                <span className="font-bold text-gray-900">{payment.amount}</span>
+                <h3 className="font-bold text-gray-900 leading-tight">Pago #{payment.id}</h3>
+                <span className="text-sm font-semibold text-gray-900">${payment.amount} {payment.currency}</span>
               </div>
+              <p className="text-xs text-gray-500 mb-2 line-clamp-1">{payment.transaction_id || 'Transferencia'}</p>
               
-              <div className="flex justify-between items-start mb-2">
-                <p className="text-xs text-gray-500 truncate pr-2">{payment.trip}</p>
-                <div className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0">
-                  {payment.status}
+              <div className="flex justify-between items-center mt-2">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full ${payment.status === 'completed' ? 'bg-emerald-500' : 'bg-orange-500'}`}></div>
+                  <span className={`text-[11px] font-medium ${payment.status === 'completed' ? 'text-emerald-700' : 'text-orange-700'}`}>
+                    {payment.status === 'completed' ? 'Pagado' : 'Pendiente'}
+                  </span>
                 </div>
-              </div>
-              
-              <div className="flex justify-between items-center mt-3">
-                <p className="text-[10px] text-gray-400 font-mono">ID: {payment.id}</p>
-                <p className="text-[10px] text-gray-400">{payment.date}</p>
+                <span className="text-[11px] text-gray-400 font-medium tracking-wide">
+                  {new Date(payment.created_at).toLocaleDateString()}
+                </span>
               </div>
             </div>
           </div>

@@ -1,47 +1,40 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Bell, ShoppingCart, Search, SlidersHorizontal, ShoppingBag, Heart } from "lucide-react"
+import { ChevronLeft, Bell, ShoppingCart, Search, SlidersHorizontal, ShoppingBag, Heart, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 
 export default function MobileStorePage() {
   const router = useRouter()
+  const { logoDarkUrl } = useWhiteLabel() // Usamos el logo oscuro para el header claro o invertimos el logo blanco
   const [search, setSearch] = useState("")
   const [activeCategory, setActiveCategory] = useState("Todos")
+  const [products, setProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   const categories = ["Todos", "Equipaje", "Accesorios", "Viaje", "Tecnología"]
 
-  const products = [
-    {
-      id: 1,
-      name: "Maleta de cabina",
-      desc: "Ligera, resistente y perfecta para cualquier destino.",
-      price: "$2,199 MXN",
-      img: "https://images.unsplash.com/photo-1553531384-cc64ac80f931?auto=format&fit=crop&w=300&q=80"
-    },
-    {
-      id: 2,
-      name: "Almohada de viaje",
-      desc: "Ergonómica y cómoda para descansar mejor.",
-      price: "$599 MXN",
-      img: "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=300&q=80"
-    },
-    {
-      id: 3,
-      name: "Organizador de viaje",
-      desc: "Mantén todo en su lugar durante tu viaje.",
-      price: "$499 MXN",
-      img: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=300&q=80"
-    },
-    {
-      id: 4,
-      name: "Batería portátil",
-      desc: "Carga tus dispositivos en cualquier lugar.",
-      price: "$799 MXN",
-      img: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=300&q=80"
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/admin/store-products?tenant_id=1")
+      const data = await res.json()
+      if (data.success) {
+        setProducts(data.data.filter((p: any) => p.status === 'active'))
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] pb-24 font-sans">
@@ -55,9 +48,9 @@ export default function MobileStorePage() {
           </button>
           
           <img
-            src="/logo-white.png"
+            src={logoDarkUrl || "/logo-white.png"}
             alt="AS Operadora"
-            className="h-10 object-contain invert"
+            className={`h-10 object-contain ${logoDarkUrl ? '' : 'invert'}`}
             onError={(e) => {
               const target = e.target as HTMLImageElement
               target.src = "/logo.png"
@@ -65,10 +58,10 @@ export default function MobileStorePage() {
           />
 
           <div className="flex gap-4">
-            <button className="text-white hover:text-gray-300">
+            <button onClick={() => router.push('/mobile/notificaciones')} className="text-white hover:text-gray-300">
               <Bell className="w-6 h-6" />
             </button>
-            <button className="text-white hover:text-gray-300">
+            <button onClick={() => router.push('/mobile/tienda/carrito')} className="text-white hover:text-gray-300">
               <ShoppingCart className="w-6 h-6" />
             </button>
           </div>
@@ -128,34 +121,59 @@ export default function MobileStorePage() {
           Catálogo de productos
         </h2>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          {products.map((product) => (
-            <div 
-              key={product.id} 
-              onClick={() => router.push(`/mobile/tienda/${product.id}`)}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col cursor-pointer active:scale-95 transition-transform"
-            >
-              
-              {/* Image & Heart */}
-              <div className="relative bg-[#f6f5f3] p-4 h-40 flex items-center justify-center">
-                <img src={product.img} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
-                <button className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
-                  <Heart className="w-4 h-4 text-gray-600" />
-                </button>
+        {/* Products Grid */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-black mb-2" />
+            <p className="text-sm text-gray-500">Cargando productos...</p>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <ShoppingBag className="w-12 h-12 text-gray-300 mb-4" />
+            <p className="text-gray-500 font-medium">No hay productos disponibles.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 pb-8">
+            {products.map((product) => (
+              <div 
+                key={product.id} 
+                className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm flex flex-col active:scale-95 transition-transform"
+              >
+                <div className="relative h-40 bg-gray-100 flex items-center justify-center">
+                  {product.image_url ? (
+                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <ShoppingBag className="w-10 h-10 text-gray-300" />
+                  )}
+                  <button className="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-md rounded-full text-gray-400 hover:text-red-500">
+                    <Heart className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <div className="p-3 flex-1 flex flex-col">
+                  <h3 className="font-bold text-gray-900 text-sm leading-tight mb-1">{product.name}</h3>
+                  <p className="text-xs text-gray-500 line-clamp-2 mb-2 flex-1">{product.description}</p>
+                  
+                  <div className="flex items-center justify-between mt-auto">
+                    <div>
+                      {product.offer_price ? (
+                        <>
+                          <span className="font-bold text-black text-sm">${product.offer_price}</span>
+                          <span className="text-[10px] text-gray-400 line-through block -mt-1">${product.price}</span>
+                        </>
+                      ) : (
+                        <span className="font-bold text-black text-sm">${product.price}</span>
+                      )}
+                    </div>
+                    <button className="w-8 h-8 bg-black text-white rounded-xl flex items-center justify-center">
+                      <ShoppingCart className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
-
-              {/* Details */}
-              <div className="p-3 flex flex-col flex-1">
-                <h3 className="font-bold text-gray-900 text-sm leading-tight mb-1">{product.name}</h3>
-                <p className="text-[10px] text-gray-500 leading-tight flex-1 mb-2">
-                  {product.desc}
-                </p>
-                <p className="font-bold text-gray-900 text-sm">{product.price}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
       </div>
     </div>
