@@ -25,6 +25,7 @@ interface AgencySettings {
     accent_color: string
     slogan: string
     custom_domain: string
+    documents: any[]
 }
 
 export default function AgencySettingsPage() {
@@ -77,12 +78,43 @@ export default function AgencySettingsPage() {
         setFormData(prev => ({ ...prev, [field]: value }))
     }
 
-    // Simulador de subida a Vercel Blob
+    // Simulador de subida a Vercel Blob para logos
     const handleFileUpload = (field: keyof AgencySettings) => {
-        // En producción aquí se usaría upload() de @vercel/blob/client
         const mockUrl = `https://blob.vercel-storage.com/${field}-${Date.now()}.png`
         handleInputChange(field, mockUrl)
         alert(`Simulación: Archivo subido a Vercel Blob.\nURL: ${mockUrl}`)
+    }
+
+    // Simulador de subida a Vercel Blob para Documentos
+    const handleDocumentUpload = async (docType: string) => {
+        setSaving(true)
+        try {
+            // Simulamos la subida a Vercel Blob
+            const mockUrl = `https://blob.vercel-storage.com/docs/${docType}-${Date.now()}.pdf`
+            
+            // Insertamos en entity_documents simulando API call
+            const res = await fetch('/api/admin/documents', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    entity_type: 'agency',
+                    entity_id: formData.id || 1,
+                    document_name: `Documento ${docType.toUpperCase()}`,
+                    document_type: docType,
+                    document_url: mockUrl,
+                    status: 'active'
+                })
+            })
+            
+            if (res.ok) {
+                alert(`Simulación: Documento ${docType} subido a Vercel Blob y registrado exitosamente.`)
+                fetchSettings() // Refrescar los documentos
+            }
+        } catch (e) {
+            console.error(e)
+        } finally {
+            setSaving(false)
+        }
     }
 
     if (loading) {
@@ -302,26 +334,38 @@ export default function AgencySettingsPage() {
                                 
                                 <div className="space-y-3">
                                     {[
-                                        { id: 'acta', name: 'Acta Constitutiva', status: 'missing' },
-                                        { id: 'csf', name: 'Constancia de Situación Fiscal', status: 'uploaded' },
-                                        { id: 'ine', name: 'Identificación Oficial Rep. Legal', status: 'uploaded' },
-                                        { id: 'domicilio', name: 'Comprobante de Domicilio', status: 'missing' },
-                                    ].map(doc => (
-                                        <div key={doc.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${doc.status === 'uploaded' ? 'bg-green-100' : 'bg-gray-200'}`}>
-                                                    {doc.status === 'uploaded' ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <FileText className="w-4 h-4 text-gray-500" />}
+                                        { id: 'acta', name: 'Acta Constitutiva' },
+                                        { id: 'csf', name: 'Constancia de Situación Fiscal' },
+                                        { id: 'ine', name: 'Identificación Oficial Rep. Legal' },
+                                        { id: 'domicilio', name: 'Comprobante de Domicilio' },
+                                    ].map(docType => {
+                                        const uploadedDoc = formData.documents?.find(d => d.document_type === docType.id)
+                                        const isUploaded = !!uploadedDoc
+                                        
+                                        return (
+                                            <div key={docType.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isUploaded ? 'bg-green-100' : 'bg-gray-200'}`}>
+                                                        {isUploaded ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <FileText className="w-4 h-4 text-gray-500" />}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-gray-800">{docType.name}</p>
+                                                        <p className="text-xs text-gray-500">{isUploaded ? `Subido el ${new Date(uploadedDoc.created_at).toLocaleDateString()}` : 'Pendiente de subir'}</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-semibold text-gray-800">{doc.name}</p>
-                                                    <p className="text-xs text-gray-500">{doc.status === 'uploaded' ? 'Subido el 15/Mar/2026' : 'Pendiente de subir'}</p>
+                                                <div className="flex items-center gap-2">
+                                                    {isUploaded && (
+                                                        <a href={uploadedDoc.document_url} target="_blank" rel="noreferrer" className="text-xs text-indigo-600 hover:underline mr-2">
+                                                            Ver archivo
+                                                        </a>
+                                                    )}
+                                                    <Button variant={isUploaded ? "outline" : "default"} size="sm" onClick={() => handleDocumentUpload(docType.id)} disabled={saving}>
+                                                        {isUploaded ? 'Actualizar Archivo' : 'Subir Archivo'}
+                                                    </Button>
                                                 </div>
                                             </div>
-                                            <Button variant={doc.status === 'uploaded' ? "outline" : "default"} size="sm" onClick={() => alert('Simulando subida a Vercel Blob...')}>
-                                                {doc.status === 'uploaded' ? 'Actualizar Archivo' : 'Subir Archivo'}
-                                            </Button>
-                                        </div>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             </motion.div>
                         )}

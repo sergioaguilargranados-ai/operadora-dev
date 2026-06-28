@@ -30,6 +30,8 @@ export async function GET(req: Request) {
                 query += ` WHERE u.role IN ('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE') `
             } else if (type === 'agency') {
                 query += ` WHERE tu.id IS NOT NULL `
+            } else if (type === 'client') {
+                query += ` WHERE u.role = 'USER' OR u.role IS NULL OR u.role = 'CLIENT' `
             }
 
             query += ` ORDER BY u.created_at DESC`

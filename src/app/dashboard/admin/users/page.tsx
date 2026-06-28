@@ -131,6 +131,12 @@ export default function UsersAdminPage() {
                             >
                                 Externos (Agencias B2B)
                             </button>
+                            <button 
+                                onClick={() => setFilterType('client')}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${filterType === 'client' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Clientes (B2C)
+                            </button>
                         </div>
                     </div>
                 </Card>

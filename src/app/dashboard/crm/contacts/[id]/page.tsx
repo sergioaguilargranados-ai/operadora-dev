@@ -58,6 +58,7 @@ interface ContactFull {
     stage_changed_at: string
     days_in_stage: number
     created_at: string
+    address?: string
 }
 
 interface TimelineItem {
@@ -610,6 +611,7 @@ export default function ContactDetailPage() {
                                             { label: 'Empresa', value: contact.company, icon: Building2 },
                                             { label: 'Puesto', value: contact.position, icon: Briefcase },
                                             { label: 'Fuente', value: contact.source, icon: Globe },
+                                            { label: 'Domicilio', value: contact.address, icon: MapPin },
                                         ].filter(f => f.value).map(field => (
                                             <div key={field.label} className="flex items-center gap-2">
                                                 <field.icon className="w-4 h-4 text-slate-400" />
@@ -631,6 +633,55 @@ export default function ContactDetailPage() {
                                         <p className="text-sm text-slate-600 bg-slate-50 rounded-xl p-3 whitespace-pre-wrap">{contact.notes}</p>
                                     </div>
                                 )}
+
+                                {/* Mensajes Directos (App Móvil) */}
+                                <div>
+                                    <h3 className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                        <MessageSquare className="w-4 h-4 text-blue-500" /> Mensajería a App Móvil
+                                    </h3>
+                                    <div className="flex gap-2">
+                                        <Input id="mobile_message" placeholder="Escribe un mensaje para notificar al cliente..." className="bg-slate-50" />
+                                        <Button 
+                                            onClick={async () => {
+                                                const msg = (document.getElementById('mobile_message') as HTMLInputElement).value
+                                                if (!msg) return
+                                                try {
+                                                    await fetch('/api/crm/contacts/message', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ contact_id: contact.id, message: msg, user_id: 1 }) // Simulando user_id
+                                                    })
+                                                    alert('Mensaje enviado a la App Móvil exitosamente.')
+                                                    ;(document.getElementById('mobile_message') as HTMLInputElement).value = ''
+                                                } catch(e) {}
+                                            }}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                                        >
+                                            <Send className="w-4 h-4 mr-2" /> Enviar
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Expediente de Documentos */}
+                                <div>
+                                    <h3 className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                        <FileText className="w-4 h-4 text-blue-500" /> Expediente (Vercel Blob)
+                                    </h3>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
+                                                    <FileText className="w-4 h-4 text-slate-500" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-800">INE / Pasaporte</p>
+                                                    <p className="text-xs text-slate-500">Pendiente</p>
+                                                </div>
+                                            </div>
+                                            <Button variant="outline" size="sm" onClick={() => alert('Simulación: Archivo subido a Vercel Blob y registrado en entity_documents')}>Subir Archivo</Button>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 {/* Meta */}
                                 <div className="text-xs text-slate-400 pt-4 border-t space-y-1">

@@ -24,8 +24,17 @@ export async function GET(req: Request) {
             if (result.rows.length === 0) {
                 return NextResponse.json({ success: false, error: 'Agency not found' }, { status: 404 })
             }
+            
+            const docsRes = await client.query(`
+                SELECT id, document_name, document_type, document_url, status, created_at
+                FROM entity_documents
+                WHERE entity_type = 'agency' AND entity_id = $1
+            `, [tenantId])
 
-            return NextResponse.json({ success: true, data: result.rows[0] })
+            const data = result.rows[0]
+            data.documents = docsRes.rows
+
+            return NextResponse.json({ success: true, data })
         } finally {
             client.release()
         }

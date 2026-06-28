@@ -320,6 +320,7 @@ export class CRMService {
     addField('special_requirements', data.special_requirements)
     addField('notes', data.notes)
     addField('birthday', data.birthday)
+    addField('address', (data as Record<string, unknown>).address as string | undefined)
     addField('next_followup_at', data.tags !== undefined ? null : undefined) // skip
     addField('status', (data as Record<string, unknown>).status as string | undefined)
 
