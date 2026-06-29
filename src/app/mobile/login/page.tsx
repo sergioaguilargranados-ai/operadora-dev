@@ -87,9 +87,9 @@ export default function MobileLoginPage() {
   }
 
   // Determine logos and branding colors based on step
-  const finalLogoUrl = step === 2 && tenantConfig?.logo_url 
-    ? tenantConfig.logo_url 
-    : (mobileContent?.logo_url || logoUrl || "/logo.png")
+  const finalLogoUrl = mobileContent?.logo_url 
+    || (step === 2 && tenantConfig?.logo_url ? tenantConfig.logo_url : logoUrl) 
+    || "/logo-black.svg"
 
   const finalCompanyName = step === 2 && tenantConfig?.company_name
     ? tenantConfig.company_name
@@ -128,7 +128,7 @@ export default function MobileLoginPage() {
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.onerror = null;
-              target.src = "/icons/icon-192x192.png";
+              target.src = "/logo-black.svg";
             }}
           />
         </div>

@@ -11,7 +11,7 @@ import {
 
 export default function MobileHomePage() {
   const { user } = useAuth()
-  const { logoUrl } = useWhiteLabel()
+  const { logoUrl, logoDarkUrl } = useWhiteLabel()
   const router = useRouter()
   
   const [loading, setLoading] = useState(false)
