@@ -43,6 +43,14 @@ const filesToUpdate = [
   {
     path: path.join(__dirname, '../src/app/admin/megatravel-scraping/page.tsx'),
     regex: /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}\s+CST?/g
+  },
+  {
+    path: path.join(__dirname, '../src/app/mobile/layout.tsx'),
+    regex: /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}\s+CST/g
+  },
+  {
+    path: path.join(__dirname, '../src/app/page.tsx'),
+    regex: /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}\s+CST/g
   }
 ];
 

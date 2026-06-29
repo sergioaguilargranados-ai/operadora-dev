@@ -1,14 +1,61 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Search, MapPin, Signpost, Calendar, Briefcase, HelpCircle, Headphones, ChevronRight, PhoneCall } from "lucide-react"
+import { ChevronLeft, Search, MapPin, Signpost, Calendar, Briefcase, HelpCircle, Headphones, ChevronRight, PhoneCall, Loader2, CheckCircle2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function MobileHelpPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [search, setSearch] = useState("")
+  
+  const [helpPhone, setHelpPhone] = useState("+521234567890")
+  const [isContacting, setIsContacting] = useState(false)
+  const [contactMessage, setContactMessage] = useState("")
+
+  useEffect(() => {
+    fetch('/api/mobile/content')
+      .then(r => r.json())
+      .then(data => {
+        if(data.success && data.data?.help_phone) setHelpPhone(data.data.help_phone)
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleContactCallCenter = () => {
+    setIsContacting(true)
+    setContactMessage("En breve le contactan para brindarle ayuda.")
+    
+    const name = user?.first_name || user?.name || 'Cliente'
+    const phone = user?.phone || ''
+    const msg = encodeURIComponent(`Hola, soy ${name}${phone ? ` (Tel: ${phone})` : ''}. Solicito ayuda del Call Center.`)
+    
+    setTimeout(() => {
+      setIsContacting(false)
+      window.open(`https://wa.me/${helpPhone.replace(/[^0-9]/g, '')}?text=${msg}`, '_blank')
+    }, 2500)
+  }
+
+  const handleLostItinerary = async () => {
+    if (!user) {
+      router.push('/mobile/itinerario')
+      return
+    }
+    try {
+      const res = await fetch(`/api/mobile/itinerary/today?userId=${user.id}`)
+      const data = await res.json()
+      if (data.success && data.tour_id) {
+        router.push(`/mobile/itinerario/${data.tour_id}/dia/${data.dayIndex}`)
+      } else {
+        router.push('/mobile/itinerario')
+      }
+    } catch (e) {
+      router.push('/mobile/itinerario')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] pb-24 font-sans">
@@ -43,7 +90,10 @@ export default function MobileHelpPage() {
         {/* FAQ List */}
         <div className="space-y-4">
           
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all">
+          <div 
+            onClick={() => router.push('/mobile/mapa')}
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all"
+          >
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
               <MapPin className="w-6 h-6 text-gray-700" />
             </div>
@@ -74,7 +124,10 @@ export default function MobileHelpPage() {
             <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
           </div>
 
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all">
+          <div 
+            onClick={handleLostItinerary}
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all"
+          >
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
               <Calendar className="w-6 h-6 text-gray-700" />
             </div>
@@ -96,7 +149,10 @@ export default function MobileHelpPage() {
             <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
           </div>
 
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all">
+          <div 
+            onClick={() => router.push('/mobile/ayuda/equipaje')}
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all"
+          >
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
               <Briefcase className="w-6 h-6 text-gray-700" />
             </div>
@@ -142,8 +198,23 @@ export default function MobileHelpPage() {
             </div>
           </div>
 
-          <Button className="w-full bg-black hover:bg-gray-900 text-white font-medium h-12 rounded-xl text-base flex items-center justify-center gap-2">
-            <PhoneCall className="w-5 h-5" /> Contactar a Call Center
+          {contactMessage && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <p className="text-xs text-green-800 font-medium">{contactMessage}</p>
+            </div>
+          )}
+
+          <Button 
+            onClick={handleContactCallCenter}
+            disabled={isContacting}
+            className="w-full bg-black hover:bg-gray-900 text-white font-medium h-12 rounded-xl text-base flex items-center justify-center gap-2"
+          >
+            {isContacting ? (
+              <><Loader2 className="w-5 h-5 animate-spin" /> Conectando...</>
+            ) : (
+              <><PhoneCall className="w-5 h-5" /> Contactar a Call Center</>
+            )}
           </Button>
           
           <div className="text-center mt-3">

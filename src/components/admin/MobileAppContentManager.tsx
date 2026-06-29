@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageUploadInput } from "@/components/admin/ImageUploadInput";
 import { useAuth } from "@/contexts/AuthContext";
-import { Save, Layout, Phone, Mail, FileText, Smartphone, List } from "lucide-react";
+import { Save, Layout, Phone, Mail, FileText, Smartphone, List, Gift, HelpCircle, Plus, Trash2, Video, Image as ImageIcon } from "lucide-react";
 
 export function MobileAppContentManager({ showToast }: { showToast: (msg: string, type: 'success' | 'error') => void }) {
   const { user } = useAuth();
@@ -23,6 +23,9 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
     help_email: '',
     sections_json: {} as any
   });
+
+  const [rewardsSteps, setRewardsSteps] = useState<any[]>([]);
+  const [helpTopics, setHelpTopics] = useState<any[]>([]);
 
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
@@ -61,18 +64,34 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
   const loadContent = async (tenantId: number) => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/mobile/content?tenant_id=${tenantId}`);
-      const data = await res.json();
-      if (data.success && data.data) {
+      const [resContent, resRewards, resHelp] = await Promise.all([
+        fetch(`/api/mobile/content?tenant_id=${tenantId}`),
+        fetch(`/api/mobile/rewards?tenant_id=${tenantId}`),
+        fetch(`/api/mobile/help?tenant_id=${tenantId}`)
+      ]);
+      
+      const [dataContent, dataRewards, dataHelp] = await Promise.all([
+        resContent.json(), resRewards.json(), resHelp.json()
+      ]);
+
+      if (dataContent.success && dataContent.data) {
         setContent({
-          welcome_phrase: data.data.welcome_phrase || '¿Listo para tu próxima experiencia?',
-          logo_url: data.data.logo_url || '',
-          home_banner_url: data.data.home_banner_url || '',
-          store_banner_url: data.data.store_banner_url || '',
-          help_phone: data.data.help_phone || '',
-          help_email: data.data.help_email || '',
-          sections_json: data.data.sections_json || {}
+          welcome_phrase: dataContent.data.welcome_phrase || '¿Listo para tu próxima experiencia?',
+          logo_url: dataContent.data.logo_url || '',
+          home_banner_url: dataContent.data.home_banner_url || '',
+          store_banner_url: dataContent.data.store_banner_url || '',
+          help_phone: dataContent.data.help_phone || '',
+          help_email: dataContent.data.help_email || '',
+          sections_json: dataContent.data.sections_json || {}
         });
+      }
+
+      if (dataRewards.success) {
+        setRewardsSteps(dataRewards.data || []);
+      }
+      
+      if (dataHelp.success) {
+        setHelpTopics(dataHelp.data || []);
       }
     } catch (err) {
       console.error(err);
@@ -93,9 +112,29 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
           ...content
         })
       });
+      
+      // Guardar Rewards Steps
+      await Promise.all(rewardsSteps.map((step, index) => 
+        fetch('/api/mobile/rewards', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...step, tenant_id: selectedTenantId, step_order: index })
+        })
+      ));
+
+      // Guardar Help Topics
+      await Promise.all(helpTopics.map((topic, index) => 
+        fetch('/api/mobile/help', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...topic, tenant_id: selectedTenantId, order_index: index })
+        })
+      ));
+
       const data = await res.json();
       if (data.success) {
         showToast('Configuración móvil guardada exitosamente', 'success');
+        loadContent(selectedTenantId); // Recargar para obtener IDs
       } else {
         showToast(data.error || 'Error al guardar', 'error');
       }
@@ -108,6 +147,17 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
   };
 
   const updateSection = (sectionKey: string, field: string, value: any) => {
+    if (sectionKey === 'baggage_text') {
+      setContent(prev => ({
+        ...prev,
+        sections_json: {
+          ...prev.sections_json,
+          baggage_text: value
+        }
+      }));
+      return;
+    }
+    
     setContent(prev => ({
       ...prev,
       sections_json: {
@@ -118,6 +168,26 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
         }
       }
     }));
+  };
+
+  const deleteRewardStep = async (index: number) => {
+    const step = rewardsSteps[index];
+    if (step.id) {
+      await fetch(`/api/mobile/rewards?id=${step.id}`, { method: 'DELETE' });
+    }
+    const newList = [...rewardsSteps];
+    newList.splice(index, 1);
+    setRewardsSteps(newList);
+  };
+
+  const deleteHelpTopic = async (index: number) => {
+    const topic = helpTopics[index];
+    if (topic.id) {
+      await fetch(`/api/mobile/help?id=${topic.id}`, { method: 'DELETE' });
+    }
+    const newList = [...helpTopics];
+    newList.splice(index, 1);
+    setHelpTopics(newList);
   };
 
   if (loading && tenantsList.length === 0) return <div className="p-6 text-center">Cargando datos...</div>;
@@ -179,24 +249,25 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
           </h3>
 
           <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-1 block">Teléfono de Soporte (Móvil)</label>
-              <Input 
-                value={content.help_phone} 
-                onChange={e => setContent({...content, help_phone: e.target.value})}
-                placeholder="+52 720 815 6804"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Email de Soporte (Móvil)</label>
-              <Input 
-                type="email"
-                value={content.help_email} 
-                onChange={e => setContent({...content, help_email: e.target.value})}
-                placeholder="support@asoperadora.com"
-              />
-            </div>
-          </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Teléfono de Soporte (Help Center)</label>
+                  <Input value={content.help_phone || ''} onChange={e => setContent({...content, help_phone: e.target.value})} placeholder="Ej: +521234567890" className="bg-white" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Email de Soporte</label>
+                  <Input value={content.help_email || ''} onChange={e => setContent({...content, help_email: e.target.value})} placeholder="Ej: soporte@agencia.com" className="bg-white" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Texto para "Problemas con Equipaje"</label>
+                  <textarea 
+                    value={content.sections_json?.baggage_text || ''} 
+                    onChange={e => updateSection('baggage_text', 'baggage_text', e.target.value)} 
+                    placeholder="Ej: Si tienes problemas con tu equipaje, por favor acude al mostrador de la aerolínea..." 
+                    className="w-full bg-white border border-gray-300 rounded-md p-3 text-sm min-h-[100px]" 
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">Este texto se mostrará en la app móvil cuando el cliente seleccione la opción de problemas de equipaje.</p>
+                </div>
+              </div>
         </Card>
 
         {/* IMÁGENES */}
@@ -383,6 +454,119 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
               onChange={val => updateSection('invitation', 'image_url', val)}
               placeholder="Subir imagen de promoción..."
             />
+          </div>
+        </Card>
+      </div>
+
+      {/* NUEVAS SECCIONES DE BD: REWARDS AS Y AYUDA */}
+      <div className="grid grid-cols-1 gap-6 mt-6">
+        {/* REWARDS AS */}
+        <Card className="p-6 border-gray-200">
+          <div className="flex justify-between items-center border-b pb-4 mb-4">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Gift className="w-5 h-5 text-gray-500" />
+              Programa de Lealtad (Rewards AS)
+            </h3>
+            <Button variant="outline" size="sm" onClick={() => setRewardsSteps([...rewardsSteps, { title: '', description: '', image_url: '', video_url: '' }])}>
+              <Plus className="w-4 h-4 mr-2" /> Añadir Paso
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500 mb-4">Configura los pasos y beneficios del programa de lealtad. Puedes subir una imagen ilustrativa y un video explicativo (en formato URL o MP4 subido al blob) para cada componente.</p>
+          
+          <div className="space-y-6">
+            {rewardsSteps.map((step, idx) => (
+              <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col md:flex-row gap-4 relative">
+                <Button variant="ghost" size="sm" className="absolute top-2 right-2 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => deleteRewardStep(idx)}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+                
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Título del Paso</label>
+                    <Input value={step.title || ''} onChange={e => {
+                      const list = [...rewardsSteps]; list[idx].title = e.target.value; setRewardsSteps(list);
+                    }} placeholder="Ej: Regístrate en la App" className="bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Descripción</label>
+                    <textarea value={step.description || ''} onChange={e => {
+                      const list = [...rewardsSteps]; list[idx].description = e.target.value; setRewardsSteps(list);
+                    }} placeholder="Gana 50 puntos al registrarte..." className="w-full bg-white border border-gray-300 rounded-md p-2 text-sm" rows={2} />
+                  </div>
+                </div>
+                
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1"><ImageIcon className="w-3 h-3"/> Imagen del Paso</label>
+                    <ImageUploadInput value={step.image_url || ''} onChange={val => {
+                      const list = [...rewardsSteps]; list[idx].image_url = val; setRewardsSteps(list);
+                    }} placeholder="Subir imagen a Vercel Blob..." />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1"><Video className="w-3 h-3"/> Video Explicativo</label>
+                    <ImageUploadInput value={step.video_url || ''} onChange={val => {
+                      const list = [...rewardsSteps]; list[idx].video_url = val; setRewardsSteps(list);
+                    }} placeholder="Subir video MP4 a Vercel Blob..." />
+                  </div>
+                </div>
+              </div>
+            ))}
+            {rewardsSteps.length === 0 && (
+              <div className="text-center py-6 text-gray-400 text-sm bg-gray-50 rounded-lg border border-dashed">
+                Aún no hay pasos configurados. Haz clic en "Añadir Paso".
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* CENTRO DE AYUDA */}
+        <Card className="p-6 border-gray-200">
+          <div className="flex justify-between items-center border-b pb-4 mb-4">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <HelpCircle className="w-5 h-5 text-gray-500" />
+              Sección: ¿Necesitas Ayuda?
+            </h3>
+            <Button variant="outline" size="sm" onClick={() => setHelpTopics([...helpTopics, { title: '', description: '', image_url: '' }])}>
+              <Plus className="w-4 h-4 mr-2" /> Añadir Tema
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500 mb-4">Configura las preguntas frecuentes y apartados de ayuda. Sube una imagen miniatura y datos de cada apartado para la app móvil PWA.</p>
+          
+          <div className="space-y-4">
+            {helpTopics.map((topic, idx) => (
+              <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col md:flex-row gap-4 relative">
+                <Button variant="ghost" size="sm" className="absolute top-2 right-2 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => deleteHelpTopic(idx)}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+                
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Título del Apartado</label>
+                    <Input value={topic.title || ''} onChange={e => {
+                      const list = [...helpTopics]; list[idx].title = e.target.value; setHelpTopics(list);
+                    }} placeholder="Ej: Perdí mi tour o traslado" className="bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Descripción / Subtítulo</label>
+                    <Input value={topic.description || ''} onChange={e => {
+                      const list = [...helpTopics]; list[idx].description = e.target.value; setHelpTopics(list);
+                    }} placeholder="Consulta tu itinerario completo..." className="bg-white text-sm" />
+                  </div>
+                </div>
+                
+                <div className="w-full md:w-1/3">
+                  <label className="text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1"><ImageIcon className="w-3 h-3"/> Imagen del Apartado</label>
+                  <ImageUploadInput value={topic.image_url || ''} onChange={val => {
+                    const list = [...helpTopics]; list[idx].image_url = val; setHelpTopics(list);
+                  }} placeholder="Subir imagen miniatura..." />
+                </div>
+              </div>
+            ))}
+            {helpTopics.length === 0 && (
+              <div className="text-center py-6 text-gray-400 text-sm bg-gray-50 rounded-lg border border-dashed">
+                Aún no hay temas de ayuda configurados. Haz clic en "Añadir Tema".
+              </div>
+            )}
           </div>
         </Card>
       </div>

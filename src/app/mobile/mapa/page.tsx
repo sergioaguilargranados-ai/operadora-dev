@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Search, SlidersHorizontal, ArrowLeft, MapPin, Compass, Landmark, Coffee, BadgeHelp, Navigation } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -20,6 +20,32 @@ export default function MobileMapPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("Monumentos")
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
+  const [locError, setLocError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          })
+        },
+        (error) => {
+          console.error("Error obteniendo ubicación:", error)
+          setLocError("No pudimos obtener tu ubicación real.")
+          // Fallback a CDMX si falla
+          setUserLocation({ lat: 19.4326, lng: -99.1332 })
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      )
+    } else {
+      setLocError("Geolocalización no soportada por el navegador.")
+      // Fallback a CDMX
+      setUserLocation({ lat: 19.4326, lng: -99.1332 })
+    }
+  }, [])
 
   const categories = [
     { name: "Monumentos", icon: Landmark },
@@ -124,12 +150,20 @@ export default function MobileMapPage() {
       {/* Interactive Map Canvas Wrapper (Static Premium Map representation) */}
       <div className="flex-1 w-full bg-slate-200 relative overflow-hidden">
         {/* Real Interactive OpenStreetMap or dynamic layout representation */}
-        <iframe
-          src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d15050.840742137683!2d-99.1384!3d19.4326!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1ses-419!2smx!4v1700000000000!5m2!1ses-419!2smx"
-          className="w-full h-full border-0 absolute inset-0"
-          allowFullScreen={false}
-          loading="lazy"
-        />
+        {userLocation ? (
+          <iframe
+            src={`https://maps.google.com/maps?q=${userLocation.lat},${userLocation.lng}&hl=es&z=15&output=embed`}
+            className="w-full h-full border-0 absolute inset-0"
+            allowFullScreen={false}
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 absolute inset-0 bg-slate-200">
+            <Compass className="w-8 h-8 animate-spin mb-2" />
+            <span className="text-sm font-bold">Obteniendo tu ubicación GPS...</span>
+          </div>
+        )}
+
 
         {/* Visual Map Pin Icons overlapping (Representing places list for quick touch) */}
         {filteredPlaces.map((place) => (

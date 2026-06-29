@@ -93,8 +93,13 @@ git remote -v
 
 **Flujo de trabajo para hacer cambios y liberar en pruebas:**
 
+1. **MUY IMPORTANTE ANTES DEL COMMIT (Actualización de Versión):** Siempre debes ejecutar el actualizador de versiones antes de confirmar los cambios. Esto garantiza que la fecha y hora de compilación (y los créditos de AS Operadora) aparezcan de manera idéntica en el portal de escritorio, en la app móvil y en la landing page inicial.
+
 ```bash
-# 1. Hacer cambios y commit
+# 1. Actualizar la versión (esto actualiza los footers automáticamente)
+node scripts/update-version.js
+
+# 2. Hacer cambios y commit
 git add .
 git commit -m "vX.XXX - Descripción"
 

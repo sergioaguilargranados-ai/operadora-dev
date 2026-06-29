@@ -81,27 +81,32 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
 
         {/* Bottom Tab Bar (Visible only when authenticated and not in login) */}
         {isAuthenticated && !isLoginPage && (
-          <nav className="absolute bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex justify-around items-center px-4 z-40">
-            <Link href="/mobile" className={`flex flex-col items-center gap-1 ${pathname === "/mobile" ? "text-yellow-500 font-semibold" : "text-gray-400"}`}>
-              <Home className="w-5 h-5" />
-              <span className="text-[10px]">Inicio</span>
-            </Link>
-            <Link href="/mobile/itinerario" className={`flex flex-col items-center gap-1 ${pathname.startsWith("/mobile/itinerario") ? "text-yellow-500 font-semibold" : "text-gray-400"}`}>
-              <Briefcase className="w-5 h-5" />
-              <span className="text-[10px]">Mis viajes</span>
-            </Link>
-            <Link href="/mobile/wishlist" className={`flex flex-col items-center gap-1 ${pathname.startsWith("/mobile/wishlist") ? "text-yellow-500 font-semibold" : "text-gray-400"}`}>
-              <Heart className="w-5 h-5" />
-              <span className="text-[10px]">Wishlist</span>
-            </Link>
-            <Link href="/mobile/mapa" className={`flex flex-col items-center gap-1 ${pathname.startsWith("/mobile/mapa") ? "text-yellow-500 font-semibold" : "text-gray-400"}`}>
-              <MapPin className="w-5 h-5" />
-              <span className="text-[10px]">Mapa</span>
-            </Link>
-            <Link href="/mobile/rewards" className={`flex flex-col items-center gap-1 ${pathname.startsWith("/mobile/rewards") ? "text-yellow-500 font-semibold" : "text-gray-400"}`}>
-              <Gift className="w-5 h-5" />
-              <span className="text-[10px]">Rewards</span>
-            </Link>
+          <nav className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 flex flex-col justify-between pt-2 pb-1">
+            <div className="flex justify-around items-center px-4 w-full mb-1">
+              <Link href="/mobile" className={`flex flex-col items-center gap-1 ${pathname === "/mobile" ? "text-yellow-500 font-semibold" : "text-gray-400"}`}>
+                <Home className="w-5 h-5" />
+                <span className="text-[10px]">Inicio</span>
+              </Link>
+              <Link href="/mobile/itinerario" className={`flex flex-col items-center gap-1 ${pathname.startsWith("/mobile/itinerario") ? "text-yellow-500 font-semibold" : "text-gray-400"}`}>
+                <Briefcase className="w-5 h-5" />
+                <span className="text-[10px]">Mis viajes</span>
+              </Link>
+              <Link href="/mobile/wishlist" className={`flex flex-col items-center gap-1 ${pathname.startsWith("/mobile/wishlist") ? "text-yellow-500 font-semibold" : "text-gray-400"}`}>
+                <Heart className="w-5 h-5" />
+                <span className="text-[10px]">Wishlist</span>
+              </Link>
+              <Link href="/mobile/mapa" className={`flex flex-col items-center gap-1 ${pathname.startsWith("/mobile/mapa") ? "text-yellow-500 font-semibold" : "text-gray-400"}`}>
+                <MapPin className="w-5 h-5" />
+                <span className="text-[10px]">Mapa</span>
+              </Link>
+              <Link href="/mobile/rewards" className={`flex flex-col items-center gap-1 ${pathname.startsWith("/mobile/rewards") ? "text-yellow-500 font-semibold" : "text-gray-400"}`}>
+                <Gift className="w-5 h-5" />
+                <span className="text-[10px]">Rewards</span>
+              </Link>
+            </div>
+            <div className="w-full text-center">
+              <span className="text-[8px] text-gray-400">v2.000 | 28 Jun 2026 18:34 CST | AS Operadora viajes y eventos</span>
+            </div>
           </nav>
         )}
       </div>
