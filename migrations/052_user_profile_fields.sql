@@ -1,2 +1,3 @@
 ALTER TABLE users ADD COLUMN IF NOT EXISTS date_of_birth DATE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS emergency_contacts JSONB;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS wants_travel_insurance BOOLEAN DEFAULT false;
