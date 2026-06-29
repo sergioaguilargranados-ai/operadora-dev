@@ -18,7 +18,7 @@ import { StoreProductsManager } from "@/components/admin/StoreProductsManager"
 import {
   Plus, Edit, Trash2, DollarSign, Calendar, Plane, Hotel, Package,
   Home, Globe, CheckCircle2, AlertCircle, X, RefreshCw, Smartphone,
-  Image as ImageIcon, Search, Eye, Save, ExternalLink, ChevronDown, ChevronUp, AlertTriangle, Star, MapPin, Loader2
+  Image as ImageIcon, Search, Eye, Save, ExternalLink, ChevronDown, ChevronUp, AlertTriangle, Star, MapPin, Loader2, ShoppingBag
 } from "lucide-react"
 
 export default function AdminContentPage() {
