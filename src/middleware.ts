@@ -140,6 +140,11 @@ export async function middleware(request: NextRequest) {
   // 3. Redirección de Landing a Portal si hay sesión
   // ─────────────────────────────────────────────
   if (pathname === '/') {
+    // Si entran por el subdominio de la PWA, enviarlos al móvil directamente
+    if (host.includes('app.asoperadora.com') || host.includes('app-asoperadora.com')) {
+      return NextResponse.redirect(new URL('/mobile', request.url))
+    }
+    
     const userPayload = extractUserFromToken(request)
     if (userPayload) {
       return NextResponse.redirect(new URL('/portal', request.url))
