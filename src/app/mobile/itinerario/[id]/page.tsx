@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation"
 import { ChevronLeft, Bell, Calendar as CalendarIcon, ChevronDown, ChevronRight, MapPin, Loader2 } from "lucide-react"
 import { useAuth } from '@/contexts/AuthContext'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 
 export default function MobileItineraryListPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { user } = useAuth()
+  const { logoUrl } = useWhiteLabel()
   
   const [loading, setLoading] = useState(true)
   const [itinerary, setItinerary] = useState<any>(null)
@@ -113,12 +115,14 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
           <ChevronLeft className="w-7 h-7" />
         </button>
         <img
-          src="/logo.png"
-          alt="AS Operadora"
+          src={logoUrl || "/logo-black.svg"}
+          alt="Logo"
           className="h-10 object-contain"
           onError={(e) => {
             const target = e.target as HTMLImageElement
-            target.src = "/logo.png"
+            if (!target.src.includes("/logo-black.svg")) {
+               target.src = "/logo-black.svg"
+            }
           }}
         />
         <button className="text-black hover:text-gray-600 p-2 -mr-2">

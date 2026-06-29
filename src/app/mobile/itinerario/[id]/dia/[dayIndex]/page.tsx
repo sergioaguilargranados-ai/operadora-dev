@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Bookmark, MapPin, Info, Volume2, ArrowRightLeft, Mic, Copy, Volume1, Calendar as CalendarIcon, Heart, Loader2 } from "lucide-react"
+import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 
 export default function MobileItineraryDayDetail({ params }: { params: { id: string, dayIndex: string } }) {
   const router = useRouter()
+  const { logoUrl } = useWhiteLabel()
   const [loading, setLoading] = useState(true)
   const [itinerary, setItinerary] = useState<any>(null)
   
@@ -108,10 +110,10 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           <ChevronLeft className="w-6 h-6" />
         </button>
         <img
-          src="/logo.png"
-          alt="AS Operadora"
+          src={logoUrl || "/logo-black.svg"}
+          alt="Logo"
           className="h-8 object-contain"
-          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons/icon-192x192.png'; }}
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/logo-black.svg'; }}
         />
         <button className="text-gray-900 active:scale-95 p-2 -mr-2 rounded-full hover:bg-gray-100">
           <Bookmark className="w-5 h-5" />

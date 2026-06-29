@@ -55,6 +55,7 @@ interface TenantData {
     country: string | null;
     logo_url: string | null;
     logo_mobile_url: string | null;
+    logo_dark_url: string | null;
     slogan: string | null;
     primary_color: string | null;
     secondary_color: string | null;
@@ -93,6 +94,7 @@ interface TenantFormData {
     country: string;
     logo_url: string;
     logo_mobile_url: string;
+    logo_dark_url: string;
     primary_color: string;
     secondary_color: string;
     accent_color: string;
@@ -119,6 +121,7 @@ const EMPTY_FORM: TenantFormData = {
     country: 'México',
     logo_url: '',
     logo_mobile_url: '',
+    logo_dark_url: '',
     primary_color: '#FF6B00',
     secondary_color: '#0066FF',
     accent_color: '#FF6B00',
@@ -275,6 +278,7 @@ export default function AdminTenantsPage() {
                 subscription_plan: formData.subscription_plan,
                 logo_url: formData.logo_url || null,
                 logo_mobile_url: formData.logo_mobile_url || null,
+                logo_dark_url: formData.logo_dark_url || null,
                 primary_color: formData.primary_color || null,
                 secondary_color: formData.secondary_color || null,
                 accent_color: formData.accent_color || null,
