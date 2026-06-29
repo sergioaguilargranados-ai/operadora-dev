@@ -44,15 +44,15 @@ export default function MobileItineraryRootPage() {
             const details = typeof tourBooking.special_requests === 'string' ? JSON.parse(tourBooking.special_requests) : (tourBooking.special_requests || {})
             router.push(`/mobile/itinerario/${details.tour_id}`)
           } else {
-            // Si no tiene tours, mandarlo a mis reservas
-            router.push('/mis-reservas')
+            // Si no tiene tours, mandarlo al menu principal de la app
+            router.push('/mobile')
           }
         } else {
-          router.push('/mis-reservas')
+          router.push('/mobile')
         }
       } catch (error) {
         console.error("Error checking tours:", error)
-        router.push('/mis-reservas')
+        router.push('/mobile')
       }
     }
 

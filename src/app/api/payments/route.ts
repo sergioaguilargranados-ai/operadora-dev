@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
         COALESCE(u.name, 'Usuario') as user_name,
         COALESCE(u.email, '') as user_email,
         COALESCE(b.booking_type, 'general') as booking_type,
-        COALESCE(b.service_type, 'servicio') as service_name
+        COALESCE(b.booking_type, 'servicio') as service_name
       FROM payment_transactions pt
       LEFT JOIN users u ON pt.user_id = u.id
       LEFT JOIN bookings b ON pt.booking_id = b.id
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
 
     // Query para contar total
     const countQueryText = queryText.replace(
-      /SELECT .* FROM/,
+      /SELECT[\s\S]*?FROM/i,
       'SELECT COUNT(*) FROM'
     )
     const countResult = await query(countQueryText, queryParams)
