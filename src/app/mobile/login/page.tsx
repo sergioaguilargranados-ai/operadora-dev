@@ -73,8 +73,8 @@ export default function MobileLoginPage() {
     setLoading(true)
 
     try {
-      const success = await login(email, password)
-      if (success) {
+      const res = await login(email, password)
+      if (res && res.success) {
         router.push("/mobile")
       } else {
         setError("Contraseña incorrecta")
