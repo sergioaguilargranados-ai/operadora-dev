@@ -20,28 +20,28 @@ export default function MobileGroupsPage() {
       title: "Invitar mediante WhatsApp",
       desc: "Comparte tu viaje con tus contactos a través de WhatsApp.",
       icon: MessageCircle,
-      color: "bg-[#25D366]"
+      color: "bg-black"
     },
     {
       id: "facebook",
       title: "Invitar mediante Facebook",
       desc: "Comparte tu viaje con tus amigos a través de Facebook.",
       icon: Facebook,
-      color: "bg-[#1877F2]"
+      color: "bg-black"
     },
     {
       id: "instagram",
       title: "Invitar mediante Instagram",
       desc: "Comparte tu viaje con tus amigos a través de Instagram.",
       icon: Instagram,
-      color: "bg-[#E4405F]"
+      color: "bg-black"
     },
     {
       id: "contacts",
       title: "Invitar mediante contactos",
       desc: "Selecciona contactos de tu agenda para invitarlos al grupo.",
       icon: User,
-      color: "bg-[#000000]"
+      color: "bg-black"
     }
   ]
 
@@ -173,13 +173,13 @@ export default function MobileGroupsPage() {
             </div>
             
             <div className="flex-1 min-w-0 py-1">
-              <h3 className="font-bold text-gray-900 text-sm mb-1">{option.title}</h3>
-              <p className="text-xs text-gray-500 leading-tight pr-2">
+              <h3 className="font-serif font-bold text-gray-900 text-base mb-1">{option.title}</h3>
+              <p className="text-xs text-gray-700 leading-tight pr-2">
                 {option.desc}
               </p>
             </div>
 
-            <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+            <ChevronRight className="w-5 h-5 text-black flex-shrink-0" strokeWidth={2.5} />
           </div>
         ))}
       </div>
