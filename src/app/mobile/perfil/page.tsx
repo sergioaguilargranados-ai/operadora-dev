@@ -75,25 +75,8 @@ export default function MobileProfilePage() {
     }
   }
 
-  const handleEditName = () => {
-    const newName = prompt("Escribe tu nuevo nombre completo:", profileData?.name || '')
-    if (newName && newName !== profileData?.name) {
-      updateProfile({ name: newName })
-    }
-  }
-
-  const handleEditPhone = () => {
-    const newPhone = prompt("Escribe tu número de teléfono:", profileData?.phone || '')
-    if (newPhone && newPhone !== profileData?.phone) {
-      updateProfile({ phone: newPhone })
-    }
-  }
-
-  const handleEditInsurance = () => {
-    const wants = confirm(`Actualmente ${profileData?.wants_travel_insurance ? 'SÍ' : 'NO'} deseas el Seguro de Viajero.\n\n¿Deseas solicitar que un agente te llame para adquirirlo?`)
-    if (wants !== profileData?.wants_travel_insurance) {
-      updateProfile({ wants_travel_insurance: wants })
-    }
+  const handleEdit = () => {
+    router.push('/mobile/perfil/editar')
   }
 
   const handleAddDocument = () => {
@@ -223,68 +206,72 @@ export default function MobileProfilePage() {
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
           
           {/* Item */}
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEditName}>
+          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
             <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
               <User className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Nombre</h3>
-              <p className="text-xs text-gray-500">{profileData?.name || 'Actualiza tu nombre completo.'}</p>
+              <p className="text-xs text-gray-500">{profileData?.name || 'No registrado'}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
 
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer">
+          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
             <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
               <Calendar className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Fecha de Nacimiento</h3>
-              <p className="text-xs text-gray-500">Actualiza tu fecha de nacimiento.</p>
+              <p className="text-xs text-gray-500">{profileData?.date_of_birth ? new Date(profileData.date_of_birth).toLocaleDateString() : 'No registrado'}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
 
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer">
+          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
             <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
               <Mail className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Correo</h3>
-              <p className="text-xs text-gray-500">{profileData?.email || 'Actualiza tu correo electrónico.'}</p>
+              <p className="text-xs text-gray-500">{profileData?.email || 'No registrado'}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
 
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEditPhone}>
+          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
             <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
               <Phone className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Teléfono</h3>
-              <p className="text-xs text-gray-500">{profileData?.phone || 'Actualiza tu número de teléfono.'}</p>
+              <p className="text-xs text-gray-500">{profileData?.phone || 'No registrado'}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
 
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEditInsurance}>
+          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
             <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
               <Shield className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Seguro de Viajero</h3>
-              <p className="text-xs text-gray-500">{profileData?.wants_travel_insurance ? '✅ Seguro Solicitado' : 'Consulta y adquiere tu seguro.'}</p>
+              <p className="text-xs text-gray-500">{profileData?.wants_travel_insurance ? '✅ Solicitado' : 'No solicitado'}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
 
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer">
+          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
             <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
               <Users className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Contactos de Emergencia</h3>
-              <p className="text-xs text-gray-500">Administra tus contactos de emergencia.</p>
+              <p className="text-xs text-gray-500">
+                {profileData?.emergency_contacts && profileData.emergency_contacts.length > 0 
+                  ? `${profileData.emergency_contacts.length} contacto(s) registrado(s)` 
+                  : 'No registrado'}
+              </p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>

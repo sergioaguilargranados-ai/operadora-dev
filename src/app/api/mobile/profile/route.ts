@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     const client = await pool.connect()
     try {
       const result = await client.query(
-        `SELECT id, name, email, phone, wants_travel_insurance FROM users WHERE id = $1`,
+        `SELECT id, name, email, phone, wants_travel_insurance, date_of_birth, emergency_contacts FROM users WHERE id = $1`,
         [user_id]
       )
 
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, name, phone, wants_travel_insurance } = body
+    const { id, name, phone, wants_travel_insurance, date_of_birth, emergency_contacts } = body
 
     if (!id) {
       return NextResponse.json({ success: false, error: 'User ID required' }, { status: 400 })
@@ -60,9 +60,11 @@ export async function PUT(request: Request) {
         `UPDATE users 
          SET name = COALESCE($2, name),
              phone = COALESCE($3, phone),
-             wants_travel_insurance = COALESCE($4, wants_travel_insurance)
+             wants_travel_insurance = COALESCE($4, wants_travel_insurance),
+             date_of_birth = COALESCE($5, date_of_birth),
+             emergency_contacts = COALESCE($6, emergency_contacts)
          WHERE id = $1`,
-        [id, name, phone, wants_travel_insurance]
+        [id, name, phone, wants_travel_insurance, date_of_birth ? date_of_birth : null, emergency_contacts ? JSON.stringify(emergency_contacts) : null]
       )
       return NextResponse.json({ success: true })
     } finally {
