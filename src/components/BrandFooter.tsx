@@ -94,7 +94,7 @@ export function BrandFooter() {
                     )}
                     <div className="flex items-center justify-center gap-4 mt-2">
                         <p className="text-xs opacity-50">
-                            v2.359 | 29 Jun 2026 14:08 CST
+                            v2.359 | 29 Jun 2026 14:22 CST
                         </p>
                         <PwaInstallButton />
                     </div>
