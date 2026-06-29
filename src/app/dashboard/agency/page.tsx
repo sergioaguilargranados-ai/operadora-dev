@@ -166,7 +166,7 @@ export default function AgencyDashboardPage() {
 
             if (statsData.success) setStats(statsData.data)
             if (agentsData.success) setAgents(agentsData.data)
-            if (clientsData.success) setClients(clientsData.data)
+            if (clientsData.success) setClients(clientsData.data.clients || [])
         } catch (error) {
             console.error('Error fetching agency data:', error)
         } finally {

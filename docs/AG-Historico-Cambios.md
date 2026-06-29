@@ -9,6 +9,10 @@
 
 ## 📅 HISTORIAL DE CAMBIOS
 
+### v2.359 - 28 de Junio de 2026 - 22:25 CST
+**🛠️ Corrección de Bug en Dashboard Agencia**
+- **Dashboard Agencia:** Se corrigió un error en el tab de clientes (`src/app/dashboard/agency/page.tsx`) que provocaba la caída de la aplicación (`TypeError: W.map is not a function`). El estado de los clientes estaba recibiendo el objeto completo de la respuesta de la API (`{ clients, agents }`) en lugar del arreglo de clientes.
+
 ### v2.357 - 26 de Junio de 2026 - 00:45 CST
 **🚀 Soporte Offline y Rediseño Completo de Interfaz PWA & Admin**
 - **Soporte Offline:** Se configuró PWA con `sw.ts` para habilitar caché de red (Service Worker) y se añadió el componente `OfflineBanner.tsx` en el layout móvil.
