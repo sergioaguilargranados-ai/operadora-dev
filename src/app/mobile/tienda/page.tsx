@@ -54,8 +54,12 @@ export default function MobileStorePage() {
             alt="AS Operadora"
             className={`h-10 object-contain ${logoDarkUrl ? '' : 'invert'}`}
             onError={(e) => {
-              const target = e.target as HTMLImageElement
-              target.src = "/logo.png"
+              const target = e.currentTarget;
+              if (!target.src.includes('/icons/icon-192x192.png')) {
+                target.src = '/icons/icon-192x192.png'; 
+              } else {
+                target.style.display = 'none';
+              }
             }}
           />
 

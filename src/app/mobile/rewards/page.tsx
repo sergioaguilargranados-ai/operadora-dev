@@ -101,7 +101,14 @@ export default function MobileRewardsPage() {
           <button onClick={() => router.back()} className="p-2 -ml-2">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <img src="/logo-white.png" alt="AS" className="h-8 invert" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons/icon-192x192.png'; }} />
+          <img src="/logo-white.png" alt="AS" className="h-8 invert" onError={(e) => { 
+            const target = e.currentTarget;
+            if (!target.src.includes('/icons/icon-192x192.png')) {
+              target.src = '/icons/icon-192x192.png'; 
+            } else {
+              target.style.display = 'none';
+            }
+          }} />
           <button className="p-2 -mr-2">
             <Bell className="w-6 h-6" />
           </button>

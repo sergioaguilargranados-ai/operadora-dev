@@ -70,7 +70,14 @@ export default function MobileHomePage() {
             src={finalLogoUrl} 
             alt="Logo" 
             className="h-8 object-contain" 
-            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons/icon-192x192.png'; }} 
+            onError={(e) => { 
+              const target = e.currentTarget;
+              if (!target.src.includes('/icons/icon-192x192.png')) {
+                target.src = '/icons/icon-192x192.png'; 
+              } else {
+                target.style.display = 'none';
+              }
+            }} 
           />
           <button onClick={() => router.push('/mobile/notificaciones')} className="p-2 -mr-2 text-white hover:text-gray-300">
             <Bell className="w-6 h-6" />

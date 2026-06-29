@@ -183,9 +183,12 @@ export default function MobileProfilePage() {
             alt="AS Operadora"
             className="h-10 object-contain invert" // Aplicamos invert de forma provisional para forzar logo blanco
             onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.onerror = null;
-              target.src = "/logo-white.png";
+              const target = e.currentTarget;
+              if (!target.src.includes('/icons/icon-192x192.png')) {
+                target.src = '/icons/icon-192x192.png'; 
+              } else {
+                target.style.display = 'none';
+              }
             }}
           />
 
