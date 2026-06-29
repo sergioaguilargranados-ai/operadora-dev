@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
+import { MobileLogo } from "@/components/mobile/MobileLogo"
 
 export default function MobileHelpPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const { logoUrl } = useWhiteLabel()
+  const { logoUrl, logoMobileUrl } = useWhiteLabel()
+  const customLogoUrl = logoMobileUrl || logoUrl || null
   const [search, setSearch] = useState("")
   
   const [helpPhone, setHelpPhone] = useState("+521234567890")
@@ -68,11 +70,10 @@ export default function MobileHelpPage() {
           <button onClick={() => router.back()} className="text-gray-900 hover:text-gray-600">
             <ChevronLeft className="w-7 h-7" />
           </button>
-          <img 
-            src={logoUrl || "/logo.png"} 
-            alt="AS Operadora" 
-            className="h-10 object-contain" 
-            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons/icon-192x192.png'; }}
+          <MobileLogo
+            variant="dark"
+            size="md"
+            logoUrl={customLogoUrl}
           />
           <div className="w-7 h-7" /> {/* Spacer */}
         </div>

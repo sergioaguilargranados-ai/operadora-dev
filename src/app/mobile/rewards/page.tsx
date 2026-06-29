@@ -3,12 +3,16 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
+import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
+import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { ChevronLeft, Bell, Gift, Compass, MapPin, Play, Droplets, Sun, Briefcase, Footprints, Video, Image as ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function MobileRewardsPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const { logoUrl, logoDarkUrl, logoMobileUrl } = useWhiteLabel()
+  const customLogoUrl = logoDarkUrl || logoMobileUrl || logoUrl || null
   const [activeTab, setActiveTab] = useState<'pasos' | 'invita'>('pasos')
   
   const [rewardsSteps, setRewardsSteps] = useState<any[]>([])
@@ -101,14 +105,11 @@ export default function MobileRewardsPage() {
           <button onClick={() => router.back()} className="p-2 -ml-2">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <img src="/logo-white.png" alt="AS" className="h-8 invert" onError={(e) => { 
-            const target = e.currentTarget;
-            if (!target.src.includes('/icons/icon-192x192.png')) {
-              target.src = '/icons/icon-192x192.png'; 
-            } else {
-              target.style.display = 'none';
-            }
-          }} />
+          <MobileLogo
+            variant="light"
+            size="md"
+            logoUrl={customLogoUrl}
+          />
           <button className="p-2 -mr-2">
             <Bell className="w-6 h-6" />
           </button>

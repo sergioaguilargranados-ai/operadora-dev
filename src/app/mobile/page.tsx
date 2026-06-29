@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { useRouter } from "next/navigation"
+import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { 
   User, Briefcase, CreditCard, Users, ShoppingBag, 
   HelpCircle, ChevronRight, Bell, Menu, Loader2, Headphones, Footprints, Plane
@@ -11,7 +12,7 @@ import {
 
 export default function MobileHomePage() {
   const { user } = useAuth()
-  const { logoUrl, logoDarkUrl } = useWhiteLabel()
+  const { logoUrl, logoDarkUrl, logoMobileUrl } = useWhiteLabel()
   const router = useRouter()
   
   const [loading, setLoading] = useState(false)
@@ -42,8 +43,8 @@ export default function MobileHomePage() {
   }
 
   const name = user?.name?.split(' ')[0] || "Admin AS"
-  // Preferimos logoDarkUrl para el banner oscuro, luego el móvil, luego el principal invertido
-  const finalLogoUrl = logoDarkUrl || mobileContent?.logo_url || logoUrl || "/logo-white.png"
+  // Logo: si hay personalizado de agencia lo usamos; si no, MobileLogo lo renderiza
+  const customLogoUrl = logoMobileUrl || logoUrl || null
   const welcomePhrase = mobileContent?.welcome_phrase || "¿Listo para tu próxima experiencia?"
 
   return (
@@ -60,18 +61,10 @@ export default function MobileHomePage() {
         
         {/* Top Header */}
         <div className="absolute top-0 w-full px-4 pt-12 pb-4 z-20 flex justify-between items-center">
-          <img 
-            src={finalLogoUrl} 
-            alt="Logo" 
-            className={`h-8 object-contain ${!logoDarkUrl ? 'invert' : ''}`} 
-            onError={(e) => { 
-              const target = e.currentTarget;
-              if (!target.src.includes('/icons/icon-192x192.png')) {
-                target.src = '/icons/icon-192x192.png'; 
-              } else {
-                target.style.display = 'none';
-              }
-            }}
+          <MobileLogo
+            variant="light"
+            size="md"
+            logoUrl={customLogoUrl}
           />
           <button onClick={() => router.push('/mobile/notificaciones')} className="p-2 -mr-2 text-white hover:text-gray-300">
             <Bell className="w-6 h-6" />

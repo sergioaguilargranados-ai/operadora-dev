@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { ChevronLeft, Bell, MessageCircle, Facebook, Instagram, User, ChevronRight, Share2, Send, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
+import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -46,7 +47,8 @@ export default function MobileGroupsPage() {
   ]
 
   const { user } = useAuth()
-  const { logoUrl } = useWhiteLabel()
+  const { logoUrl, logoMobileUrl } = useWhiteLabel()
+  const customLogoUrl = logoMobileUrl || logoUrl || null
   const { toast } = useToast()
   
   const [mobileContent, setMobileContent] = useState<any>(null)
@@ -130,11 +132,10 @@ export default function MobileGroupsPage() {
         <button onClick={() => router.back()} className="text-black hover:text-gray-600 p-2 -ml-2">
           <ChevronLeft className="w-7 h-7" />
         </button>
-        <img
-          src={logoUrl || "/logo.png"}
-          alt="AS Operadora"
-          className="h-10 object-contain"
-          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons/icon-192x192.png'; }}
+        <MobileLogo
+          variant="dark"
+          size="md"
+          logoUrl={customLogoUrl}
         />
         <button onClick={() => router.push('/mobile/notificaciones')} className="text-black hover:text-gray-600 p-2 -mr-2">
           <Bell className="w-6 h-6" />

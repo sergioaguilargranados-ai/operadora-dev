@@ -54,8 +54,18 @@ export async function GET(request: NextRequest) {
 
         // Obtener configuración white-label si es agencia
         let whiteLabelConfig = null
+        let logo_mobile_url = null
         if (tenant.tenant_type === 'agency') {
             whiteLabelConfig = await TenantService.getWhiteLabelConfig(tenant.id)
+            try {
+                const { db } = await import('@/lib/db');
+                const mobileRes = await db.query('SELECT logo_url FROM mobile_app_content WHERE tenant_id = $1', [tenant.id]);
+                if (mobileRes.rows.length > 0) {
+                    logo_mobile_url = mobileRes.rows[0].logo_url;
+                }
+            } catch (e) {
+                console.error("Error fetching mobile logo:", e);
+            }
         }
 
         return NextResponse.json({
@@ -66,7 +76,7 @@ export async function GET(request: NextRequest) {
                     tenant_type: tenant.tenant_type,
                     company_name: tenant.company_name,
                     logo_url: tenant.logo_url,
-                    logo_mobile_url: (tenant as any).logo_mobile_url,
+                    logo_mobile_url: logo_mobile_url || (tenant as any).logo_mobile_url,
                     logo_dark_url: (tenant as any).logo_dark_url,
                     primary_color: tenant.primary_color,
                     secondary_color: tenant.secondary_color,

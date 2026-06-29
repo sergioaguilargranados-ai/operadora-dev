@@ -4,13 +4,15 @@ import { useRouter } from "next/navigation"
 import { ChevronLeft, Bell, CreditCard, Calendar as CalendarIcon, Shield, Plane, Wallet, Loader2, X, Copy, Landmark, Check } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
+import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { useEffect, useState } from "react"
 
 export default function MobilePaymentsPage() {
   const router = useRouter()
 
   const { user } = useAuth()
-  const { logoUrl } = useWhiteLabel()
+  const { logoUrl, logoMobileUrl } = useWhiteLabel()
+  const customLogoUrl = logoMobileUrl || logoUrl || null
   const [payments, setPayments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -65,11 +67,10 @@ export default function MobilePaymentsPage() {
         <button onClick={() => router.back()} className="text-black hover:text-gray-600 p-2 -ml-2">
           <ChevronLeft className="w-7 h-7" />
         </button>
-        <img
-          src={logoUrl || "/logo.png"}
-          alt="AS Operadora"
-          className="h-10 object-contain"
-          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons/icon-192x192.png'; }}
+        <MobileLogo
+          variant="dark"
+          size="md"
+          logoUrl={customLogoUrl}
         />
         <button onClick={() => router.push('/mobile/notificaciones')} className="text-black hover:text-gray-600 p-2 -mr-2">
           <Bell className="w-6 h-6" />

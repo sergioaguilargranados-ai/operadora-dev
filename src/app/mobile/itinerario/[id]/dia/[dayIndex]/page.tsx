@@ -4,10 +4,12 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Bookmark, MapPin, Info, Volume2, ArrowRightLeft, Mic, Copy, Volume1, Calendar as CalendarIcon, Heart, Loader2 } from "lucide-react"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
+import { MobileLogo } from "@/components/mobile/MobileLogo"
 
 export default function MobileItineraryDayDetail({ params }: { params: { id: string, dayIndex: string } }) {
   const router = useRouter()
-  const { logoUrl } = useWhiteLabel()
+  const { logoUrl, logoMobileUrl } = useWhiteLabel()
+  const customLogoUrl = logoMobileUrl || logoUrl || null
   const [loading, setLoading] = useState(true)
   const [itinerary, setItinerary] = useState<any>(null)
   
@@ -109,11 +111,10 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         <button onClick={() => router.push(`/mobile/itinerario/${params.id}`)} className="text-gray-900 active:scale-95 p-2 -ml-2 rounded-full hover:bg-gray-100">
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <img
-          src={logoUrl || "/logo-black.svg"}
-          alt="Logo"
-          className="h-8 object-contain"
-          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/logo-black.svg'; }}
+        <MobileLogo
+          variant="dark"
+          size="md"
+          logoUrl={customLogoUrl}
         />
         <button className="text-gray-900 active:scale-95 p-2 -mr-2 rounded-full hover:bg-gray-100">
           <Bookmark className="w-5 h-5" />

@@ -6,13 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
+import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export default function MobileLoginPage() {
   const router = useRouter()
   const { login } = useAuth()
-  const { logoUrl, companyName } = useWhiteLabel()
+  const { logoUrl, companyName, logoMobileUrl } = useWhiteLabel()
+  // Logo personalizado de agencia: si existe, se muestra como imagen
+  const customLogoUrl = logoMobileUrl || logoUrl || null
   
   // State for 2-step login
   const [step, setStep] = useState<1 | 2>(1)
@@ -87,7 +90,7 @@ export default function MobileLoginPage() {
   }
 
   // Determine logos and branding colors based on step
-  const finalLogoUrl = mobileContent?.logo_url 
+  const finalLogoUrl = mobileContent?.logo_url || logoMobileUrl
     || (step === 2 && tenantConfig?.logo_url ? tenantConfig.logo_url : logoUrl) 
     || "/logo-black.svg"
 
@@ -121,15 +124,10 @@ export default function MobileLoginPage() {
 
         {/* Logo */}
         <div className="flex flex-col items-center mt-6 mb-8 transition-all duration-500">
-          <img
-            src={finalLogoUrl}
-            alt={finalCompanyName}
-            className="h-20 object-contain mb-4 transition-all duration-500"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.onerror = null;
-              target.src = "/logo-black.svg";
-            }}
+          <MobileLogo
+            variant="dark"
+            size="lg"
+            logoUrl={customLogoUrl}
           />
         </div>
 

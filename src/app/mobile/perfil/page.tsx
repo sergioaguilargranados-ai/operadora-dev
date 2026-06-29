@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Bell, User, Calendar, Mail, Phone, Shield, Users, ChevronRight, Plus, Upload, X, Loader2, LogOut } from "lucide-react"
+import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
@@ -17,7 +18,8 @@ interface DocumentItem {
 export default function MobileProfilePage() {
   const router = useRouter()
   const { user, logout } = useAuth()
-  const { logoUrl, logoDarkUrl } = useWhiteLabel()
+  const { logoUrl, logoDarkUrl, logoMobileUrl } = useWhiteLabel()
+  const customLogoUrl = logoDarkUrl || logoMobileUrl || logoUrl || null
   const { toast } = useToast()
 
   const [documents, setDocuments] = useState<DocumentItem[]>([])
@@ -161,18 +163,10 @@ export default function MobileProfilePage() {
             <ChevronLeft className="w-7 h-7" />
           </button>
           
-          <img
-            src={logoDarkUrl || logoUrl || "/logo-black.svg"}
-            alt="Logo"
-            className={`h-10 object-contain ${!logoDarkUrl && logoUrl ? 'invert' : ''}`}
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (!target.src.includes('/icons/icon-192x192.png')) {
-                target.src = '/icons/icon-192x192.png'; 
-              } else {
-                target.style.display = 'none';
-              }
-            }}
+          <MobileLogo
+            variant="light"
+            size="md"
+            logoUrl={customLogoUrl}
           />
 
           <button className="text-white hover:text-gray-300">

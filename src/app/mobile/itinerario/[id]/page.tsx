@@ -6,11 +6,13 @@ import { ChevronLeft, Bell, Calendar as CalendarIcon, ChevronDown, ChevronRight,
 import { useAuth } from '@/contexts/AuthContext'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
+import { MobileLogo } from "@/components/mobile/MobileLogo"
 
 export default function MobileItineraryListPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { user } = useAuth()
-  const { logoUrl } = useWhiteLabel()
+  const { logoUrl, logoMobileUrl } = useWhiteLabel()
+  const customLogoUrl = logoMobileUrl || logoUrl || null
   
   const [loading, setLoading] = useState(true)
   const [itinerary, setItinerary] = useState<any>(null)
@@ -114,16 +116,10 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
         <button onClick={() => router.push('/mobile')} className="text-black hover:text-gray-600 p-2 -ml-2">
           <ChevronLeft className="w-7 h-7" />
         </button>
-        <img
-          src={logoUrl || "/logo-black.svg"}
-          alt="Logo"
-          className="h-10 object-contain"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement
-            if (!target.src.includes("/logo-black.svg")) {
-               target.src = "/logo-black.svg"
-            }
-          }}
+        <MobileLogo
+          variant="dark"
+          size="md"
+          logoUrl={customLogoUrl}
         />
         <button className="text-black hover:text-gray-600 p-2 -mr-2">
           <Bell className="w-6 h-6" />

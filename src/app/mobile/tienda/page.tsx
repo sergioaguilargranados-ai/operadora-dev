@@ -6,10 +6,12 @@ import { ChevronLeft, Bell, ShoppingCart, Search, SlidersHorizontal, ShoppingBag
 import { Input } from "@/components/ui/input"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { useCart } from "@/contexts/CartContext"
+import { MobileLogo } from "@/components/mobile/MobileLogo"
 
 export default function MobileStorePage() {
   const router = useRouter()
-  const { logoUrl, logoDarkUrl } = useWhiteLabel()
+  const { logoUrl, logoDarkUrl, logoMobileUrl } = useWhiteLabel()
+  const customLogoUrl = logoDarkUrl || logoMobileUrl || logoUrl || null
   const { addToCart, cartCount } = useCart()
   const [search, setSearch] = useState("")
   const [activeCategory, setActiveCategory] = useState("Todos")
@@ -49,18 +51,10 @@ export default function MobileStorePage() {
             <ChevronLeft className="w-7 h-7" />
           </button>
           
-          <img
-            src={logoDarkUrl || logoUrl || "/logo-black.svg"}
-            alt="Logo"
-            className={`h-10 object-contain ${!logoDarkUrl && logoUrl ? 'invert' : ''}`}
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (!target.src.includes('/logo-black.svg')) {
-                target.src = '/logo-black.svg'; 
-              } else {
-                target.style.display = 'none';
-              }
-            }}
+          <MobileLogo
+            variant="light"
+            size="md"
+            logoUrl={customLogoUrl}
           />
 
           <div className="flex gap-4">
