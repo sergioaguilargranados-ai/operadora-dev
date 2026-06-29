@@ -1,6 +1,6 @@
 # 🎯 AG-Contexto-Proyecto - AS Operadora
 
-**Última actualización:** 28 de Junio de 2026 - 21:16 CST  
+**Última actualización:** 29 de Junio de 2026 - 14:08 CST  
 **Versión actual:** v2.359  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity, trabajar de esta manera es para tener un mejor control de los cambios que se hacen en el proyecto y asegurar que todo funcione correctamente. 
@@ -783,6 +783,21 @@ Antes de finalizar cualquier sesión:
 - **Implementación:** `Promise.allSettled` con captura individual, desduplicación de items y registro de métricas exactas (en ms) a PostgreSQL en la tabla `provider_metrics`.
 - **Adaptadores:** `OpenTableAdapter`, `CivitatisAdapter` y la estructura `ViatorAdapter` listos y probados.
 - **Lección:** Toda la app ahora sigue un patrón Aggregator-Adapter unificado para todos sus servicios principales (Vuelos, Hoteles, Restaurantes, Actividades).
+
+### Homogenización Logo App Móvil - Componente MobileLogo (v2.359 - 29 Jun 2026)
+- **Problema resuelto:** Los archivos SVG (`logo-black.svg`, `logo-white.svg`) usan `@import` de Google Fonts que NO funciona cuando se cargan como `<img>`, causando que el logo se vea con fuente incorrecta o como cuadrado negro (fallback al icono).
+- **Solución:** Se creó el componente React `src/components/mobile/MobileLogo.tsx` que renderiza el logo como HTML real (no SVG), usando `font-family` con fallback a fuentes del sistema (Georgia, Times New Roman).
+- **Props del componente:**
+  - `variant="dark"` → texto negro (fondos blancos/claros)
+  - `variant="light"` → texto blanco (fondos oscuros/negros)
+  - `size="sm|md|lg"` → tamaño del logo
+  - `logoUrl` → si se provee, muestra imagen personalizada de agencia white-label
+- **Páginas actualizadas:** Login, Home, Perfil, Tienda, Itinerario (lista y detalle día), Pagos, Ayuda, Viajes Grupales, Rewards
+- **Regla de uso:**
+  - Fondo oscuro (Home banner, Perfil header negro, Tienda header negro, Rewards banner): `variant="light"`
+  - Fondo claro (Login, Itinerario, Pagos, Ayuda, Viajes Grupales): `variant="dark"`
+- **API Detect mejorada:** `src/app/api/tenant/detect/route.ts` ahora extrae `logo_mobile_url` directamente de la tabla `mobile_app_content` y lo entrega al `WhiteLabelContext`.
+- **Lección:** Nunca usar SVG con `@import` Google Fonts cargado como `<img>` - el browser no ejecuta el `@import`. Usar componentes React con `font-family` inline o Next.js `next/font`.
 
 ---
 
