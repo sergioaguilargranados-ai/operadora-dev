@@ -147,12 +147,12 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
   };
 
   const updateSection = (sectionKey: string, field: string, value: any) => {
-    if (sectionKey === 'baggage_text') {
+    if (sectionKey === 'baggage_text' || !field) {
       setContent(prev => ({
         ...prev,
         sections_json: {
           ...prev.sections_json,
-          baggage_text: value
+          [sectionKey]: value
         }
       }));
       return;
@@ -298,7 +298,7 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
           <div>
             <label className="text-sm font-medium mb-1 block">Banner de Login Móvil (Fondo Inferior)</label>
             <ImageUploadInput 
-              value={content.sections_json?.login_banner_url || ''} 
+              value={typeof content.sections_json?.login_banner_url === 'string' ? content.sections_json.login_banner_url : (content.sections_json?.login_banner_url?.[''] || '')} 
               onChange={val => updateSection('login_banner_url', '', val)}
               placeholder="Fondo o imagen del login..."
             />
