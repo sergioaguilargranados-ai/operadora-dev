@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card"
 import { Logo } from "@/components/Logo"
 import { Lock, AlertCircle, CheckCircle2 } from "lucide-react"
 
-export default function SetupPasswordPage() {
+function SetupPasswordForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
@@ -151,5 +151,13 @@ export default function SetupPasswordPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function SetupPasswordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Cargando...</div>}>
+      <SetupPasswordForm />
+    </Suspense>
   )
 }
