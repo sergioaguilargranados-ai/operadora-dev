@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     const client = await pool.connect()
     try {
       const result = await client.query(
-        `SELECT id, name, email, phone, wants_travel_insurance, facebook_url, instagram_url, linkedin_url FROM users WHERE id = $1`,
+        `SELECT id, name, email, phone, wants_travel_insurance FROM users WHERE id = $1`,
         [user_id]
       )
 
