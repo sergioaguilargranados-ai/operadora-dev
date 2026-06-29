@@ -6,10 +6,12 @@ import { ChevronLeft, Search, MapPin, Signpost, Calendar, Briefcase, HelpCircle,
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
+import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 
 export default function MobileHelpPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const { logoUrl } = useWhiteLabel()
   const [search, setSearch] = useState("")
   
   const [helpPhone, setHelpPhone] = useState("+521234567890")
@@ -66,7 +68,12 @@ export default function MobileHelpPage() {
           <button onClick={() => router.back()} className="text-gray-900 hover:text-gray-600">
             <ChevronLeft className="w-7 h-7" />
           </button>
-          <img src="/logo.png" alt="AS Operadora" className="h-10 object-contain" />
+          <img 
+            src={logoUrl || "/logo.png"} 
+            alt="AS Operadora" 
+            className="h-10 object-contain" 
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons/icon-192x192.png'; }}
+          />
           <div className="w-7 h-7" /> {/* Spacer */}
         </div>
 

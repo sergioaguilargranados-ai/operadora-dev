@@ -185,46 +185,46 @@ export default function MobileGroupsPage() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="w-[90%] max-w-[400px] rounded-3xl p-6 border-none">
+        <DialogContent className="w-[90%] max-w-[400px] rounded-3xl p-6 border border-gray-100 shadow-xl bg-white">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <Share2 className="w-5 h-5" /> 
+            <DialogTitle className="text-xl font-serif font-bold text-gray-900 flex items-center gap-2 mb-2">
+              <Share2 className="w-5 h-5 text-gray-700" /> 
               Invitar por {selectedChannel?.title?.replace('Invitar mediante ', '')}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-2">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Nombre (Opcional)</label>
+              <label className="text-[10px] font-bold text-gray-900 uppercase tracking-tight mb-1 block">Nombre (Opcional)</label>
               <Input 
                 placeholder="Ej. Juan Pérez" 
                 value={formData.target_name}
                 onChange={e => setFormData({...formData, target_name: e.target.value})}
-                className="bg-gray-50 border-gray-200"
+                className="bg-gray-50 border-none h-12 rounded-xl text-sm px-4 focus-visible:ring-1 focus-visible:ring-gray-300 shadow-sm"
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Contacto (Teléfono/Usuario) *</label>
+              <label className="text-[10px] font-bold text-gray-900 uppercase tracking-tight mb-1 block">Contacto (Teléfono/Usuario) *</label>
               <Input 
                 placeholder="Ej. 5512345678" 
                 value={formData.target_contact}
                 onChange={e => setFormData({...formData, target_contact: e.target.value})}
-                className="bg-gray-50 border-gray-200"
+                className="bg-gray-50 border-none h-12 rounded-xl text-sm px-4 focus-visible:ring-1 focus-visible:ring-gray-300 shadow-sm"
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Mensaje Personal (Opcional)</label>
+              <label className="text-[10px] font-bold text-gray-900 uppercase tracking-tight mb-1 block">Mensaje Personal (Opcional)</label>
               <Textarea 
                 placeholder="Escribe un mensaje para acompañar la invitación..." 
                 value={formData.personal_message}
                 onChange={e => setFormData({...formData, personal_message: e.target.value})}
-                className="bg-gray-50 border-gray-200 resize-none h-24"
+                className="bg-gray-50 border-none rounded-xl text-sm p-4 min-h-[100px] focus-visible:ring-1 focus-visible:ring-gray-300 shadow-sm resize-none"
               />
             </div>
           </div>
           <Button 
             onClick={handleSendInvitation}
             disabled={loading || !formData.target_contact}
-            className="w-full h-12 bg-[#0066FF] text-white rounded-xl font-bold text-base hover:bg-blue-700"
+            className="w-full h-12 bg-black text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-colors mt-2"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
               <>Enviar Invitación <Send className="w-4 h-4 ml-2" /></>

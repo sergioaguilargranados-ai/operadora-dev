@@ -79,7 +79,8 @@ export default function MobileProfileEditPage() {
       const data = await res.json()
       if (data.success) {
         toast({ title: 'Perfil actualizado', description: 'Tus datos han sido guardados correctamente' })
-        router.back()
+        router.push('/mobile/perfil')
+        router.refresh()
       } else {
         toast({ title: 'Error', description: 'Error al actualizar', variant: 'destructive' })
       }

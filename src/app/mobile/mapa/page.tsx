@@ -134,7 +134,7 @@ export default function MobileMapPage() {
       </div>
 
       {/* Horizontal Category Chips */}
-      <div className="absolute top-18 left-0 right-0 z-20 px-4 overflow-x-auto flex gap-2 pb-2 scrollbar-none">
+      <div className="absolute top-[72px] left-0 right-0 z-20 px-4 overflow-x-auto flex gap-2 pb-2 scrollbar-none">
         {categories.map((cat) => {
           const Icon = cat.icon
           return (
@@ -144,7 +144,7 @@ export default function MobileMapPage() {
                 setSelectedCategory(cat.name)
                 setSelectedPlace(null)
               }}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-md border-0 ${
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-md border-0 shrink-0 ${
                 selectedCategory === cat.name 
                   ? "bg-black text-white" 
                   : "bg-white text-gray-700"
@@ -166,7 +166,7 @@ export default function MobileMapPage() {
           </div>
         ) : (
           <GoogleMap
-            mapContainerStyle={mapContainerStyle}
+            mapContainerStyle={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
             zoom={15}
             center={userLocation}
             options={{
