@@ -134,7 +134,7 @@ export default function MobileGroupsPage() {
           src={logoUrl || "/logo.png"}
           alt="AS Operadora"
           className="h-10 object-contain"
-          onError={(e) => (e.currentTarget.src = "/logo.png")}
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons/icon-192x192.png'; }}
         />
         <button onClick={() => router.push('/mobile/notificaciones')} className="text-black hover:text-gray-600 p-2 -mr-2">
           <Bell className="w-6 h-6" />

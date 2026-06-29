@@ -111,7 +111,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           src="/logo.png"
           alt="AS Operadora"
           className="h-8 object-contain"
-          onError={(e) => (e.currentTarget.src = "/logo.png")}
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons/icon-192x192.png'; }}
         />
         <button className="text-gray-900 active:scale-95 p-2 -mr-2 rounded-full hover:bg-gray-100">
           <Bookmark className="w-5 h-5" />

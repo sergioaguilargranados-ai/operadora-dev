@@ -69,7 +69,7 @@ export default function MobileHomePage() {
             src={finalLogoUrl} 
             alt="Logo" 
             className="h-8 object-contain" 
-            onError={(e) => (e.currentTarget.src = '/logo.png')} 
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons/icon-192x192.png'; }} 
           />
           <button onClick={() => router.push('/mobile/notificaciones')} className="p-2 -mr-2 text-white hover:text-gray-300">
             <Bell className="w-6 h-6" />
