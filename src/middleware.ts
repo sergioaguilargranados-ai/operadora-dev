@@ -147,13 +147,32 @@ export async function middleware(request: NextRequest) {
   }
 
   // ─────────────────────────────────────────────
-  // 4. Protección de rutas por rol (Sprint 6)
+  // 4. Encapsulamiento Global (Móvil vs Portal)
+  // ─────────────────────────────────────────────
+  const userPayload = extractUserFromToken(request)
+  
+  if (userPayload) {
+    const userRole = (userPayload.role || 'CLIENT').toUpperCase()
+    
+    // Bloquear acceso al Dashboard/Portal para Clientes (Viajeros)
+    if (userRole === 'CLIENT' && (pathname.startsWith('/dashboard') || pathname.startsWith('/portal'))) {
+      const mobileUrl = new URL('/mobile', request.url)
+      return NextResponse.redirect(mobileUrl)
+    }
+    
+    // Bloquear acceso a /mobile para Agentes/Admins (aislamiento de experiencias)
+    if (userRole !== 'CLIENT' && pathname.startsWith('/mobile')) {
+      const dashUrl = new URL('/dashboard', request.url)
+      return NextResponse.redirect(dashUrl)
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // 5. Protección de rutas por rol (Sprint 6)
   // ─────────────────────────────────────────────
   const matchedRoute = PROTECTED_ROUTES.find(r => pathname.startsWith(r.path))
 
   if (matchedRoute && matchedRoute.requireAuth) {
-    const userPayload = extractUserFromToken(request)
-
     if (!userPayload) {
       // No autenticado → redirigir a login con returnUrl
       const loginUrl = new URL('/login', request.url)
@@ -163,6 +182,7 @@ export async function middleware(request: NextRequest) {
 
     // Verificar rol
     const userRole = (userPayload.role || 'CLIENT').toUpperCase()
+    
     const hasAccess = matchedRoute.roles.some(r =>
       r.toUpperCase() === userRole ||
       // user_id = 1 siempre es super admin
