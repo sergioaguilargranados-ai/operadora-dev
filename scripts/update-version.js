@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-// Obtener versión de los argumentos o usar la actual (buscarla en los archivos)
+// Obtener versión de los argumentos
 const newVersion = process.argv[2];
 
 // Formatear la fecha actual en zona horaria CST (Ciudad de México)
@@ -30,9 +30,6 @@ if (timeStr.startsWith('24:')) {
 const timestampStr = `${day} ${month} ${year} ${timeStr} CST`;
 
 console.log(`🕒 Nueva fecha de compilación: ${timestampStr}`);
-if (newVersion) {
-  console.log(`🏷️  Nueva versión especificada: ${newVersion}`);
-}
 
 // Archivos a actualizar
 const filesToUpdate = [
@@ -54,63 +51,73 @@ const filesToUpdate = [
   }
 ];
 
+// Find the maximum version across all files to ensure they are kept in sync
+let maxFoundVersion = '';
+
+for (const file of filesToUpdate) {
+  if (fs.existsSync(file.path)) {
+    let content = fs.readFileSync(file.path, 'utf8');
+    
+    // Check main regex
+    file.regex.lastIndex = 0;
+    let match = file.regex.exec(content);
+    if (match && match[1]) {
+      if (match[1] > maxFoundVersion) maxFoundVersion = match[1];
+    } else {
+      // Check lax regex
+      const laxRegex = /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}(?:\s+\|\s+AS Operadora)?/g;
+      laxRegex.lastIndex = 0;
+      let laxMatch = laxRegex.exec(content);
+      if (laxMatch && laxMatch[1]) {
+         if (laxMatch[1] > maxFoundVersion) maxFoundVersion = laxMatch[1];
+      }
+    }
+  }
+}
+
+const finalVersion = newVersion || maxFoundVersion || 'v2.000';
+
+console.log(`🏷️  Versión a aplicar a todos los archivos: ${finalVersion}`);
+
 let filesUpdated = 0;
 
 for (const file of filesToUpdate) {
   if (fs.existsSync(file.path)) {
     let content = fs.readFileSync(file.path, 'utf8');
-    let matchFound = false;
-
-    // Buscar la versión actual en el archivo si no se proporcionó una nueva
-    let currentVersion = newVersion;
-    if (!currentVersion) {
-      // Intentar primero con la regex principal
-      file.regex.lastIndex = 0;
-      let match = file.regex.exec(content);
-      if (match && match[1]) {
-        currentVersion = match[1];
-      } else {
-        // Intentar con la regex laxa
-        const laxRegex = /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}(?:\s+\|\s+AS Operadora)?/g;
-        laxRegex.lastIndex = 0;
-        let laxMatch = laxRegex.exec(content);
-        if (laxMatch && laxMatch[1]) {
-           currentVersion = laxMatch[1];
-        } else {
-           currentVersion = 'v2.000'; // Fallback
-        }
-      }
-      file.regex.lastIndex = 0;
-    }
-
-    const replacement = `${currentVersion} | ${timestampStr}`;
     
-    // Solo actualizar si hay un match en la principal
+    const replacement = `${finalVersion} | ${timestampStr}`;
+    
+    // Intentar reemplazar con la regex principal
+    file.regex.lastIndex = 0;
     if (content.match(file.regex)) {
       const newContent = content.replace(file.regex, replacement);
       fs.writeFileSync(file.path, newContent, 'utf8');
       console.log(`✅ Actualizado: ${path.basename(file.path)} -> ${replacement}`);
       filesUpdated++;
     } else {
-      // Intentar una versión más laxa para el panel de admin si no coincide el CST
-      const laxRegex = /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}(?:\s+\|\s+AS Operadora)?/g;
+      // Intentar una versión más laxa si no coincide
+      const laxRegex = /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}(?:\s+\|\s+AS Operadora(?: viajes y eventos)?)?/g;
       if (content.match(laxRegex)) {
-        const replacementAdmin = `${currentVersion} | ${timestampStr} | AS Operadora`;
+        // Encontrar si tiene AS Operadora y agregarlo
+        let matchStr = content.match(laxRegex)[0];
+        let replacementAdmin = replacement;
+        if (matchStr.includes('AS Operadora viajes y eventos')) {
+            replacementAdmin += ' | AS Operadora viajes y eventos';
+        } else if (matchStr.includes('AS Operadora')) {
+            replacementAdmin += ' | AS Operadora';
+        }
+        
         const newContent = content.replace(laxRegex, replacementAdmin);
         fs.writeFileSync(file.path, newContent, 'utf8');
-        console.log(`✅ Actualizado (lax): ${path.basename(file.path)} -> ${replacementAdmin}`);
+        console.log(`✅ Actualizado (formato laxo): ${path.basename(file.path)} -> ${replacementAdmin}`);
         filesUpdated++;
       } else {
-        console.log(`⚠️ No se encontró el patrón en: ${path.basename(file.path)}`);
+        console.log(`❌ No se encontró el patrón de versión en: ${path.basename(file.path)}`);
       }
     }
   } else {
-    console.log(`❌ Archivo no encontrado: ${file.path}`);
+    console.log(`⚠️  Archivo no encontrado: ${file.path}`);
   }
 }
 
-if (filesUpdated > 0) {
-  console.log(`\n🎉 ¡Proceso completado! ${filesUpdated} archivos actualizados.`);
-} else {
-  console.log(`\n⚠️ No se actualizó ningún archivo. Verifica los formatos.`);
-}
+console.log(`\n🎉 ¡Proceso completado! ${filesUpdated} archivos actualizados.`);
