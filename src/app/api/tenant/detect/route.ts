@@ -66,6 +66,8 @@ export async function GET(request: NextRequest) {
                     tenant_type: tenant.tenant_type,
                     company_name: tenant.company_name,
                     logo_url: tenant.logo_url,
+                    logo_mobile_url: (tenant as any).logo_mobile_url,
+                    logo_dark_url: (tenant as any).logo_dark_url,
                     primary_color: tenant.primary_color,
                     secondary_color: tenant.secondary_color,
                     accent_color: tenant.accent_color,

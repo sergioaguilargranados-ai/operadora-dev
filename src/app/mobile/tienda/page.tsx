@@ -9,7 +9,7 @@ import { useCart } from "@/contexts/CartContext"
 
 export default function MobileStorePage() {
   const router = useRouter()
-  const { logoDarkUrl } = useWhiteLabel() // Usamos el logo oscuro para el header claro o invertimos el logo blanco
+  const { logoUrl, logoDarkUrl } = useWhiteLabel()
   const { addToCart, cartCount } = useCart()
   const [search, setSearch] = useState("")
   const [activeCategory, setActiveCategory] = useState("Todos")
@@ -50,13 +50,13 @@ export default function MobileStorePage() {
           </button>
           
           <img
-            src={logoDarkUrl || "/logo-white.png"}
-            alt="AS Operadora"
-            className={`h-10 object-contain ${logoDarkUrl ? '' : 'invert'}`}
+            src={logoDarkUrl || logoUrl || "/logo-black.svg"}
+            alt="Logo"
+            className={`h-10 object-contain ${!logoDarkUrl && logoUrl ? 'invert' : ''}`}
             onError={(e) => {
               const target = e.currentTarget;
-              if (!target.src.includes('/icons/icon-192x192.png')) {
-                target.src = '/icons/icon-192x192.png'; 
+              if (!target.src.includes('/logo-black.svg')) {
+                target.src = '/logo-black.svg'; 
               } else {
                 target.style.display = 'none';
               }

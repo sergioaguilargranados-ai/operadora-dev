@@ -42,34 +42,28 @@ export default function MobileHomePage() {
   }
 
   const name = user?.name?.split(' ')[0] || "Admin AS"
-  const finalLogoUrl = mobileContent?.logo_url || logoUrl || "/logo-white.png"
-  const finalBannerUrl = mobileContent?.home_banner_url || "https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=800&q=80"
+  // Preferimos logoDarkUrl para el banner oscuro, luego el móvil, luego el principal invertido
+  const finalLogoUrl = logoDarkUrl || mobileContent?.logo_url || logoUrl || "/logo-white.png"
   const welcomePhrase = mobileContent?.welcome_phrase || "¿Listo para tu próxima experiencia?"
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FDFDFD] pb-24 font-sans">
       
-      {/* Hero Header */}
-      <div className="relative h-[280px] w-full">
-        {/* Dark Gradient Overlay */}
+      {/* Banner Principal Fijo en Top */}
+      <div className="relative h-72 w-full flex-shrink-0">
         <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-transparent z-10" />
-        
-        {/* Background Image */}
         <img 
-          src={finalBannerUrl} 
-          alt="Banner principal" 
-          className="w-full h-full object-cover"
+          src={mobileContent?.banner_url || "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80"} 
+          alt="Home Banner" 
+          className="absolute inset-0 w-full h-full object-cover"
         />
         
-        {/* Top Navbar */}
-        <div className="absolute top-0 left-0 right-0 p-4 pt-6 z-20 flex justify-between items-center text-white">
-          <button className="p-2 -ml-2 text-white hover:text-gray-300">
-            <Menu className="w-6 h-6" />
-          </button>
+        {/* Top Header */}
+        <div className="absolute top-0 w-full px-4 pt-12 pb-4 z-20 flex justify-between items-center">
           <img 
             src={finalLogoUrl} 
             alt="Logo" 
-            className="h-8 object-contain" 
+            className={`h-8 object-contain ${!logoDarkUrl ? 'invert' : ''}`} 
             onError={(e) => { 
               const target = e.currentTarget;
               if (!target.src.includes('/icons/icon-192x192.png')) {
@@ -77,7 +71,7 @@ export default function MobileHomePage() {
               } else {
                 target.style.display = 'none';
               }
-            }} 
+            }}
           />
           <button onClick={() => router.push('/mobile/notificaciones')} className="p-2 -mr-2 text-white hover:text-gray-300">
             <Bell className="w-6 h-6" />

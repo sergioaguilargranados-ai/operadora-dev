@@ -17,7 +17,7 @@ interface DocumentItem {
 export default function MobileProfilePage() {
   const router = useRouter()
   const { user, logout } = useAuth()
-  const { logoUrl } = useWhiteLabel()
+  const { logoUrl, logoDarkUrl } = useWhiteLabel()
   const { toast } = useToast()
 
   const [documents, setDocuments] = useState<DocumentItem[]>([])
@@ -162,9 +162,9 @@ export default function MobileProfilePage() {
           </button>
           
           <img
-            src={logoUrl || "/logo-white.png"} // Asumimos un logo blanco para contraste, si no, se vería raro
-            alt="AS Operadora"
-            className="h-10 object-contain invert" // Aplicamos invert de forma provisional para forzar logo blanco
+            src={logoDarkUrl || logoUrl || "/logo-black.svg"}
+            alt="Logo"
+            className={`h-10 object-contain ${!logoDarkUrl && logoUrl ? 'invert' : ''}`}
             onError={(e) => {
               const target = e.currentTarget;
               if (!target.src.includes('/icons/icon-192x192.png')) {

@@ -15,6 +15,7 @@ export interface WhiteLabelTenant {
     company_name: string
     logo_url: string | null
     logo_mobile_url: string | null
+    logo_dark_url?: string | null
     primary_color: string | null
     secondary_color: string | null
     accent_color: string | null
@@ -50,6 +51,7 @@ export interface WhiteLabelState {
     // Visual branding
     logoUrl: string | null
     logoMobileUrl: string | null
+    logoDarkUrl: string | null
     faviconUrl: string | null
     primaryColor: string
     secondaryColor: string
@@ -98,10 +100,12 @@ const AS_OPERADORA_DEFAULTS: WhiteLabelState = {
     companyName: 'AS Operadora de Viajes y Eventos',
     slogan: 'AS Viajando',
 
+    // Visual branding
     logoUrl: null,
     logoMobileUrl: null,
+    logoDarkUrl: null,
     faviconUrl: null,
-    primaryColor: '#0066FF',
+    primaryColor: '#FF6B00',
     secondaryColor: '#0052CC',
     accentColor: '#0066FF',
 
@@ -216,11 +220,12 @@ export function WhiteLabelProvider({ children }: { children: ReactNode }) {
         setState({
             tenantId: tenant.id,
             tenantType: tenant.tenant_type,
-            companyName: tenant.company_name,
-            slogan: (tenant as any).slogan || '', // Slogan personalizado del tenant
+            companyName: tenant.company_name || AS_OPERADORA_DEFAULTS.companyName,
+            slogan: (tenant as any).slogan || AS_OPERADORA_DEFAULTS.slogan,
 
             logoUrl: tenant.logo_url,
             logoMobileUrl: (tenant as any).logo_mobile_url || null,
+            logoDarkUrl: (tenant as any).logo_dark_url || null,
             faviconUrl: wlConfig?.favicon_url || null,
             primaryColor: tenant.primary_color || '#0066FF',
             secondaryColor: tenant.secondary_color || '#0052CC',
