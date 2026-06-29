@@ -154,6 +154,18 @@ export async function middleware(request: NextRequest) {
   // ─────────────────────────────────────────────
   // 4. Encapsulamiento Global (Móvil vs Portal)
   // ─────────────────────────────────────────────
+  const isAppDomain = host.includes('app.asoperadora.com') || host.includes('app-asoperadora.com')
+  
+  // Encapsulamiento estricto para el dominio PWA (app.asoperadora.com)
+  if (isAppDomain) {
+    if (pathname === '/login') {
+      return NextResponse.redirect(new URL('/mobile/login', request.url))
+    }
+    if (pathname.startsWith('/dashboard') || pathname.startsWith('/portal')) {
+      return NextResponse.redirect(new URL('/mobile', request.url))
+    }
+  }
+
   const userPayload = extractUserFromToken(request)
   
   if (userPayload) {
@@ -165,11 +177,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(mobileUrl)
     }
     
-    // Bloquear acceso a /mobile para Agentes/Admins (aislamiento de experiencias)
-    if (userRole !== 'CLIENT' && pathname.startsWith('/mobile')) {
-      const dashUrl = new URL('/dashboard', request.url)
-      return NextResponse.redirect(dashUrl)
-    }
+    // Omitimos bloquear a los Admins/Agentes de /mobile para que puedan hacer pruebas.
+    // (Anteriormente se redirigía a /dashboard, lo que causaba bucles en app.asoperadora.com)
   }
 
   // ─────────────────────────────────────────────
