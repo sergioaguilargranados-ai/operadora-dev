@@ -246,17 +246,15 @@ export default function MobileLoginPage() {
 
       </div>
 
-      {/* Bottom Image (Santorini) - Solo en el paso 1 para mayor impacto, u oculto en paso 2 */}
-      {step === 1 && (
-        <div className="h-[25vh] min-h-[200px] w-full relative -mt-4 z-0 animate-in fade-in duration-500">
-          <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-transparent z-10" />
-          <img 
-            src="https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=800&q=80" 
-            alt="Santorini" 
-            className="w-full h-full object-cover object-top"
-          />
-        </div>
-      )}
+      {/* Bottom Image (Santorini) - aparece en ambos pasos */}
+      <div className="h-[25vh] min-h-[200px] w-full relative -mt-4 z-0 animate-in fade-in duration-500">
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-transparent z-10" />
+        <img 
+          src="https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=800&q=80" 
+          alt="Santorini" 
+          className="w-full h-full object-cover object-top"
+        />
+      </div>
     </div>
   )
 }

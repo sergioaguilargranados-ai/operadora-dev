@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { 
   User, Briefcase, CreditCard, Users, ShoppingBag, 
-  ChevronRight, Bell, Menu, Loader2, Headphones, Footprints
+  ChevronRight, Bell, Menu, Loader2, Headphones, Footprints, Plane
 } from "lucide-react"
 
 export default function MobileHomePage() {
@@ -122,8 +122,9 @@ export default function MobileHomePage() {
 
         {/* Hero Text */}
         <div className="absolute bottom-8 left-6 z-20">
-          <h1 className="text-3xl font-light text-white mb-1">
-            Hola, <span className="font-semibold">{name}</span> ✈️
+          <h1 className="text-3xl font-light text-white mb-1 flex items-center gap-2">
+            Hola, <span className="font-semibold">{name}</span>
+            <Plane className="w-6 h-6 text-white" strokeWidth={1.5} />
           </h1>
           <p className="text-gray-200 text-sm">{welcomePhrase}</p>
         </div>
