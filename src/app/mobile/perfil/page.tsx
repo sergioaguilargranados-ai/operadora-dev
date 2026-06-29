@@ -108,19 +108,57 @@ export default function MobileProfilePage() {
     fileInputRef.current?.click()
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0] && activeDocId) {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0] && activeDocId && user?.id) {
       const file = e.target.files[0]
+      const doc = documents.find(d => d.id === activeDocId)
+      if (!doc) return
+
       setUploadingId(activeDocId)
       
-      // Simular subida de archivo
-      setTimeout(() => {
-        setDocuments(prev => prev.map(doc => 
-          doc.id === activeDocId ? { ...doc, fileName: file.name } : doc
-        ))
+      try {
+        // 1. Subir a Vercel Blob
+        const formData = new FormData()
+        formData.append('file', file)
+        
+        const uploadRes = await fetch('/api/admin/upload-image', {
+          method: 'POST',
+          body: formData
+        })
+        const uploadData = await uploadRes.json()
+        
+        if (uploadData.success) {
+          const fileUrl = uploadData.url
+
+          // 2. Guardar en Base de Datos
+          const dbRes = await fetch('/api/mobile/documents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: user.id,
+              name: doc.name,
+              file_url: fileUrl
+            })
+          })
+          const dbData = await dbRes.json()
+
+          if (dbData.success) {
+            setDocuments(prev => prev.map(d => 
+              d.id === activeDocId ? { ...d, fileName: fileUrl } : d
+            ))
+            toast({ title: "Éxito", description: "Documento subido correctamente" })
+          } else {
+            toast({ title: "Error", description: "Error al guardar el documento", variant: 'destructive' })
+          }
+        } else {
+          toast({ title: "Error", description: "Error al subir el archivo", variant: 'destructive' })
+        }
+      } catch (err) {
+        console.error(err)
+        toast({ title: "Error", description: "Error de conexión", variant: 'destructive' })
+      } finally {
         setUploadingId(null)
-        toast({ title: "Éxito", description: "Documento subido correctamente" })
-      }, 1000)
+      }
     }
     // Reset input
     if (fileInputRef.current) {
@@ -145,8 +183,9 @@ export default function MobileProfilePage() {
             alt="AS Operadora"
             className="h-10 object-contain invert" // Aplicamos invert de forma provisional para forzar logo blanco
             onError={(e) => {
-              const target = e.target as HTMLImageElement
-              target.src = "/logo.png"
+              const target = e.target as HTMLImageElement;
+              target.onerror = null;
+              target.src = "/logo-white.png";
             }}
           />
 

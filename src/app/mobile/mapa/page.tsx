@@ -4,6 +4,12 @@ import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Search, SlidersHorizontal, ArrowLeft, MapPin, Compass, Landmark, Coffee, BadgeHelp, Navigation } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api'
+
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%'
+};
 
 interface Place {
   id: number
@@ -22,6 +28,10 @@ export default function MobileMapPage() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
   const [locError, setLocError] = useState<string | null>(null)
+
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || "",
+  })
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -147,38 +157,46 @@ export default function MobileMapPage() {
         })}
       </div>
 
-      {/* Interactive Map Canvas Wrapper (Static Premium Map representation) */}
+      {/* Interactive Map Canvas Wrapper */}
       <div className="flex-1 w-full bg-slate-200 relative overflow-hidden">
-        {/* Real Interactive OpenStreetMap or dynamic layout representation */}
-        {userLocation ? (
-          <iframe
-            src={`https://maps.google.com/maps?q=${userLocation.lat},${userLocation.lng}&hl=es&z=15&output=embed`}
-            className="w-full h-full border-0 absolute inset-0"
-            allowFullScreen={false}
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 absolute inset-0 bg-slate-200">
+        {!isLoaded || !userLocation ? (
+          <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 absolute inset-0 bg-slate-200 z-10">
             <Compass className="w-8 h-8 animate-spin mb-2" />
-            <span className="text-sm font-bold">Obteniendo tu ubicación GPS...</span>
+            <span className="text-sm font-bold">{!isLoaded ? 'Cargando mapas...' : 'Obteniendo tu ubicación GPS...'}</span>
           </div>
-        )}
-
-
-        {/* Visual Map Pin Icons overlapping (Representing places list for quick touch) */}
-        {filteredPlaces.map((place) => (
-          <button
-            key={place.id}
-            onClick={() => setSelectedPlace(place)}
-            className="absolute z-10 w-8 h-8 bg-black hover:bg-blue-600 active:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-2xl transition-all border border-white"
-            style={{
-              top: `${40 + place.id * 8}%`,
-              left: `${30 + place.id * 12}%`
+        ) : (
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            zoom={15}
+            center={userLocation}
+            options={{
+              disableDefaultUI: true,
+              zoomControl: false,
             }}
           >
-            <MapPin className="w-4 h-4" />
-          </button>
-        ))}
+            {/* User Location Marker */}
+            <Marker 
+              position={userLocation} 
+              icon={{
+                url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+              }}
+            />
+
+            {/* Places Markers */}
+            {filteredPlaces.map((place) => (
+              <Marker
+                key={place.id}
+                position={{ lat: place.lat, lng: place.lng }}
+                onClick={() => setSelectedPlace(place)}
+                icon={{
+                  url: selectedPlace?.id === place.id 
+                    ? 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+                    : 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+                }}
+              />
+            ))}
+          </GoogleMap>
+        )}
       </div>
 
       {/* Dynamic Detail Bottom Drawer */}

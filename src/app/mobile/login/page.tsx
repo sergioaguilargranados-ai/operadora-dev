@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,7 +23,8 @@ export default function MobileLoginPage() {
   useEffect(() => {
     const fetchMobileContent = async () => {
       try {
-        const res = await fetch("/api/mobile/content?tenant_id=1")
+        const timestamp = new Date().getTime()
+        const res = await fetch(`/api/mobile/content?tenant_id=1&t=${timestamp}`, { cache: 'no-store' })
         const data = await res.json()
         if (data.success && data.data) {
           setMobileContent(data.data)
@@ -74,8 +75,9 @@ export default function MobileLoginPage() {
             alt={companyName || "AS Operadora"}
             className="h-20 object-contain mb-4"
             onError={(e) => {
-              const target = e.target as HTMLImageElement
-              target.src = "/logo.png" // Fallback logo
+              const target = e.target as HTMLImageElement;
+              target.onerror = null;
+              target.src = "/icons/icon-192x192.png";
             }}
           />
         </div>
@@ -194,6 +196,31 @@ export default function MobileLoginPage() {
             </Button>
           </div>
         </form>
+
+        {/* Documentos Oficiales */}
+        {(mobileContent?.sections_json?.docs?.terms_url || mobileContent?.sections_json?.docs?.privacy_url || mobileContent?.sections_json?.docs?.loyalty_url) && (
+          <div className="mt-8 flex flex-col items-center gap-2">
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Documentos Oficiales</h4>
+            <div className="flex flex-wrap justify-center gap-4 text-xs font-medium">
+              {mobileContent?.sections_json?.docs?.terms_url && (
+                <a href={mobileContent?.sections_json?.docs?.terms_url} target="_blank" rel="noopener noreferrer" className="text-[#0066FF] hover:underline flex items-center gap-1">
+                  Términos y Condiciones
+                </a>
+              )}
+              {mobileContent?.sections_json?.docs?.privacy_url && (
+                <a href={mobileContent?.sections_json?.docs?.privacy_url} target="_blank" rel="noopener noreferrer" className="text-[#0066FF] hover:underline flex items-center gap-1">
+                  Aviso de Privacidad
+                </a>
+              )}
+              {mobileContent?.sections_json?.docs?.loyalty_url && (
+                <a href={mobileContent?.sections_json?.docs?.loyalty_url} target="_blank" rel="noopener noreferrer" className="text-[#0066FF] hover:underline flex items-center gap-1">
+                  Programa de Lealtad
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* Bottom Image (Santorini) */}

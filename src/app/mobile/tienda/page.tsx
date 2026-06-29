@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation"
 import { ChevronLeft, Bell, ShoppingCart, Search, SlidersHorizontal, ShoppingBag, Heart, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
+import { useCart } from "@/contexts/CartContext"
 
 export default function MobileStorePage() {
   const router = useRouter()
   const { logoDarkUrl } = useWhiteLabel() // Usamos el logo oscuro para el header claro o invertimos el logo blanco
+  const { addToCart, cartCount } = useCart()
   const [search, setSearch] = useState("")
   const [activeCategory, setActiveCategory] = useState("Todos")
   const [products, setProducts] = useState<any[]>([])
@@ -61,8 +63,13 @@ export default function MobileStorePage() {
             <button onClick={() => router.push('/mobile/notificaciones')} className="text-white hover:text-gray-300">
               <Bell className="w-6 h-6" />
             </button>
-            <button onClick={() => router.push('/mobile/tienda/carrito')} className="text-white hover:text-gray-300">
+            <button onClick={() => router.push('/mobile/tienda/carrito')} className="text-white hover:text-gray-300 relative">
               <ShoppingCart className="w-6 h-6" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -165,7 +172,10 @@ export default function MobileStorePage() {
                         <span className="font-bold text-black text-sm">${product.price}</span>
                       )}
                     </div>
-                    <button className="w-8 h-8 bg-black text-white rounded-xl flex items-center justify-center">
+                    <button 
+                      onClick={() => addToCart(product)}
+                      className="w-8 h-8 bg-black text-white rounded-xl flex items-center justify-center active:scale-95 transition-transform"
+                    >
                       <ShoppingCart className="w-4 h-4" />
                     </button>
                   </div>

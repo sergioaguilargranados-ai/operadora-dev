@@ -18,7 +18,8 @@ import {
     Users,
     BookUser,
     Settings,
-    HelpCircle
+    HelpCircle,
+    Building2
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -123,11 +124,20 @@ export function UserMenu() {
                                     Centro de Comunicación
                                 </button>
 
-                                {/* Opciones CRM y RRHH */}
+                                {/* Opciones CRM, RRHH y Agencia */}
                                 {user.role && ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENCY_ADMIN', 'AGENT', 'HR_MANAGER'].includes(user.role) && (
                                     <>
                                         <div className="border-t my-2"></div>
                                         <p className="px-4 py-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Módulos</p>
+                                        
+                                        <button
+                                            onClick={() => { router.push('/dashboard/agency'); setShowUserMenu(false) }}
+                                            className="w-full px-4 py-2 text-left hover:bg-indigo-50 flex items-center gap-3"
+                                        >
+                                            <Building2 className="w-4 h-4 text-indigo-600" />
+                                            <span className="text-indigo-700 font-medium">Panel de Agencias</span>
+                                        </button>
+                                        
                                         <button
                                             onClick={() => { router.push('/dashboard/crm'); setShowUserMenu(false) }}
                                             className="w-full px-4 py-2 text-left hover:bg-blue-50 flex items-center gap-3"
@@ -135,6 +145,7 @@ export function UserMenu() {
                                             <Target className="w-4 h-4 text-blue-600" />
                                             <span className="text-blue-700 font-medium">CRM — Leads & Clientes</span>
                                         </button>
+                                        
                                         <button
                                             onClick={() => { router.push('/dashboard/crm/clientes'); setShowUserMenu(false) }}
                                             className="w-full px-4 py-2 text-left hover:bg-teal-50 flex items-center gap-3"
@@ -142,6 +153,7 @@ export function UserMenu() {
                                             <BookUser className="w-4 h-4 text-teal-600" />
                                             <span className="text-teal-700 font-medium">Catálogo de Clientes</span>
                                         </button>
+                                        
                                         <button
                                             onClick={() => { router.push('/dashboard/rrhh'); setShowUserMenu(false) }}
                                             className="w-full px-4 py-2 text-left hover:bg-emerald-50 flex items-center gap-3"

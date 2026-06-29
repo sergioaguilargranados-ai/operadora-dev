@@ -20,7 +20,8 @@ export default function MobileHomePage() {
   useEffect(() => {
     const fetchMobileContent = async () => {
       try {
-        const res = await fetch("/api/mobile/content?tenant_id=1")
+        const timestamp = new Date().getTime()
+        const res = await fetch(`/api/mobile/content?tenant_id=1&t=${timestamp}`, { cache: 'no-store' })
         const data = await res.json()
         if (data.success && data.data) {
           setMobileContent(data.data)

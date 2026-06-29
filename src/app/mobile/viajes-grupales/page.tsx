@@ -106,7 +106,7 @@ export default function MobileGroupsPage() {
         setIsDialogOpen(false)
         
         // Aquí se construiría la URL real para compartir
-        const baseMessage = mobileContent?.sections_json?.invitation_text || "¡Únete a mi próximo viaje! Descarga la app y regístrate."
+        const baseMessage = mobileContent?.sections_json?.invitation?.message || "¡Únete a mi próximo viaje! Descarga la app y regístrate."
         const fullMessage = formData.personal_message ? `${formData.personal_message}\n\n${baseMessage}` : baseMessage
         
         // Simular apertura de app nativa
@@ -140,6 +140,17 @@ export default function MobileGroupsPage() {
           <Bell className="w-6 h-6" />
         </button>
       </div>
+
+      {/* Promotional Banner from CMS */}
+      {mobileContent?.sections_json?.invitation?.image_url && (
+        <div className="px-4 mt-2 mb-2">
+          <img 
+            src={mobileContent.sections_json.invitation.image_url} 
+            alt="Promoción Viaje" 
+            className="w-full h-40 object-cover rounded-3xl shadow-sm border border-gray-100"
+          />
+        </div>
+      )}
 
       {/* Title */}
       <div className="px-6 pt-4 pb-8">

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageUploadInput } from "@/components/admin/ImageUploadInput";
 import { useAuth } from "@/contexts/AuthContext";
-import { Save, Layout, Phone, Mail, FileText, Smartphone, List, Gift, HelpCircle, Plus, Trash2, Video, Image as ImageIcon } from "lucide-react";
+import { Save, Layout, Phone, Mail, FileText, Smartphone, List, Gift, HelpCircle, Plus, Trash2, Video, Image as ImageIcon, CreditCard } from "lucide-react";
 
 export function MobileAppContentManager({ showToast }: { showToast: (msg: string, type: 'success' | 'error') => void }) {
   const { user } = useAuth();
@@ -407,26 +407,26 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
           <p className="text-xs text-gray-500 mb-2">Sube los documentos en PDF. Serán visibles en el Login y el Menú de la App Móvil.</p>
           <div>
             <label className="text-sm font-medium mb-1 block">Términos y Condiciones</label>
-            <Input 
+            <ImageUploadInput 
               value={content.sections_json?.docs?.terms_url || ''} 
-              onChange={e => updateSection('docs', 'terms_url', e.target.value)}
-              placeholder="https://blob.../terminos.pdf"
+              onChange={val => updateSection('docs', 'terms_url', val)}
+              placeholder="Subir PDF o pegar URL..."
             />
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">Aviso de Privacidad</label>
-            <Input 
+            <ImageUploadInput 
               value={content.sections_json?.docs?.privacy_url || ''} 
-              onChange={e => updateSection('docs', 'privacy_url', e.target.value)}
-              placeholder="https://blob.../privacidad.pdf"
+              onChange={val => updateSection('docs', 'privacy_url', val)}
+              placeholder="Subir PDF o pegar URL..."
             />
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">Programa de Lealtad (Términos)</label>
-            <Input 
+            <ImageUploadInput 
               value={content.sections_json?.docs?.loyalty_url || ''} 
-              onChange={e => updateSection('docs', 'loyalty_url', e.target.value)}
-              placeholder="https://blob.../lealtad.pdf"
+              onChange={val => updateSection('docs', 'loyalty_url', val)}
+              placeholder="Subir PDF o pegar URL..."
             />
           </div>
         </Card>
@@ -454,6 +454,63 @@ export function MobileAppContentManager({ showToast }: { showToast: (msg: string
               onChange={val => updateSection('invitation', 'image_url', val)}
               placeholder="Subir imagen de promoción..."
             />
+          </div>
+        </Card>
+      </div>
+
+      {/* INSTRUCCIONES DE PAGO */}
+      <div className="grid grid-cols-1 mt-6">
+        <Card className="p-6 border-gray-200 space-y-4">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 border-b pb-2">
+            <CreditCard className="w-5 h-5 text-gray-500" />
+            Instrucciones de Pago (Transferencia / Depósito)
+          </h3>
+          <p className="text-xs text-gray-500 mb-2">Configura los datos bancarios y las instrucciones que los clientes verán en la PWA al querer realizar un pago manual.</p>
+          
+          <div>
+            <label className="text-sm font-medium mb-1 block">Instrucciones / Mensaje Principal</label>
+            <textarea 
+              rows={2}
+              value={content.sections_json?.payment_instructions?.instructions_text || ''} 
+              onChange={e => updateSection('payment_instructions', 'instructions_text', e.target.value)}
+              placeholder="Ej: Realiza tu transferencia a la siguiente cuenta y envía tu comprobante..."
+              className="w-full border border-gray-300 rounded-md p-2 text-sm"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Nombre del Banco</label>
+              <Input 
+                value={content.sections_json?.payment_instructions?.bank_name || ''} 
+                onChange={e => updateSection('payment_instructions', 'bank_name', e.target.value)}
+                placeholder="Ej: BBVA"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Número de Cuenta</label>
+              <Input 
+                value={content.sections_json?.payment_instructions?.account_number || ''} 
+                onChange={e => updateSection('payment_instructions', 'account_number', e.target.value)}
+                placeholder="Ej: 0123456789"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">CLABE Interbancaria</label>
+              <Input 
+                value={content.sections_json?.payment_instructions?.clabe || ''} 
+                onChange={e => updateSection('payment_instructions', 'clabe', e.target.value)}
+                placeholder="Ej: 012345678901234567"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Referencia o Beneficiario</label>
+              <Input 
+                value={content.sections_json?.payment_instructions?.reference || ''} 
+                onChange={e => updateSection('payment_instructions', 'reference', e.target.value)}
+                placeholder="Ej: AS Operadora SA de CV"
+              />
+            </div>
           </div>
         </Card>
       </div>

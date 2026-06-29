@@ -6,27 +6,15 @@ import { ChevronLeft, Trash2, ShieldCheck, ArrowRight, Loader2, CreditCard, Shop
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
+import { useCart } from "@/contexts/CartContext"
 
 export default function MobileCartPage() {
   const router = useRouter()
   const { user } = useAuth()
   const { toast } = useToast()
+  const { cart: cartItems, cartTotal: total, removeFromCart, clearCart } = useCart()
   const [loading, setLoading] = useState(false)
   const [cardNumber, setCardNumber] = useState("")
-  
-  // En un caso real esto viene del Context de Carrito o LocalStorage
-  // Aquí usamos un estado de prueba para simular
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1, // ID de producto real
-      name: "Maleta de cabina AS Original",
-      price: 2199.00,
-      quantity: 1,
-      image_url: "https://images.unsplash.com/photo-1553531384-cc64ac80f931?auto=format&fit=crop&w=300&q=80"
-    }
-  ])
-
-  const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0)
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,7 +38,7 @@ export default function MobileCartPage() {
       const data = await res.json()
       if (data.success) {
         toast({ title: "Pedido Confirmado", description: "Tu compra se ha procesado con éxito" })
-        setCartItems([])
+        clearCart()
         setTimeout(() => {
           router.push("/mobile/tienda")
         }, 1500)
@@ -101,7 +89,10 @@ export default function MobileCartPage() {
                     <p className="text-xs text-gray-500 mb-auto">Cantidad: {item.quantity}</p>
                     <div className="flex justify-between items-center mt-2">
                       <span className="font-bold text-black">${item.price.toFixed(2)}</span>
-                      <button className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => removeFromCart(item.id)}
+                        className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>

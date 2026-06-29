@@ -28,7 +28,7 @@ export function ImageUploadInput({ value, onChange, placeholder, className, requ
       />
       <input
         type="file"
-        accept="image/*,video/*"
+        accept="image/*,video/*,application/pdf"
         className="hidden"
         id={`file-upload-${id}`}
         onChange={async (e) => {

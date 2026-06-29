@@ -2,20 +2,24 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Briefcase, Loader2, AlertTriangle, Info } from "lucide-react"
+import { ChevronLeft, Briefcase, Loader2, AlertTriangle, Info, MessageCircle } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function MobileBaggageHelpPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [baggageText, setBaggageText] = useState("")
+  const [helpPhone, setHelpPhone] = useState("")
 
   useEffect(() => {
     const fetchContent = async () => {
       try {
         const res = await fetch('/api/mobile/content')
         const data = await res.json()
-        if (data.success && data.data?.sections_json?.baggage_text) {
-          setBaggageText(data.data.sections_json.baggage_text)
+        if (data.success && data.data) {
+          setBaggageText(data.data?.sections_json?.baggage_text || "Si tienes problemas con tu equipaje, por favor contacta al mostrador de la aerolínea en el aeropuerto o comunícate con nuestro Call Center para recibir asistencia especializada.")
+          setHelpPhone(data.data.help_phone || "")
         } else {
           setBaggageText("Si tienes problemas con tu equipaje, por favor contacta al mostrador de la aerolínea en el aeropuerto o comunícate con nuestro Call Center para recibir asistencia especializada.")
         }
@@ -69,6 +73,20 @@ export default function MobileBaggageHelpPage() {
             <p className="text-xs text-gray-600 leading-relaxed">Conserva siempre a la mano tus etiquetas de reclamo de equipaje (baggage claim tags) entregadas por la aerolínea.</p>
           </div>
         </div>
+
+        {helpPhone && (
+          <button
+            onClick={() => {
+              const message = `Hola, soy ${user?.name || 'un cliente'}. Tengo un problema con mi equipaje y necesito asistencia. Mi correo es ${user?.email || ''}.`;
+              const url = `https://wa.me/${helpPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+              window.open(url, '_blank');
+            }}
+            className="w-full mt-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl p-4 flex items-center justify-center gap-2 font-bold shadow-sm transition-all"
+          >
+            <MessageCircle className="w-6 h-6" />
+            Contactar por WhatsApp
+          </button>
+        )}
       </div>
     </div>
   )

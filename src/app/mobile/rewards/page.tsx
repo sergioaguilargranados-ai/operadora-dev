@@ -1,14 +1,89 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Bell, Gift, Compass, Trophy, MapPin, Play, Droplets, Sun, Briefcase, Medal, Footprints, Target, Map } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
+import { ChevronLeft, Bell, Gift, Compass, MapPin, Play, Droplets, Sun, Briefcase, Footprints, Video, Image as ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function MobileRewardsPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<'pasos' | 'invita'>('pasos')
   
+  const [rewardsSteps, setRewardsSteps] = useState<any[]>([])
+  const [progress, setProgress] = useState(0)
+  const [loading, setLoading] = useState(true)
+  
+  const MAX_STEPS = 10000 // Meta principal configurable
+
+  useEffect(() => {
+    if (user) {
+      loadData()
+    }
+  }, [user])
+
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      const tId = user?.tenant_id || 1
+      const [resRewards, resProgress] = await Promise.all([
+        fetch(`/api/mobile/rewards?tenant_id=${tId}`),
+        fetch(`/api/mobile/rewards/progress?user_id=${user?.id}&tenant_id=${tId}`)
+      ])
+      
+      const dataRewards = await resRewards.json()
+      const dataProgress = await resProgress.json()
+
+      if (dataRewards.success) {
+        setRewardsSteps(dataRewards.data || [])
+      }
+
+      if (dataProgress.success) {
+        setProgress(dataProgress.data.current_steps || 0)
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddSteps = async (points: number, locationName: string) => {
+    if (!user) return
+    try {
+      // Optimistic update
+      setProgress(prev => prev + points)
+      
+      const res = await fetch('/api/mobile/rewards/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          tenant_id: user.tenant_id,
+          add_steps: points,
+          location_name: locationName
+        })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setProgress(data.data.current_steps)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  // Calculate percentage
+  const percentage = Math.min((progress / MAX_STEPS) * 100, 100)
+  const circleOffset = 226 - (226 * percentage) / 100
+
+  // Distribución dinámica de pasos según la cantidad de premios
+  const getStepThreshold = (index: number) => {
+    const stepSize = Math.floor(MAX_STEPS / (rewardsSteps.length || 1))
+    return stepSize * (index + 1)
+  }
+
   return (
     <div className="min-h-screen bg-[#FDFDFD] pb-24 font-sans">
       
@@ -62,7 +137,7 @@ export default function MobileRewardsPage() {
 
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* LEFT COLUMN (In Desktop) / TOP COLUMN (In Mobile) */}
+          {/* LEFT COLUMN */}
           <div className="space-y-6">
             
             {/* Progress Section */}
@@ -72,7 +147,7 @@ export default function MobileRewardsPage() {
                 <div className="relative w-20 h-20 flex-shrink-0">
                   <svg className="w-full h-full transform -rotate-90">
                     <circle cx="40" cy="40" r="36" className="stroke-gray-100" strokeWidth="8" fill="transparent" />
-                    <circle cx="40" cy="40" r="36" className="stroke-green-600" strokeWidth="8" fill="transparent" strokeDasharray="226" strokeDashoffset="203.4" strokeLinecap="round" />
+                    <circle cx="40" cy="40" r="36" className="stroke-green-600 transition-all duration-1000 ease-out" strokeWidth="8" fill="transparent" strokeDasharray="226" strokeDashoffset={circleOffset} strokeLinecap="round" />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Footprints className="w-6 h-6 text-green-600" />
@@ -80,78 +155,78 @@ export default function MobileRewardsPage() {
                 </div>
                 <div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-xl font-bold text-green-600">1,000</span>
-                    <span className="text-sm font-medium text-gray-500">/ 10,000 pasos</span>
+                    <span className="text-xl font-bold text-green-600">{progress.toLocaleString()}</span>
+                    <span className="text-sm font-medium text-gray-500">/ {MAX_STEPS.toLocaleString()} pasos</span>
                   </div>
-                  <p className="text-xs font-bold text-gray-900 mt-1 mb-1">10% completado</p>
+                  <p className="text-xs font-bold text-gray-900 mt-1 mb-1">{Math.floor(percentage)}% completado</p>
                   <p className="text-[10px] text-gray-500 leading-tight">Sigue caminando para desbloquear nuevas recompensas.</p>
                 </div>
               </div>
-              <Button className="w-full bg-black hover:bg-gray-900 text-white font-medium rounded-xl h-12">
-                Ver recompensas
-              </Button>
             </div>
 
             <hr className="border-gray-100" />
 
-            {/* Camina y gana */}
+            {/* Camina y gana (CMS Rewards) */}
             <div>
               <h2 className="text-lg font-serif font-bold text-gray-900 mb-1">Camina y gana</h2>
-              <p className="text-xs text-gray-500 mb-4 leading-tight">Durante tu viaje acumula pasos para desbloquear beneficios exclusivos.</p>
+              <p className="text-xs text-gray-500 mb-4 leading-tight">Beneficios configurados desde el CMS.</p>
               
-              <div className="space-y-4">
-                <RewardItem steps="2,500" reward="5% de descuento en actividades" active={false} />
-                <RewardItem steps="5,000" reward="Souvenir digital exclusivo" active={false} />
-                <RewardItem steps="7,500" reward="Cupón de $50 MXN" active={false} />
-                <RewardItem steps="10,000" reward="Cupón de $100 MXN" active={false} />
-                <RewardItem steps="25,000" reward="Beneficio especial AS" active={false} />
-              </div>
+              {loading ? (
+                <p className="text-sm text-gray-400 py-4">Cargando recompensas...</p>
+              ) : (
+                <div className="space-y-4">
+                  {rewardsSteps.length === 0 ? (
+                    <p className="text-sm text-gray-400 py-2">No hay recompensas configuradas.</p>
+                  ) : (
+                    rewardsSteps.map((step, idx) => {
+                      const reqSteps = getStepThreshold(idx)
+                      const isActive = progress >= reqSteps
+                      return (
+                        <div key={idx} className="space-y-2">
+                          <RewardItem 
+                            steps={`${reqSteps.toLocaleString()} pasos`} 
+                            reward={step.title} 
+                            desc={step.description}
+                            active={isActive} 
+                          />
+                          {/* Media Assets from CMS */}
+                          {(step.image_url || step.video_url) && (
+                            <div className="ml-11 flex gap-2 overflow-x-auto pb-1">
+                              {step.image_url && (
+                                <div className="h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden border">
+                                  <img src={step.image_url} alt="Premio" className="w-full h-full object-cover" />
+                                </div>
+                              )}
+                              {step.video_url && (
+                                <div className="h-16 w-24 flex-shrink-0 bg-gray-900 rounded-lg flex flex-col justify-center items-center relative overflow-hidden">
+                                  <Play className="w-5 h-5 text-white/80 z-10" fill="white" />
+                                  <video src={step.video_url} className="absolute inset-0 w-full h-full object-cover opacity-50" />
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              )}
             </div>
-
             <hr className="border-gray-100" />
-
-            {/* Estadísticas */}
-            <div>
-              <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Estadísticas del viaje</h2>
-              <div className="space-y-3">
-                <StatItem icon={<Footprints className="w-4 h-4"/>} label="Pasos de hoy" value="1,000" />
-                <StatItem icon={<Compass className="w-4 h-4"/>} label="Pasos acumulados" value="8,450" />
-                <StatItem icon={<MapPin className="w-4 h-4"/>} label="Ciudades visitadas" value="3" />
-                <StatItem icon={<Map className="w-4 h-4"/>} label="Monumentos explorados" value="7" />
-                <StatItem icon={<Briefcase className="w-4 h-4"/>} label="Museos visitados" value="2" />
-              </div>
-            </div>
-
-            <hr className="border-gray-100" />
-
-            {/* Insignias */}
-            <div>
-              <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Insignias obtenidas</h2>
-              <div className="space-y-4">
-                <BadgeItem icon="🏅" title="Explorador" desc="Has recorrido más de 5,000 pasos." active={true} />
-                <BadgeItem icon="🥈" title="Aventurero" desc="Visitaste 3 puntos de interés." active={false} />
-                <BadgeItem icon="🔒" title="Maestro Viajero" desc="Completa 25,000 pasos." active={false} />
-                <BadgeItem icon="🔒" title="Leyenda AS" desc="Completa todos los retos del viaje." active={false} />
-              </div>
-            </div>
-
           </div>
 
-          {/* RIGHT COLUMN (In Desktop) / BOTTOM COLUMN (In Mobile) */}
+          {/* RIGHT COLUMN */}
           <div className="space-y-6 mt-2 md:mt-0">
             
-            {/* Suma más pasos */}
+            {/* Suma más pasos (Interactividad) */}
             <div>
-              <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Suma más pasos</h2>
+              <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Suma más pasos (Demo Interactivo)</h2>
+              <p className="text-xs text-gray-500 mb-4">Haz clic para enviar el progreso a la base de datos.</p>
               <div className="grid grid-cols-1 gap-3 mb-4">
-                <PlaceItem img="https://images.unsplash.com/photo-1590483868205-d91d96078696?auto=format&fit=crop&w=150&q=80" name="Museo Arqueológico" steps="+500" />
-                <PlaceItem img="https://images.unsplash.com/photo-1549474776-6644ee7890bc?auto=format&fit=crop&w=150&q=80" name="Plaza Principal" steps="+800" />
-                <PlaceItem img="https://images.unsplash.com/photo-1574347713437-080c98e217d1?auto=format&fit=crop&w=150&q=80" name="Monumento Histórico" steps="+1,200" />
-                <PlaceItem img="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=150&q=80" name="Mercado Local" steps="+600" />
+                <PlaceItem img="https://images.unsplash.com/photo-1590483868205-d91d96078696?auto=format&fit=crop&w=150&q=80" name="Museo Arqueológico" points={500} onAdd={() => handleAddSteps(500, 'Museo Arqueológico')} />
+                <PlaceItem img="https://images.unsplash.com/photo-1549474776-6644ee7890bc?auto=format&fit=crop&w=150&q=80" name="Plaza Principal" points={800} onAdd={() => handleAddSteps(800, 'Plaza Principal')} />
+                <PlaceItem img="https://images.unsplash.com/photo-1574347713437-080c98e217d1?auto=format&fit=crop&w=150&q=80" name="Monumento Histórico" points={1200} onAdd={() => handleAddSteps(1200, 'Monumento Histórico')} />
               </div>
-              <Button className="w-full bg-black hover:bg-gray-900 text-white font-medium rounded-xl h-12">
-                Ver en mapa
-              </Button>
             </div>
 
             <hr className="border-gray-100" />
@@ -162,39 +237,8 @@ export default function MobileRewardsPage() {
               <div className="space-y-4">
                 <RecItem icon={<Droplets className="w-6 h-6 text-green-600"/>} bg="bg-green-50" title="Hidrátate" desc="Bebe suficiente agua durante todo el día." />
                 <RecItem icon={<Sun className="w-6 h-6 text-yellow-600"/>} bg="bg-yellow-50" title="Protege tu piel" desc="Usa protector solar y reaplica cada 3 horas." />
-                <RecItem icon={<Briefcase className="w-6 h-6 text-green-600"/>} bg="bg-green-50" title="Lleva tus medicamentos" desc="No olvides tus medicamentos personales y receta médica." />
               </div>
             </div>
-
-            <hr className="border-gray-100" />
-
-            {/* Qué empacar */}
-            <div>
-              <h2 className="text-lg font-serif font-bold text-gray-900 mb-1">¿Qué empacar?</h2>
-              <p className="text-xs text-gray-500 mb-4">Lista básica para tu viaje</p>
-              <div className="space-y-2 mb-6">
-                {['Pasaporte / Identificación', 'Tarjetas de crédito / Efectivo', 'Ropa y calzado cómodo', 'Protector solar', 'Gafas de sol', 'Cargador de celular', 'Cepillo y pasta dental', 'Medicamentos personales', 'Cámara o celular', 'Botella de agua reutilizable'].map((item, i) => (
-                  <label key={i} className="flex items-center gap-3 cursor-pointer">
-                    <div className="w-4 h-4 rounded-full border border-gray-300 flex-shrink-0" />
-                    <span className="text-[11px] font-medium text-gray-700">{item}</span>
-                  </label>
-                ))}
-              </div>
-
-              <div className="bg-green-50 rounded-2xl p-3 flex items-center justify-between cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center flex-shrink-0">
-                    <Play className="w-4 h-4 text-white ml-0.5" fill="white" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-xs">Cómo empacar</h4>
-                    <p className="text-[10px] text-gray-500 leading-tight mt-0.5">Mira el video y viaja preparado como un experto.</p>
-                  </div>
-                </div>
-                <ChevronLeft className="w-4 h-4 text-gray-400 rotate-180" />
-              </div>
-            </div>
-
           </div>
         </div>
       </div>
@@ -210,59 +254,39 @@ function UsersIcon({ className }: { className: string }) {
   )
 }
 
-function RewardItem({ steps, reward, active }: { steps: string, reward: string, active: boolean }) {
+function RewardItem({ steps, reward, desc, active }: { steps: string, reward: string, desc?: string, active: boolean }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className={`w-8 h-8 rounded-full border border-green-200 flex items-center justify-center flex-shrink-0 ${active ? 'bg-green-600 text-white' : 'bg-transparent text-green-600'}`}>
+    <div className="flex items-start gap-3">
+      <div className={`w-8 h-8 rounded-full border border-green-200 flex items-center justify-center flex-shrink-0 mt-1 ${active ? 'bg-green-600 text-white' : 'bg-transparent text-green-600'}`}>
         <Gift className="w-4 h-4" />
       </div>
-      <div className="flex-1 flex justify-between items-center">
-        <span className="text-xs font-bold text-gray-900">{steps} pasos</span>
-        <span className="text-[10px] text-gray-500">{reward}</span>
-      </div>
-    </div>
-  )
-}
-
-function StatItem({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
-  return (
-    <div className="flex justify-between items-center">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center">
-          {icon}
+      <div className="flex-1">
+        <div className="flex justify-between items-center mb-0.5">
+          <span className="text-xs font-bold text-gray-900">{steps}</span>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+            {active ? 'Desbloqueado' : 'Bloqueado'}
+          </span>
         </div>
-        <span className="text-xs font-bold text-gray-700">{label}</span>
-      </div>
-      <span className="text-xs font-bold text-gray-900">{value}</span>
-    </div>
-  )
-}
-
-function BadgeItem({ icon, title, desc, active }: { icon: string, title: string, desc: string, active: boolean }) {
-  return (
-    <div className="flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${active ? 'bg-orange-100' : 'bg-gray-100 opacity-50 grayscale'}`}>
-        {icon}
-      </div>
-      <div>
-        <h4 className="font-bold text-gray-900 text-sm">{title}</h4>
-        <p className="text-[10px] text-gray-500 mt-0.5">{desc}</p>
+        <p className="text-sm font-bold text-black leading-tight">{reward}</p>
+        {desc && <p className="text-[10px] text-gray-500 mt-1 leading-tight">{desc}</p>}
       </div>
     </div>
   )
 }
 
-function PlaceItem({ img, name, steps }: { img: string, name: string, steps: string }) {
+function PlaceItem({ img, name, points, onAdd }: { img: string, name: string, points: number, onAdd: () => void }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-gray-200">
+    <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-2xl border border-gray-100">
+      <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gray-200">
         <img src={img} alt={name} className="w-full h-full object-cover" />
       </div>
       <div className="flex-1">
         <h4 className="font-bold text-gray-900 text-sm leading-tight">{name}</h4>
-        <p className="text-[10px] text-gray-500 mt-0.5">{steps} pasos estimados</p>
+        <p className="text-[10px] font-semibold text-green-600 mt-0.5">+{points} pasos</p>
       </div>
-      <MapPin className="w-4 h-4 text-gray-400" />
+      <Button size="sm" onClick={onAdd} className="bg-black hover:bg-gray-800 text-white h-8 rounded-xl px-4 text-xs font-bold active:scale-95 transition-transform">
+        Sumar
+      </Button>
     </div>
   )
 }
