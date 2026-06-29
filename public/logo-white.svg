@@ -1,0 +1,35 @@
+<svg width="600" height="240" viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600&amp;family=Montserrat:wght@500;600;700&amp;display=swap');
+      .main {
+        font-family: 'Playfair Display', serif;
+        font-size: 130px;
+        font-weight: 500;
+        fill: #FFFFFF;
+        text-anchor: middle;
+        letter-spacing: -3px;
+      }
+      .sub1 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 6px;
+        fill: #FFFFFF;
+        text-anchor: middle;
+      }
+      .sub2 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 6px;
+        fill: #FFFFFF;
+        text-anchor: middle;
+      }
+    </style>
+  </defs>
+  
+  <text x="300" y="140" class="main">AS</text>
+  <text x="300" y="190" class="sub1">OPERADORA DE</text>
+  <text x="300" y="215" class="sub2">VIAJES Y EVENTOS</text>
+</svg>
