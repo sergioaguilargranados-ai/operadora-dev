@@ -33,7 +33,7 @@ export default function MobileHelpPage() {
     setIsContacting(true)
     setContactMessage("En breve le contactan para brindarle ayuda.")
     
-    const name = user?.first_name || user?.name || 'Cliente'
+    const name = (user as any)?.first_name || user?.name || 'Cliente'
     const phone = user?.phone || ''
     const msg = encodeURIComponent(`Hola, soy ${name}${phone ? ` (Tel: ${phone})` : ''}. Solicito ayuda del Call Center.`)
     

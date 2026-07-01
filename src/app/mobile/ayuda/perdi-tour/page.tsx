@@ -80,7 +80,7 @@ export default function LostTourHelpPage() {
             {helpPhone && (
               <button
                 onClick={() => {
-                  const message = `Hola, soy ${user?.name || user?.first_name || 'un cliente'}. Necesito ayuda, perdí mi tour o traslado. Mi correo es ${user?.email || ''}.`;
+                  const message = `Hola, soy ${user?.name || (user as any)?.first_name || 'un cliente'}. Necesito ayuda, perdí mi tour o traslado. Mi correo es ${user?.email || ''}.`;
                   const url = `https://wa.me/${helpPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
                   window.open(url, '_blank');
                 }}
