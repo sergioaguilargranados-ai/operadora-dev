@@ -43,24 +43,6 @@ export default function MobileHelpPage() {
     }, 2500)
   }
 
-  const handleLostItinerary = async () => {
-    if (!user) {
-      router.push('/mobile/itinerario')
-      return
-    }
-    try {
-      const res = await fetch(`/api/mobile/itinerary/today?userId=${user.id}`)
-      const data = await res.json()
-      if (data.success && data.tour_id) {
-        router.push(`/mobile/itinerario/${data.tour_id}/dia/${data.dayIndex}`)
-      } else {
-        router.push('/mobile/itinerario')
-      }
-    } catch (e) {
-      router.push('/mobile/itinerario')
-    }
-  }
-
   return (
     <div className="min-h-screen bg-[#FDFDFD] pb-24 font-sans">
       
@@ -133,7 +115,7 @@ export default function MobileHelpPage() {
           </div>
 
           <div 
-            onClick={handleLostItinerary}
+            onClick={() => router.push('/mobile/ayuda/perdi-tour')}
             className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all"
           >
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -174,21 +156,7 @@ export default function MobileHelpPage() {
             <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
           </div>
 
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all">
-            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-              <HelpCircle className="w-6 h-6 text-gray-700" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-gray-900 text-sm">Otra duda</h3>
-              <p className="text-[11px] text-gray-500 leading-tight mt-0.5">Encuentra respuestas a otras preguntas frecuentes.</p>
-            </div>
-            <div className="w-20 h-16 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">?</span>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
-          </div>
+
 
         </div>
 

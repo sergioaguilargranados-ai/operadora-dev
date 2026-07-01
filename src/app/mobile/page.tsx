@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { 
   User, Briefcase, CreditCard, Users, ShoppingBag, 
-  ChevronRight, Bell, Menu, Loader2, Headphones, Footprints, Plane
+  ChevronRight, Bell, Menu, Loader2, Headphones, Trophy, Plane
 } from "lucide-react"
 
 export default function MobileHomePage() {
@@ -153,26 +153,19 @@ export default function MobileHomePage() {
           ))}
         </div>
 
-        {/* Reto 10,000 pasos */}
+        {/* AS Retos */}
         <div
           onClick={() => router.push('/mobile/rewards')}
           className="flex items-center gap-4 px-5 py-4 border-t border-gray-100 hover:bg-gray-50 active:bg-gray-100 transition-all cursor-pointer"
         >
-          <div className="relative w-12 h-12 flex-shrink-0 flex items-center justify-center">
-            <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-              <circle cx="24" cy="24" r="20" stroke="#f3f4f6" strokeWidth="3.5" fill="transparent" />
-              <circle cx="24" cy="24" r="20" stroke="#22c55e" strokeWidth="3.5" fill="transparent" strokeDasharray="126" strokeDashoffset="113" strokeLinecap="round" />
-            </svg>
-            <Footprints className="w-5 h-5 text-green-500" />
+          <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0">
+            <Trophy className="w-6 h-6 text-yellow-400" strokeWidth={1.5} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 text-[15px]">Reto 10,000 pasos</h3>
-            <p className="text-xs text-gray-500 mt-0.5 leading-tight pr-4">¡Sigue acumulando pasos y alcanza tu meta diaria!</p>
+            <h3 className="font-semibold text-gray-900 text-[15px]">AS Retos</h3>
+            <p className="text-xs text-gray-500 mt-0.5 leading-tight pr-4">¡Vive los retos, ten una mejor experiencia en tu viaje y gana premios!</p>
           </div>
-          <div className="text-right flex-shrink-0">
-            <p className="font-bold text-green-600 text-sm">1,000 / 10,000</p>
-            <p className="text-[10px] text-gray-700 font-semibold mt-0.5">10% completado</p>
-          </div>
+          <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
         </div>
 
         {/* ¿Necesitas ayuda? */}
