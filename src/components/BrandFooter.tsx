@@ -93,6 +93,10 @@ export function BrandFooter() {
                         </p>
                     )}
                     <div className="flex items-center justify-center gap-4 mt-2">
+                        <Link href="/creditos-fotograficos" className="text-xs opacity-70 hover:opacity-100 hover:underline">
+                            Créditos fotográficos
+                        </Link>
+                        <p className="text-xs opacity-50">|</p>
                         <p className="text-xs opacity-50">
                             v2.360 | 01 Jul 2026 17:46 CST
                         </p>

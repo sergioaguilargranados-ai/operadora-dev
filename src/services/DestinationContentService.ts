@@ -116,20 +116,20 @@ export class DestinationContentService {
       console.log(`🤖 Generando contenido con Gemini para: ${city}, ${country}`);
       const generated = await DestinationContentService.generateWithGemini(city, country);
 
-      // Enriquecer con imágenes reales de Unsplash
-      const foodsWithImages = await DestinationContentService.fetchUnsplashImages(
+      // Enriquecer con imágenes reales de Pexels/Unsplash
+      const foodsWithImages = await DestinationContentService.fetchRealImages(
         generated.foods.map(f => ({ name: f.name, image_search: f.image_search }))
       );
-      const placesWithImages = await DestinationContentService.fetchUnsplashImages(
+      const placesWithImages = await DestinationContentService.fetchRealImages(
         generated.places.map(p => ({ name: p.name, image_search: p.image_search }))
       );
-      const souvenirsWithImages = await DestinationContentService.fetchUnsplashImages(
+      const souvenirsWithImages = await DestinationContentService.fetchRealImages(
         generated.souvenirs.map(s => ({ name: s.name, image_search: s.image_search }))
       );
 
       // Obtener imagen hero del destino
-      const heroImages = await DestinationContentService.fetchUnsplashImages(
-        [{ name: city, image_search: `${city} ${country} travel landscape` }]
+      const heroImages = await DestinationContentService.fetchRealImages(
+        [{ name: city, image_search: `${city} ${country} travel landscape scenery no people` }]
       );
       const heroImageUrl = heroImages.length > 0 ? heroImages[0].img : undefined;
 
@@ -216,7 +216,7 @@ REQUISITOS:
 - phrases: exactamente entre 6 y 8 frases útiles en el idioma local del destino
 - travel_tips: exactamente entre 3 y 5 consejos prácticos de viaje
 - Todas las descripciones en español
-- Los campos "image_search" deben ser términos de búsqueda en INGLÉS optimizados para encontrar buenas fotos en Unsplash
+- Los campos "image_search" deben ser términos de búsqueda en INGLÉS optimizados para encontrar fotos (importante: incluye palabras como "landscape", "scenery" o "no people" para evitar fotos donde salgan caras de personas)
 - La información práctica debe ser precisa y actualizada`;
 
     try {
@@ -270,43 +270,54 @@ REQUISITOS:
   }
 
   // ────────────────────────────────────────────────────────
-  // 3. Obtener imágenes de Unsplash para cada item
+  // 3. Obtener imágenes reales (Pexels / Unsplash)
   // ────────────────────────────────────────────────────────
-  static async fetchUnsplashImages(
+  static async fetchRealImages(
     items: ImageSearchItem[]
   ): Promise<Array<{ name: string; img: string }>> {
+    const pexelsKey = process.env.PEXELS_API_KEY;
     const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
     const results: Array<{ name: string; img: string }> = [];
 
     for (const item of items) {
       try {
-        if (unsplashKey) {
-          // Llamar a la API de Unsplash
-          const searchQuery = encodeURIComponent(item.image_search);
-          const response = await fetch(
-            `https://api.unsplash.com/search/photos?query=${searchQuery}&per_page=1&client_id=${unsplashKey}`
-          );
+        const searchQuery = encodeURIComponent(item.image_search);
+        let photoUrl = null;
 
+        // 1. Intentar con Pexels primero
+        if (pexelsKey && !photoUrl) {
+          const response = await fetch(
+            `https://api.pexels.com/v1/search?query=${searchQuery}&per_page=1`,
+            { headers: { Authorization: pexelsKey } }
+          );
           if (response.ok) {
             const data = await response.json();
-            const photoUrl = data?.results?.[0]?.urls?.regular
-              || data?.results?.[0]?.urls?.small;
-
-            if (photoUrl) {
-              results.push({ name: item.name, img: photoUrl });
-              continue;
-            }
+            photoUrl = data?.photos?.[0]?.src?.large || data?.photos?.[0]?.src?.medium;
           }
         }
 
-        // Fallback: imagen placeholder de Unsplash Source
-        results.push({
-          name: item.name,
-          img: `https://images.unsplash.com/photo-random?w=400&q=80`,
-        });
+        // 2. Intentar con Unsplash si no hay respuesta de Pexels
+        if (unsplashKey && !photoUrl) {
+          const response = await fetch(
+            `https://api.unsplash.com/search/photos?query=${searchQuery}&per_page=1&client_id=${unsplashKey}`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            photoUrl = data?.results?.[0]?.urls?.regular || data?.results?.[0]?.urls?.small;
+          }
+        }
+
+        if (photoUrl) {
+          results.push({ name: item.name, img: photoUrl });
+        } else {
+          // Fallback: imagen placeholder
+          results.push({
+            name: item.name,
+            img: `https://images.unsplash.com/photo-random?w=400&q=80`,
+          });
+        }
       } catch (error: any) {
         console.error(`⚠️ Error buscando imagen para "${item.name}":`, error.message);
-        // Fallback silencioso
         results.push({
           name: item.name,
           img: `https://images.unsplash.com/photo-random?w=400&q=80`,
