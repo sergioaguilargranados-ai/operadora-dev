@@ -38,7 +38,7 @@ export default function MobileProfileEditPage() {
   const fetchProfile = async () => {
     try {
       setLoading(true)
-      const res = await fetch(`/api/mobile/profile?user_id=${user?.id}`)
+      const res = await fetch(`/api/mobile/profile?user_id=${user?.id}&t=${Date.now()}`)
       const data = await res.json()
       if (data.success) {
         const p = data.data

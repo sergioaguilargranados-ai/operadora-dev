@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     const client = await pool.connect()
     try {
       const result = await client.query(
-        `SELECT id, name, email, phone, wants_travel_insurance, date_of_birth, emergency_contacts FROM users WHERE id = $1`,
+        `SELECT id, name, email, phone, wants_travel_insurance, date_of_birth, emergency_contacts, image FROM users WHERE id = $1`,
         [user_id]
       )
 
@@ -50,7 +50,7 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, name, phone, wants_travel_insurance, date_of_birth, emergency_contacts } = body
+    const { id, name, phone, wants_travel_insurance, date_of_birth, emergency_contacts, image } = body
 
     if (!id) {
       return NextResponse.json({ success: false, error: 'User ID required' }, { status: 400 })
@@ -58,16 +58,24 @@ export async function PUT(request: Request) {
 
     const client = await pool.connect()
     try {
-      await client.query(
-        `UPDATE users 
-         SET name = COALESCE($2, name),
-             phone = COALESCE($3, phone),
-             wants_travel_insurance = COALESCE($4, wants_travel_insurance),
-             date_of_birth = COALESCE($5, date_of_birth),
-             emergency_contacts = COALESCE($6, emergency_contacts)
-         WHERE id = $1`,
-        [id, name, phone, wants_travel_insurance, date_of_birth ? date_of_birth : null, emergency_contacts ? JSON.stringify(emergency_contacts) : null]
-      )
+      // Build dynamic update query to only update provided fields
+      const updates = []
+      const values = [id]
+      let paramCount = 2
+
+      if (name !== undefined) { updates.push(`name = $${paramCount++}`); values.push(name) }
+      if (phone !== undefined) { updates.push(`phone = $${paramCount++}`); values.push(phone) }
+      if (wants_travel_insurance !== undefined) { updates.push(`wants_travel_insurance = $${paramCount++}`); values.push(wants_travel_insurance) }
+      if (date_of_birth !== undefined) { updates.push(`date_of_birth = $${paramCount++}`); values.push(date_of_birth || null) }
+      if (emergency_contacts !== undefined) { updates.push(`emergency_contacts = $${paramCount++}`); values.push(emergency_contacts ? JSON.stringify(emergency_contacts) : null) }
+      if (image !== undefined) { updates.push(`image = $${paramCount++}`); values.push(image) }
+
+      if (updates.length > 0) {
+        await client.query(
+          `UPDATE users SET ${updates.join(', ')} WHERE id = $1`,
+          values
+        )
+      }
       return NextResponse.json({ success: true })
     } finally {
       client.release()

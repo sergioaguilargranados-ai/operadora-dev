@@ -39,7 +39,7 @@ export default function MobileProfilePage() {
   const fetchProfile = async () => {
     try {
       setLoading(true)
-      const res = await fetch(`/api/mobile/profile?user_id=${user?.id}`)
+      const res = await fetch(`/api/mobile/profile?user_id=${user?.id}&t=${Date.now()}`)
       const data = await res.json()
       if (data.success) {
         setProfileData(data.data)
@@ -115,25 +115,43 @@ export default function MobileProfilePage() {
         if (uploadData.success) {
           const fileUrl = uploadData.url
 
-          // 2. Guardar en Base de Datos
-          const dbRes = await fetch('/api/mobile/documents', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_id: user.id,
-              name: doc.name,
-              file_url: fileUrl
+          if (activeDocId === 'PROFILE_PIC') {
+            // Update profile image
+            const dbRes = await fetch('/api/mobile/profile', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: user.id, image: fileUrl })
             })
-          })
-          const dbData = await dbRes.json()
-
-          if (dbData.success) {
-            setDocuments(prev => prev.map(d => 
-              d.id === activeDocId ? { ...d, fileName: fileUrl } : d
-            ))
-            toast({ title: "Éxito", description: "Documento subido correctamente" })
+            const dbData = await dbRes.json()
+            if (dbData.success) {
+              setProfileData((prev: any) => ({ ...prev, image: fileUrl }))
+              toast({ title: "Éxito", description: "Foto de perfil actualizada" })
+              // Forzar recarga de los datos si es necesario
+              fetchProfile()
+            } else {
+              toast({ title: "Error", description: "Error al actualizar perfil", variant: 'destructive' })
+            }
           } else {
-            toast({ title: "Error", description: "Error al guardar el documento", variant: 'destructive' })
+            // Guardar como documento
+            const dbRes = await fetch('/api/mobile/documents', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                user_id: user.id,
+                name: doc?.name || 'Documento',
+                file_url: fileUrl
+              })
+            })
+            const dbData = await dbRes.json()
+
+            if (dbData.success) {
+              setDocuments(prev => prev.map(d => 
+                d.id === activeDocId ? { ...d, fileName: fileUrl } : d
+              ))
+              toast({ title: "Éxito", description: "Documento subido correctamente" })
+            } else {
+              toast({ title: "Error", description: "Error al guardar el documento", variant: 'destructive' })
+            }
           }
         } else {
           toast({ title: "Error", description: "Error al subir el archivo", variant: 'destructive' })
@@ -153,7 +171,7 @@ export default function MobileProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans">
-      <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
+      <input type="file" accept="image/*,application/pdf" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
 
       {/* Dark Header Section */}
       <div className="bg-black text-white px-4 pt-12 pb-24 relative rounded-b-3xl">
@@ -183,11 +201,22 @@ export default function MobileProfilePage() {
             </p>
           </div>
           
-          <div className="w-20 h-20 rounded-full border border-white flex items-center justify-center bg-transparent flex-shrink-0">
-            {user?.image ? (
-              <img src={user.image} alt="User" className="w-full h-full rounded-full object-cover" />
+          <div 
+            onClick={() => handleUploadClick('PROFILE_PIC')}
+            className="w-20 h-20 rounded-full border border-white flex items-center justify-center bg-transparent flex-shrink-0 cursor-pointer relative overflow-hidden group"
+          >
+            {uploadingId === 'PROFILE_PIC' ? (
+              <Loader2 className="w-8 h-8 animate-spin text-white" />
+            ) : profileData?.image || (user as any)?.image ? (
+              <img src={profileData?.image || (user as any)?.image} alt="User" className="w-full h-full rounded-full object-cover" />
             ) : (
               <User className="w-10 h-10 text-white" strokeWidth={1} />
+            )}
+            {/* Overlay de cámara hover/activo */}
+            {uploadingId !== 'PROFILE_PIC' && (
+               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                 <Upload className="w-5 h-5 text-white" />
+               </div>
             )}
           </div>
         </div>
