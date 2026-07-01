@@ -1,13 +1,20 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 26 de Junio de 2026 - 00:45 CST  
-**Versión actual:** v2.357  
+**Última actualización:** 01 de Julio de 2026 - 17:46 CST  
+**Versión actual:** v2.360  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.360 - 01 de Julio de 2026 - 17:46 CST
+**🤖 Motor de Contenido Turístico con IA (Gemini & Unsplash)**
+- **Motor Backend:** Creación de `destination_content` en BD y servicio `DestinationContentService` para generar datos de gastronomía, imperdibles, frases, info práctica, clima y enchufes usando Gemini 2.0 Flash y fotos reales de Unsplash.
+- **Panel Administrativo:** Nueva pestaña "Destinos (IA)" en el gestor de contenido (`/admin/content`) para revisar el caché generado y regenerar destinos forzadamente.
+- **Auto-Enriquecimiento de Itinerarios:** El guardado de un itinerario detona el enriquecimiento automático del destino en segundo plano. Se agregó también un botón manual "IA" en la tabla de itinerarios.
+- **PWA Dinámica:** La vista del día en la App Móvil PWA (`dia/[dayIndex]/page.tsx`) ahora consume directamente la información estructurada de la IA de forma dinámica, eliminando dependencias de textos hardcodeados.
 
 ### v2.359 - 28 de Junio de 2026 - 22:25 CST
 **🛠️ Corrección de Bug en Dashboard Agencia**

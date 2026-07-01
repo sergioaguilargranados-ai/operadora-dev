@@ -14,7 +14,7 @@ import { Logo } from '@/components/Logo'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   Plus, Calendar, MapPin, Edit, ArrowLeft, Check, X, Trash2,
-  Clock, Navigation, FileText, Share2, Download, Copy, Link as LinkIcon, Globe
+  Clock, Navigation, FileText, Share2, Download, Copy, Link as LinkIcon, Globe, Sparkles
 } from 'lucide-react'
 
 interface Activity {
@@ -315,6 +315,17 @@ export default function ItinerariesPage() {
       const data = await res.json()
 
       if (data.success) {
+        const targetId = editingItinerary ? editingItinerary.id : data.data?.id;
+        
+        // Auto-enriquecer con IA
+        if (targetId) {
+          try {
+            await fetch(`/api/itineraries/${targetId}/enrich`, { method: 'POST' });
+          } catch (e) {
+            console.error('Error auto-enriqueciendo itinerario', e);
+          }
+        }
+
         alert(editingItinerary ? 'Itinerario actualizado' : 'Itinerario creado')
         loadItineraries()
         resetForm()
@@ -340,6 +351,24 @@ export default function ItinerariesPage() {
     } catch (error) {
       console.error('Error downloading PDF:', error)
       alert('Error al descargar PDF')
+    }
+  }
+
+  const handleEnrich = async (itineraryId: number) => {
+    try {
+      const res = await fetch(`/api/itineraries/${itineraryId}/enrich`, {
+        method: 'POST'
+      })
+      const data = await res.json()
+      if (data.success) {
+        alert('Itinerario enriquecido con IA correctamente')
+        loadItineraries()
+      } else {
+        alert('Error al enriquecer: ' + data.error)
+      }
+    } catch (error) {
+      console.error('Error enriching:', error)
+      alert('Error de conexión al enriquecer')
     }
   }
 
@@ -606,6 +635,16 @@ export default function ItinerariesPage() {
                           >
                             <Share2 className="w-3 h-3 mr-1" />
                             Compartir
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEnrich(itinerary.id)}
+                            className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                            title="Generar contenido turístico con IA para todos los días"
+                          >
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            IA
                           </Button>
                         </div>
                       </TableCell>

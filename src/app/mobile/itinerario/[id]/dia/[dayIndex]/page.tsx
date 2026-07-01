@@ -75,25 +75,17 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
     fetchItinerary()
   }, [params.id])
 
-  // Fallbacks si no hay datos en la BD aún para no romper el diseño original en pruebas
-  const foods = dayData?.foods || [
-    { name: "Moussaka", desc: "Pastel tradicional de berenjena y carne.", img: "https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?auto=format&fit=crop&w=200&q=80" },
-    { name: "Gyros", desc: "Carne asada servida en pan pita con verduras y salsa.", img: "https://images.unsplash.com/photo-1593504049359-715569420580?auto=format&fit=crop&w=200&q=80" }
-  ]
-
-  const places = dayData?.places || [
-    { name: "Oia", desc: "Pueblo famoso por sus casas blancas y atardeceres.", img: "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=200&q=80" },
-    { name: "Fira", desc: "La vibrante capital de Santorini.", img: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac542?auto=format&fit=crop&w=200&q=80" }
-  ]
-
-  const souvenirs = dayData?.souvenirs || [
-    { name: "Ojo Turco", desc: "Protección y buena suerte.", img: "https://images.unsplash.com/photo-1607521798319-74d32049e491?auto=format&fit=crop&w=200&q=80" }
-  ]
-
-  const phrases = dayData?.phrases || [
-    { es: "Hola", local: "Yassas" },
-    { es: "Gracias", local: "Efcharistó" }
-  ]
+  // Datos dinámicos del destino (generados por IA y almacenados en days JSONB)
+  const foods = dayData?.foods || []
+  const places = dayData?.places || []
+  const souvenirs = dayData?.souvenirs || []
+  const phrases = dayData?.phrases || []
+  const practicalInfo = dayData?.practical_info || null
+  const travelTips = dayData?.travel_tips || []
+  const destinationName = dayData?.title || itinerary?.destination || 'tu destino'
+  
+  // Determinar idioma del destino para el traductor
+  const localLanguage = practicalInfo?.language?.name || 'Idioma local'
 
   if (loading) {
     return (
@@ -170,6 +162,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
       </div>
 
       {/* Gastronomía */}
+      {foods.length > 0 && (
       <div className="mb-8">
         <h2 className="text-lg font-serif font-bold text-gray-900 px-4 mb-4">Gastronomía recomendada</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-none">
@@ -182,8 +175,10 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           ))}
         </div>
       </div>
+      )}
 
       {/* Imperdibles */}
+      {places.length > 0 && (
       <div className="mb-8">
         <h2 className="text-lg font-serif font-bold text-gray-900 px-4 mb-4">Lugares imperdibles</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-none">
@@ -196,23 +191,28 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           ))}
         </div>
       </div>
+      )}
 
-      {/* Información Práctica */}
+      {/* Información Práctica — Dinámico desde dayData.practical_info */}
+      {practicalInfo && (
       <div className="px-4 mb-8">
         <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Información práctica</h2>
         <div className="grid grid-cols-2 gap-3">
           
+          {practicalInfo.currency && (
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center font-serif text-lg text-gray-700">€</div>
+              <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center font-serif text-lg text-gray-700">{practicalInfo.currency.symbol || '💰'}</div>
               <div>
                 <p className="text-xs font-bold text-gray-900">Moneda</p>
-                <p className="text-[10px] text-gray-500">Euro (€)</p>
+                <p className="text-[10px] text-gray-500">{practicalInfo.currency.name}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-600 leading-tight">Se aceptan tarjetas en la mayoría de establecimientos.</p>
+            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.currency.tip}</p>
           </div>
+          )}
 
+          {practicalInfo.language && (
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
@@ -220,12 +220,14 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-900">Idioma</p>
-                <p className="text-[10px] text-gray-500">Griego</p>
+                <p className="text-[10px] text-gray-500">{practicalInfo.language.name}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-600 leading-tight">El inglés es ampliamente hablado en zonas turísticas.</p>
+            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.language.tip}</p>
           </div>
+          )}
 
+          {practicalInfo.climate && (
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
@@ -233,12 +235,14 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-900">Clima</p>
-                <p className="text-[10px] text-gray-500">Mediterráneo</p>
+                <p className="text-[10px] text-gray-500">{practicalInfo.climate.type}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-600 leading-tight">Veranos cálidos y secos. Inviernos suaves y agradables.</p>
+            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.climate.tip}</p>
           </div>
+          )}
 
+          {practicalInfo.timezone && (
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
@@ -246,12 +250,14 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-900">Zona horaria</p>
-                <p className="text-[10px] text-gray-500">GMT +2</p>
+                <p className="text-[10px] text-gray-500">{practicalInfo.timezone.zone}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-600 leading-tight">Misma hora que en la mayoría de países de Europa.</p>
+            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.timezone.tip}</p>
           </div>
+          )}
 
+          {practicalInfo.voltage && (
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
@@ -259,12 +265,14 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-900">Voltaje</p>
-                <p className="text-[10px] text-gray-500">230V / 50Hz</p>
+                <p className="text-[10px] text-gray-500">{practicalInfo.voltage.spec}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-600 leading-tight">Enchufes tipo C y F.</p>
+            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.voltage.plug_type ? `Enchufes tipo ${practicalInfo.voltage.plug_type}. ` : ''}{practicalInfo.voltage.tip}</p>
           </div>
+          )}
 
+          {practicalInfo.emergency && (
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
@@ -272,31 +280,38 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-900">Emergencias</p>
-                <p className="text-[10px] text-gray-500">112</p>
+                <p className="text-[10px] text-gray-500">{practicalInfo.emergency.number}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-600 leading-tight">Número único de emergencia en Europa.</p>
+            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.emergency.tip}</p>
           </div>
+          )}
 
         </div>
       </div>
+      )}
 
-      {/* Consejo */}
+      {/* Consejos de viaje — Dinámicos */}
+      {travelTips.length > 0 && (
       <div className="px-4 mb-8">
         <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100 flex gap-4">
-          <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0">
+          <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0 mt-0.5">
             <Info className="w-4 h-4" />
           </div>
           <div>
             <h3 className="font-bold text-blue-900 text-sm mb-1">Consejo para tu viaje</h3>
-            <p className="text-xs text-blue-800 leading-relaxed">
-              Camina mucho, disfruta sin prisa y mantente hidratado. Lleva siempre contigo agua, protector solar y tus medicamentos personales.
-            </p>
+            <ul className="text-xs text-blue-800 leading-relaxed space-y-1">
+              {travelTips.map((tip: string, i: number) => (
+                <li key={i}>{tip}</li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
+      )}
 
-      {/* Frases útiles y Compras (Grid mixto) */}
+      {/* Frases útiles */}
+      {phrases.length > 0 && (
       <div className="px-4 mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
         
         {/* Frases */}
@@ -308,6 +323,9 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
                 <div>
                   <p className="font-bold text-sm text-gray-900">{phrase.es}</p>
                   <p className="text-xs text-gray-500">{phrase.local}</p>
+                  {phrase.pronunciation && (
+                    <p className="text-[10px] text-gray-400 italic">{phrase.pronunciation}</p>
+                  )}
                 </div>
                 <button className="p-2 text-gray-400 hover:text-black">
                   <Volume2 className="w-4 h-4" />
@@ -318,11 +336,13 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         </div>
 
       </div>
+      )}
 
       {/* Compras */}
+      {souvenirs.length > 0 && (
       <div className="mb-8">
         <h2 className="text-lg font-serif font-bold text-gray-900 px-4 mb-2">¿Qué comprar?</h2>
-        <p className="text-sm text-gray-500 px-4 mb-4">Souvenirs icónicos de Santorini que no te puedes perder.</p>
+        <p className="text-sm text-gray-500 px-4 mb-4">Souvenirs icónicos de {destinationName} que no te puedes perder.</p>
         <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-none">
           {souvenirs.map((item, i) => (
             <div key={i} className="w-[120px] flex-shrink-0 flex flex-col">
@@ -338,6 +358,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           ))}
         </div>
       </div>
+      )}
 
       {/* Traductor */}
       <div className="px-4 mb-8">
@@ -346,7 +367,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
             <span className="text-sm font-bold text-gray-700">Español</span>
             <ArrowRightLeft className="w-4 h-4 text-gray-400" />
-            <span className="text-sm font-bold text-gray-700">Griego</span>
+            <span className="text-sm font-bold text-gray-700">{localLanguage}</span>
           </div>
           <div className="p-4 relative">
             <textarea 

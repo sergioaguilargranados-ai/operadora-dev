@@ -15,6 +15,7 @@ import { VideoUrlEditor } from "@/components/admin/VideoUrlEditor"
 import { LandingContentManager } from "@/components/admin/LandingContentManager"
 import { MobileAppContentManager } from "@/components/admin/MobileAppContentManager"
 import { StoreProductsManager } from "@/components/admin/StoreProductsManager"
+import { DestinationContentManager } from "@/components/admin/DestinationContentManager"
 import {
   Plus, Edit, Trash2, DollarSign, Calendar, Plane, Hotel, Package,
   Home, Globe, CheckCircle2, AlertCircle, X, RefreshCw, Smartphone,
@@ -612,6 +613,9 @@ export default function AdminContentPage() {
             <TabsTrigger value="store-products" className="flex items-center gap-2">
               <ShoppingBag className="w-4 h-4" />
               Tienda (Productos)
+            </TabsTrigger>
+            <TabsTrigger value="destinations" className="flex items-center gap-2 text-blue-600">
+              <MapPin className="w-4 h-4" /> Destinos (IA)
             </TabsTrigger>
           </TabsList>
 
@@ -1443,6 +1447,11 @@ export default function AdminContentPage() {
               </div>
               <StoreProductsManager showToast={showToast} />
             </Card>
+          </TabsContent>
+
+          {/* Destinos IA Tab */}
+          <TabsContent value="destinations">
+            <DestinationContentManager showToast={showToast} />
           </TabsContent>
 
         </Tabs>
