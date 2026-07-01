@@ -30,7 +30,7 @@ export async function GET(request: Request) {
 
       // Obtener documentos
       const docsResult = await client.query(
-        `SELECT id, title as name, document_url as url FROM entity_documents WHERE entity_type = 'user' AND entity_id = $1`,
+        `SELECT id, document_name as name, document_url as url FROM entity_documents WHERE entity_type = 'user' AND entity_id = $1`,
         [user_id]
       )
 
