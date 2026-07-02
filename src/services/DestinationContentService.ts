@@ -238,7 +238,15 @@ REQUISITOS:
 
       if (!response.ok) {
         const errorBody = await response.text();
-        throw new Error(`Error de Gemini API (${response.status}): ${errorBody}`);
+        if (response.status === 429) {
+          throw new Error('Se ha excedido la cuota gratuita de la API de Gemini (Error 429 - Quota Exceeded). Es necesario configurar facturación en Google Cloud para esta API Key o utilizar otra llave con cuota disponible.');
+        }
+        try {
+          const errObj = JSON.parse(errorBody);
+          throw new Error(`Error de Gemini API (${response.status}): ${errObj.error?.message || 'Error desconocido'}`);
+        } catch(e) {
+          throw new Error(`Error de Gemini API (${response.status})`);
+        }
       }
 
       const data = await response.json();
