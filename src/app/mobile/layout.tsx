@@ -108,7 +108,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
                 </Link>
               </div>
               <div className="w-full text-center">
-                <span className="text-[8px] text-gray-400">v2.363 | 03 Jul 2026 01:27 CST | AS Operadora viajes y eventos</span>
+                <span className="text-[8px] text-gray-400">v2.364 | 03 Jul 2026 01:50 CST | AS Operadora viajes y eventos</span>
               </div>
             </nav>
           )}

@@ -449,6 +449,67 @@ REQUISITOS:
     }
   }
 
+  /**
+   * Obtiene el plan de enriquecimiento (lista de ciudades únicas) para un itinerario.
+   * Esto sirve para que el frontend pueda procesar una por una y mostrar una barra de progreso,
+   * evitando timeouts de Vercel (Error 504).
+   */
+  static async getEnrichmentPlan(itineraryId: number): Promise<Array<{city: string, country: string}>> {
+    try {
+      const itineraryResult = await pool.query(
+        'SELECT * FROM itineraries WHERE id = $1',
+        [itineraryId]
+      );
+
+      if (itineraryResult.rows.length === 0) {
+        throw new Error(`Itinerario con id ${itineraryId} no encontrado`);
+      }
+
+      const itinerary = itineraryResult.rows[0];
+      const days = itinerary.days || [];
+      const destination = itinerary.destination || '';
+
+      const { city: defaultCity, country: defaultCountry } =
+        DestinationContentService.parseDestination(destination);
+
+      const uniqueDestinations = new Map<string, {city: string, country: string}>();
+
+      for (const day of days) {
+        const dayTitle = day.title || day.titulo || '';
+        let { city: dayCity, country: dayCountry } =
+          DestinationContentService.parseDayCity(dayTitle, defaultCity, defaultCountry);
+
+        if (!dayCity) continue;
+
+        if (!dayCountry) {
+          try {
+            const cityLookup = await pool.query(
+              'SELECT country FROM destination_content WHERE LOWER(city) = LOWER($1) LIMIT 1',
+              [dayCity]
+            );
+            if (cityLookup.rows.length > 0) {
+              dayCountry = cityLookup.rows[0].country;
+            } else {
+              dayCountry = defaultCity || 'Mundo';
+            }
+          } catch (e) {
+            dayCountry = defaultCity || 'Mundo';
+          }
+        }
+
+        const key = DestinationContentService.generateDestinationKey(dayCity, dayCountry);
+        if (!uniqueDestinations.has(key)) {
+          uniqueDestinations.set(key, { city: dayCity, country: dayCountry });
+        }
+      }
+
+      return Array.from(uniqueDestinations.values());
+    } catch (error: any) {
+      console.error(`❌ Error obteniendo plan de enriquecimiento para ${itineraryId}:`, error.message);
+      throw error;
+    }
+  }
+
   // ────────────────────────────────────────────────────────
   // 5. Generar clave única de destino (normalizada)
   // ────────────────────────────────────────────────────────

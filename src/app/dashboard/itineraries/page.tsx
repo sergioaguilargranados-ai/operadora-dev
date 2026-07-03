@@ -9,12 +9,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { PageHeader } from '@/components/PageHeader'
 import { Logo } from '@/components/Logo'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   Plus, Calendar, MapPin, Edit, ArrowLeft, Check, X, Trash2,
-  Clock, Navigation, FileText, Share2, Download, Copy, Link as LinkIcon, Globe, Sparkles
+  Clock, Navigation, FileText, Share2, Download, Copy, Link as LinkIcon, Globe, Sparkles, Loader2
 } from 'lucide-react'
 
 interface Activity {
@@ -70,6 +71,11 @@ export default function ItinerariesPage() {
   const [civitatisActivities, setCivitatisActivities] = useState<any[]>([])
   const [civitatisLoading, setCivitatisLoading] = useState(false)
   const [activeCivitatisDay, setActiveCivitatisDay] = useState<number | null>(null)
+
+  const [enriching, setEnriching] = useState(false)
+  const [enrichProgress, setEnrichProgress] = useState(0)
+  const [enrichTotal, setEnrichTotal] = useState(0)
+  const [enrichCity, setEnrichCity] = useState('')
 
   const [formData, setFormData] = useState({
     title: '',
@@ -356,12 +362,42 @@ export default function ItinerariesPage() {
 
   const handleEnrich = async (itineraryId: number) => {
     try {
+      setEnriching(true)
+      setEnrichProgress(0)
+      setEnrichCity('Analizando itinerario...')
+      
+      const planRes = await fetch(`/api/itineraries/${itineraryId}/enrich-plan`)
+      const planData = await planRes.json()
+      
+      if (!planData.success) {
+        alert('Error al analizar itinerario: ' + planData.error)
+        setEnriching(false)
+        return
+      }
+
+      const cities = planData.data || []
+      setEnrichTotal(cities.length)
+      
+      let count = 0;
+      for (const dest of cities) {
+        setEnrichCity(`${dest.city} (${dest.country})`)
+        try {
+          await fetch(`/api/destinations/content?city=${encodeURIComponent(dest.city)}&country=${encodeURIComponent(dest.country)}`)
+        } catch (e) {
+          console.warn(`Error procesando ${dest.city}`, e)
+        }
+        count++
+        setEnrichProgress(count)
+      }
+
+      setEnrichCity('Aplicando contenido al itinerario...')
+
       const res = await fetch(`/api/itineraries/${itineraryId}/enrich`, {
         method: 'POST'
       })
       const data = await res.json()
+      
       if (data.success) {
-        alert('Itinerario enriquecido con IA correctamente')
         loadItineraries()
       } else {
         alert('Error al enriquecer: ' + data.error)
@@ -369,6 +405,8 @@ export default function ItinerariesPage() {
     } catch (error) {
       console.error('Error enriching:', error)
       alert('Error de conexión al enriquecer')
+    } finally {
+      setEnriching(false)
     }
   }
 
@@ -1074,6 +1112,39 @@ export default function ItinerariesPage() {
           </div>
         </div>
       )}
+
+      {/* Dialog de Progreso IA */}
+      <Dialog open={enriching} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md [&>button]:hidden pointer-events-none">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-indigo-600" />
+              Generando contenido con IA
+            </DialogTitle>
+            <DialogDescription>
+              Este proceso puede tardar de 1 a 2 minutos mientras conectamos destinos y descargamos fotografías reales. Por favor no cierres la ventana.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-6">
+            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
+            <p className="text-sm font-medium text-gray-700">{enrichCity}</p>
+            {enrichTotal > 0 && (
+              <div className="w-full mt-4">
+                <div className="flex justify-between text-xs text-gray-500 mb-1">
+                  <span>Progreso</span>
+                  <span>{enrichProgress} / {enrichTotal} destinos</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                  <div 
+                    className="bg-indigo-600 h-full transition-all duration-300 rounded-full" 
+                    style={{ width: `${Math.max(5, (enrichProgress / enrichTotal) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   )
