@@ -4,6 +4,8 @@
 
 import { pool } from '@/lib/db';
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80';
+
 // ==================== INTERFACES ====================
 
 export interface FoodItem {
@@ -142,17 +144,17 @@ export class DestinationContentService {
         foods: generated.foods.map((f, i) => ({
           name: f.name,
           desc: f.desc,
-          img: foodsWithImages[i]?.img || 'https://images.unsplash.com/photo-random?w=400&q=80',
+          img: foodsWithImages[i]?.img || FALLBACK_IMAGE,
         })),
         places: generated.places.map((p, i) => ({
           name: p.name,
           desc: p.desc,
-          img: placesWithImages[i]?.img || 'https://images.unsplash.com/photo-random?w=400&q=80',
+          img: placesWithImages[i]?.img || FALLBACK_IMAGE,
         })),
         souvenirs: generated.souvenirs.map((s, i) => ({
           name: s.name,
           desc: s.desc,
-          img: souvenirsWithImages[i]?.img || 'https://images.unsplash.com/photo-random?w=400&q=80',
+          img: souvenirsWithImages[i]?.img || FALLBACK_IMAGE,
         })),
         phrases: generated.phrases,
         practical_info: generated.practical_info,
@@ -318,17 +320,17 @@ REQUISITOS:
         if (photoUrl) {
           results.push({ name: item.name, img: photoUrl });
         } else {
-          // Fallback: imagen placeholder
+          // Fallback: imagen genérica
           results.push({
             name: item.name,
-            img: `https://images.unsplash.com/photo-random?w=400&q=80`,
+            img: FALLBACK_IMAGE,
           });
         }
       } catch (error: any) {
         console.error(`⚠️ Error buscando imagen para "${item.name}":`, error.message);
         results.push({
           name: item.name,
-          img: `https://images.unsplash.com/photo-random?w=400&q=80`,
+          img: FALLBACK_IMAGE,
         });
       }
     }
@@ -389,13 +391,18 @@ REQUISITOS:
 
           const content = contentCache[cacheKey];
 
-          // Enriquecer el día con el contenido del destino
+          const hasValidFoods = day.foods?.length > 0 && day.foods[0].name && !['La mejor comida', 'comida 1'].includes(day.foods[0].name);
+          const hasValidPlaces = day.places?.length > 0 && day.places[0].name && !['lugar 1'].includes(day.places[0].name);
+          const hasValidSouvenirs = day.souvenirs?.length > 0 && day.souvenirs[0].name && !['suvenir 1'].includes(day.souvenirs[0].name);
+          const hasValidPhrases = day.phrases?.length > 0 && day.phrases[0].es && !['hola', 'Gracias '].includes(day.phrases[0].es);
+
+          // Enriquecer el día con el contenido del destino, sobrescribiendo placeholders
           enrichedDays.push({
             ...day,
-            foods: day.foods?.length > 0 ? day.foods : content.foods,
-            places: day.places?.length > 0 ? day.places : content.places,
-            souvenirs: day.souvenirs?.length > 0 ? day.souvenirs : content.souvenirs,
-            phrases: day.phrases?.length > 0 ? day.phrases : content.phrases,
+            foods: hasValidFoods ? day.foods : content.foods,
+            places: hasValidPlaces ? day.places : content.places,
+            souvenirs: hasValidSouvenirs ? day.souvenirs : content.souvenirs,
+            phrases: hasValidPhrases ? day.phrases : content.phrases,
             practical_info: day.practical_info || content.practical_info,
             destination_content_key: cacheKey,
           });
@@ -555,7 +562,16 @@ REQUISITOS:
     for (const pattern of patterns) {
       const match = dayTitle.match(pattern);
       if (match && match[1]) {
-        const extracted = match[1].trim();
+        let extracted = match[1].trim();
+        
+        // Si el formato es "MÉXICO - MADRID" o "VENECIA – ROMA", tomar la última ciudad (el destino)
+        if (extracted.includes('-') || extracted.includes('–') || extracted.includes('—')) {
+          const parts = extracted.split(/[-–—]/).map(p => p.trim()).filter(p => p.length > 0);
+          if (parts.length > 0) {
+            extracted = parts[parts.length - 1];
+          }
+        }
+
         // Si el texto extraído parece una ciudad (no muy largo), usarla
         if (extracted.length <= 50) {
           return { city: extracted, country: defaultCountry };
