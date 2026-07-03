@@ -14,6 +14,92 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
   const [itinerary, setItinerary] = useState<any>(null)
   
   const [dayData, setDayData] = useState<any>(null)
+  
+  const [sourceText, setSourceText] = useState('')
+  const [translatedText, setTranslatedText] = useState('')
+  const [isTranslating, setIsTranslating] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+
+  // Determinar idioma del destino para TTS (ej. en-US, fr-FR)
+  const localLanguage = dayData?.practical_info?.language?.name || 'Idioma local'
+  const langMapTTS: Record<string, string> = {
+    'inglés': 'en-US',
+    'ingles': 'en-US',
+    'francés': 'fr-FR',
+    'frances': 'fr-FR',
+    'italiano': 'it-IT',
+    'alemán': 'de-DE',
+    'aleman': 'de-DE',
+    'portugués': 'pt-PT',
+    'portugues': 'pt-PT',
+    'japonés': 'ja-JP',
+    'japones': 'ja-JP',
+  }
+  const ttsLang = langMapTTS[localLanguage.toLowerCase()] || 'en-US'
+
+  useEffect(() => {
+    if (!sourceText.trim()) {
+      setTranslatedText('')
+      return
+    }
+    const timer = setTimeout(async () => {
+      setIsTranslating(true)
+      try {
+        const res = await fetch('/api/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: sourceText,
+            sourceLang: 'es',
+            targetLang: localLanguage
+          })
+        })
+        const data = await res.json()
+        if (data.success) {
+          setTranslatedText(data.translation)
+        }
+      } catch (err) {
+        console.error('Translation error:', err)
+      } finally {
+        setIsTranslating(false)
+      }
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [sourceText, localLanguage])
+
+  const handleTTS = (text: string, lang: string) => {
+    if (!text) return
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = lang
+    window.speechSynthesis.speak(utterance)
+  }
+
+  const handleCopy = (text: string) => {
+    if (!text) return
+    navigator.clipboard.writeText(text)
+    alert('Traducción copiada al portapapeles')
+  }
+
+  const handleMicClick = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('El dictado por voz no está soportado en este navegador.')
+      return
+    }
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'es-ES'
+    recognition.continuous = false
+    recognition.interimResults = false
+
+    recognition.onstart = () => setIsListening(true)
+    recognition.onend = () => setIsListening(false)
+    recognition.onerror = () => setIsListening(false)
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript
+      setSourceText(prev => prev ? prev + ' ' + transcript : transcript)
+    }
+    recognition.start()
+  }
 
   useEffect(() => {
     const fetchItinerary = async () => {
@@ -85,7 +171,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
   const destinationName = dayData?.title || itinerary?.destination || 'tu destino'
   
   // Determinar idioma del destino para el traductor
-  const localLanguage = practicalInfo?.language?.name || 'Idioma local'
+  // const localLanguage = practicalInfo?.language?.name || 'Idioma local' (Movido arriba)
 
   if (loading) {
     return (
@@ -327,7 +413,10 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
                     <p className="text-[10px] text-gray-400 italic">{phrase.pronunciation}</p>
                   )}
                 </div>
-                <button className="p-2 text-gray-400 hover:text-black">
+                <button 
+                  className="p-2 text-gray-400 hover:text-black" 
+                  onClick={() => handleTTS(phrase.local, ttsLang)}
+                >
                   <Volume2 className="w-4 h-4" />
                 </button>
               </div>
@@ -372,14 +461,32 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           <div className="p-4 relative">
             <textarea 
               placeholder="Escribe aquí..." 
+              value={sourceText}
+              onChange={(e) => setSourceText(e.target.value)}
               className="w-full h-16 text-lg bg-transparent border-none outline-none resize-none placeholder:text-gray-300 font-serif"
             ></textarea>
-            <div className="flex justify-between items-center mt-2 border-t border-gray-50 pt-2">
-              <span className="text-xs text-gray-400">Traducción</span>
+            
+            <div className="border-t border-gray-100 mt-2 pt-3">
+              <div className="min-h-[3rem] text-lg font-serif text-gray-900">
+                {isTranslating ? (
+                  <span className="flex items-center text-sm text-gray-400 gap-2"><Loader2 className="w-4 h-4 animate-spin"/> Traduciendo...</span>
+                ) : (
+                  translatedText || <span className="text-gray-300">Traducción</span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center mt-2 pt-2">
+              <span className="text-xs text-gray-400"></span>
               <div className="flex gap-2 text-gray-400">
-                <Copy className="w-4 h-4 cursor-pointer hover:text-black" />
-                <Volume1 className="w-4 h-4 cursor-pointer hover:text-black" />
-                <Mic className="w-5 h-5 ml-2 cursor-pointer text-blue-500" />
+                <Copy className="w-4 h-4 cursor-pointer hover:text-black" onClick={() => handleCopy(translatedText)} />
+                <Volume1 className="w-4 h-4 cursor-pointer hover:text-black" onClick={() => handleTTS(translatedText, ttsLang)} />
+                <button 
+                  className={`ml-2 p-2 rounded-full flex items-center justify-center transition-colors ${isListening ? 'bg-red-100 text-red-500' : 'bg-blue-50 text-blue-500'}`}
+                  onClick={handleMicClick}
+                >
+                  <Mic className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
