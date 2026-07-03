@@ -96,8 +96,10 @@ export default function MobileProfilePage() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0] && activeDocId && user?.id) {
       const file = e.target.files[0]
+      
       const doc = documents.find(d => d.id === activeDocId)
-      if (!doc) return
+      // Solo hacer return si NO es foto de perfil y el documento no existe
+      if (activeDocId !== 'PROFILE_PIC' && !doc) return
 
       setUploadingId(activeDocId)
       
