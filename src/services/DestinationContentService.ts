@@ -390,14 +390,13 @@ REQUISITOS:
                 dayCountry = cityLookup.rows[0].country;
                 console.log(`🔍 País deducido de BD para ${dayCity}: ${dayCountry}`);
               } else {
-                console.log(`⚠️ No se encontró país para "${dayCity}" en destination_content, saltando día`);
-                enrichedDays.push(day);
-                continue;
+                // Fallback: usar el destino general (ej. "Europa") como país para que la IA lo resuelva
+                dayCountry = defaultCity || 'Mundo';
+                console.log(`⚠️ No se encontró país, usando fallback "${dayCountry}" para ${dayCity}`);
               }
             } catch (lookupErr: any) {
               console.error(`⚠️ Error buscando país para ${dayCity}:`, lookupErr.message);
-              enrichedDays.push(day);
-              continue;
+              dayCountry = defaultCity || 'Mundo';
             }
           }
 
