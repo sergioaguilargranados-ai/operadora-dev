@@ -27,7 +27,10 @@ export async function POST(request: NextRequest) {
       'griego': 'el',
       'catalán': 'ca',
       'euskera': 'eu',
-      'gallego': 'gl'
+      'gallego': 'gl',
+      'español': 'es',
+      'espanol': 'es',
+      'español (castellano)': 'es'
     }
 
     const normalizedTarget = targetLang.toLowerCase().trim()

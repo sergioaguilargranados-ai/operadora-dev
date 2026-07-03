@@ -34,6 +34,9 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
     'portugues': 'pt-PT',
     'japonés': 'ja-JP',
     'japones': 'ja-JP',
+    'español': 'es-ES',
+    'espanol': 'es-ES',
+    'español (castellano)': 'es-ES'
   }
   const ttsLang = langMapTTS[localLanguage.toLowerCase()] || 'en-US'
 
