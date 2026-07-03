@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     try {
       // Verificar si ya existe un documento con ese nombre para ese usuario
       const existing = await client.query(
-        `SELECT id FROM entity_documents WHERE entity_type = 'user' AND entity_id = $1 AND title = $2`,
+        `SELECT id FROM entity_documents WHERE entity_type = 'user' AND entity_id = $1 AND document_name = $2`,
         [user_id, name]
       )
 
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       } else {
         // Insertar
         await client.query(
-          `INSERT INTO entity_documents (entity_type, entity_id, title, document_type, document_url, created_at)
+          `INSERT INTO entity_documents (entity_type, entity_id, document_name, document_type, document_url, created_at)
            VALUES ('user', $1, $2, 'file', $3, CURRENT_TIMESTAMP)`,
           [user_id, name, file_url]
         )
