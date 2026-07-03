@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { DestinationContentService } from '@/services/DestinationContentService'
 
+export const maxDuration = 120; // Enriquecer puede generar contenido IA para múltiples ciudades
+
 /**
  * POST /api/itineraries/[id]/enrich
  * Enriquece los días de un itinerario con contenido turístico de cada destino

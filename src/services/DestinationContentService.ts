@@ -370,13 +370,35 @@ REQUISITOS:
         try {
           // Intentar extraer ciudad del título del día o usar la del itinerario
           const dayTitle = day.title || day.titulo || '';
-          const { city: dayCity, country: dayCountry } =
+          let { city: dayCity, country: dayCountry } =
             DestinationContentService.parseDayCity(dayTitle, defaultCity, defaultCountry);
 
-          if (!dayCity || !dayCountry) {
-            // Sin destino identificable, mantener el día como está
+          if (!dayCity) {
+            // Sin ciudad identificable, mantener el día como está
             enrichedDays.push(day);
             continue;
+          }
+
+          // Si no tenemos país, buscar la ciudad en destination_content para deducirlo
+          if (!dayCountry) {
+            try {
+              const cityLookup = await pool.query(
+                'SELECT country FROM destination_content WHERE LOWER(city) = LOWER($1) LIMIT 1',
+                [dayCity]
+              );
+              if (cityLookup.rows.length > 0) {
+                dayCountry = cityLookup.rows[0].country;
+                console.log(`🔍 País deducido de BD para ${dayCity}: ${dayCountry}`);
+              } else {
+                console.log(`⚠️ No se encontró país para "${dayCity}" en destination_content, saltando día`);
+                enrichedDays.push(day);
+                continue;
+              }
+            } catch (lookupErr: any) {
+              console.error(`⚠️ Error buscando país para ${dayCity}:`, lookupErr.message);
+              enrichedDays.push(day);
+              continue;
+            }
           }
 
           const cacheKey = DestinationContentService.generateDestinationKey(dayCity, dayCountry);
