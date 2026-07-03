@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { DestinationContentService } from '@/services/DestinationContentService'
 
+export const maxDuration = 60; // Evitar timeout en Vercel por ser un endpoint de IA
+
 /**
  * GET /api/destinations/content?city=Paris&country=Francia
  * Obtiene el contenido turístico de un destino (genera si no existe en cache)

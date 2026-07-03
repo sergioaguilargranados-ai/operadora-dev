@@ -46,7 +46,13 @@ export function DestinationContentManager({ showToast }: { showToast: (msg: stri
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ city, country, force })
       });
-      const data = await res.json();
+      
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        throw new Error('El servidor tardó demasiado en responder (Timeout) o hubo un error interno. Intenta de nuevo.');
+      }
       
       if (data.success) {
         showToast(force ? 'Contenido regenerado exitosamente' : 'Contenido generado exitosamente', 'success');
@@ -56,9 +62,9 @@ export function DestinationContentManager({ showToast }: { showToast: (msg: stri
       } else {
         showToast(data.error || 'Error al generar contenido', 'error');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      showToast('Error de conexión', 'error');
+      showToast(err.message || 'Error de conexión', 'error');
     } finally {
       setGenerating(false);
     }
