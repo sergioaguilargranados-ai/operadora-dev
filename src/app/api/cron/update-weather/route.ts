@@ -17,14 +17,14 @@ export async function GET(request: NextRequest) {
     // For now, we can just get all unique cities from the database or just a few major ones if we want to save API calls
     // But since this is specific to itineraries, let's grab unique locations from upcoming groups
     const resGroups = await query(`
-      SELECT distinct region 
-      FROM groups 
+      SELECT distinct destination as region
+      FROM itineraries 
       WHERE start_date >= CURRENT_DATE 
       AND start_date <= CURRENT_DATE + INTERVAL '15 days'
     `)
     
     // As a fallback, hardcode some common ones if there are no upcoming trips
-    let cities = resGroups.rows.map(r => r.region).filter(Boolean)
+    let cities = resGroups.rows.map((r: any) => r.region).filter(Boolean)
     if (cities.length === 0) {
       cities = ['Madrid', 'Paris', 'Rome', 'London', 'Berlin']
     }

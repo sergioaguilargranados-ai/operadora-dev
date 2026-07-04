@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const res = await CurrencyService.fetchAndSaveDailyRates()
+    const res = await CurrencyService.updateExchangeRates()
     return NextResponse.json({ success: true, message: 'Rates updated successfully', res })
   } catch (error: any) {
     console.error('Error in cron update-rates:', error)
