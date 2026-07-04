@@ -201,10 +201,18 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
   const phrases = dayData?.phrases || []
   const practicalInfo = dayData?.practical_info || null
   const travelTips = dayData?.travel_tips || []
-  const destinationName = dayData?.title || itinerary?.destination || 'tu destino'
+  const getCityName = () => {
+    if (dayData?.places?.[0]?.name) {
+      const match = dayData.places[0].name.match(/\(([^,]+),/)
+      if (match && match[1]) return match[1].trim()
+      return dayData.places[0].name
+    }
+    if (dayData?.title && dayData.title.length < 40) return dayData.title
+    return itinerary?.destination || 'tu destino'
+  }
+  const destinationName = getCityName()
   
-  // Determinar idioma del destino para el traductor
-  // const localLanguage = practicalInfo?.language?.name || 'Idioma local' (Movido arriba)
+  const currencyCode = getCurrencyCode(dayData?.practical_info?.currency?.name || '', dayData?.practical_info?.currency?.symbol || '')
 
   if (loading) {
     return (
@@ -350,11 +358,11 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           </div>
           )}
 
-          {practicalInfo.climate && (
+          {practicalInfo?.climate && (
             <WeatherForecast city={destinationName} date={dayData?.date || new Date().toISOString().split('T')[0]} />
           )}
 
-          {practicalInfo.timezone && (
+          {practicalInfo?.timezone && (
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
@@ -362,14 +370,14 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-900">Zona horaria</p>
-                <p className="text-[10px] text-gray-500">{practicalInfo.timezone.zone}</p>
+                <p className="text-[10px] text-gray-500">{practicalInfo.timezone?.zone || "Zona horaria local"}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.timezone.tip}</p>
+            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.timezone?.tip}</p>
           </div>
           )}
 
-          {practicalInfo.voltage && (
+          {practicalInfo?.voltage && (
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
@@ -377,14 +385,14 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-900">Voltaje</p>
-                <p className="text-[10px] text-gray-500">{practicalInfo.voltage.spec}</p>
+                <p className="text-[10px] text-gray-500">{practicalInfo.voltage?.spec}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.voltage.plug_type ? `Enchufes tipo ${practicalInfo.voltage.plug_type}. ` : ''}{practicalInfo.voltage.tip}</p>
+            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.voltage?.plug_type ? `Enchufes tipo ${practicalInfo.voltage.plug_type}. ` : ''}{practicalInfo.voltage?.tip}</p>
           </div>
           )}
 
-          {practicalInfo.emergency && (
+          {practicalInfo?.emergency && (
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
@@ -392,10 +400,10 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-900">Emergencias</p>
-                <p className="text-[10px] text-gray-500">{practicalInfo.emergency.number}</p>
+                <p className="text-[10px] text-gray-500">{practicalInfo.emergency?.number}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.emergency.tip}</p>
+            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.emergency?.tip}</p>
           </div>
           )}
 

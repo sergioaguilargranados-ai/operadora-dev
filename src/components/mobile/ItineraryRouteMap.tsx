@@ -113,9 +113,11 @@ export function ItineraryRouteMap({ cities }: ItineraryRouteMapProps) {
           
           // Unzoom slightly to give breathing room
           const listener = google.maps.event.addListener(map, "idle", () => {
-            if (map.getZoom() > 10) map.setZoom(10)
+            if (map.getZoom() && map.getZoom()! > 10) map.setZoom(10)
             google.maps.event.removeListener(listener)
           })
+        } else {
+          setError(true)
         }
         
         setLoading(false)
