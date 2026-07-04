@@ -78,14 +78,22 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
         {/* Mobile Frame Container */}
         <div className="w-full max-w-md bg-white min-h-screen flex flex-col shadow-2xl relative border-x border-gray-200 overflow-hidden pb-16">
           {/* Main Content Area */}
-          <main className="flex-1 overflow-y-auto">
-            {children}
+          <main className="flex-1 overflow-y-auto pb-16 flex flex-col">
+            <div className="flex-1">
+              {children}
+            </div>
+            {/* Versión al final del contenido (scrollable) */}
+            {isAuthenticated && !isLoginPage && (
+              <div className="w-full text-center py-4 opacity-70">
+                <span className="text-[8px] text-gray-400">v2.368 | 03 Jul 2026 23:09 CST | AS Operadora viajes y eventos</span>
+              </div>
+            )}
           </main>
 
           {/* Bottom Tab Bar (Visible only when authenticated and not in login) */}
           {isAuthenticated && !isLoginPage && (
-            <nav className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 flex flex-col justify-between pt-2 pb-1">
-              <div className="flex justify-around items-center px-4 w-full mb-1">
+            <nav className="fixed bottom-0 max-w-md mx-auto w-full bg-white/80 backdrop-blur-lg border-t border-gray-200 z-50 flex flex-col justify-between pt-2 pb-2">
+              <div className="flex justify-around items-center px-4 w-full">
                 <Link href="/mobile" className={`flex flex-col items-center gap-1 ${pathname === "/mobile" ? "text-yellow-500 font-semibold" : "text-gray-400"}`}>
                   <Home className="w-5 h-5" />
                   <span className="text-[10px]">Inicio</span>
@@ -106,9 +114,6 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
                   <Gift className="w-5 h-5" />
                   <span className="text-[10px]">Rewards</span>
                 </Link>
-              </div>
-              <div className="w-full text-center">
-                <span className="text-[8px] text-gray-400">v2.368 | 03 Jul 2026 17:56 CST | AS Operadora viajes y eventos</span>
               </div>
             </nav>
           )}

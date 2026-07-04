@@ -9,6 +9,13 @@
 
 ## 📅 HISTORIAL DE CAMBIOS
 
+### v2.368 - 03 de Julio de 2026 - 23:09 CST
+**🚀 6 Mejoras Funcionales y Visuales de la PWA**
+- **Footer Fijo y Widgets:** Footer adaptado a `fixed` con `backdrop-blur`, reubicación de la versión de compilación y ajuste de los widgets de WhatsApp/Chat a un tamaño más sutil (44px).
+- **Wishlist Activa:** Implementación completa con base de datos, API (`/api/wishlist`) y nueva vista para gestión interactiva de souvenirs favoritos.
+- **Calculadora de Divisas:** Componente modal `CurrencyCalculator.tsx` para conversión de MXN a monedas destino (EUR, USD, etc.) e inyección desde un cron nocturno.
+- **Mapa de Ruta Premium:** Componente visual con estilo JSON minimalista de Google Maps que traza dinámicamente las ciudades del itinerario con flechas de avance.
+- **Pronóstico del Clima:** Conexión con OpenWeatherMap para mostrar la predicción de los próximos días directo en el itinerario de la PWA, guardado en la base de datos `weather_forecasts` y automatizado vía cron.
 ### v2.360 - 01 de Julio de 2026 - 17:46 CST
 **🤖 Motor de Contenido Turístico con IA (Gemini & Unsplash)**
 - **Motor Backend:** Creación de `destination_content` en BD y servicio `DestinationContentService` para generar datos de gastronomía, imperdibles, frases, info práctica, clima y enchufes usando Gemini 2.0 Flash y fotos reales de Unsplash.

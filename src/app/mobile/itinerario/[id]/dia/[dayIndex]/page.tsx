@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation"
 import { ChevronLeft, Bookmark, MapPin, Info, Volume2, ArrowRightLeft, Mic, Copy, Volume1, Calendar as CalendarIcon, Heart, Loader2 } from "lucide-react"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
-
+import { WishlistHeart } from "@/components/mobile/WishlistHeart"
+import { CurrencyCalculator } from "@/components/mobile/CurrencyCalculator"
+import { WeatherForecast } from "@/components/mobile/WeatherForecast"
 export default function MobileItineraryDayDetail({ params }: { params: { id: string, dayIndex: string } }) {
   const router = useRouter()
   const { logoUrl, logoMobileUrl } = useWhiteLabel()
@@ -19,6 +21,34 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
   const [translatedText, setTranslatedText] = useState('')
   const [isTranslating, setIsTranslating] = useState(false)
   const [isListening, setIsListening] = useState(false)
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false)
+
+  // Map from name/symbol to code
+  const getCurrencyCode = (name: string, symbol: string) => {
+    const n = name.toLowerCase();
+    if (n.includes('euro')) return 'EUR';
+    if (n.includes('dólar') || n.includes('dolar')) {
+      if (n.includes('canad')) return 'CAD';
+      if (n.includes('australi')) return 'AUD';
+      return 'USD';
+    }
+    if (n.includes('libra')) return 'GBP';
+    if (n.includes('franco')) return 'CHF';
+    if (n.includes('yen')) return 'JPY';
+    if (n.includes('real')) return 'BRL';
+    if (n.includes('peso')) {
+      if (n.includes('argentin')) return 'ARS';
+      if (n.includes('chilen')) return 'CLP';
+      if (n.includes('colombian')) return 'COP';
+      if (n.includes('uruguay')) return 'UYU';
+      return 'MXN';
+    }
+    if (n.includes('sol')) return 'PEN';
+    if (symbol === '€') return 'EUR';
+    if (symbol === '£') return 'GBP';
+    if (symbol === '¥') return 'JPY';
+    return 'USD'; // default fallback
+  }
 
   // Determinar idioma del destino para TTS (ej. en-US, fr-FR)
   const localLanguage = dayData?.practical_info?.language?.name || 'Idioma local'
@@ -185,7 +215,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] font-sans pb-28">
+    <div className="min-h-screen bg-[#FDFDFD] font-sans pb-6">
       
       {/* Top Navigation */}
       <div className="bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-40 shadow-sm">
@@ -289,7 +319,10 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         <div className="grid grid-cols-2 gap-3">
           
           {practicalInfo.currency && (
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+          <div 
+            className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col active:scale-95 transition-transform cursor-pointer"
+            onClick={() => setIsCalculatorOpen(true)}
+          >
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center font-serif text-lg text-gray-700">{practicalInfo.currency.symbol || '💰'}</div>
               <div>
@@ -298,6 +331,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               </div>
             </div>
             <p className="text-xs text-gray-600 leading-tight">{practicalInfo.currency.tip}</p>
+            <div className="mt-2 text-[10px] text-blue-500 font-bold flex justify-end">Calcular</div>
           </div>
           )}
 
@@ -317,18 +351,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           )}
 
           {practicalInfo.climate && (
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
-                <span className="text-lg">☀️</span>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-gray-900">Clima</p>
-                <p className="text-[10px] text-gray-500">{practicalInfo.climate.type}</p>
-              </div>
-            </div>
-            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.climate.tip}</p>
-          </div>
+            <WeatherForecast city={destinationName} date={dayData?.date || new Date().toISOString().split('T')[0]} />
           )}
 
           {practicalInfo.timezone && (
@@ -440,9 +463,12 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
             <div key={i} className="w-[120px] flex-shrink-0 flex flex-col">
               <div className="relative bg-[#f6f5f3] h-[120px] rounded-2xl mb-2 flex items-center justify-center p-2">
                 <img src={item.img} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
-                <button className="absolute top-2 right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm">
-                  <Heart className="w-3 h-3 text-gray-400" />
-                </button>
+                <WishlistHeart 
+                  item={item} 
+                  city={destinationName} 
+                  itineraryId={parseInt(params.id)} 
+                  dayIndex={parseInt(params.dayIndex)} 
+                />
               </div>
               <h4 className="font-bold text-xs text-gray-900 mb-1 leading-tight">{item.name}</h4>
               <p className="text-[10px] text-gray-500 leading-tight">{item.desc}</p>
@@ -496,14 +522,19 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         </div>
       </div>
 
-      {/* Fixed Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white p-4 border-t border-gray-200 flex flex-col z-50">
-        <button className="w-full bg-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-lg">
+      {/* Action Bar (Contenido normal) */}
+      <div className="px-4 pb-8">
+        <button className="w-full bg-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
           <CalendarIcon className="w-5 h-5" />
           Reservar tours para este destino
         </button>
       </div>
 
+      <CurrencyCalculator 
+        isOpen={isCalculatorOpen} 
+        onClose={() => setIsCalculatorOpen(false)} 
+        targetCurrency={practicalInfo?.currency ? getCurrencyCode(practicalInfo.currency.name, practicalInfo.currency.symbol) : 'USD'}
+      />
     </div>
   )
 }

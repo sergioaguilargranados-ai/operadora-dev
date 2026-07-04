@@ -110,13 +110,13 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            className="fixed bottom-6 right-6 z-50"
+            className="fixed bottom-20 right-6 z-50"
           >
             <Button
               onClick={() => setIsOpen(true)}
-              className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 bg-black"
+              className="h-11 w-11 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 bg-black"
             >
-              <MessageCircle className="w-6 h-6 text-white" />
+              <MessageCircle className="w-5 h-5 text-white" />
             </Button>
           </motion.div>
         )}
@@ -129,7 +129,7 @@ export function ChatWidget({ context = 'homepage' }: ChatWidgetProps) {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 z-50 w-[380px] h-[600px] flex flex-col"
+            className="fixed bottom-20 right-6 z-50 w-full max-w-[380px] h-[600px] max-h-[80vh] flex flex-col sm:w-[380px] w-[calc(100%-48px)]"
           >
             <Card className="flex flex-col h-full overflow-hidden shadow-2xl border-2">
               {/* Header */}

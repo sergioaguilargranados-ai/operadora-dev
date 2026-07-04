@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
+import { ItineraryRouteMap } from "@/components/mobile/ItineraryRouteMap"
 
 export default function MobileItineraryListPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -166,6 +167,15 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
           </div>
         </div>
       </div>
+
+      {/* Ruta del Viaje (Mapa Minimalista) */}
+      {days.length > 0 && (
+        <div className="px-4 mb-6">
+          <ItineraryRouteMap 
+            cities={days.map((d: any) => d.places?.[0]?.name || d.title).filter(Boolean)} 
+          />
+        </div>
+      )}
 
       {/* Days List */}
       <div className="px-4 space-y-4">
