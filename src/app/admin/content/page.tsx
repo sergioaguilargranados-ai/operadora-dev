@@ -19,8 +19,9 @@ import { DestinationContentManager } from "@/components/admin/DestinationContent
 import {
   Plus, Edit, Trash2, DollarSign, Calendar, Plane, Hotel, Package,
   Home, Globe, CheckCircle2, AlertCircle, X, RefreshCw, Smartphone,
-  Image as ImageIcon, Search, Eye, Save, ExternalLink, ChevronDown, ChevronUp, AlertTriangle, Star, MapPin, Loader2, ShoppingBag
+  Image as ImageIcon, Search, Eye, Save, ExternalLink, ChevronDown, ChevronUp, AlertTriangle, Star, MapPin, Loader2, ShoppingBag, Settings, CloudRain
 } from "lucide-react"
+import { CronProcessRunner } from "@/components/admin/CronProcessRunner"
 
 export default function AdminContentPage() {
   const router = useRouter()
@@ -598,9 +599,9 @@ export default function AdminContentPage() {
               <ImageIcon className="w-4 h-4" />
               Imágenes Tours
             </TabsTrigger>
-            <TabsTrigger value="megatravel" className="flex items-center gap-2">
-              <RefreshCw className="w-4 h-4" />
-              MegaTravel
+            <TabsTrigger value="processes" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Ejecución de Procesos
             </TabsTrigger>
             <TabsTrigger value="expo" className="flex items-center gap-2">
               <Star className="w-4 h-4" />
@@ -1129,11 +1130,11 @@ export default function AdminContentPage() {
             </Card>
           </TabsContent>
 
-          {/* MEGATRAVEL TAB */}
-          <TabsContent value="megatravel">
+          {/* PROCESSES TAB */}
+          <TabsContent value="processes">
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">🌍 MegaTravel — Tours y Scraping</h2>
+                <h2 className="text-2xl font-bold">⚙️ Ejecución de Procesos y Sincronización</h2>
               </div>
 
               <div className="space-y-6">
@@ -1180,6 +1181,22 @@ export default function AdminContentPage() {
                     </p>
                   </div>
                 </div>
+              </div>
+
+              <div className="mt-8 space-y-6">
+                <CronProcessRunner 
+                  title="Actualizar Tipos de Cambio"
+                  description="Descarga las divisas (EUR, USD, etc.) a MXN para el día de hoy usando la API configurada."
+                  endpoint="/api/cron/update-rates"
+                  icon={<DollarSign className="w-5 h-5 text-green-600" />}
+                />
+
+                <CronProcessRunner 
+                  title="Pronóstico del Clima (Próximos Viajes)"
+                  description="Revisa los itinerarios de los próximos 15 días y descarga el clima desde OpenWeatherMap."
+                  endpoint="/api/cron/update-weather"
+                  icon={<CloudRain className="w-5 h-5 text-blue-500" />}
+                />
               </div>
             </Card>
           </TabsContent>

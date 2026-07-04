@@ -16,6 +16,7 @@
 - **Calculadora de Divisas:** Componente modal `CurrencyCalculator.tsx` para conversión de MXN a monedas destino (EUR, USD, etc.) e inyección desde un cron nocturno.
 - **Mapa de Ruta Premium:** Componente visual con estilo JSON minimalista de Google Maps que traza dinámicamente las ciudades del itinerario con flechas de avance.
 - **Pronóstico del Clima:** Conexión con OpenWeatherMap para mostrar la predicción de los próximos días directo en el itinerario de la PWA, guardado en la base de datos `weather_forecasts` y automatizado vía cron.
+- **Panel de Ejecución de Procesos:** Se rediseñó la pestaña de MegaTravel en `Gestión de Contenido` para incluir un panel unificado de ejecución manual de crons (Tipos de Cambio, Clima) con terminal de logs en tiempo real mediante el nuevo componente `CronProcessRunner`.
 ### v2.360 - 01 de Julio de 2026 - 17:46 CST
 **🤖 Motor de Contenido Turístico con IA (Gemini & Unsplash)**
 - **Motor Backend:** Creación de `destination_content` en BD y servicio `DestinationContentService` para generar datos de gastronomía, imperdibles, frases, info práctica, clima y enchufes usando Gemini 2.0 Flash y fotos reales de Unsplash.
