@@ -218,7 +218,7 @@ class CurrencyService {
         const data = await response.json()
 
         if (data.result === 'success') {
-          return data.conversion_rates
+          return data.conversion_rates || data.rates
         }
       }
 
