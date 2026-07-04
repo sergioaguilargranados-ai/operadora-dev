@@ -75,10 +75,17 @@ export default class WeatherService {
    * Get forecast for a city and a specific date from DB
    */
   static async getForecast(city: string, dateStr: string) {
-    const res = await query(
+    let res = await query(
       "SELECT * FROM weather_forecasts WHERE city = $1 AND date = $2",
       [city, dateStr]
     )
+    if (res.rows.length === 0) {
+      // Intentar coincidencia parcial (ej. si city='Día Libre en París', puede hacer match con city='Paris' en BD)
+      res = await query(
+        "SELECT * FROM weather_forecasts WHERE $1 ILIKE '%' || city || '%' AND date = $2 LIMIT 1",
+        [city, dateStr]
+      )
+    }
     return res.rows[0] || null
   }
 }
