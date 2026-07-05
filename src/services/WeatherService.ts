@@ -77,6 +77,7 @@ export default class WeatherService {
   static async getForecast(city: string, dateStr: string) {
     const normalizedCity = city.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     
+    // First, try exact date match
     let res = await query(
       "SELECT * FROM weather_forecasts WHERE city ILIKE $1 AND date = $2",
       [city, dateStr]
@@ -90,12 +91,29 @@ export default class WeatherService {
     }
     
     if (res.rows.length === 0) {
-      // Intentar coincidencia parcial
+      // Partial match for exact date
       res = await query(
         "SELECT * FROM weather_forecasts WHERE $1 ILIKE '%' || city || '%' AND date = $2 LIMIT 1",
         [normalizedCity, dateStr]
       )
     }
+
+    // If still no results, fallback to the earliest available forecast today or in the future
+    if (res.rows.length === 0) {
+      res = await query(
+        "SELECT * FROM weather_forecasts WHERE $1 ILIKE '%' || city || '%' AND date >= $2 ORDER BY date ASC LIMIT 1",
+        [normalizedCity, dateStr]
+      )
+    }
+    
+    // Fallback again without partial match just in case
+    if (res.rows.length === 0) {
+      res = await query(
+        "SELECT * FROM weather_forecasts WHERE city ILIKE $1 AND date >= $2 ORDER BY date ASC LIMIT 1",
+        [normalizedCity, dateStr]
+      )
+    }
+
     return res.rows[0] || null
   }
 }

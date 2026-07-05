@@ -17,7 +17,7 @@ export function WeatherForecast({ city, date }: WeatherForecastProps) {
     if (!city || !date) return
     const fetchWeather = async () => {
       try {
-        const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}&date=${date}`)
+        const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}&date=${date}&_t=${Date.now()}`)
         const data = await res.json()
         if (data.success && data.data) {
           setForecast(data.data)
