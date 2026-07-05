@@ -18,6 +18,7 @@ export function CurrencyCalculator({ targetCurrency, isOpen, onClose }: Currency
   
   // Last edited field ('mxn' or 'target') to keep math accurate
   const [lastEdited, setLastEdited] = useState<'mxn' | 'target'>('mxn')
+  const [isSwapped, setIsSwapped] = useState(false)
 
   useEffect(() => {
     if (isOpen && targetCurrency && targetCurrency !== 'MXN') {
@@ -70,6 +71,46 @@ export function CurrencyCalculator({ targetCurrency, isOpen, onClose }: Currency
     }
   }
 
+  const mxnInputNode = (
+    <div className={`p-4 rounded-2xl border transition-all ${lastEdited === 'mxn' ? 'bg-white border-blue-400 shadow-sm' : 'bg-gray-50 border-transparent'}`}>
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Tus Pesos</span>
+        <span className="text-xs font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded-lg">MXN 🇲🇽</span>
+      </div>
+      <div className="flex items-center text-3xl font-serif">
+        <span className="text-gray-400 mr-1">$</span>
+        <input 
+          type="number"
+          inputMode="decimal"
+          value={mxnValue}
+          onChange={handleMxnChange}
+          placeholder="0.00"
+          className="w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-gray-900 font-bold"
+        />
+      </div>
+    </div>
+  )
+
+  const targetInputNode = (
+    <div className={`p-4 rounded-2xl border transition-all ${lastEdited === 'target' ? 'bg-white border-blue-400 shadow-sm' : 'bg-gray-50 border-transparent'}`}>
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">En el Destino</span>
+        <span className="text-xs font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded-lg">{targetCurrency} 🌍</span>
+      </div>
+      <div className="flex items-center text-3xl font-serif">
+        <span className="text-gray-400 mr-1">$</span>
+        <input 
+          type="number"
+          inputMode="decimal"
+          value={targetValue}
+          onChange={handleTargetChange}
+          placeholder="0.00"
+          className="w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-gray-900 font-bold"
+        />
+      </div>
+    </div>
+  )
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="w-[90%] max-w-[400px] rounded-3xl p-6 border border-gray-100 shadow-xl bg-[#FDFDFD]">
@@ -94,49 +135,18 @@ export function CurrencyCalculator({ targetCurrency, isOpen, onClose }: Currency
         ) : (
           <div className="space-y-4">
             
-            {/* MXN Input */}
-            <div className={`p-4 rounded-2xl border transition-all ${lastEdited === 'mxn' ? 'bg-white border-blue-400 shadow-sm' : 'bg-gray-50 border-transparent'}`}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Tus Pesos</span>
-                <span className="text-xs font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded-lg">MXN 🇲🇽</span>
-              </div>
-              <div className="flex items-center text-3xl font-serif">
-                <span className="text-gray-400 mr-1">$</span>
-                <input 
-                  type="number"
-                  inputMode="decimal"
-                  value={mxnValue}
-                  onChange={handleMxnChange}
-                  placeholder="0.00"
-                  className="w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-gray-900 font-bold"
-                />
-              </div>
-            </div>
+            {isSwapped ? targetInputNode : mxnInputNode}
 
             <div className="flex justify-center -my-3 relative z-10">
-              <div className="bg-white p-2 rounded-full border border-gray-100 shadow-sm">
+              <button 
+                onClick={() => setIsSwapped(!isSwapped)}
+                className="bg-white p-2 rounded-full border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors cursor-pointer active:scale-95"
+              >
                 <ArrowUpDown className="w-4 h-4 text-blue-500" />
-              </div>
+              </button>
             </div>
 
-            {/* Target Input */}
-            <div className={`p-4 rounded-2xl border transition-all ${lastEdited === 'target' ? 'bg-white border-blue-400 shadow-sm' : 'bg-gray-50 border-transparent'}`}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">En el Destino</span>
-                <span className="text-xs font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded-lg">{targetCurrency} 🌍</span>
-              </div>
-              <div className="flex items-center text-3xl font-serif">
-                <span className="text-gray-400 mr-1">$</span>
-                <input 
-                  type="number"
-                  inputMode="decimal"
-                  value={targetValue}
-                  onChange={handleTargetChange}
-                  placeholder="0.00"
-                  className="w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-gray-900 font-bold"
-                />
-              </div>
-            </div>
+            {isSwapped ? mxnInputNode : targetInputNode}
 
             <div className="text-center mt-4">
               <p className="text-[10px] text-gray-400">
