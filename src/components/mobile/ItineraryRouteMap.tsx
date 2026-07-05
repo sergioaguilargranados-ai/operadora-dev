@@ -78,19 +78,22 @@ export function ItineraryRouteMap({ cities }: ItineraryRouteMapProps) {
           validPlaces.forEach((place, index) => {
             bounds.extend(place.location)
             
+            const isStart = index === 0;
+            
             // Marker
             new google.maps.Marker({
               map,
               position: place.location,
               icon: {
                 path: google.maps.SymbolPath.CIRCLE,
-                scale: 6,
-                fillColor: index === 0 ? '#000000' : (index === validPlaces.length - 1 ? '#ef4444' : '#3b82f6'),
+                scale: isStart ? 8 : 6,
+                fillColor: isStart ? '#22c55e' : '#3b82f6', // Green for start, blue for rest
                 fillOpacity: 1,
                 strokeWeight: 2,
                 strokeColor: '#ffffff',
               },
-              title: place.city
+              title: isStart ? `Inicio: ${place.city}` : place.city,
+              zIndex: isStart ? 100 : 1
             })
           })
 
@@ -100,9 +103,9 @@ export function ItineraryRouteMap({ cities }: ItineraryRouteMapProps) {
             const flightPath = new google.maps.Polyline({
               path: pathCoords,
               geodesic: true,
-              strokeColor: '#94a3b8',
-              strokeOpacity: 0.8,
-              strokeWeight: 2,
+              strokeColor: '#3b82f6',
+              strokeOpacity: 0.6,
+              strokeWeight: 3,
               icons: [{
                 icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 2 },
                 offset: '50%'
