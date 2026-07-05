@@ -14,18 +14,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'city and date are required' }, { status: 400 })
     }
 
-    const forecast = await WeatherService.getForecast(city, date)
+    // Fetch extended forecast (up to 5 days)
+    const extended = await WeatherService.getExtendedForecast(city, date)
 
     // If it doesn't exist, we can try to fetch it on the fly
-    if (!forecast) {
+    if (!extended || extended.length === 0) {
       await WeatherService.fetchAndSaveForecast(city)
-      const newForecast = await WeatherService.getForecast(city, date)
-      if (newForecast) {
-        return NextResponse.json({ success: true, data: newForecast })
+      const newExtended = await WeatherService.getExtendedForecast(city, date)
+      if (newExtended && newExtended.length > 0) {
+        return NextResponse.json({ 
+          success: true, 
+          data: newExtended[0],
+          extended: newExtended 
+        })
       }
     }
 
-    return NextResponse.json({ success: true, data: forecast })
+    return NextResponse.json({ 
+      success: true, 
+      data: extended && extended.length > 0 ? extended[0] : null,
+      extended: extended || [] 
+    })
   } catch (error: any) {
     console.error('Error fetching weather:', error)
     return NextResponse.json({ success: false, error: 'Error fetching weather' }, { status: 500 })

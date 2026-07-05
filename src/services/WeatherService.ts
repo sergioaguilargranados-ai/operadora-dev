@@ -38,7 +38,10 @@ export default class WeatherService {
             temp_max: item.main.temp_max,
             temp: item.main.temp,
             description: item.weather[0].description,
-            icon: item.weather[0].icon
+            icon: item.weather[0].icon,
+            humidity: item.main.humidity,
+            wind_speed: item.wind.speed,
+            pop: item.pop || 0
           }
         } else {
           daily[date].temp_min = Math.min(daily[date].temp_min, item.main.temp_min)
@@ -48,6 +51,11 @@ export default class WeatherService {
             daily[date].description = item.weather[0].description
             daily[date].icon = item.weather[0].icon
             daily[date].temp = item.main.temp
+            daily[date].humidity = item.main.humidity
+            daily[date].wind_speed = item.wind.speed
+            daily[date].pop = Math.max(daily[date].pop, item.pop || 0)
+          } else {
+            daily[date].pop = Math.max(daily[date].pop, item.pop || 0)
           }
         }
       }
@@ -55,12 +63,14 @@ export default class WeatherService {
       // 4. Save to DB
       for (const [date, data] of Object.entries(daily)) {
         await query(
-          `INSERT INTO weather_forecasts (city, date, temp, temp_min, temp_max, description, icon, last_updated)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
+          `INSERT INTO weather_forecasts (city, date, temp, temp_min, temp_max, description, icon, humidity, wind_speed, pop, last_updated)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
            ON CONFLICT (city, date) 
            DO UPDATE SET temp = EXCLUDED.temp, temp_min = EXCLUDED.temp_min, temp_max = EXCLUDED.temp_max, 
-                         description = EXCLUDED.description, icon = EXCLUDED.icon, last_updated = CURRENT_TIMESTAMP`,
-          [city, date, data.temp, data.temp_min, data.temp_max, data.description, data.icon]
+                         description = EXCLUDED.description, icon = EXCLUDED.icon, 
+                         humidity = EXCLUDED.humidity, wind_speed = EXCLUDED.wind_speed, pop = EXCLUDED.pop,
+                         last_updated = CURRENT_TIMESTAMP`,
+          [city, date, data.temp, data.temp_min, data.temp_max, data.description, data.icon, data.humidity, data.wind_speed, data.pop]
         )
       }
       
@@ -123,5 +133,49 @@ export default class WeatherService {
     }
 
     return res.rows[0] || null
+  }
+
+  /**
+   * Get extended forecast (up to 5 days) starting from a specific date or closest available
+   */
+  static async getExtendedForecast(city: string, dateStr: string) {
+    const normalizedCity = city.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    
+    // Attempt to get the next 5 days starting from the date
+    let res = await query(
+      "SELECT * FROM weather_forecasts WHERE city ILIKE $1 AND date >= $2 ORDER BY date ASC LIMIT 5",
+      [city, dateStr]
+    )
+    
+    if (res.rows.length === 0 && normalizedCity !== city) {
+      res = await query(
+        "SELECT * FROM weather_forecasts WHERE city ILIKE $1 AND date >= $2 ORDER BY date ASC LIMIT 5",
+        [normalizedCity, dateStr]
+      )
+    }
+    
+    if (res.rows.length === 0) {
+      res = await query(
+        "SELECT * FROM weather_forecasts WHERE $1 ILIKE '%' || city || '%' AND date >= $2 ORDER BY date ASC LIMIT 5",
+        [normalizedCity, dateStr]
+      )
+    }
+    
+    // Fallback if date is too far in the future
+    if (res.rows.length === 0) {
+      res = await query(
+        "SELECT * FROM weather_forecasts WHERE $1 ILIKE '%' || city || '%' ORDER BY date ASC LIMIT 5",
+        [normalizedCity]
+      )
+    }
+
+    if (res.rows.length === 0) {
+      res = await query(
+        "SELECT * FROM weather_forecasts WHERE city ILIKE $1 ORDER BY date ASC LIMIT 5",
+        [normalizedCity]
+      )
+    }
+
+    return res.rows
   }
 }
