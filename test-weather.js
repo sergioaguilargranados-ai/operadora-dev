@@ -19,15 +19,22 @@ async function getForecast(city, dateStr) {
   
   if (res.rows.length === 0) {
     res = await pool.query(
-      "SELECT * FROM weather_forecasts WHERE $1 ILIKE '%' || city || '%' AND date = $2 LIMIT 1",
-      [normalizedCity, dateStr]
+      "SELECT * FROM weather_forecasts WHERE $1 ILIKE '%' || city || '%' ORDER BY date ASC LIMIT 1",
+      [normalizedCity]
+    )
+  }
+  
+  if (res.rows.length === 0) {
+    res = await pool.query(
+      "SELECT * FROM weather_forecasts WHERE city ILIKE $1 ORDER BY date ASC LIMIT 1",
+      [normalizedCity]
     )
   }
   return res.rows[0] || null
 }
 
 async function run() {
-  const f = await getForecast("Palacio Real de Madrid", "2026-07-05");
+  const f = await getForecast("Palacio Real de Madrid", "2026-07-29");
   console.log("Forecast:", f);
   pool.end();
 }

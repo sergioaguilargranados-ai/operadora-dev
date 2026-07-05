@@ -106,11 +106,19 @@ export default class WeatherService {
       )
     }
     
+    // If still no results (e.g. date is too far in the future beyond 5 days), just return the most current available forecast
+    if (res.rows.length === 0) {
+      res = await query(
+        "SELECT * FROM weather_forecasts WHERE $1 ILIKE '%' || city || '%' ORDER BY date ASC LIMIT 1",
+        [normalizedCity]
+      )
+    }
+    
     // Fallback again without partial match just in case
     if (res.rows.length === 0) {
       res = await query(
-        "SELECT * FROM weather_forecasts WHERE city ILIKE $1 AND date >= $2 ORDER BY date ASC LIMIT 1",
-        [normalizedCity, dateStr]
+        "SELECT * FROM weather_forecasts WHERE city ILIKE $1 ORDER BY date ASC LIMIT 1",
+        [normalizedCity]
       )
     }
 
