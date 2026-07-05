@@ -317,10 +317,36 @@ REQUISITOS:
           }
         }
 
+        // 3. Fallback a Wikipedia (¡Sin límites de API!)
+        if (!photoUrl) {
+          try {
+            const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${searchQuery}&utf8=&format=json`);
+            if (searchRes.ok) {
+              const searchData = await searchRes.json();
+              if (searchData?.query?.search?.length > 0) {
+                const title = searchData.query.search[0].title;
+                const imgRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles=${encodeURIComponent(title)}`);
+                if (imgRes.ok) {
+                  const imgData = await imgRes.json();
+                  const pages = imgData?.query?.pages;
+                  if (pages) {
+                    const pageId = Object.keys(pages)[0];
+                    if (pages[pageId]?.original?.source) {
+                      photoUrl = pages[pageId].original.source;
+                    }
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Wikipedia fallback error:', e);
+          }
+        }
+
         if (photoUrl) {
           results.push({ name: item.name, img: photoUrl });
         } else {
-          // Fallback: imagen genérica
+          // Fallback final: imagen genérica
           results.push({
             name: item.name,
             img: FALLBACK_IMAGE,
