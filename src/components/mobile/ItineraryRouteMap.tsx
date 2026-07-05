@@ -51,25 +51,23 @@ export function ItineraryRouteMap({ cities }: ItineraryRouteMapProps) {
           gestureHandling: 'cooperative'
         })
 
-        const placesService = new google.maps.places.PlacesService(map)
         const bounds = new google.maps.LatLngBounds()
 
-        // Geocode all cities using Places API (since Geocoding API might not be active)
+        // Geocode all cities using our free Nominatim proxy
         const geocodedPlaces = await Promise.all(
           uniqueCities.map(city => 
-            new Promise<any>((resolve) => {
-              placesService.findPlaceFromQuery({
-                query: city,
-                fields: ['geometry']
-              }, (results: any, status: any) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK && results && results[0]) {
-                  resolve({ city, location: results[0].geometry.location })
-                } else {
-                  console.error("Places API error for", city, status)
-                  resolve(null)
+            fetch(`/api/geocode?city=${encodeURIComponent(city)}`)
+              .then(res => res.json())
+              .then(data => {
+                if (data.success && data.location) {
+                  return { city, location: new google.maps.LatLng(data.location.lat, data.location.lng) }
                 }
+                return null
               })
-            })
+              .catch(err => {
+                console.error("Geocode error for", city, err)
+                return null
+              })
           )
         )
 
