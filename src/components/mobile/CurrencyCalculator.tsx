@@ -140,7 +140,7 @@ export function CurrencyCalculator({ targetCurrency, isOpen, onClose }: Currency
 
             <div className="text-center mt-4">
               <p className="text-[10px] text-gray-400">
-                Tipo de cambio actual: 1 MXN = {rate.toFixed(4)} {targetCurrency}
+                Tipo de cambio actual: 1 MXN = {Number(rate).toFixed(4)} {targetCurrency}
               </p>
             </div>
             

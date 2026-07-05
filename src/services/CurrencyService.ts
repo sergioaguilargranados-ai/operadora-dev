@@ -62,13 +62,18 @@ class CurrencyService {
       }
     }
 
-    return queryOne<ExchangeRate>(
+    const result = await queryOne<ExchangeRate>(
       `SELECT * FROM exchange_rates
        WHERE base_currency = $1 AND target_currency = $2
        ORDER BY date DESC, created_at DESC
        LIMIT 1`,
       [fromCurrency.toUpperCase(), toCurrency.toUpperCase()]
     )
+
+    if (result) {
+      result.rate = Number(result.rate)
+    }
+    return result
   }
 
   /**
