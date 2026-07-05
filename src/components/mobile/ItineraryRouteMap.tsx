@@ -51,17 +51,21 @@ export function ItineraryRouteMap({ cities }: ItineraryRouteMapProps) {
           gestureHandling: 'cooperative'
         })
 
-        const geocoder = new google.maps.Geocoder()
+        const placesService = new google.maps.places.PlacesService(map)
         const bounds = new google.maps.LatLngBounds()
 
-        // Geocode all cities
+        // Geocode all cities using Places API (since Geocoding API might not be active)
         const geocodedPlaces = await Promise.all(
           uniqueCities.map(city => 
             new Promise<any>((resolve) => {
-              geocoder.geocode({ address: city }, (results: any, status: any) => {
-                if (status === 'OK' && results[0]) {
+              placesService.findPlaceFromQuery({
+                query: city,
+                fields: ['geometry']
+              }, (results: any, status: any) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && results && results[0]) {
                   resolve({ city, location: results[0].geometry.location })
                 } else {
+                  console.error("Places API error for", city, status)
                   resolve(null)
                 }
               })
