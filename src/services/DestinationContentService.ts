@@ -187,7 +187,7 @@ export class DestinationContentService {
 Responde ÚNICAMENTE con un JSON válido (sin markdown, sin backticks, sin texto adicional) con la siguiente estructura exacta:
 
 {
-  "general_description": "Descripción general del destino en 2-3 párrafos, mencionando su atractivo turístico principal, cultura y ambiente.",
+  "general_description": "Breve descripción general del destino en 1 solo párrafo corto (máximo 40 palabras), mencionando su atractivo principal.",
   "foods": [
     {"name": "Nombre del platillo", "desc": "Descripción breve del platillo típico (1-2 oraciones)", "image_search": "término de búsqueda en inglés para encontrar una foto del platillo"}
   ],
