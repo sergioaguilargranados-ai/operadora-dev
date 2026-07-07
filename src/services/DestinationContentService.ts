@@ -451,6 +451,8 @@ REQUISITOS:
             souvenirs: hasValidSouvenirs ? day.souvenirs : content.souvenirs,
             phrases: hasValidPhrases ? day.phrases : content.phrases,
             practical_info: day.practical_info || content.practical_info,
+            general_description: content.general_description,
+            travel_tips: content.travel_tips,
             destination_content_key: cacheKey,
           });
         } catch (dayError: any) {

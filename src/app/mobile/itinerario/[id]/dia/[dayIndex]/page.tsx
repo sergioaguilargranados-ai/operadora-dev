@@ -282,7 +282,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           <div>
             <h3 className="font-bold text-gray-900 mb-2 font-serif text-lg">Descripción general</h3>
             <p className="text-sm text-gray-600 leading-relaxed">
-              {dayData?.description || itinerary?.description || "Tu destino te espera con increíbles experiencias. Disfruta de la gastronomía, cultura y paisajes únicos que hemos preparado para ti."}
+              {dayData?.general_description || dayData?.description || itinerary?.description || "Tu destino te espera con increíbles experiencias. Disfruta de la gastronomía, cultura y paisajes únicos que hemos preparado para ti."}
             </p>
           </div>
         </div>
