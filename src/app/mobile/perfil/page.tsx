@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Bell, User, Calendar, Mail, Phone, Shield, Users, ChevronRight, Plus, Upload, X, Loader2, LogOut } from "lucide-react"
+import { ChevronLeft, Bell, User, Calendar, Mail, Phone, Shield, Users, ChevronRight, Plus, Upload, X, Loader2, LogOut, Trash2 } from "lucide-react"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
@@ -91,6 +91,27 @@ export default function MobileProfilePage() {
   const handleUploadClick = (docId: string) => {
     setActiveDocId(docId)
     fileInputRef.current?.click()
+  }
+
+  const handleDeleteDocument = async (docName: string) => {
+    if (!user?.id || !confirm(`¿Estás seguro de que deseas eliminar el documento ${docName}?`)) return
+    
+    try {
+      const res = await fetch(`/api/mobile/documents?user_id=${user.id}&name=${encodeURIComponent(docName)}`, {
+        method: 'DELETE'
+      })
+      const data = await res.json()
+      
+      if (data.success) {
+        toast({ title: 'Eliminado', description: 'Documento eliminado correctamente' })
+        setDocuments(prev => prev.map(d => d.name === docName ? { ...d, fileName: null } : d))
+      } else {
+        toast({ title: 'Error', description: 'No se pudo eliminar el documento', variant: 'destructive' })
+      }
+    } catch (err) {
+      console.error(err)
+      toast({ title: 'Error', description: 'Error al eliminar el documento', variant: 'destructive' })
+    }
   }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,7 +210,7 @@ export default function MobileProfilePage() {
             logoUrl={customLogoUrl}
           />
 
-          <button className="text-white hover:text-gray-300">
+          <button onClick={() => router.push('/mobile/notificaciones')} className="text-white hover:text-gray-300">
             <Bell className="w-6 h-6" />
           </button>
         </div>
@@ -336,12 +357,20 @@ export default function MobileProfilePage() {
                 ) : (
                   <div className="flex gap-2">
                     {doc.fileName && (
-                      <button 
-                        onClick={() => window.open(doc.fileName!, '_blank')} 
-                        className="p-2 text-blue-500 hover:text-blue-700"
-                      >
-                        Ver
-                      </button>
+                      <>
+                        <button 
+                          onClick={() => window.open(doc.fileName!, '_blank')} 
+                          className="p-2 text-blue-500 hover:text-blue-700"
+                        >
+                          Ver
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDocument(doc.name)}
+                          className="p-2 text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </>
                     )}
                     <button 
                       onClick={() => handleUploadClick(doc.id)} 

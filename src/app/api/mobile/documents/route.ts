@@ -45,3 +45,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Database error' }, { status: 500 })
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const user_id = searchParams.get('user_id')
+    const name = searchParams.get('name')
+
+    if (!user_id || !name) {
+      return NextResponse.json({ success: false, error: 'Faltan datos requeridos' }, { status: 400 })
+    }
+
+    const client = await pool.connect()
+    try {
+      await client.query(
+        `DELETE FROM entity_documents WHERE entity_type = 'user' AND entity_id = $1 AND document_name = $2`,
+        [user_id, name]
+      )
+
+      return NextResponse.json({ success: true })
+    } finally {
+      client.release()
+    }
+  } catch (error) {
+    console.error('Error deleting document:', error)
+    return NextResponse.json({ success: false, error: 'Database error' }, { status: 500 })
+  }
+}
