@@ -8,7 +8,7 @@ import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { WishlistHeart } from "@/components/mobile/WishlistHeart"
 import { CurrencyCalculator } from "@/components/mobile/CurrencyCalculator"
 import { WeatherForecast } from "@/components/mobile/WeatherForecast"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { FoodDetailModal } from "@/components/mobile/FoodDetailModal"
 import { PlaceDetailModal } from "@/components/mobile/PlaceDetailModal"
 
