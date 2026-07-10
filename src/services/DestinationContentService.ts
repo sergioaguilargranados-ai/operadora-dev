@@ -12,12 +12,26 @@ export interface FoodItem {
   name: string;
   desc: string;
   img: string;
+  difficulty?: string;
+  time?: string;
+  portions?: string;
+  type?: string;
+  ingredients?: string[];
+  preparation?: string[];
+  tip?: string;
 }
 
 export interface PlaceItem {
   name: string;
   desc: string;
   img: string;
+  location?: string;
+  type?: string;
+  best_time?: string;
+  transport?: string;
+  budget?: string;
+  activities?: string[];
+  gallery?: string[];
 }
 
 export interface SouvenirItem {
@@ -61,8 +75,29 @@ export interface DestinationContent {
 /** Respuesta esperada del modelo Gemini */
 interface GeminiGeneratedContent {
   general_description: string;
-  foods: Array<{ name: string; desc: string; image_search: string }>;
-  places: Array<{ name: string; desc: string; image_search: string }>;
+  foods: Array<{ 
+    name: string; 
+    desc: string; 
+    image_search: string;
+    difficulty?: string;
+    time?: string;
+    portions?: string;
+    type?: string;
+    ingredients?: string[];
+    preparation?: string[];
+    tip?: string;
+  }>;
+  places: Array<{ 
+    name: string; 
+    desc: string; 
+    image_search: string;
+    location?: string;
+    type?: string;
+    best_time?: string;
+    transport?: string;
+    budget?: string;
+    activities?: string[];
+  }>;
   souvenirs: Array<{ name: string; desc: string; image_search: string }>;
   phrases: PhraseItem[];
   practical_info: PracticalInfo;
@@ -123,7 +158,8 @@ export class DestinationContentService {
         generated.foods.map(f => ({ name: f.name, image_search: f.image_search }))
       );
       const placesWithImages = await DestinationContentService.fetchRealImages(
-        generated.places.map(p => ({ name: p.name, image_search: p.image_search }))
+        generated.places.map(p => ({ name: p.name, image_search: p.image_search })),
+        true
       );
       const souvenirsWithImages = await DestinationContentService.fetchRealImages(
         generated.souvenirs.map(s => ({ name: s.name, image_search: s.image_search }))
@@ -145,11 +181,25 @@ export class DestinationContentService {
           name: f.name,
           desc: f.desc,
           img: foodsWithImages[i]?.img || FALLBACK_IMAGE,
+          difficulty: f.difficulty,
+          time: f.time,
+          portions: f.portions,
+          type: f.type,
+          ingredients: f.ingredients,
+          preparation: f.preparation,
+          tip: f.tip,
         })),
         places: generated.places.map((p, i) => ({
           name: p.name,
           desc: p.desc,
           img: placesWithImages[i]?.img || FALLBACK_IMAGE,
+          location: p.location,
+          type: p.type,
+          best_time: p.best_time,
+          transport: p.transport,
+          budget: p.budget,
+          activities: p.activities,
+          gallery: placesWithImages[i]?.gallery || [],
         })),
         souvenirs: generated.souvenirs.map((s, i) => ({
           name: s.name,
@@ -189,10 +239,31 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin backticks, sin texto
 {
   "general_description": "Breve descripción general del destino en 1 solo párrafo corto (máximo 40 palabras), mencionando su atractivo principal.",
   "foods": [
-    {"name": "Nombre del platillo", "desc": "Descripción breve del platillo típico (1-2 oraciones)", "image_search": "término de búsqueda en inglés para encontrar una foto del platillo"}
+    {
+      "name": "Nombre del platillo", 
+      "desc": "Descripción breve del platillo típico (1-2 oraciones)", 
+      "image_search": "término de búsqueda en inglés para encontrar una foto del platillo",
+      "difficulty": "Nivel de dificultad (ej: Fácil, Media, Alta)",
+      "time": "Tiempo estimado de preparación (ej: 30 min, 2 horas)",
+      "portions": "Porciones estimadas (ej: 2-4 personas)",
+      "type": "Tipo de comida (ej: Desayuno, Plato Fuerte, Postre, Bebida)",
+      "ingredients": ["Ingrediente 1", "Ingrediente 2"],
+      "preparation": ["Paso 1 de preparación", "Paso 2 de preparación"],
+      "tip": "Consejo o tip adicional (ej: Mejor restaurante para probarlo o con qué acompañarlo)"
+    }
   ],
   "places": [
-    {"name": "Nombre del lugar turístico", "desc": "Descripción breve del lugar (1-2 oraciones)", "image_search": "término de búsqueda en inglés para encontrar una foto del lugar"}
+    {
+      "name": "Nombre del lugar turístico", 
+      "desc": "Descripción breve del lugar (1-2 oraciones)", 
+      "image_search": "término de búsqueda en inglés para encontrar una foto del lugar",
+      "location": "Ubicación o zona (ej: Centro Histórico, Afueras)",
+      "type": "Tipo de lugar (ej: Museo, Monumento, Parque, Mercado)",
+      "best_time": "Mejor momento para visitar (ej: Mañana, Atardecer)",
+      "transport": "Cómo llegar (ej: Metro línea 1, Caminando desde el centro)",
+      "budget": "Presupuesto estimado (ej: Gratis, $$, $$$)",
+      "activities": ["Actividad 1", "Actividad 2"]
+    }
   ],
   "souvenirs": [
     {"name": "Nombre del souvenir/artesanía", "desc": "Descripción breve (1-2 oraciones)", "image_search": "término de búsqueda en inglés para encontrar una foto del souvenir"}
@@ -212,11 +283,11 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin backticks, sin texto
 }
 
 REQUISITOS:
-- foods: exactamente entre 4 y 6 platillos típicos
-- places: exactamente entre 5 y 7 lugares turísticos imprescindibles
-- souvenirs: exactamente entre 4 y 5 souvenirs o artesanías típicas
-- phrases: exactamente entre 6 y 8 frases útiles en el idioma local del destino
-- travel_tips: exactamente entre 3 y 5 consejos prácticos de viaje
+- foods: exactamente 3 platillos típicos
+- places: exactamente 4 lugares turísticos imprescindibles
+- souvenirs: exactamente 3 souvenirs o artesanías típicas
+- phrases: exactamente 4 frases útiles en el idioma local del destino
+- travel_tips: exactamente 3 consejos prácticos de viaje
 - Todas las descripciones en español
 - Los campos "image_search" deben ser términos de búsqueda en INGLÉS optimizados para encontrar fotos (importante: incluye palabras como "landscape", "scenery" o "no people" para evitar fotos donde salgan caras de personas)
 - La información práctica debe ser precisa y actualizada`;
@@ -231,7 +302,7 @@ REQUISITOS:
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
               temperature: 0.7,
-              maxOutputTokens: 4096,
+              maxOutputTokens: 8192,
               responseMimeType: 'application/json',
             },
           }),
@@ -283,42 +354,49 @@ REQUISITOS:
   // 3. Obtener imágenes reales (Pexels / Unsplash)
   // ────────────────────────────────────────────────────────
   static async fetchRealImages(
-    items: ImageSearchItem[]
-  ): Promise<Array<{ name: string; img: string }>> {
+    items: ImageSearchItem[],
+    fetchGallery: boolean = false
+  ): Promise<Array<{ name: string; img: string; gallery?: string[] }>> {
     const pexelsKey = process.env.PEXELS_API_KEY;
     const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
-    const results: Array<{ name: string; img: string }> = [];
+    const results: Array<{ name: string; img: string; gallery?: string[] }> = [];
+
+    const perPage = fetchGallery ? 4 : 1;
 
     for (const item of items) {
       try {
         const searchQuery = encodeURIComponent(item.image_search);
-        let photoUrl = null;
+        let photoUrls: string[] = [];
 
         // 1. Intentar con Pexels primero
-        if (pexelsKey && !photoUrl) {
+        if (pexelsKey && photoUrls.length === 0) {
           const response = await fetch(
-            `https://api.pexels.com/v1/search?query=${searchQuery}&per_page=1`,
+            `https://api.pexels.com/v1/search?query=${searchQuery}&per_page=${perPage}`,
             { headers: { Authorization: pexelsKey } }
           );
           if (response.ok) {
             const data = await response.json();
-            photoUrl = data?.photos?.[0]?.src?.large || data?.photos?.[0]?.src?.medium;
+            if (data?.photos?.length > 0) {
+              photoUrls = data.photos.map((p: any) => p.src?.large || p.src?.medium).filter(Boolean);
+            }
           }
         }
 
         // 2. Intentar con Unsplash si no hay respuesta de Pexels
-        if (unsplashKey && !photoUrl) {
+        if (unsplashKey && photoUrls.length === 0) {
           const response = await fetch(
-            `https://api.unsplash.com/search/photos?query=${searchQuery}&per_page=1&client_id=${unsplashKey}`
+            `https://api.unsplash.com/search/photos?query=${searchQuery}&per_page=${perPage}&client_id=${unsplashKey}`
           );
           if (response.ok) {
             const data = await response.json();
-            photoUrl = data?.results?.[0]?.urls?.regular || data?.results?.[0]?.urls?.small;
+            if (data?.results?.length > 0) {
+              photoUrls = data.results.map((r: any) => r.urls?.regular || r.urls?.small).filter(Boolean);
+            }
           }
         }
 
         // 3. Fallback a Wikipedia (¡Sin límites de API!)
-        if (!photoUrl) {
+        if (photoUrls.length === 0) {
           try {
             const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${searchQuery}&utf8=&format=json`);
             if (searchRes.ok) {
@@ -332,7 +410,7 @@ REQUISITOS:
                   if (pages) {
                     const pageId = Object.keys(pages)[0];
                     if (pages[pageId]?.original?.source) {
-                      photoUrl = pages[pageId].original.source;
+                      photoUrls = [pages[pageId].original.source];
                     }
                   }
                 }
@@ -343,13 +421,14 @@ REQUISITOS:
           }
         }
 
-        if (photoUrl) {
-          results.push({ name: item.name, img: photoUrl });
+        if (photoUrls.length > 0) {
+          results.push({ name: item.name, img: photoUrls[0], gallery: fetchGallery ? photoUrls : undefined });
         } else {
           // Fallback final: imagen genérica
           results.push({
             name: item.name,
             img: FALLBACK_IMAGE,
+            gallery: fetchGallery ? [FALLBACK_IMAGE] : undefined
           });
         }
       } catch (error: any) {
@@ -357,6 +436,7 @@ REQUISITOS:
         results.push({
           name: item.name,
           img: FALLBACK_IMAGE,
+          gallery: fetchGallery ? [FALLBACK_IMAGE] : undefined
         });
       }
     }

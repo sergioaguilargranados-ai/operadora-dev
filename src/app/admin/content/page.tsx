@@ -19,7 +19,7 @@ import { DestinationContentManager } from "@/components/admin/DestinationContent
 import {
   Plus, Edit, Trash2, DollarSign, Calendar, Plane, Hotel, Package,
   Home, Globe, CheckCircle2, AlertCircle, X, RefreshCw, Smartphone,
-  Image as ImageIcon, Search, Eye, Save, ExternalLink, ChevronDown, ChevronUp, AlertTriangle, Star, MapPin, Loader2, ShoppingBag, Settings, CloudRain
+  Image as ImageIcon, Search, Eye, Save, ExternalLink, ChevronDown, ChevronUp, AlertTriangle, Star, MapPin, Loader2, ShoppingBag, Settings, CloudRain, Sparkles
 } from "lucide-react"
 import { CronProcessRunner } from "@/components/admin/CronProcessRunner"
 
@@ -1196,6 +1196,13 @@ export default function AdminContentPage() {
                   description="Revisa los itinerarios de los próximos 15 días y descarga el clima desde OpenWeatherMap."
                   endpoint="/api/cron/update-weather"
                   icon={<CloudRain className="w-5 h-5 text-blue-500" />}
+                />
+
+                <CronProcessRunner 
+                  title="Regeneración de Destinos (IA)"
+                  description="Fuerza la regeneración de datos ricos (Recetas paso a paso, Galerías completas, Actividades) usando Gemini."
+                  endpoint="/api/cron/regenerate-tour"
+                  icon={<Sparkles className="w-5 h-5 text-purple-500" />}
                 />
               </div>
             </Card>

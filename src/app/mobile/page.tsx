@@ -185,6 +185,58 @@ export default function MobileHomePage() {
 
         {/* Espacio inferior */}
         <div className="h-6" />
+      {/* Side Menu Drawer */}
+      {/* Overlay */}
+      {menuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
+      {/* Drawer */}
+      <div 
+        className={`fixed top-0 left-0 h-full w-64 bg-white z-50 transform transition-transform duration-300 ease-in-out ${menuOpen ? 'translate-x-0' : '-translate-x-full'} flex flex-col shadow-2xl`}
+      >
+        <div className="p-6 border-b border-gray-100 flex flex-col items-center pt-12 bg-gray-50">
+          <MobileLogo variant="dark" size="sm" logoUrl={customLogoUrl} />
+          <h2 className="mt-4 font-semibold text-gray-900">Hola, {name}</h2>
+          <p className="text-xs text-gray-500">{user?.email}</p>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto py-4">
+          <div 
+            onClick={() => router.push('/mobile/perfil')}
+            className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-gray-50 cursor-pointer"
+          >
+            <User className="w-5 h-5 text-gray-400" />
+            <span className="font-medium text-sm">Mi Perfil</span>
+          </div>
+          <div 
+            onClick={() => router.push('/mobile/itinerario')}
+            className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-gray-50 cursor-pointer"
+          >
+            <Briefcase className="w-5 h-5 text-gray-400" />
+            <span className="font-medium text-sm">Mis Viajes</span>
+          </div>
+          <div 
+            onClick={() => router.push('/mobile/rewards')}
+            className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-gray-50 cursor-pointer"
+          >
+            <Trophy className="w-5 h-5 text-yellow-400" />
+            <span className="font-medium text-sm">AS Rewards</span>
+          </div>
+        </div>
+
+        <div className="p-6 border-t border-gray-100">
+           <div 
+            onClick={() => router.push('/mobile/ayuda')}
+            className="flex items-center gap-3 py-3 text-gray-700 hover:bg-gray-50 cursor-pointer mb-2"
+          >
+            <Headphones className="w-5 h-5 text-gray-400" />
+            <span className="font-medium text-sm">Soporte</span>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -487,11 +487,27 @@ export default function BookingDetailsPage() {
 
                   <Separator />
 
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Total</p>
-                    <p className="text-3xl font-bold text-primary">
-                      {formatCurrency(parseFloat(booking.total_price || booking.total_amount) || 0, booking.currency)}
-                    </p>
+                  <div className="bg-blue-50 p-4 rounded-lg space-y-2">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Costo Total</p>
+                      <p className="text-2xl font-bold text-primary">
+                        {formatCurrency(parseFloat(booking.total_price || booking.total_amount) || 0, booking.currency)}
+                      </p>
+                    </div>
+                    {booking.paid_amount !== undefined && booking.paid_amount > 0 && (
+                      <>
+                        <div className="flex justify-between text-green-600 font-semibold text-sm">
+                          <span>Pagado:</span>
+                          <span>{formatCurrency(booking.paid_amount, booking.currency)}</span>
+                        </div>
+                        {booking.pending_balance !== undefined && booking.pending_balance > 0 && (
+                          <div className="flex justify-between text-blue-600 font-bold text-lg pt-1 border-t border-blue-200">
+                            <span>Saldo pendiente:</span>
+                            <span>{formatCurrency(booking.pending_balance, booking.currency)}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
 
                   {booking.payment_status && (

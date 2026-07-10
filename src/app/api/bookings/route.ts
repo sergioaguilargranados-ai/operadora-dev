@@ -29,7 +29,12 @@ export async function GET(request: NextRequest) {
         lead_traveler_name,
         lead_traveler_email,
         special_requests,
-        created_at
+        created_at,
+        COALESCE((
+          SELECT SUM(amount) 
+          FROM payment_transactions 
+          WHERE booking_id = bookings.id AND status = 'completed'
+        ), 0) as paid_amount
       FROM bookings
       WHERE 1=1
     `
@@ -260,6 +265,14 @@ export async function POST(request: NextRequest) {
         // No fallar la reserva si la comisión falla
       }
     }
+
+    // DISPARAR GENERACIÓN DE ITINERARIO (ASÍNCRONO)
+    // Para no bloquear la respuesta, importamos y lanzamos la promesa al aire
+    import('@/services/CustomItineraryService').then(({ CustomItineraryService }) => {
+      CustomItineraryService.generateItineraryForBooking(booking.id).catch(err => {
+        console.error(`Error background generando itinerario IA para reserva ${booking.id}:`, err);
+      });
+    });
 
     return NextResponse.json(
       successResponse({ booking: payload, id: booking.id }),

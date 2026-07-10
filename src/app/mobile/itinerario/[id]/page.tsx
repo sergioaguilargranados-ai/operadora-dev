@@ -122,7 +122,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
           size="md"
           logoUrl={customLogoUrl}
         />
-        <button className="text-black hover:text-gray-600 p-2 -mr-2">
+        <button onClick={() => router.push('/mobile/notificaciones')} className="text-black hover:text-gray-600 p-2 -mr-2">
           <Bell className="w-6 h-6" />
         </button>
       </div>

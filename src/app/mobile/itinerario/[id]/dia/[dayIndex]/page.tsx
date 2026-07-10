@@ -8,12 +8,20 @@ import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { WishlistHeart } from "@/components/mobile/WishlistHeart"
 import { CurrencyCalculator } from "@/components/mobile/CurrencyCalculator"
 import { WeatherForecast } from "@/components/mobile/WeatherForecast"
+import { useToast } from "@/components/ui/use-toast"
+import { FoodDetailModal } from "@/components/mobile/FoodDetailModal"
+import { PlaceDetailModal } from "@/components/mobile/PlaceDetailModal"
+
 export default function MobileItineraryDayDetail({ params }: { params: { id: string, dayIndex: string } }) {
   const router = useRouter()
   const { logoUrl, logoMobileUrl } = useWhiteLabel()
   const customLogoUrl = logoMobileUrl || logoUrl || null
+  const { toast } = useToast()
+  
   const [loading, setLoading] = useState(true)
   const [itinerary, setItinerary] = useState<any>(null)
+  const [isDaySaved, setIsDaySaved] = useState(false)
+  const [isSavingDay, setIsSavingDay] = useState(false)
   
   const [dayData, setDayData] = useState<any>(null)
   
@@ -22,6 +30,8 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
   const [isTranslating, setIsTranslating] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false)
+  const [selectedFood, setSelectedFood] = useState<any>(null)
+  const [selectedPlace, setSelectedPlace] = useState<any>(null)
 
   // Map from name/symbol to code
   const getCurrencyCode = (name: string, symbol: string) => {
@@ -214,7 +224,48 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
   
   const currencyCode = getCurrencyCode(dayData?.practical_info?.currency?.name || '', dayData?.practical_info?.currency?.symbol || '')
 
-  if (loading) {
+  const toggleDayWishlist = async () => {
+    if (!user?.id) {
+      toast({ title: "Inicia sesión", description: "Debes iniciar sesión para guardar en tu wishlist", variant: "destructive" })
+      return
+    }
+
+    setIsSavingDay(true)
+    try {
+      const res = await fetch('/api/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          item_name: dayData?.title || `Día ${parseInt(params.dayIndex) + 1}`,
+          item_desc: dayData?.description || dayData?.desc || "Detalle del día",
+          item_img: dayData?.hero_image || "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=400&q=80",
+          city: dayData?.places?.[0]?.name || "Destino",
+          itinerary_id: parseInt(params.id),
+          day_index: parseInt(params.dayIndex)
+        })
+      })
+      const data = await res.json()
+      
+      if (data.success) {
+        const nowSaved = data.action === 'added'
+        setIsDaySaved(nowSaved)
+        toast({ 
+          title: nowSaved ? "Guardado" : "Eliminado", 
+          description: nowSaved ? "Día añadido a tu wishlist." : "Día removido de tu wishlist." 
+        })
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (err) {
+      console.error("Error toggling wishlist:", err)
+      toast({ title: "Error", description: "No se pudo guardar", variant: "destructive" })
+    } finally {
+      setIsSavingDay(false)
+    }
+  }
+
+  if (loading || !dayData) {
     return (
       <div className="min-h-screen bg-[#FDFDFD] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
@@ -223,20 +274,19 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] font-sans pb-6">
+    <div className="min-h-screen bg-[#FDFDFD] font-sans pb-24 relative">
       
-      {/* Top Navigation */}
-      <div className="bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-40 shadow-sm">
-        <button onClick={() => router.push(`/mobile/itinerario/${params.id}`)} className="text-gray-900 active:scale-95 p-2 -ml-2 rounded-full hover:bg-gray-100">
+      {/* Absolute top navbar over the image */}
+      <div className="absolute top-0 w-full px-4 pt-8 flex items-center justify-between z-30">
+        <button onClick={() => router.push(`/mobile/itinerario/${params.id}`)} className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors border border-white/30">
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <MobileLogo
-          variant="dark"
-          size="md"
-          logoUrl={customLogoUrl}
-        />
-        <button className="text-gray-900 active:scale-95 p-2 -mr-2 rounded-full hover:bg-gray-100">
-          <Bookmark className="w-5 h-5" />
+        <button 
+          onClick={toggleDayWishlist} 
+          disabled={isSavingDay}
+          className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors border ${isDaySaved ? 'bg-white text-red-500 border-white shadow-lg' : 'bg-white/20 backdrop-blur-md text-white border-white/30 hover:bg-white/30'}`}
+        >
+          {isSavingDay ? <Loader2 className="w-5 h-5 animate-spin" /> : <Bookmark className={`w-5 h-5 ${isDaySaved ? 'fill-red-500' : ''}`} />}
         </button>
       </div>
 
@@ -294,7 +344,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         <h2 className="text-lg font-serif font-bold text-gray-900 px-4 mb-4">Gastronomía recomendada</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-none">
           {foods.map((food, i) => (
-            <div key={i} className="w-[140px] flex-shrink-0 flex flex-col">
+            <div key={i} className="w-[140px] flex-shrink-0 flex flex-col cursor-pointer active:scale-95 transition-transform relative" onClick={() => setSelectedFood(food)}>
               <img src={food.img} alt={food.name} className="w-full h-24 object-cover rounded-xl mb-2 shadow-sm" />
               <h4 className="font-bold text-sm text-gray-900 mb-1 leading-tight">{food.name}</h4>
               <p className="text-xs text-gray-500 leading-tight">{food.desc}</p>
@@ -310,7 +360,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         <h2 className="text-lg font-serif font-bold text-gray-900 px-4 mb-4">Lugares imperdibles</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-none">
           {places.map((place, i) => (
-            <div key={i} className="w-[120px] flex-shrink-0 flex flex-col">
+            <div key={i} className="w-[120px] flex-shrink-0 flex flex-col cursor-pointer active:scale-95 transition-transform relative" onClick={() => setSelectedPlace(place)}>
               <img src={place.img} alt={place.name} className="w-full h-[120px] object-cover rounded-2xl mb-2 shadow-sm" />
               <h4 className="font-bold text-sm text-gray-900 mb-1 leading-tight">{place.name}</h4>
               <p className="text-[10px] text-gray-500 leading-tight">{place.desc}</p>
@@ -542,6 +592,18 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         isOpen={isCalculatorOpen} 
         onClose={() => setIsCalculatorOpen(false)} 
         targetCurrency={practicalInfo?.currency ? getCurrencyCode(practicalInfo.currency.name, practicalInfo.currency.symbol) : 'USD'}
+      />
+
+      <FoodDetailModal 
+        isOpen={!!selectedFood} 
+        onClose={() => setSelectedFood(null)} 
+        food={selectedFood} 
+      />
+
+      <PlaceDetailModal 
+        isOpen={!!selectedPlace} 
+        onClose={() => setSelectedPlace(null)} 
+        place={selectedPlace} 
       />
     </div>
   )

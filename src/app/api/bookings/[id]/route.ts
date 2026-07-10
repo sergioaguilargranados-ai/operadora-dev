@@ -42,7 +42,12 @@ export async function GET(
         b.cancelled_at,
         b.cancellation_reason,
         b.payment_status,
-        b.adults
+        b.adults,
+        COALESCE((
+          SELECT SUM(amount) 
+          FROM payment_transactions 
+          WHERE booking_id = b.id AND status = 'completed'
+        ), 0) as paid_amount
       FROM bookings b
       WHERE b.id = $1
     `, [id])
@@ -68,6 +73,8 @@ export async function GET(
       booking_reference: booking.booking_reference,
       status: booking.booking_status,
       total_price: parseFloat(booking.total_price) || 0,
+      paid_amount: parseFloat(booking.paid_amount) || 0,
+      pending_balance: (parseFloat(booking.total_price) || 0) - (parseFloat(booking.paid_amount) || 0),
       currency: booking.currency || 'MXN',
       payment_status: booking.payment_status || 'pending',
       details: details,

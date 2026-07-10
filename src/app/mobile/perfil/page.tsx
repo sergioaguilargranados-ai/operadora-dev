@@ -102,9 +102,9 @@ export default function MobileProfilePage() {
       })
       const data = await res.json()
       
-      if (data.success) {
+      if (data.success || !docName) {
         toast({ title: 'Eliminado', description: 'Documento eliminado correctamente' })
-        setDocuments(prev => prev.map(d => d.name === docName ? { ...d, fileName: null } : d))
+        setDocuments(prev => prev.filter(d => d.name !== docName))
       } else {
         toast({ title: 'Error', description: 'No se pudo eliminar el documento', variant: 'destructive' })
       }
@@ -210,7 +210,7 @@ export default function MobileProfilePage() {
             logoUrl={customLogoUrl}
           />
 
-          <button onClick={() => router.push('/mobile/notificaciones')} className="text-white hover:text-gray-300">
+          <button onClick={() => router.push('/mobile/notificaciones')} className="text-black hover:text-gray-600 p-2 -mr-2">
             <Bell className="w-6 h-6" />
           </button>
         </div>
@@ -357,26 +357,24 @@ export default function MobileProfilePage() {
                 ) : (
                   <div className="flex gap-2">
                     {doc.fileName && (
-                      <>
-                        <button 
-                          onClick={() => window.open(doc.fileName!, '_blank')} 
-                          className="p-2 text-blue-500 hover:text-blue-700"
-                        >
-                          Ver
-                        </button>
-                        <button
-                          onClick={() => handleDeleteDocument(doc.name)}
-                          className="p-2 text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </>
+                      <button 
+                        onClick={() => window.open(doc.fileName!, '_blank')} 
+                        className="p-2 text-blue-500 hover:text-blue-700"
+                      >
+                        Ver
+                      </button>
                     )}
                     <button 
                       onClick={() => handleUploadClick(doc.id)} 
                       className="p-2 text-gray-400 hover:text-black"
                     >
                       <Upload className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteDocument(doc.name)}
+                      className="p-2 text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
                 )}

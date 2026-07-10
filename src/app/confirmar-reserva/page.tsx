@@ -211,7 +211,7 @@ function ConfirmarReservaContent() {
         throw new Error(data.error || data.message || 'Error al crear la reserva')
       }
 
-      const bookingId = data.booking?.id || data.id
+      const bookingId = data.data?.booking?.id || data.data?.id || data.booking?.id || data.id
 
       if (!bookingId) {
         throw new Error('No se recibió ID de reserva')

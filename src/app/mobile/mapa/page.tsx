@@ -114,7 +114,7 @@ export default function MobileMapPage() {
       {/* Search Bar Floating Container */}
       <div className="absolute top-4 left-4 right-4 z-20 flex gap-2 items-center">
         <button 
-          onClick={() => router.push("/mobile")} 
+          onClick={() => router.back()} 
           className="w-11 h-11 bg-white hover:bg-gray-50 active:bg-gray-100 rounded-full flex items-center justify-center shadow-lg border"
         >
           <ArrowLeft className="w-5 h-5 text-gray-700" />
@@ -212,7 +212,10 @@ export default function MobileMapPage() {
                 </span>
                 <h3 className="font-extrabold text-lg text-gray-900 mt-1">{selectedPlace.name}</h3>
               </div>
-              <button className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors">
+              <button 
+                onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedPlace.lat},${selectedPlace.lng}`, '_blank')}
+                className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
+              >
                 <Navigation className="w-5 h-5" />
               </button>
             </div>
