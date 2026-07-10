@@ -185,6 +185,8 @@ export default function MobileHomePage() {
 
         {/* Espacio inferior */}
         <div className="h-6" />
+      </div>
+      
       {/* Side Menu Drawer */}
       {/* Overlay */}
       {menuOpen && (
