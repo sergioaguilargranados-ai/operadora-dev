@@ -422,7 +422,61 @@ export default function BookingDetailsPage() {
                 <Card className="p-6 border-none shadow-soft">
                   <h2 className="text-xl font-semibold mb-4">Solicitudes Especiales</h2>
                   <Separator className="my-4" />
-                  <p className="text-muted-foreground">{booking.special_requests}</p>
+                  <p className="text-muted-foreground whitespace-pre-wrap">{booking.special_requests}</p>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Itinerario (IA) */}
+            {booking.custom_itinerary && booking.custom_itinerary.days && booking.custom_itinerary.days.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Card className="p-6 border-none shadow-soft mt-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-blue-600" />
+                      Itinerario del Viaje
+                    </h2>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-none">
+                      Generado por IA ✨
+                    </Badge>
+                  </div>
+                  <p className="text-muted-foreground mb-4">{booking.custom_itinerary.description}</p>
+                  <Separator className="my-4" />
+                  
+                  <div className="space-y-6">
+                    {booking.custom_itinerary.days.map((day: any) => (
+                      <div key={day.id} className="relative pl-6 border-l-2 border-blue-200">
+                        <div className="absolute w-4 h-4 bg-blue-500 rounded-full -left-[9px] top-1 border-4 border-white shadow-sm"></div>
+                        <h3 className="font-bold text-lg text-slate-800">Día {day.day_number}: {day.title}</h3>
+                        
+                        <div className="flex gap-4 mt-2 text-sm text-slate-600">
+                          {day.city && (
+                            <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {day.city}</span>
+                          )}
+                          {day.hotel && day.hotel !== 'N/A' && (
+                            <span className="flex items-center gap-1"><Hotel className="w-4 h-4" /> {day.hotel}</span>
+                          )}
+                        </div>
+                        
+                        <p className="text-slate-600 mt-3 whitespace-pre-wrap leading-relaxed">{day.description}</p>
+                        
+                        {day.activities && day.activities.length > 0 && (
+                          <div className="mt-3">
+                            <span className="text-sm font-semibold text-slate-700 block mb-1">Actividades:</span>
+                            <ul className="list-disc list-inside text-sm text-slate-600">
+                              {day.activities.map((act: string, idx: number) => (
+                                <li key={idx}>{act}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </Card>
               </motion.div>
             )}

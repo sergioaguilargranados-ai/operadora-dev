@@ -90,6 +90,21 @@ export async function GET(
       cancellation_reason: booking.cancellation_reason
     }
 
+    // Buscar si hay un itinerario de IA asociado
+    try {
+      const itinResult = await queryOne('SELECT * FROM custom_itineraries WHERE booking_id = $1', [id])
+      if (itinResult) {
+        const { queryMany } = require('@/lib/db')
+        const days = await queryMany('SELECT * FROM custom_itinerary_days WHERE itinerary_id = $1 ORDER BY day_number ASC', [itinResult.id])
+        formattedBooking.custom_itinerary = {
+          ...itinResult,
+          days: days
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching custom itinerary:', e)
+    }
+
     return NextResponse.json({
       success: true,
       booking: formattedBooking,
