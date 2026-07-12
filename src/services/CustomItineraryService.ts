@@ -50,13 +50,51 @@ export class CustomItineraryService {
         return false;
       }
 
-      const numDays = 5; // Por defecto o extraer de fechas. TODO: parse dates from details
+      let startDateStr = '';
+      let endDateStr = '';
+      let origin = '';
+      
+      if (details.fecha_inicio) startDateStr = details.fecha_inicio;
+      if (details.fecha_fin) endDateStr = details.fecha_fin;
+      
+      if (details.tipo === 'flight' && details.details?.outbound) {
+        startDateStr = details.details.outbound.date;
+        origin = details.details.outbound.origin;
+        if (details.details?.inbound?.date) {
+          endDateStr = details.details.inbound.date;
+        }
+      }
+
+      let numDays = 5;
+      if (startDateStr && endDateStr) {
+        const start = new Date(startDateStr);
+        const end = new Date(endDateStr);
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          const diffTime = end.getTime() - start.getTime();
+          if (diffTime >= 0) {
+            numDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+          }
+        }
+      }
+
+      const smartContext = `
+Lugar de Salida: ${origin || 'No especificado'}
+Lugar de Destino (Llegada): ${destination}
+Fecha de Salida: ${startDateStr || 'No especificada'}
+Fecha de Regreso: ${endDateStr || 'No especificada'}
+Duración total calculada: ${numDays} días
+      `.trim();
 
       const prompt = `
 Actúa como un experto agente de viajes de lujo. 
-Tienes un cliente que viaja a "${destination}".
-Detalles adicionales de la reserva: ${JSON.stringify(details)}
-Genera un itinerario estructurado de aproximadamente ${numDays} días de viaje.
+Tienes un cliente con la siguiente información de viaje:
+${smartContext}
+
+Detalles adicionales crudos de la reserva: ${JSON.stringify(details)}
+
+Genera un itinerario estructurado, realista y emocionante de EXACTAMENTE ${numDays} días de viaje.
+Si es un viaje que incluye vuelos, el Día 1 debe ser la salida/llegada, y el último día (Día ${numDays}) debe ser el regreso.
+Llena los días intermedios con actividades turísticas lógicas y atractivas para el destino.
 
 Devuelve EXCLUSIVAMENTE un JSON con la siguiente estructura (sin markdown adicional):
 {
@@ -80,7 +118,7 @@ Devuelve EXCLUSIVAMENTE un JSON con la siguiente estructura (sin markdown adicio
 `;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
