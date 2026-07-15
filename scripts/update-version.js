@@ -16,107 +16,100 @@ const timeFormatter = new Intl.DateTimeFormat('en-GB', timeOptions);
 const parts = dateFormatter.formatToParts(now);
 const day = parts.find(p => p.type === 'day').value;
 const monthStr = parts.find(p => p.type === 'month').value;
-// Capitalizar primera letra del mes para consistencia (May, Jun, etc.)
 const month = monthStr.charAt(0).toUpperCase() + monthStr.slice(1);
 const year = parts.find(p => p.type === 'year').value;
 
-// Obtener hora
 let timeStr = timeFormatter.format(now);
-// Algunos entornos de node pueden devolver "24:00" en lugar de "00:00"
 if (timeStr.startsWith('24:')) {
   timeStr = '00:' + timeStr.substring(3);
 }
 
 const timestampStr = `${day} ${month} ${year} ${timeStr} CST`;
-
 console.log(`🕒 Nueva fecha de compilación: ${timestampStr}`);
 
-// Archivos a actualizar
-const filesToUpdate = [
-  {
-    path: path.join(__dirname, '../src/components/BrandFooter.tsx'),
-    regex: /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}\s+CST/g
-  },
-  {
-    path: path.join(__dirname, '../src/app/admin/megatravel-scraping/page.tsx'),
-    regex: /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}\s+CST?/g
-  },
-  {
-    path: path.join(__dirname, '../src/app/mobile/layout.tsx'),
-    regex: /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}\s+CST/g
-  },
-  {
-    path: path.join(__dirname, '../src/app/page.tsx'),
-    regex: /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}\s+CST/g
+function walkSync(dir, filelist = []) {
+  if (fs.existsSync(dir)) {
+    fs.readdirSync(dir).forEach(file => {
+      const filepath = path.join(dir, file);
+      if (fs.statSync(filepath).isDirectory()) {
+        filelist = walkSync(filepath, filelist);
+      } else {
+        if (filepath.endsWith('.tsx') || filepath.endsWith('.ts')) {
+          filelist.push(filepath);
+        }
+      }
+    });
   }
+  return filelist;
+}
+
+const srcDir = path.join(__dirname, '../src');
+const allFiles = walkSync(srcDir);
+
+const versionRegexes = [
+  // Formato: v2.xxx | 15 Jul 2026 10:42 CST
+  /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}\s+CST/g,
+  // Formato laxo: v2.xxx | 15 Jul 2026 10:42
+  /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}(?!\s+CST)/g,
+  // Formato footer comunicacion: v2.343 · 2026-05-07 13:00 CST
+  /(v2\.\d{3}[a-z]?)\s*·\s*\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+CST/g
 ];
 
-// Find the maximum version across all files to ensure they are kept in sync
 let maxFoundVersion = '';
 
-for (const file of filesToUpdate) {
-  if (fs.existsSync(file.path)) {
-    let content = fs.readFileSync(file.path, 'utf8');
-    
-    // Check main regex
-    file.regex.lastIndex = 0;
-    let match = file.regex.exec(content);
+for (const filepath of allFiles) {
+  const content = fs.readFileSync(filepath, 'utf8');
+  for (const regex of versionRegexes) {
+    regex.lastIndex = 0;
+    const match = regex.exec(content);
     if (match && match[1]) {
       if (match[1] > maxFoundVersion) maxFoundVersion = match[1];
-    } else {
-      // Check lax regex
-      const laxRegex = /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}(?:\s+\|\s+AS Operadora)?/g;
-      laxRegex.lastIndex = 0;
-      let laxMatch = laxRegex.exec(content);
-      if (laxMatch && laxMatch[1]) {
-         if (laxMatch[1] > maxFoundVersion) maxFoundVersion = laxMatch[1];
-      }
     }
   }
 }
 
 const finalVersion = newVersion || maxFoundVersion || 'v2.000';
-
 console.log(`🏷️  Versión a aplicar a todos los archivos: ${finalVersion}`);
 
 let filesUpdated = 0;
 
-for (const file of filesToUpdate) {
-  if (fs.existsSync(file.path)) {
-    let content = fs.readFileSync(file.path, 'utf8');
-    
-    const replacement = `${finalVersion} | ${timestampStr}`;
-    
-    // Intentar reemplazar con la regex principal
-    file.regex.lastIndex = 0;
-    if (content.match(file.regex)) {
-      const newContent = content.replace(file.regex, replacement);
-      fs.writeFileSync(file.path, newContent, 'utf8');
-      console.log(`✅ Actualizado: ${path.basename(file.path)} -> ${replacement}`);
-      filesUpdated++;
-    } else {
-      // Intentar una versión más laxa si no coincide
-      const laxRegex = /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}(?:\s+\|\s+AS Operadora(?: viajes y eventos)?)?/g;
-      if (content.match(laxRegex)) {
-        // Encontrar si tiene AS Operadora y agregarlo
-        let matchStr = content.match(laxRegex)[0];
-        let replacementAdmin = replacement;
-        if (matchStr.includes('AS Operadora viajes y eventos')) {
-            replacementAdmin += ' | AS Operadora viajes y eventos';
-        } else if (matchStr.includes('AS Operadora')) {
-            replacementAdmin += ' | AS Operadora';
-        }
-        
-        const newContent = content.replace(laxRegex, replacementAdmin);
-        fs.writeFileSync(file.path, newContent, 'utf8');
-        console.log(`✅ Actualizado (formato laxo): ${path.basename(file.path)} -> ${replacementAdmin}`);
-        filesUpdated++;
-      } else {
-        console.log(`❌ No se encontró el patrón de versión en: ${path.basename(file.path)}`);
-      }
-    }
-  } else {
-    console.log(`⚠️  Archivo no encontrado: ${file.path}`);
+for (const filepath of allFiles) {
+  let content = fs.readFileSync(filepath, 'utf8');
+  let hasChanges = false;
+  
+  // Reemplazar formato estandar
+  const regex1 = /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}\s+CST/g;
+  if (content.match(regex1)) {
+    content = content.replace(regex1, `${finalVersion} | ${timestampStr}`);
+    hasChanges = true;
+  }
+  
+  // Reemplazar formato sin CST
+  const regex2 = /(v2\.\d{3}[a-z]?)\s*\|\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}(?!\s+CST)/g;
+  if (content.match(regex2)) {
+    content = content.replace(regex2, `${finalVersion} | ${timestampStr.replace(' CST', '')}`);
+    hasChanges = true;
+  }
+
+  // Reemplazar formato comunicacion (· YYYY-MM-DD HH:mm CST)
+  const regex3 = /(v2\.\d{3}[a-z]?)\s*·\s*\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+CST/g;
+  if (content.match(regex3)) {
+    const isoDate = `${year}-${String(now.getMonth()+1).padStart(2, '0')}-${day} ${timeStr} CST`;
+    content = content.replace(regex3, `${finalVersion} · ${isoDate}`);
+    hasChanges = true;
+  }
+
+  // Comentarios de Build al inicio de los archivos: // Build: 31 Ene 2026 - v2.254
+  const buildCommentRegex = /\/\/ Build:\s*\d{2}\s+[a-zA-Z]{3}\s+\d{4}(?:\s+\d{2}:\d{2}(?:\s+CST)?)?\s*-\s*(v2\.\d{3}[a-z]?)/g;
+  if (content.match(buildCommentRegex)) {
+    content = content.replace(buildCommentRegex, `// Build: ${day} ${month} ${year} - ${finalVersion}`);
+    hasChanges = true;
+  }
+
+  if (hasChanges) {
+    fs.writeFileSync(filepath, content, 'utf8');
+    console.log(`✅ Actualizado: ${filepath.replace(__dirname, '..')}`);
+    filesUpdated++;
   }
 }
 

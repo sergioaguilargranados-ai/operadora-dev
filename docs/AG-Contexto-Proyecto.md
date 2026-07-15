@@ -63,6 +63,12 @@ La fecha y hora tiempo del CDMX
 - Rate limiting
 - CORS configurado
 
+### Inteligencia Artificial & Herramientas Agentic
+- **Agentes IA:** AntiGravity AI Assistant (Google DeepMind) basado en Gemini Advanced Agentic Coding.
+- **Flujo de Trabajo:** Planificación autónoma (Planning Mode), ejecución iterativa, validación y creación de artefactos (Implementation Plans, Walkthroughs, Tasks).
+- **Herramientas del Agente:** Capacidades de lectura/escritura de archivos (multi_replace_file_content), ejecución de scripts en terminal local (Windows), y búsqueda de patrones (grep_search).
+- **Directrices para Agentes Futuros:** Todos los agentes deben consultar y apegarse estrictamente a los archivos de contexto en `/DOCS` (como este documento) antes de realizar modificaciones arquitectónicas o cambios que rompan el estilo existente. Es imperativo respetar el Multi-Tenant (Marca Blanca) y las validaciones de roles implementadas.
+
 ---
 
 ## 🌐 REPOSITORIOS Y AMBIENTES

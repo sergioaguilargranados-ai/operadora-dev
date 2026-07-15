@@ -1,5 +1,5 @@
 // BrandFooter.tsx - Footer dinámico con branding del tenant actual
-// Build: 25 Jun 2026 - v2.356 - Marca Blanca Completa y Secciones Parametrizadas PWA
+// Build: 15 Jul 2026 - v2.423 - Marca Blanca Completa y Secciones Parametrizadas PWA
 
 'use client';
 
@@ -98,7 +98,7 @@ export function BrandFooter() {
                         </Link>
                         <p className="text-xs opacity-50">|</p>
                         <p className="text-xs opacity-50">
-                            v2.422 | 15 Jul 2026 10:42 CST
+                            v2.423 | 15 Jul 2026 11:44 CST
                         </p>
                         <PwaInstallButton />
                     </div>

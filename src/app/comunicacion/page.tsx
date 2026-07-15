@@ -331,8 +331,9 @@ export default function ComunicacionPage() {
                 </div>
                 <Dialog open={isNewMessageModalOpen} onOpenChange={setIsNewMessageModalOpen}>
                   <DialogTrigger asChild>
-                    <Button size="icon" variant="outline" className="shrink-0 bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200">
-                      <Plus className="w-5 h-5" />
+                    <Button variant="default" className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                      <Plus className="w-4 h-4" />
+                      <span className="hidden sm:inline">Nuevo Mensaje</span>
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[425px]">
@@ -632,7 +633,7 @@ export default function ComunicacionPage() {
 
       {/* Footer con versión */}
       <div className="text-center py-3 text-xs text-muted-foreground border-t">
-        AS Operadora · Centro de Comunicación · v2.343 · 2026-05-07 13:00 CST
+        AS Operadora · Centro de Comunicación · v2.423 · 2026-07-15 11:44 CST
       </div>
     </div>
   )
