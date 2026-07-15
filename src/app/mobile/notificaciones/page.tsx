@@ -22,7 +22,7 @@ export default function MobileNotificationsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (user?.token) {
+    if (user?.id) {
       loadNotifications()
     } else if (user === null) {
       setLoading(false)
@@ -32,11 +32,7 @@ export default function MobileNotificationsPage() {
   const loadNotifications = async () => {
     try {
       setLoading(true)
-      const res = await fetch('/api/mobile/notifications', {
-        headers: {
-          'Authorization': `Bearer ${user?.token}`
-        }
-      })
+      const res = await fetch(`/api/mobile/notifications?userId=${user?.id}`)
       const data = await res.json()
       if (data.success) {
         setNotifications(data.data)
@@ -59,10 +55,9 @@ export default function MobileNotificationsPage() {
       await fetch('/api/mobile/notifications', {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ messageIds })
+        body: JSON.stringify({ messageIds, userId: user?.id })
       })
     } catch (error) {
       console.error("Error marking notifications as read:", error)

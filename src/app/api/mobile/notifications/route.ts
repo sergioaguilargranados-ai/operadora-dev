@@ -26,7 +26,9 @@ async function getUserIdFromToken(request: NextRequest): Promise<number | null> 
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getUserIdFromToken(request)
+    const searchParams = request.nextUrl.searchParams
+    const userId = searchParams.get('userId') || request.cookies.get('as_user_id')?.value
+
     if (!userId) {
       return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
     }
@@ -70,12 +72,13 @@ export async function GET(request: NextRequest) {
 // Para marcar como leídos
 export async function PUT(request: NextRequest) {
   try {
-    const userId = await getUserIdFromToken(request)
-    if (!userId) {
+    const { messageIds, userId } = await request.json()
+    const finalUserId = userId || request.cookies.get('as_user_id')?.value
+
+    if (!finalUserId) {
       return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
     }
 
-    const { messageIds } = await request.json()
     if (!messageIds || !Array.isArray(messageIds)) {
       return NextResponse.json({ success: false, error: 'messageIds array es requerido' }, { status: 400 })
     }
@@ -95,7 +98,7 @@ export async function PUT(request: NextRequest) {
         WHERE NOT EXISTS (
           SELECT 1 FROM message_reads WHERE message_id = $1 AND user_id = $2
         )
-      `, [msgId, userId, now])
+      `, [msgId, finalUserId, now])
     }
 
     // Actualizar thread unread_count_client si queremos mantener consistencia

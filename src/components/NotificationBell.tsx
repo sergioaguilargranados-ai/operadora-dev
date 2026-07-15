@@ -11,7 +11,7 @@ export function NotificationBell({ className = "w-6 h-6", isWhite = false }: { c
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
-    if (user?.token) {
+    if (user?.id) {
       loadUnreadCount()
       // Polling every 15 seconds
       const interval = setInterval(loadUnreadCount, 15000)
@@ -21,9 +21,7 @@ export function NotificationBell({ className = "w-6 h-6", isWhite = false }: { c
 
   const loadUnreadCount = async () => {
     try {
-      const res = await fetch('/api/mobile/notifications', {
-        headers: { 'Authorization': `Bearer ${user?.token}` }
-      })
+      const res = await fetch(`/api/mobile/notifications?userId=${user?.id}`)
       const data = await res.json()
       if (data.success && data.unreadCount !== undefined) {
         setUnreadCount(data.unreadCount)
