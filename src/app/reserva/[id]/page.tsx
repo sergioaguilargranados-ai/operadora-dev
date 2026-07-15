@@ -45,24 +45,26 @@ function safeParseJSON(value: any, fallback: any = {}) {
 export default function BookingDetailsPage() {
   const router = useRouter()
   const params = useParams()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [booking, setBooking] = useState<any>(null)
   const [generatingPDF, setGeneratingPDF] = useState(false)
 
   useEffect(() => {
+    if (authLoading) return;
+
     if (!isAuthenticated) {
       router.push('/login')
       return
     }
 
     loadBookingDetails()
-  }, [isAuthenticated, params.id])
+  }, [isAuthenticated, authLoading, params.id])
 
   const loadBookingDetails = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('as_token')
       const response = await fetch(`/api/bookings/${params.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
