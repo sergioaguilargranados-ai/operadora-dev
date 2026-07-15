@@ -374,9 +374,12 @@ export class CommunicationService {
       ]
     )
 
-    // Si no requiere moderación, enviar inmediatamente
+    // Si no requiere moderación, enviar inmediatamente pero de forma asíncrona (fire and forget)
+    // para no colgar el request HTTP mientras se contacta a los proveedores externos (SendGrid, Twilio, etc)
     if (!needsModeration) {
-      await this.deliverMessage(message.id, data.tenant_id)
+      this.deliverMessage(message.id, data.tenant_id).catch(err => {
+        console.error('[CommunicationService] Error en entrega en segundo plano:', err)
+      })
     }
 
     return message

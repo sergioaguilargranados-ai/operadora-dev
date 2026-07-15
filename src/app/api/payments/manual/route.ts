@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { queryOne, updateOne, query, transaction } from '@/lib/db'
+import { notificationService } from '@/services/NotificationService'
 
 export async function POST(request: NextRequest) {
   try {
@@ -78,6 +79,20 @@ export async function POST(request: NextRequest) {
         WHERE id = $2
       `, [newPaymentStatus, bookingId])
     })
+
+    // 4. Lanzar notificación automática al cliente de forma asíncrona (fire and forget)
+    // El dueño de la reserva es booking.user_id
+    if (booking.user_id) {
+      notificationService.notifyUser({
+        userId: booking.user_id,
+        title: `Pago Registrado - Reserva #${bookingId}`,
+        body: `Hemos registrado un pago de ${amount} ${booking.currency || 'MXN'} a tu reserva para ${booking.destination || 'tu viaje'}. Método: ${method}.`,
+        type: 'notification',
+        referenceType: 'booking',
+        referenceId: bookingId,
+        isImportant: true
+      }).catch(err => console.error('Error notificando pago:', err))
+    }
 
     return NextResponse.json({
       success: true,

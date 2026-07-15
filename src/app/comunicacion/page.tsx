@@ -342,14 +342,17 @@ export default function ComunicacionPage() {
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                       <div className="grid gap-2">
-                        <Label htmlFor="email">Correo del destinatario</Label>
+                        <Label htmlFor="email">Destinatario o Palabra Clave</Label>
                         <Input
                           id="email"
-                          type="email"
-                          placeholder="cliente@ejemplo.com"
+                          type="text"
+                          placeholder="cliente@ejemplo.com, 'todos' o clave 'AS-123'"
                           value={newThreadEmail}
                           onChange={(e) => setNewThreadEmail(e.target.value)}
                         />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Palabras clave: Escribe <span className="font-semibold text-blue-600">todos</span> para notificar a todos tus clientes activos, o escribe la <span className="font-semibold text-blue-600">clave de un paquete (ej. AS-1234)</span> para enviar solo a clientes con esa reserva activa o futura.
+                        </p>
                       </div>
                       <div className="grid gap-2">
                         <Label htmlFor="subject">Asunto</Label>
