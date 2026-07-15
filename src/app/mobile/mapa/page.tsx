@@ -41,6 +41,9 @@ export default function MobileMapPage() {
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null)
   const [searchedPlace, setSearchedPlace] = useState<Place | null>(null)
   const [myHotelPlace, setMyHotelPlace] = useState<Place | null>(null)
+  const [fetchedPlaces, setFetchedPlaces] = useState<Place[]>([])
+  const [isFetchingPlaces, setIsFetchingPlaces] = useState(false)
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || "",
@@ -115,6 +118,60 @@ export default function MobileMapPage() {
     fetchBookings()
   }, [user, isLoaded])
 
+  // Obtener lugares cercanos dinámicamente según la pestaña (Places API)
+  useEffect(() => {
+    if (!mapInstance || !userLocation || !isLoaded || !window.google) return;
+    
+    // Si la categoría es Mi Hotel o Búsqueda, no buscamos por NearbySearch
+    if (selectedCategory === "Mi Hotel" || selectedCategory === "Búsqueda") {
+      setFetchedPlaces([])
+      return
+    }
+
+    setIsFetchingPlaces(true)
+    const service = new window.google.maps.places.PlacesService(mapInstance);
+    
+    let queryType = ""
+    let queryKeyword = ""
+
+    switch (selectedCategory) {
+      case "Monumentos": queryType = "tourist_attraction"; break;
+      case "Restaurantes": queryType = "restaurant"; break;
+      case "Museos": queryType = "museum"; break;
+      case "Baños públicos": 
+        queryType = "convenience_store"; 
+        queryKeyword = "public restroom"; 
+        break;
+      default: queryType = "point_of_interest";
+    }
+
+    const request: google.maps.places.PlaceSearchRequest = {
+      location: userLocation,
+      radius: 2000,
+      type: queryType,
+      keyword: queryKeyword || undefined
+    };
+
+    service.nearbySearch(request, (results, status) => {
+      setIsFetchingPlaces(false)
+      if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
+        const places: Place[] = results.map((r, i) => ({
+          id: i,
+          name: r.name || "Lugar",
+          category: selectedCategory,
+          lat: r.geometry?.location?.lat() || 0,
+          lng: r.geometry?.location?.lng() || 0,
+          desc: r.vicinity || "",
+          icon: MapPin
+        })).filter(p => p.lat !== 0)
+        setFetchedPlaces(places)
+      } else {
+        setFetchedPlaces([])
+      }
+    });
+
+  }, [selectedCategory, mapInstance, userLocation, isLoaded])
+
   // Calcular ruta cuando se selecciona un lugar
   useEffect(() => {
     if (selectedPlace && userLocation && window.google) {
@@ -177,7 +234,7 @@ export default function MobileMapPage() {
   if (myHotelPlace) categories.unshift({ name: "Mi Hotel", icon: Hotel })
   if (searchedPlace) categories.push({ name: "Búsqueda", icon: Search })
 
-  const basePlaces: Place[] = []
+  const basePlaces: Place[] = fetchedPlaces
 
   let allPlaces = [...basePlaces]
   if (myHotelPlace) allPlaces.push(myHotelPlace)
@@ -263,6 +320,7 @@ export default function MobileMapPage() {
             mapContainerStyle={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
             zoom={15}
             center={mapCenter || userLocation}
+            onLoad={(map) => setMapInstance(map)}
             options={{
               disableDefaultUI: true,
               zoomControl: false,
@@ -349,26 +407,35 @@ export default function MobileMapPage() {
             <h3 className="font-extrabold text-base text-gray-900">Explora el mapa</h3>
             <p className="text-xs text-gray-400 mt-1">Selecciona un marcador en el mapa o busca puntos de interés en la barra superior.</p>
             
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              {filteredPlaces.map((p) => (
-                <div 
-                  key={p.id}
-                  onClick={() => {
-                    setSelectedPlace(p)
-                    setMapCenter({ lat: p.lat, lng: p.lng })
-                  }}
-                  className="p-3 border rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer flex gap-3 items-center"
-                >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${p.category === 'Mi Hotel' ? 'bg-yellow-100' : 'bg-gray-100'}`}>
-                    <MapPin className={`w-4 h-4 ${p.category === 'Mi Hotel' ? 'text-yellow-600' : 'text-gray-700'}`} />
+            {isFetchingPlaces ? (
+              <div className="flex justify-center mt-6">
+                <Compass className="w-6 h-6 animate-spin text-gray-400" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 mt-4 max-h-[30vh] overflow-y-auto pr-2 scrollbar-thin">
+                {filteredPlaces.map((p) => (
+                  <div 
+                    key={p.id}
+                    onClick={() => {
+                      setSelectedPlace(p)
+                      setMapCenter({ lat: p.lat, lng: p.lng })
+                    }}
+                    className="p-3 border rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer flex gap-3 items-center shrink-0"
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${p.category === 'Mi Hotel' ? 'bg-yellow-100' : 'bg-gray-100'}`}>
+                      <MapPin className={`w-4 h-4 ${p.category === 'Mi Hotel' ? 'text-yellow-600' : 'text-gray-700'}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-xs text-gray-900 truncate notranslate">{p.name}</p>
+                      <p className="text-[9px] text-gray-400 mt-0.5 truncate">{p.category}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-xs text-gray-900 truncate notranslate">{p.name}</p>
-                    <p className="text-[9px] text-gray-400 mt-0.5 truncate">{p.category}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+                {filteredPlaces.length === 0 && selectedCategory !== "Búsqueda" && selectedCategory !== "Mi Hotel" && (
+                   <div className="col-span-2 text-center text-xs text-gray-400 py-4">No se encontraron lugares de esta categoría cerca de ti.</div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

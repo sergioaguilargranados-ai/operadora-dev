@@ -226,7 +226,7 @@ export default function BookingDetailsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
       {/* Header */}
-      <PageHeader showBackButton={true} backButtonHref="/">
+      <PageHeader showBackButton={true} backButtonHref="/mis-reservas">
         <div className="flex gap-2">
           {booking.status === 'confirmed' && (
             <Button

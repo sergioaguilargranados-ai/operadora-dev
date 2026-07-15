@@ -1,9 +1,12 @@
 # 🎯 AG-Contexto-Proyecto - AS Operadora
 
-**Última actualización:** 03 de Julio de 2026 - 00:43 CST  
-**Versión actual:** v2.375  
+**Última actualización:** 15 de Julio de 2026 - 13:25 CST  
+**Versión actual:** v2.424  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity, trabajar de esta manera es para tener un mejor control de los cambios que se hacen en el proyecto y asegurar que todo funcione correctamente. 
+
+## 📌 REGLAS DE COMUNICACIÓN (IMPORTANTE)
+- **Idioma:** Toda comunicación hacia el usuario y entre agentes **DEBE SER EXCLUSIVAMENTE EN ESPAÑOL**. No utilizar inglés en las respuestas, resúmenes ni en los mensajes entre subagentes.
 
 ## 📌 INFORMACIÓN DEL PROYECTO
 

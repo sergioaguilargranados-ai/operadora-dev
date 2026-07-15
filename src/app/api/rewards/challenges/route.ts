@@ -100,20 +100,16 @@ export async function GET(request: NextRequest) {
 
     const prompt = `
 Eres un asistente de viajes experto. Basado en este contexto del próximo viaje de un usuario: "${context}"
-Genera exactamente 3 retos de caminata turística (AS Retos) súper atractivos basados en los lugares reales que va a visitar en su itinerario o destino.
+Genera exactamente 5 retos de caminata (puntos de interés) súper atractivos basados en los lugares reales que va a visitar.
 
 Devuelve EXCLUSIVAMENTE un JSON con esta estructura exacta, sin markdown, sin backticks:
 [
-  { "name": "Caminata de la Torre Eiffel al Louvre", "points": 2500, "img": "https://images.unsplash.com/photo-1543305113-82b47b116037?w=150&q=80" },
-  { "name": "Explorando Montmartre a pie", "points": 1800, "img": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=150&q=80" }
+  { "name": "Torre Eiffel", "points": 2500, "lat": 48.8584, "lng": 2.2945 },
+  { "name": "Museo del Louvre", "points": 1800, "lat": 48.8606, "lng": 2.3376 }
 ]
 
-Las URLs de "img" deben ser fotos reales de Unsplash (usa palabras clave en inglés para la búsqueda, ej. https://images.unsplash.com/photo-1543305113-82b47b116037?auto=format&fit=crop&w=150&q=80 o un término genérico hermoso del destino). Solo invéntate IDs realistas o usa links confiables de unsplash (puedes usar source.unsplash si hace falta, o genéricas de viajes). Si no estás seguro de la URL de la imagen, usa imágenes genéricas arquitectónicas de Unsplash como:
-https://images.unsplash.com/photo-1590483868205-d91d96078696?auto=format&fit=crop&w=150&q=80
-https://images.unsplash.com/photo-1549474776-6644ee7890bc?auto=format&fit=crop&w=150&q=80
-https://images.unsplash.com/photo-1574347713437-080c98e217d1?auto=format&fit=crop&w=150&q=80
-
-Los 'points' (pasos estimados) deben ser realistas para la caminata (ej. entre 1000 y 8000).
+Asegúrate de incluir coordenadas (lat, lng) reales y precisas de los lugares turísticos mencionados.
+Los 'points' (pasos estimados) deben ser realistas (ej. entre 1000 y 3000).
 El 'name' no debe pasar de 6 palabras.
 `
 
@@ -166,8 +162,11 @@ El 'name' no debe pasar de 6 palabras.
     ]
 
     challenges = challenges.map((ch: any, i: number) => ({
+      id: `challenge_${Date.now()}_${i}`,
       name: ch.name,
       points: ch.points,
+      lat: ch.lat || 0,
+      lng: ch.lng || 0,
       img: validImages[i % validImages.length]
     }))
 

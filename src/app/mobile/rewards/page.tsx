@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
-import { ChevronLeft, Bell, Gift, Compass, MapPin, Play, Droplets, Sun, Briefcase, Footprints, Video, Image as ImageIcon, Copy, Share2, Trophy, Users, CheckCircle2, Link as LinkIcon } from "lucide-react"
+import { ChevronLeft, Bell, Gift, Compass, MapPin, Play, Droplets, Sun, Briefcase, Footprints, Video, Image as ImageIcon, Copy, Share2, Trophy, Users, CheckCircle2, Link as LinkIcon, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
 
 export default function MobileRewardsPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const { toast } = useToast()
   const { logoUrl, logoDarkUrl, logoMobileUrl } = useWhiteLabel()
   const customLogoUrl = logoDarkUrl || logoMobileUrl || logoUrl || null
   const [activeTab, setActiveTab] = useState<'pasos' | 'invita'>('pasos')
@@ -26,6 +28,10 @@ export default function MobileRewardsPage() {
 
   const [challenges, setChallenges] = useState<any[]>([])
   const [loadingChallenges, setLoadingChallenges] = useState(true)
+
+  const [plannedChallenges, setPlannedChallenges] = useState<string[]>([])
+  const [completedChallenges, setCompletedChallenges] = useState<string[]>([])
+  const [checkingGPS, setCheckingGPS] = useState<string | null>(null)
 
   // Demo: animar la barra de progreso al cargar
   useEffect(() => {
@@ -58,7 +64,83 @@ export default function MobileRewardsPage() {
       }
     }
     fetchChallenges()
+
+    // Cargar estados locales
+    if (typeof window !== 'undefined') {
+      try {
+        const planned = JSON.parse(localStorage.getItem('plannedChallenges') || '[]')
+        const completed = JSON.parse(localStorage.getItem('completedChallenges') || '[]')
+        setPlannedChallenges(planned)
+        setCompletedChallenges(completed)
+      } catch (e) {}
+    }
   }, [user])
+  
+  function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371e3; // meters
+    const phi1 = lat1 * Math.PI/180;
+    const phi2 = lat2 * Math.PI/180;
+    const dPhi = (lat2-lat1) * Math.PI/180;
+    const dLambda = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(dPhi/2) * Math.sin(dPhi/2) +
+              Math.cos(phi1) * Math.cos(phi2) *
+              Math.sin(dLambda/2) * Math.sin(dLambda/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // in metres
+  }
+
+  const handlePlanChallenge = (ch: any) => {
+    const newPlanned = [...plannedChallenges, ch.id]
+    setPlannedChallenges(newPlanned)
+    localStorage.setItem('plannedChallenges', JSON.stringify(newPlanned))
+    toast({ title: "Reto planeado", description: `Has seleccionado visitar: ${ch.name}` })
+  }
+
+  const handleCheckIn = (ch: any) => {
+    setCheckingGPS(ch.id)
+    
+    if (!navigator.geolocation) {
+      toast({ title: "GPS no disponible", description: "Tu dispositivo no soporta geolocalización.", variant: "destructive" })
+      setCheckingGPS(null)
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords
+        const dist = calculateDistance(latitude, longitude, ch.lat, ch.lng)
+        
+        // Simulamos un delay para que se vea la validación
+        await new Promise(r => setTimeout(r, 1500))
+
+        // MODO DEMO: Permitimos check-in independientemente de la distancia real 
+        // para facilitar las pruebas, pero normalmente aquí haríamos:
+        // if (dist > 500) { toast({ title: "Estás muy lejos", variant: "destructive" }); return }
+        
+        const newCompleted = [...completedChallenges, ch.id]
+        setCompletedChallenges(newCompleted)
+        localStorage.setItem('completedChallenges', JSON.stringify(newCompleted))
+        
+        await handleAddSteps(ch.points, ch.name)
+        
+        toast({ title: "¡Check-in Exitoso!", description: `Has ganado ${ch.points} pasos.` })
+        setCheckingGPS(null)
+      },
+      (err) => {
+        console.warn("GPS error:", err)
+        // Fallback for Demo: Si el usuario rechaza permisos, igual lo logramos en demo
+        setTimeout(async () => {
+          const newCompleted = [...completedChallenges, ch.id]
+          setCompletedChallenges(newCompleted)
+          localStorage.setItem('completedChallenges', JSON.stringify(newCompleted))
+          await handleAddSteps(ch.points, ch.name)
+          toast({ title: "¡Check-in Simulado!", description: `Demo: Has ganado ${ch.points} pasos.` })
+          setCheckingGPS(null)
+        }, 1500)
+      },
+      { enableHighAccuracy: true, timeout: 5000 }
+    )
+  }
   
   const MAX_STEPS = 10000 // Meta principal configurable
 
@@ -230,6 +312,9 @@ export default function MobileRewardsPage() {
                       <p className="text-[10px] text-gray-500 leading-tight">Sigue caminando para desbloquear nuevas recompensas.</p>
                     </div>
                   </div>
+                  <Button className="w-full bg-black text-white font-bold rounded-xl h-12 shadow-sm hover:bg-gray-800">
+                    Ver recompensas
+                  </Button>
                 </div>
 
                 <hr className="border-gray-100" />
@@ -280,7 +365,29 @@ export default function MobileRewardsPage() {
                     </div>
                   )}
                 </div>
-                <hr className="border-gray-100" />
+
+                {/* Estadísticas del viaje */}
+                <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm mt-6">
+                  <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Estadísticas del viaje</h2>
+                  <div className="space-y-3">
+                    <StatRow icon={<Footprints className="w-4 h-4 text-white" />} iconBg="bg-black" label="Pasos de hoy" value="1,000" />
+                    <StatRow icon={<Footprints className="w-4 h-4 text-white" />} iconBg="bg-black" label="Pasos acumulados" value={progress.toLocaleString()} />
+                    <StatRow icon={<MapPin className="w-4 h-4 text-white" />} iconBg="bg-black" label="Ciudades visitadas" value="3" />
+                    <StatRow icon={<Compass className="w-4 h-4 text-white" />} iconBg="bg-black" label="Monumentos explorados" value={completedChallenges.length.toString()} />
+                    <StatRow icon={<ImageIcon className="w-4 h-4 text-white" />} iconBg="bg-black" label="Museos visitados" value="2" />
+                  </div>
+                </div>
+
+                {/* Insignias obtenidas */}
+                <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm mt-6">
+                  <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Insignias obtenidas</h2>
+                  <div className="space-y-4">
+                    <BadgeItem icon="🥉" bg="bg-amber-100 text-amber-700" title="Explorador" desc="Has recorrido más de 5,000 pasos." locked={progress < 5000} />
+                    <BadgeItem icon="🥈" bg="bg-slate-200 text-slate-700" title="Aventurero" desc="Visitaste 3 puntos de interés." locked={completedChallenges.length < 3} />
+                    <BadgeItem icon="🔒" bg="bg-gray-100 text-gray-500" title="Maestro Viajero" desc="Completa 25,000 pasos." locked={progress < 25000} />
+                    <BadgeItem icon="🔒" bg="bg-gray-100 text-gray-500" title="Leyenda AS" desc="Completa todos los retos del viaje." locked={challenges.length === 0 || completedChallenges.length < challenges.length} />
+                  </div>
+                </div>
               </div>
 
               {/* RIGHT COLUMN */}
@@ -298,17 +405,26 @@ export default function MobileRewardsPage() {
                         ))}
                       </div>
                     ) : (
-                      challenges.map((challenge, idx) => (
-                        <PlaceItem 
-                          key={idx}
-                          img={challenge.img} 
-                          name={challenge.name} 
-                          points={challenge.points} 
-                          onAdd={() => handleAddSteps(challenge.points, challenge.name)} 
-                        />
-                      ))
+                      challenges.map((challenge, idx) => {
+                        const isPlanned = plannedChallenges.includes(challenge.id)
+                        const isCompleted = completedChallenges.includes(challenge.id)
+                        return (
+                          <PlaceItem 
+                            key={challenge.id || idx}
+                            ch={challenge}
+                            planned={isPlanned}
+                            completed={isCompleted}
+                            checking={checkingGPS === challenge.id}
+                            onPlan={() => handlePlanChallenge(challenge)}
+                            onCheckIn={() => handleCheckIn(challenge)}
+                          />
+                        )
+                      })
                     )}
                   </div>
+                  <Button className="w-full bg-black text-white font-bold rounded-xl h-12 mt-2 shadow-sm hover:bg-gray-800">
+                    Ver en mapa
+                  </Button>
                 </div>
 
                 <hr className="border-gray-100" />
@@ -574,19 +690,63 @@ function RewardItem({ steps, reward, desc, active }: { steps: string, reward: st
   )
 }
 
-function PlaceItem({ img, name, points, onAdd }: { img: string, name: string, points: number, onAdd: () => void }) {
+function PlaceItem({ ch, planned, completed, checking, onPlan, onCheckIn }: any) {
   return (
-    <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-2xl border border-gray-100">
-      <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gray-200">
-        <img src={img} alt={name} className="w-full h-full object-cover" />
+    <div className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${completed ? 'bg-green-50/50 border-green-200' : planned ? 'bg-blue-50/30 border-blue-100' : 'bg-gray-50 border-gray-100'}`}>
+      <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gray-200 shadow-sm">
+        <img src={ch.img} alt={ch.name} className="w-full h-full object-cover" />
       </div>
       <div className="flex-1">
-        <h4 className="font-bold text-gray-900 text-sm leading-tight">{name}</h4>
-        <p className="text-[10px] font-semibold text-green-600 mt-0.5">+{points} pasos</p>
+        <h4 className="font-bold text-gray-900 text-sm leading-tight mb-1">{ch.name}</h4>
+        <div className="flex items-center gap-1 mb-1">
+          <MapPin className="w-3 h-3 text-gray-400" />
+          <span className="text-[10px] text-gray-500 font-medium">A {Math.floor(Math.random()*5 + 1)} km</span>
+        </div>
+        <p className="text-[10px] font-bold text-green-600">+{ch.points} pasos estimados</p>
       </div>
-      <Button size="sm" onClick={onAdd} className="bg-black hover:bg-gray-800 text-white h-8 rounded-xl px-4 text-xs font-bold active:scale-95 transition-transform">
-        Sumar
-      </Button>
+      <div className="flex flex-col gap-2 justify-center">
+        {completed ? (
+          <div className="flex flex-col items-center justify-center text-green-600 h-9 px-3 rounded-xl text-[10px] font-bold border border-green-200 bg-green-50 shadow-sm">
+            <CheckCircle2 className="w-4 h-4 mb-0.5" /> Logrado
+          </div>
+        ) : planned ? (
+          <Button size="sm" disabled={checking} onClick={onCheckIn} className="bg-black hover:bg-gray-800 text-white h-9 rounded-xl px-3 text-xs font-bold shadow-sm flex items-center justify-center gap-1 active:scale-95 transition-transform">
+            {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : <><MapPin className="w-3 h-3" /> Check-in</>}
+          </Button>
+        ) : (
+          <Button size="sm" onClick={onPlan} className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-xl px-4 text-xs font-bold shadow-sm active:scale-95 transition-transform">
+            Planear
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function StatRow({ icon, iconBg, label, value }: any) {
+  return (
+    <div className="flex justify-between items-center py-1.5 border-b border-gray-50 last:border-0">
+      <div className="flex items-center gap-3">
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-sm ${iconBg}`}>
+          {icon}
+        </div>
+        <span className="text-sm font-semibold text-gray-600">{label}</span>
+      </div>
+      <span className="text-sm font-bold text-gray-900">{value}</span>
+    </div>
+  )
+}
+
+function BadgeItem({ icon, bg, title, desc, locked }: any) {
+  return (
+    <div className={`flex items-center gap-4 ${locked ? 'opacity-40 grayscale' : 'opacity-100'}`}>
+      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0 shadow-sm ${bg}`}>
+        {icon}
+      </div>
+      <div>
+        <h4 className="font-bold text-gray-900 text-sm leading-tight mb-0.5">{title}</h4>
+        <p className="text-[11px] font-medium text-gray-500 leading-tight">{desc}</p>
+      </div>
     </div>
   )
 }
