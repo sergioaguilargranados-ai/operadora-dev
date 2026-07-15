@@ -92,10 +92,21 @@ export async function GET(
 
     // Buscar si hay un itinerario de IA asociado
     try {
-      const itinResult = await queryOne('SELECT * FROM custom_itineraries WHERE booking_id = $1', [id])
+      const { queryMany } = require('@/lib/db')
+      let itinResult = await queryOne('SELECT * FROM custom_itineraries WHERE booking_id = $1', [id])
+      let days = []
+      
       if (itinResult) {
-        const { queryMany } = require('@/lib/db')
-        const days = await queryMany('SELECT * FROM custom_itinerary_days WHERE itinerary_id = $1 ORDER BY day_number ASC', [itinResult.id])
+        days = await queryMany('SELECT * FROM custom_itinerary_days WHERE itinerary_id = $1 ORDER BY day_number ASC', [itinResult.id])
+      } else {
+        // Buscar en tabla itinerarios genérica si no hay en custom_itineraries
+        itinResult = await queryOne('SELECT * FROM itineraries WHERE booking_id = $1', [id])
+        if (itinResult && itinResult.days) {
+          days = typeof itinResult.days === 'string' ? JSON.parse(itinResult.days) : itinResult.days
+        }
+      }
+
+      if (itinResult) {
         formattedBooking.custom_itinerary = {
           ...itinResult,
           days: days

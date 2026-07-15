@@ -364,6 +364,38 @@ export default function BookingDetailsPage() {
                     )}
                   </div>
                 )}
+
+                {(bookingType === 'package' || bookingType === 'tour') && bookingDetails.destination && (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Destino Principal</p>
+                      <p className="font-semibold text-lg flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-blue-600" />
+                        {bookingDetails.destination}
+                      </p>
+                    </div>
+                    
+                    {bookingDetails.fecha_inicio && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Fecha de Inicio</p>
+                        <p className="font-semibold flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          {bookingDetails.fecha_inicio}
+                        </p>
+                      </div>
+                    )}
+
+                    {bookingDetails.pasajeros && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Pasajeros</p>
+                        <p className="font-semibold flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          {bookingDetails.pasajeros}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </Card>
             </motion.div>
 
