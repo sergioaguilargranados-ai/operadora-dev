@@ -1,15 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Input } from "@/components/ui/input"
-import { Search, SlidersHorizontal, ArrowLeft, MapPin, Compass, Landmark, Coffee, BadgeHelp, Navigation } from "lucide-react"
+import { Search, SlidersHorizontal, ArrowLeft, MapPin, Compass, Landmark, Coffee, BadgeHelp, Navigation, Hotel } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { GoogleMap, useLoadScript, Marker, DirectionsRenderer } from '@react-google-maps/api'
+import { GoogleMap, useLoadScript, Marker, DirectionsRenderer, Autocomplete } from '@react-google-maps/api'
+import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/hooks/use-toast"
 
 const mapContainerStyle = {
   width: '100%',
   height: '100%'
 };
+
+const libraries: ("places")[] = ["places"]
 
 interface Place {
   id: number
@@ -23,40 +27,93 @@ interface Place {
 
 export default function MobileMapPage() {
   const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState("")
+  const { user } = useAuth()
+  const { toast } = useToast()
+  
   const [selectedCategory, setSelectedCategory] = useState("Monumentos")
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
+  const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null)
   const [locError, setLocError] = useState<string | null>(null)
   const [directionsResponse, setDirectionsResponse] = useState<google.maps.DirectionsResult | null>(null)
+  
+  // Google Places Autocomplete state
+  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null)
+  const [searchedPlace, setSearchedPlace] = useState<Place | null>(null)
+  const [myHotelPlace, setMyHotelPlace] = useState<Place | null>(null)
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || "",
+    libraries,
   })
 
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          const loc = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          })
+          }
+          setUserLocation(loc)
+          setMapCenter(loc)
         },
         (error) => {
           console.error("Error obteniendo ubicación:", error)
           setLocError("No pudimos obtener tu ubicación real.")
           // Fallback a CDMX si falla
           setUserLocation({ lat: 19.4326, lng: -99.1332 })
+          setMapCenter({ lat: 19.4326, lng: -99.1332 })
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       )
     } else {
       setLocError("Geolocalización no soportada por el navegador.")
-      // Fallback a CDMX
       setUserLocation({ lat: 19.4326, lng: -99.1332 })
+      setMapCenter({ lat: 19.4326, lng: -99.1332 })
     }
   }, [])
+
+  // Buscar hotel del usuario
+  useEffect(() => {
+    if (!user || !isLoaded || !window.google) return
+    const fetchBookings = async () => {
+      try {
+        const token = localStorage.getItem('token') || ''
+        const res = await fetch(`/api/bookings?userId=${user.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        const data = await res.json()
+        if (data.data && data.data.length > 0) {
+           const latestBooking = data.data[0]
+           const details = typeof latestBooking.special_requests === 'string' ? JSON.parse(latestBooking.special_requests) : (latestBooking.special_requests || {})
+           // Intentar buscar el nombre del hotel o usar el destino
+           const hotelName = details?.hotel_name || latestBooking.destination || latestBooking.service_name
+           if (hotelName) {
+             const geocoder = new window.google.maps.Geocoder()
+             geocoder.geocode({ address: hotelName + " hotel" }, (results, status) => {
+                if (status === 'OK' && results && results[0]) {
+                   const loc = results[0].geometry.location
+                   const newHotel: Place = {
+                     id: 99999,
+                     name: hotelName,
+                     category: "Mi Hotel",
+                     lat: loc.lat(),
+                     lng: loc.lng(),
+                     desc: results[0].formatted_address || "Hotel de tu itinerario",
+                     icon: Hotel
+                   }
+                   setMyHotelPlace(newHotel)
+                }
+             })
+           }
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    fetchBookings()
+  }, [user, isLoaded])
 
   // Calcular ruta cuando se selecciona un lugar
   useEffect(() => {
@@ -66,13 +123,15 @@ export default function MobileMapPage() {
         {
           origin: userLocation,
           destination: { lat: selectedPlace.lat, lng: selectedPlace.lng },
-          travelMode: window.google.maps.TravelMode.DRIVING, // Puedes cambiar a WALKING si lo prefieren
+          travelMode: window.google.maps.TravelMode.DRIVING,
         },
         (result, status) => {
           if (status === window.google.maps.DirectionsStatus.OK && result) {
             setDirectionsResponse(result)
           } else {
             console.error(`Error al calcular la ruta: ${status}`)
+            toast({ title: 'Ruta no disponible', description: 'No se pudo trazar una ruta en auto hacia este destino.', variant: 'destructive' })
+            setDirectionsResponse(null)
           }
         }
       )
@@ -81,14 +140,44 @@ export default function MobileMapPage() {
     }
   }, [selectedPlace, userLocation, isLoaded])
 
-  const categories = [
+  const onLoadAutocomplete = useCallback((auto: google.maps.places.Autocomplete) => {
+    setAutocomplete(auto)
+  }, [])
+
+  const onPlaceChanged = () => {
+    if (autocomplete !== null) {
+      const place = autocomplete.getPlace()
+      if (place.geometry && place.geometry.location) {
+        const newSearchedPlace: Place = {
+          id: Date.now(),
+          name: place.name || "Destino Buscado",
+          category: "Búsqueda",
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+          desc: place.formatted_address || "",
+          icon: MapPin
+        }
+        setSearchedPlace(newSearchedPlace)
+        setSelectedPlace(newSearchedPlace)
+        setSelectedCategory("Búsqueda")
+        setMapCenter({ lat: place.geometry.location.lat(), lng: place.geometry.location.lng() })
+      }
+    }
+  }
+
+  const baseCategories = [
     { name: "Monumentos", icon: Landmark },
     { name: "Restaurantes", icon: Coffee },
     { name: "Museos", icon: Compass },
     { name: "Baños públicos", icon: BadgeHelp }
   ]
+  
+  // Agregar "Mi Hotel" si existe y "Búsqueda" si hay un lugar buscado
+  const categories = [...baseCategories]
+  if (myHotelPlace) categories.unshift({ name: "Mi Hotel", icon: Hotel })
+  if (searchedPlace) categories.push({ name: "Búsqueda", icon: Search })
 
-  const places: Place[] = [
+  const basePlaces: Place[] = [
     {
       id: 1,
       name: "Palacio de Bellas Artes",
@@ -127,11 +216,11 @@ export default function MobileMapPage() {
     }
   ]
 
-  const filteredPlaces = places.filter(p => {
-    const matchesCategory = p.category === selectedCategory
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesCategory && matchesSearch
-  })
+  let allPlaces = [...basePlaces]
+  if (myHotelPlace) allPlaces.push(myHotelPlace)
+  if (searchedPlace) allPlaces.push(searchedPlace)
+
+  const filteredPlaces = allPlaces.filter(p => p.category === selectedCategory)
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 relative">
@@ -139,20 +228,37 @@ export default function MobileMapPage() {
       <div className="absolute top-4 left-4 right-4 z-20 flex gap-2 items-center">
         <button 
           onClick={() => router.back()} 
-          className="w-11 h-11 bg-white hover:bg-gray-50 active:bg-gray-100 rounded-full flex items-center justify-center shadow-lg border"
+          className="w-11 h-11 bg-white hover:bg-gray-50 active:bg-gray-100 rounded-full flex items-center justify-center shadow-lg border shrink-0"
         >
           <ArrowLeft className="w-5 h-5 text-gray-700" />
         </button>
         <div className="relative flex-1">
-          <Input 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar lugares, museos, hoteles..."
-            className="pl-10 h-11 bg-white border-none rounded-full shadow-lg text-sm"
-          />
-          <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3" />
+          {isLoaded ? (
+            <Autocomplete
+              onLoad={onLoadAutocomplete}
+              onPlaceChanged={onPlaceChanged}
+              options={{ strictBounds: false }}
+            >
+              <div>
+                <Input 
+                  placeholder="Buscar lugares, hoteles, museos..."
+                  className="pl-10 h-11 bg-white border-none rounded-full shadow-lg text-sm w-full notranslate"
+                />
+                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3 pointer-events-none" />
+              </div>
+            </Autocomplete>
+          ) : (
+            <div>
+               <Input 
+                  placeholder="Cargando buscador..."
+                  className="pl-10 h-11 bg-white border-none rounded-full shadow-lg text-sm w-full"
+                  disabled
+                />
+                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3 pointer-events-none" />
+            </div>
+          )}
         </div>
-        <button className="w-11 h-11 bg-white hover:bg-gray-50 active:bg-gray-100 rounded-full flex items-center justify-center shadow-lg border">
+        <button className="w-11 h-11 bg-white hover:bg-gray-50 active:bg-gray-100 rounded-full flex items-center justify-center shadow-lg border shrink-0">
           <SlidersHorizontal className="w-5 h-5 text-gray-700" />
         </button>
       </div>
@@ -167,6 +273,7 @@ export default function MobileMapPage() {
               onClick={() => {
                 setSelectedCategory(cat.name)
                 setSelectedPlace(null)
+                setDirectionsResponse(null)
               }}
               className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-md border-0 shrink-0 ${
                 selectedCategory === cat.name 
@@ -192,7 +299,7 @@ export default function MobileMapPage() {
           <GoogleMap
             mapContainerStyle={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
             zoom={15}
-            center={userLocation}
+            center={mapCenter || userLocation}
             options={{
               disableDefaultUI: true,
               zoomControl: false,
@@ -215,6 +322,8 @@ export default function MobileMapPage() {
                 icon={{
                   url: selectedPlace?.id === place.id 
                     ? 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+                    : place.category === "Mi Hotel"
+                    ? 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png'
                     : 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
                 }}
               />
@@ -225,7 +334,7 @@ export default function MobileMapPage() {
               <DirectionsRenderer
                 directions={directionsResponse}
                 options={{
-                  suppressMarkers: true, // Para mantener nuestros propios marcadores personalizados
+                  suppressMarkers: true,
                   polylineOptions: {
                     strokeColor: '#0066FF',
                     strokeWeight: 5,
@@ -245,15 +354,15 @@ export default function MobileMapPage() {
         {selectedPlace ? (
           <div className="space-y-3">
             <div className="flex justify-between items-start">
-              <div>
+              <div className="pr-2">
                 <span className="text-[10px] uppercase font-extrabold text-primary tracking-wider bg-blue-50 px-2 py-0.5 rounded">
                   {selectedPlace.category}
                 </span>
-                <h3 className="font-extrabold text-lg text-gray-900 mt-1">{selectedPlace.name}</h3>
+                <h3 className="font-extrabold text-lg text-gray-900 mt-1 notranslate">{selectedPlace.name}</h3>
               </div>
               <button 
                 onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedPlace.lat},${selectedPlace.lng}`, '_blank')}
-                className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
+                className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors shrink-0"
                 title="Abrir GPS externo"
               >
                 <Navigation className="w-5 h-5" />
@@ -262,7 +371,10 @@ export default function MobileMapPage() {
             <p className="text-xs text-gray-500 leading-relaxed">{selectedPlace.desc}</p>
             <div className="flex gap-2 pt-2">
               <button 
-                onClick={() => setSelectedPlace(null)}
+                onClick={() => {
+                  setSelectedPlace(null)
+                  setDirectionsResponse(null)
+                }}
                 className="w-full py-2.5 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50"
               >
                 Cerrar Detalle
@@ -278,15 +390,18 @@ export default function MobileMapPage() {
               {filteredPlaces.map((p) => (
                 <div 
                   key={p.id}
-                  onClick={() => setSelectedPlace(p)}
+                  onClick={() => {
+                    setSelectedPlace(p)
+                    setMapCenter({ lat: p.lat, lng: p.lng })
+                  }}
                   className="p-3 border rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer flex gap-3 items-center"
                 >
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-4 h-4 text-gray-700" />
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${p.category === 'Mi Hotel' ? 'bg-yellow-100' : 'bg-gray-100'}`}>
+                    <MapPin className={`w-4 h-4 ${p.category === 'Mi Hotel' ? 'text-yellow-600' : 'text-gray-700'}`} />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-bold text-xs text-gray-900 truncate">{p.name}</p>
-                    <p className="text-[9px] text-gray-400 mt-0.5">{p.category}</p>
+                    <p className="font-bold text-xs text-gray-900 truncate notranslate">{p.name}</p>
+                    <p className="text-[9px] text-gray-400 mt-0.5 truncate">{p.category}</p>
                   </div>
                 </div>
               ))}
