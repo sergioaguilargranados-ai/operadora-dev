@@ -183,6 +183,12 @@ export async function POST(request: NextRequest) {
           console.log(`✅ Nuevo usuario creado y Setup Token generado para: ${travelerEmail}`);
         }
 
+        // ASIGNAR LA RESERVA AL VIAJERO EN LA BASE DE DATOS
+        if (user && user.id) {
+          await query('UPDATE bookings SET user_id = $1 WHERE id = $2', [user.id, booking.id]);
+          booking.user_id = user.id; // Actualizar localmente por si se usa abajo
+        }
+
         // 2. Enviar correos
         const { sendBookingConfirmationEmail, sendAccountSetupEmail } = await import('@/lib/emailHelper');
         
