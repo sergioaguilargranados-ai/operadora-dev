@@ -10,6 +10,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ success: false, error: 'ID es requerido' }, { status: 400 })
     }
 
+    let itinerary = null;
+
     // 1. Try finding by booking_id in custom_itineraries first
     if (!isNaN(Number(idOrTourId))) {
       const customRes = await dbQuery(`

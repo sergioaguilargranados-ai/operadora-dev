@@ -72,16 +72,18 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
             const dataBookings = await resBookings.json()
             const bookingsList = dataBookings.data || []
             
-            // Extraer solo aquellas reservas que tengan un tour_id en special_requests
+            // Extraer todas las reservas del usuario
             const userToursMap = new Map()
             bookingsList.forEach((b: any) => {
               try {
                 const details = typeof b.special_requests === 'string' ? JSON.parse(b.special_requests) : (b.special_requests || {})
-                if (details.tour_id && !userToursMap.has(details.tour_id)) {
-                  userToursMap.set(details.tour_id, {
-                    tour_id: details.tour_id,
-                    name: b.service_name || details.tour_name || 'Viaje',
-                    date: new Date(b.travel_date || b.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+                const tripId = details.tour_id || b.id.toString()
+                
+                if (!userToursMap.has(tripId)) {
+                  userToursMap.set(tripId, {
+                    tour_id: tripId,
+                    name: b.service_name || details.tour_name || details.destination || 'Viaje',
+                    date: new Date(b.travel_date || details.fecha_inicio || b.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
                   })
                 }
               } catch(e) {}

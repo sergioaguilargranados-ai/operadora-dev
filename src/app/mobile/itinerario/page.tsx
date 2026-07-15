@@ -44,17 +44,19 @@ export default function MobileTripsListPage() {
           bookingsList.forEach((b: any) => {
             try {
               const details = typeof b.special_requests === 'string' ? JSON.parse(b.special_requests) : (b.special_requests || {})
-              if (details.tour_id && !userToursMap.has(details.tour_id)) {
+              const tripId = details.tour_id || b.id.toString()
+              
+              if (!userToursMap.has(tripId)) {
                 
-                const tripDate = new Date(b.travel_date || b.created_at)
+                const tripDate = new Date(b.travel_date || details.fecha_inicio || b.created_at)
                 const now = new Date()
                 
-                userToursMap.set(details.tour_id, {
-                  tour_id: details.tour_id,
-                  name: b.service_name || details.tour_name || 'Viaje',
+                userToursMap.set(tripId, {
+                  tour_id: tripId,
+                  name: b.service_name || details.tour_name || details.destination || 'Viaje',
                   dateStr: tripDate.toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' }),
                   dateObj: tripDate,
-                  pax: b.pax || details.pax || 2,
+                  pax: b.pax || details.pax || details.pasajeros || b.adults || 2,
                   isPast: tripDate < now,
                   image: details.image_url || "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=400&q=80"
                 })
