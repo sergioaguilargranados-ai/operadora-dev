@@ -22,12 +22,14 @@ export async function GET(request: NextRequest) {
       await DestinationContentService.deleteContent(key);
     }
 
-    // Enriquecer
-    await DestinationContentService.enrichItineraryDays(itinerary.id);
+    // Enriquecer (se ejecuta de forma asíncrona en segundo plano para no dar timeout en la petición)
+    DestinationContentService.enrichItineraryDays(itinerary.id).catch(err => {
+      console.error("Error en generación asíncrona de itinerario:", err)
+    })
 
     return NextResponse.json({ 
       success: true, 
-      message: `Regeneración completada con éxito. Destinos enriquecidos: ${cities}`
+      message: `Regeneración iniciada en segundo plano. Esto tomará varios minutos. Destinos: ${cities}`
     });
 
   } catch (error: any) {

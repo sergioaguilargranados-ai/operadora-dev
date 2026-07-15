@@ -33,9 +33,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
     }
 
-    // Obtener los mensajes dirigidos al cliente (donde él es dueño del thread y no es el sender)
-    // Opcionalmente, podemos marcar "is_read" revisando si la fecha del mensaje es anterior a last_read_at, etc.
-    // Para simplificar, revisaremos si hay un registro en message_reads para ese usuario y mensaje.
+    // Obtener el email del usuario para cruzarlo con cotizaciones huérfanas
+    const userRes = await dbQuery('SELECT email FROM users WHERE id = $1', [userId])
+    const userEmail = userRes.rows[0]?.email
+
+    // Obtener los mensajes dirigidos al cliente (donde él es dueño del thread o la cotización es suya)
     const result = await dbQuery(`
       SELECT 
         m.id, 
@@ -47,12 +49,13 @@ export async function GET(request: NextRequest) {
         EXISTS(SELECT 1 FROM message_reads r WHERE r.message_id = m.id AND r.user_id = $1) as is_read
       FROM messages m
       JOIN communication_threads t ON m.thread_id = t.id
-      WHERE t.client_id = $1
+      LEFT JOIN tour_quotes tq ON t.reference_type = 'tour_quote' AND t.reference_id = tq.id
+      WHERE (t.client_id = $1 OR tq.client_email = $2)
         AND m.sender_type != 'client'
         AND m.is_internal = false
       ORDER BY m.created_at DESC
       LIMIT 50
-    `, [userId])
+    `, [userId, userEmail])
 
     // Calcular cuántos no leídos hay (notificaciones tipo 'alert' o 'notification', o todos)
     const unreadCount = result.rows.filter(r => !r.is_read).length;
