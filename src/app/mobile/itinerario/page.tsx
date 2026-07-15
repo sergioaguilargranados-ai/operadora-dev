@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from '@/contexts/AuthContext'
-import { Loader2, ChevronRight, Calendar as CalendarIcon, Users, MapPin, Search } from "lucide-react"
+import { Loader2, ChevronRight, Calendar as CalendarIcon, Users, MapPin, Search, ArrowLeft } from "lucide-react"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
 
@@ -89,7 +89,13 @@ export default function MobileTripsListPage() {
   return (
     <div className="min-h-screen bg-[#FDFDFD] font-sans pb-24">
       {/* Header */}
-      <div className="px-4 pt-6 pb-2 flex items-center justify-center sticky top-0 bg-[#FDFDFD] z-30 border-b border-gray-100 shadow-sm">
+      <div className="px-4 pt-6 pb-2 flex items-center justify-center sticky top-0 bg-[#FDFDFD] z-30 border-b border-gray-100 shadow-sm relative">
+        <button 
+          onClick={() => router.back()} 
+          className="absolute left-4 top-1/2 -translate-y-1/2 mt-2 p-2 hover:bg-gray-100 rounded-full transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5 text-gray-900" />
+        </button>
         <MobileLogo variant="dark" size="md" logoUrl={customLogoUrl} />
       </div>
 
@@ -125,14 +131,6 @@ export default function MobileTripsListPage() {
           <div className="text-center py-12 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
             <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">No tienes viajes {activeTab === 'upcoming' ? 'próximos' : 'pasados'}.</p>
-            {activeTab === 'upcoming' && (
-              <button 
-                onClick={() => router.push('/mobile')}
-                className="mt-4 px-6 py-2 bg-black text-white rounded-full text-sm font-medium"
-              >
-                Explorar destinos
-              </button>
-            )}
           </div>
         ) : (
           currentList.map((tour, index) => (
