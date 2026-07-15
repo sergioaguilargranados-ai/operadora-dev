@@ -390,11 +390,11 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
       {practicalInfo && (
       <div className="px-4 mb-8">
         <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Información práctica</h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="columns-2 gap-3 space-y-3">
           
           {practicalInfo.currency && (
           <div 
-            className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col active:scale-95 transition-transform cursor-pointer"
+            className="break-inside-avoid bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col active:scale-95 transition-transform cursor-pointer"
             onClick={() => setIsCalculatorOpen(true)}
           >
             <div className="flex items-center gap-2 mb-2">
@@ -409,8 +409,14 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           </div>
           )}
 
+          {practicalInfo?.climate && (
+          <div className="break-inside-avoid">
+            <WeatherForecast city={itinerary?.destination || "Madrid, España"} date={dayData.date} />
+          </div>
+          )}
+
           {practicalInfo.language && (
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+          <div className="break-inside-avoid bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                 <Volume2 className="w-4 h-4" />
@@ -424,22 +430,8 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           </div>
           )}
 
-          {practicalInfo?.climate && (
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
-                <span className="text-sm font-bold">⛅</span>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-gray-900">Clima</p>
-                <p className="text-[10px] text-gray-500">Temporada</p>
-              </div>
-            </div>
-            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.climate?.tip}</p>
-          </div>
-          )}
           {practicalInfo?.timezone && (
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+          <div className="break-inside-avoid bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                 <span className="text-sm font-bold">GMT</span>
@@ -454,7 +446,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           )}
 
           {practicalInfo?.voltage && (
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+          <div className="break-inside-avoid bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                 <span className="text-sm font-bold">⚡</span>
@@ -469,7 +461,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           )}
 
           {practicalInfo?.emergency && (
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+          <div className="break-inside-avoid bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                 <span className="text-sm font-bold">📞</span>
