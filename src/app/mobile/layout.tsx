@@ -85,7 +85,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
             {/* Versión al final del contenido (scrollable) */}
             {isAuthenticated && !isLoginPage && (
               <div className="w-full text-center py-4 opacity-70">
-                <span className="text-[8px] text-gray-400">v2.407 | 15 Jul 2026 01:04 CST | AS Operadora viajes y eventos</span>
+                <span className="text-[8px] text-gray-400">v2.408 | 15 Jul 2026 01:20 CST | AS Operadora viajes y eventos</span>
               </div>
             )}
           </main>

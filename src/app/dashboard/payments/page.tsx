@@ -139,20 +139,21 @@ export default function PaymentsDashboardPage() {
     }
 
     paymentsData.forEach(payment => {
-      stats.total_amount += payment.amount
+      const amt = Number(payment.amount) || 0;
+      stats.total_amount += amt
 
       switch (payment.status) {
         case 'pending':
-          stats.pending_amount += payment.amount
+          stats.pending_amount += amt
           break
         case 'completed':
-          stats.completed_amount += payment.amount
+          stats.completed_amount += amt
           break
         case 'refunded':
-          stats.refunded_amount += payment.amount
+          stats.refunded_amount += amt
           break
         case 'failed':
-          stats.failed_amount += payment.amount
+          stats.failed_amount += amt
           break
       }
     })

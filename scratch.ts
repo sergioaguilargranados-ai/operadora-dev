@@ -9,9 +9,14 @@ async function check() {
   
   try {
     await pool.query(`
-      ALTER TABLE wishlist_items ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'souvenir';
+      ALTER TABLE custom_itinerary_days
+      ADD COLUMN IF NOT EXISTS foods JSONB DEFAULT '[]'::jsonb,
+      ADD COLUMN IF NOT EXISTS places JSONB DEFAULT '[]'::jsonb,
+      ADD COLUMN IF NOT EXISTS souvenirs JSONB DEFAULT '[]'::jsonb,
+      ADD COLUMN IF NOT EXISTS phrases JSONB DEFAULT '[]'::jsonb,
+      ADD COLUMN IF NOT EXISTS practical_info JSONB DEFAULT '{}'::jsonb;
     `);
-    console.log("Column 'category' added successfully.");
+    console.log("Columns added to custom_itinerary_days successfully.");
   } catch (e) {
     console.error(e);
   }

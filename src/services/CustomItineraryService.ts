@@ -13,6 +13,11 @@ export interface CustomItineraryDay {
   activities: string[];
   highlights: string[];
   optional_activities: string[];
+  foods?: { name: string; desc: string; img: string }[];
+  places?: { name: string; desc: string; img: string }[];
+  souvenirs?: { name: string; desc: string; img: string }[];
+  phrases?: { local: string; span: string }[];
+  practical_info?: { currency: { name: string; symbol: string }; timezone: string; weather: string };
 }
 
 export interface CustomItinerary {
@@ -111,36 +116,65 @@ Devuelve EXCLUSIVAMENTE un JSON con la siguiente estructura (sin markdown adicio
       "city": "${destination}",
       "activities": ["Llegada al aeropuerto", "Caminata por el centro"],
       "highlights": ["El centro histórico"],
-      "optional_activities": ["Tour nocturno"]
+      "optional_activities": ["Tour nocturno"],
+      "foods": [
+        { "name": "Nombre de Platillo", "desc": "Breve descripción", "img": "URL de imagen representativa desde source.unsplash.com" }
+      ],
+      "places": [
+        { "name": "Lugar Imperdible", "desc": "Breve descripción", "img": "URL de imagen desde source.unsplash.com" }
+      ],
+      "souvenirs": [
+        { "name": "Souvenir Sugerido", "desc": "Breve descripción", "img": "URL de imagen desde source.unsplash.com" }
+      ],
+      "phrases": [
+        { "local": "Frase en el idioma del destino", "span": "Traducción al español" }
+      ],
+      "practical_info": {
+        "currency": { "name": "Nombre de moneda", "symbol": "Símbolo" },
+        "timezone": "Zona horaria",
+        "weather": "Clima típico en esa época"
+      }
     }
   ]
 }
+
+Nota sobre las imágenes (img): Utiliza URLs reales de source.unsplash.com con palabras clave representativas del lugar o platillo, en este formato: https://source.unsplash.com/600x400/?keyword1,keyword2
+Por ejemplo, si la comida es "Pasta", usa "https://source.unsplash.com/600x400/?pasta,food". No inventes identificadores, usa el servicio de random con palabras clave.
 `;
 
+      const openAiKey = process.env.OPENAI_API_KEY;
+      if (!openAiKey) {
+        throw new Error('OPENAI_API_KEY no configurada');
+      }
+
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`,
+        'https://api.openai.com/v1/chat/completions',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openAiKey}`
+          },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.7,
-              responseMimeType: 'application/json',
-            },
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: prompt }],
+            response_format: { type: "json_object" },
+            temperature: 0.7,
           }),
         }
       );
 
       if (!response.ok) {
-        throw new Error(`Error Gemini: ${response.status}`);
+        const errorText = await response.text();
+        console.error("OpenAI API Error:", response.status, errorText);
+        throw new Error(`Error OpenAI: ${response.status}`);
       }
 
       const data = await response.json();
-      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const rawText = data.choices?.[0]?.message?.content;
       if (!rawText) throw new Error('Respuesta vacía de Gemini');
 
-      const cleanJson = rawText.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+      const cleanJson = rawText.replace(/\\x60\\x60\\x60json\\s*/gi, '').replace(/\\x60\\x60\\x60\\s*/gi, '').trim();
       const parsed: CustomItinerary = JSON.parse(cleanJson);
 
       await client.query('BEGIN');
@@ -159,12 +193,15 @@ Devuelve EXCLUSIVAMENTE un JSON con la siguiente estructura (sin markdown adicio
       for (const day of parsed.days) {
         await client.query(`
           INSERT INTO custom_itinerary_days (
-            itinerary_id, day_number, title, description, meals, hotel, city, activities, highlights, optional_activities
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            itinerary_id, day_number, title, description, meals, hotel, city, activities, highlights, optional_activities, foods, places, souvenirs, phrases, practical_info
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
         `, [
           itineraryId, day.day_number, day.title, day.description, 
           day.meals || '', day.hotel || '', day.city || destination,
-          day.activities || [], day.highlights || [], day.optional_activities || []
+          day.activities || [], day.highlights || [], day.optional_activities || [],
+          JSON.stringify(day.foods || []), JSON.stringify(day.places || []), 
+          JSON.stringify(day.souvenirs || []), JSON.stringify(day.phrases || []), 
+          JSON.stringify(day.practical_info || {})
         ]);
       }
 
