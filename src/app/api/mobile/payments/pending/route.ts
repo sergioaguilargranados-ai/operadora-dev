@@ -31,11 +31,12 @@ export async function GET(request: NextRequest) {
         b.special_requests,
         b.total_price, 
         b.currency,
-        COALESCE(SUM(p.amount), 0) as paid_amount
+        (SELECT COALESCE(SUM(amount), 0) FROM payment_transactions WHERE booking_id = b.id AND status = 'completed') as paid_amount
       FROM bookings b
-      LEFT JOIN payment_transactions p ON p.booking_id = b.id AND p.status = 'completed'
-      WHERE b.user_id = $1 AND b.booking_status != 'cancelled'
-      GROUP BY b.id
+      WHERE (b.user_id = $1 OR EXISTS (
+          SELECT 1 FROM payment_transactions p2 WHERE p2.booking_id = b.id AND p2.user_id = $1
+      ))
+      AND b.booking_status != 'cancelled'
     `, [userId])
 
     const pendingPayments = res.rows.map(row => {
