@@ -22,10 +22,14 @@ export async function GET(request: NextRequest) {
       await DestinationContentService.deleteContent(key);
     }
 
-    // Enriquecer (se ejecuta de forma asíncrona en segundo plano para no dar timeout en la petición)
-    DestinationContentService.enrichItineraryDays(itinerary.id).catch(err => {
-      console.error("Error en generación asíncrona de itinerario:", err)
-    })
+    // Enriquecer (se ejecuta en un proceso de Node.js independiente para garantizar que la respuesta HTTP termine inmediatamente)
+    const { spawn } = require('child_process');
+    const child = spawn('npx', ['tsx', 'scripts/regenerate_tour_data.ts', itinerary.id.toString()], {
+      detached: true,
+      stdio: 'ignore',
+      cwd: process.cwd()
+    });
+    child.unref();
 
     return NextResponse.json({ 
       success: true, 
