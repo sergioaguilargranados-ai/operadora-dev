@@ -30,7 +30,11 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     // 2. Try finding by id in legacy itineraries
     if (!itinerary && !isNaN(Number(idOrTourId))) {
-      const result = await dbQuery('SELECT * FROM itineraries WHERE id = $1', [Number(idOrTourId)])
+      let result = await dbQuery('SELECT * FROM itineraries WHERE id = $1 LIMIT 1', [Number(idOrTourId)])
+      if (result.rows.length === 0) {
+        // Fallback: search by booking_id in legacy itineraries
+        result = await dbQuery('SELECT * FROM itineraries WHERE booking_id = $1 LIMIT 1', [Number(idOrTourId)])
+      }
       if (result.rows.length > 0) itinerary = result.rows[0]
     }
 
