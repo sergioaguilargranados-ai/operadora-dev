@@ -118,13 +118,13 @@ Devuelve EXCLUSIVAMENTE un JSON con la siguiente estructura (sin markdown adicio
       "highlights": ["El centro histórico"],
       "optional_activities": ["Tour nocturno"],
       "foods": [
-        { "name": "Nombre de Platillo", "desc": "Breve descripción", "img": "URL de imagen representativa desde source.unsplash.com" }
+        { "name": "Nombre de Platillo", "desc": "Breve descripción", "img": "https://image.pollinations.ai/prompt/food%20name?width=600&height=400&nologo=true" }
       ],
       "places": [
-        { "name": "Lugar Imperdible", "desc": "Breve descripción", "img": "URL de imagen desde source.unsplash.com" }
+        { "name": "Lugar Imperdible", "desc": "Breve descripción", "img": "https://image.pollinations.ai/prompt/place%20name?width=600&height=400&nologo=true" }
       ],
       "souvenirs": [
-        { "name": "Souvenir Sugerido", "desc": "Breve descripción", "img": "URL de imagen desde source.unsplash.com" }
+        { "name": "Souvenir Sugerido", "desc": "Breve descripción", "img": "https://image.pollinations.ai/prompt/souvenir%20name?width=600&height=400&nologo=true" }
       ],
       "phrases": [
         { "local": "Frase en el idioma del destino", "span": "Traducción al español" }
@@ -138,8 +138,9 @@ Devuelve EXCLUSIVAMENTE un JSON con la siguiente estructura (sin markdown adicio
   ]
 }
 
-Nota sobre las imágenes (img): Utiliza URLs reales de source.unsplash.com con palabras clave representativas del lugar o platillo, en este formato: https://source.unsplash.com/600x400/?keyword1,keyword2
-Por ejemplo, si la comida es "Pasta", usa "https://source.unsplash.com/600x400/?pasta,food". No inventes identificadores, usa el servicio de random con palabras clave.
+Nota sobre las imágenes (img): Utiliza URLs reales usando pollinations.ai con palabras clave representativas y en INGLÉS del lugar o platillo, en este formato exacto: https://image.pollinations.ai/prompt/keyword1%20keyword2?width=600&height=400&nologo=true
+Por ejemplo, si la comida es "Pasta", usa "https://image.pollinations.ai/prompt/italian%20pasta%20food?width=600&height=400&nologo=true". No inventes identificadores, siempre concatena las palabras clave separadas por %20.
+Asegúrate de que las palabras clave de la imagen estén en inglés para obtener mejores resultados fotográficos.
 `;
 
       const openAiKey = process.env.OPENAI_API_KEY;

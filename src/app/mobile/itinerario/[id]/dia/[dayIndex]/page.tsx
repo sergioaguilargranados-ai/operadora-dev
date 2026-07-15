@@ -425,9 +425,19 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           )}
 
           {practicalInfo?.climate && (
-            <WeatherForecast city={destinationName} date={dayData?.date || new Date().toISOString().split('T')[0]} />
+          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
+                <span className="text-sm font-bold">⛅</span>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-900">Clima</p>
+                <p className="text-[10px] text-gray-500">Temporada</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-600 leading-tight">{practicalInfo.climate?.tip}</p>
+          </div>
           )}
-
           {practicalInfo?.timezone && (
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
@@ -476,6 +486,12 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         </div>
       </div>
       )}
+
+      {/* Clima de 7 días (WeatherForecast) */}
+      <div className="px-4 mb-8">
+        <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Pronóstico del clima</h2>
+        <WeatherForecast city={destinationName} date={dayData?.date || new Date().toISOString().split('T')[0]} />
+      </div>
 
       {/* Consejos de viaje — Dinámicos */}
       {travelTips.length > 0 && (
