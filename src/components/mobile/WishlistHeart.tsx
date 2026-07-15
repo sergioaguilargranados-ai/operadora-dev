@@ -10,6 +10,7 @@ interface WishlistHeartProps {
     name: string
     desc: string
     img: string
+    category?: string
   }
   city: string
   itineraryId: number
@@ -66,7 +67,8 @@ export function WishlistHeart({ item, city, itineraryId, dayIndex }: WishlistHea
           item_img: item.img,
           city,
           itinerary_id: itineraryId,
-          day_index: dayIndex
+          day_index: dayIndex,
+          category: item.category || 'souvenir'
         })
       })
       const data = await res.json()

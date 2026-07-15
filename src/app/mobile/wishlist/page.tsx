@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Bell, Trash2, Eye, MapPin, Loader2, Heart } from "lucide-react"
+import { ChevronLeft, Bell, MapPin, Loader2, Heart, Plus, Info } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
@@ -17,6 +17,7 @@ export default function WishlistPage() {
   
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<'all' | 'place' | 'food' | 'souvenir'>('all')
 
   useEffect(() => {
     if (!user?.id) return
@@ -37,32 +38,42 @@ export default function WishlistPage() {
     }
   }
 
-  const handleDismiss = async (id: number) => {
-    setItems(items.filter(item => item.id !== id))
-    try {
-      await fetch('/api/wishlist', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status: 'dismissed' })
-      })
-      toast({ title: "Removido", description: "El artículo ha sido removido de tu lista." })
-    } catch (err) {
-      console.error(err)
-      toast({ title: "Error", description: "No se pudo remover el artículo", variant: "destructive" })
-      fetchWishlist() // revert
-    }
-  }
-
   const handleDelete = async (id: number) => {
+    const prevItems = [...items]
     setItems(items.filter(item => item.id !== id))
     try {
       await fetch(`/api/wishlist?id=${id}`, { method: 'DELETE' })
-      toast({ title: "Eliminado", description: "El artículo ha sido eliminado." })
+      toast({ title: "Removido", description: "El artículo ha sido eliminado." })
     } catch (err) {
       console.error(err)
-      fetchWishlist()
+      setItems(prevItems)
+      toast({ title: "Error", description: "No se pudo remover el artículo", variant: "destructive" })
     }
   }
+
+  const handleAddClick = () => {
+    toast({
+      title: "Guardar artículos",
+      description: "Guarda artículos tocando el corazón en tu itinerario.",
+      duration: 4000
+    })
+  }
+
+  const filteredItems = filter === 'all' 
+    ? items 
+    : items.filter(i => {
+        // Fallback for older items without category (they are souvenirs)
+        const cat = i.category || 'souvenir'
+        return cat === filter
+      })
+
+  // Group by city
+  const groupedItems = filteredItems.reduce((acc, item) => {
+    const city = item.city || 'Otros'
+    if (!acc[city]) acc[city] = []
+    acc[city].push(item)
+    return acc
+  }, {} as Record<string, any[]>)
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] font-sans pb-24">
@@ -83,62 +94,128 @@ export default function WishlistPage() {
       </div>
 
       {/* Title */}
-      <div className="px-6 pt-4 pb-6">
-        <h1 className="text-4xl font-serif font-bold text-gray-900 mb-2">Wishlist</h1>
-        <p className="text-sm text-gray-500">
-          Tus recomendaciones de compras y souvenirs guardados.
+      <div className="px-6 pt-6 pb-8 text-center relative">
+        <h1 className="text-4xl font-serif font-bold text-gray-900 mb-3">Mi Wishlist</h1>
+        <p className="text-xs text-gray-500 max-w-[250px] mx-auto leading-relaxed">
+          Guarda tus artículos favoritos y encuéntralos aquí cuando los necesites.
         </p>
+        
+        {/* Floating Add Button */}
+        <button 
+          onClick={handleAddClick}
+          className="absolute right-6 top-6 flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform"
+        >
+          <div className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center">
+            <Plus className="w-5 h-5 text-gray-900" />
+          </div>
+          <span className="text-[9px] font-bold text-gray-500">Agregar</span>
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="px-4 mb-6">
+        <div className="flex justify-center gap-2">
+          <button 
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${filter === 'all' ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}`}
+          >
+            Todos
+          </button>
+          <button 
+            onClick={() => setFilter('place')}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${filter === 'place' ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}`}
+          >
+            Lugares
+          </button>
+          <button 
+            onClick={() => setFilter('food')}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${filter === 'food' ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}`}
+          >
+            Comida
+          </button>
+          <button 
+            onClick={() => setFilter('souvenir')}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${filter === 'souvenir' ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}`}
+          >
+            Souvenirs
+          </button>
+        </div>
+      </div>
+
+      {/* Sort row */}
+      <div className="px-6 flex justify-between items-center mb-6">
+        <span className="text-xs text-gray-400">{filteredItems.length} artículos guardados</span>
+        <span className="text-xs font-bold text-gray-900 flex items-center gap-1">
+          Ordenar por: Más recientes
+        </span>
       </div>
 
       {/* Items List */}
-      <div className="px-4 space-y-4">
+      <div className="px-6 space-y-8">
         {loading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            <Loader2 className="w-8 h-8 text-black animate-spin" />
           </div>
-        ) : items.length === 0 ? (
-          <div className="text-center py-12 bg-white/70 backdrop-blur-lg rounded-3xl shadow-sm border border-gray-100">
-            <Heart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">Aún no tienes artículos guardados.</p>
-            <p className="text-xs text-gray-400 mt-2 px-6">Mientras revisas tu itinerario, toca el corazón en los souvenirs que quieras recordar.</p>
+        ) : filteredItems.length === 0 ? (
+          <div className="text-center py-12">
+            <Heart className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+            <p className="text-gray-500 text-sm font-medium">Aún no hay elementos aquí.</p>
           </div>
         ) : (
-          items.map((item) => (
-            <div key={item.id} className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 flex flex-col gap-3">
-              <div className="flex gap-4">
-                <div className="w-20 h-20 bg-[#f6f5f3] rounded-xl flex items-center justify-center p-2 flex-shrink-0">
-                  <img src={item.item_img} alt={item.item_name} className="w-full h-full object-contain mix-blend-multiply" />
+          Object.keys(groupedItems).map((city) => (
+            <div key={city} className="space-y-4">
+              <div className="flex justify-between items-end border-b border-gray-100 pb-2">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-gray-900" />
+                  <h2 className="font-serif font-bold text-lg text-gray-900">{city}</h2>
                 </div>
-                <div className="flex-1 min-w-0 py-1">
-                  <div className="flex items-center gap-1 text-gray-400 mb-1">
-                    <MapPin className="w-3 h-3" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">{item.city}</span>
-                  </div>
-                  <h3 className="font-serif font-bold text-gray-900 text-lg leading-tight mb-1 truncate">{item.item_name}</h3>
-                  <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{item.item_desc}</p>
-                </div>
+                <span className="text-[10px] text-gray-400 mb-1">{groupedItems[city].length} artículos</span>
               </div>
               
-              <div className="flex gap-2 mt-2 pt-3 border-t border-gray-50">
-                <button 
-                  onClick={() => handleDismiss(item.id)}
-                  className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-600 py-2 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Olvidar
-                </button>
-                <button 
-                  onClick={() => router.push(`/mobile/itinerario/${item.itinerary_id}/dia/${item.day_index}`)}
-                  className="flex-1 bg-black text-white hover:bg-gray-800 py-2 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2"
-                >
-                  <Eye className="w-4 h-4" />
-                  Ver detalle
-                </button>
+              <div className="space-y-6 pt-2">
+                {groupedItems[city].map((item) => (
+                  <div key={item.id} className="flex gap-4 items-center group cursor-pointer" onClick={() => router.push(`/mobile/itinerario/${item.itinerary_id}/dia/${item.day_index}`)}>
+                    <div className="w-20 h-20 bg-[#f6f5f3] rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0 border border-gray-50">
+                      <img src={item.item_img} alt={item.item_name} className="w-full h-full object-cover mix-blend-multiply" />
+                    </div>
+                    
+                    <div className="flex-1 py-1 min-w-0">
+                      <h3 className="font-serif font-bold text-gray-900 text-[15px] leading-tight mb-1 truncate">{item.item_name}</h3>
+                      <div className="flex items-center gap-1 text-gray-400 mb-1.5">
+                        <MapPin className="w-3 h-3" />
+                        <span className="text-[9px] font-bold uppercase tracking-wider">{item.city}</span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed pr-2">{item.item_desc}</p>
+                    </div>
+                    
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                      className="p-3 text-gray-900 flex-shrink-0 active:scale-90 transition-transform"
+                    >
+                      <Heart className="w-6 h-6 fill-black text-black" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Info Tip */}
+      {!loading && (
+        <div className="px-6 mt-12 mb-8">
+          <div className="bg-[#F0F5FF] rounded-2xl p-4 flex gap-3 items-start border border-[#E0EAFF]">
+            <Info className="w-5 h-5 text-[#0066FF] flex-shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-bold text-sm text-[#0044AA] mb-0.5">Tip: ¿Ves algo que te gusta?</h4>
+              <p className="text-xs text-[#0055CC] leading-relaxed">
+                Guárdalo en tu wishlist para tenerlo siempre a la mano tocando el corazón en cualquier parte de tu itinerario.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )

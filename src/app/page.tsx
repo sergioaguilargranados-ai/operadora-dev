@@ -343,7 +343,7 @@ export default function InicioLanding() {
             <PwaInstallButton />
           </div>
           <div className="mt-12 text-center border-t border-gray-800 pt-6">
-            <span className="text-[10px] text-gray-500">v2.406 | 15 Jul 2026 00:53 CST | AS Operadora viajes y eventos</span>
+            <span className="text-[10px] text-gray-500">v2.407 | 15 Jul 2026 01:04 CST | AS Operadora viajes y eventos</span>
           </div>
         </div>
       </section>

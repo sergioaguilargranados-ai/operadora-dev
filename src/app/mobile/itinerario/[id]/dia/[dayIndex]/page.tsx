@@ -345,7 +345,15 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-none">
           {foods.map((food, i) => (
             <div key={i} className="w-[140px] flex-shrink-0 flex flex-col cursor-pointer active:scale-95 transition-transform relative" onClick={() => setSelectedFood(food)}>
-              <img src={food.img} alt={food.name} className="w-full h-24 object-cover rounded-xl mb-2 shadow-sm" />
+              <div className="relative mb-2">
+                <img src={food.img} alt={food.name} className="w-full h-24 object-cover rounded-xl shadow-sm" />
+                <WishlistHeart 
+                  item={{...food, category: 'food'}} 
+                  city={destinationName} 
+                  itineraryId={parseInt(params.id)} 
+                  dayIndex={parseInt(params.dayIndex)} 
+                />
+              </div>
               <h4 className="font-bold text-sm text-gray-900 mb-1 leading-tight">{food.name}</h4>
               <p className="text-xs text-gray-500 leading-tight">{food.desc}</p>
             </div>
@@ -361,7 +369,15 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-none">
           {places.map((place, i) => (
             <div key={i} className="w-[120px] flex-shrink-0 flex flex-col cursor-pointer active:scale-95 transition-transform relative" onClick={() => setSelectedPlace(place)}>
-              <img src={place.img} alt={place.name} className="w-full h-[120px] object-cover rounded-2xl mb-2 shadow-sm" />
+              <div className="relative mb-2">
+                <img src={place.img} alt={place.name} className="w-full h-[120px] object-cover rounded-2xl shadow-sm" />
+                <WishlistHeart 
+                  item={{...place, category: 'place'}} 
+                  city={destinationName} 
+                  itineraryId={parseInt(params.id)} 
+                  dayIndex={parseInt(params.dayIndex)} 
+                />
+              </div>
               <h4 className="font-bold text-sm text-gray-900 mb-1 leading-tight">{place.name}</h4>
               <p className="text-[10px] text-gray-500 leading-tight">{place.desc}</p>
             </div>
@@ -522,7 +538,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               <div className="relative bg-[#f6f5f3] h-[120px] rounded-2xl mb-2 flex items-center justify-center p-2">
                 <img src={item.img} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
                 <WishlistHeart 
-                  item={item} 
+                  item={{...item, category: 'souvenir'}} 
                   city={destinationName} 
                   itineraryId={parseInt(params.id)} 
                   dayIndex={parseInt(params.dayIndex)} 

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { user_id, item_name, item_desc, item_img, city, itinerary_id, day_index } = body
+    const { user_id, item_name, item_desc, item_img, city, itinerary_id, day_index, category } = body
 
     if (!user_id || !item_name) {
       return NextResponse.json({ success: false, error: 'user_id y item_name son requeridos' }, { status: 400 })
@@ -48,9 +48,9 @@ export async function POST(request: NextRequest) {
     }
 
     await query(
-      `INSERT INTO wishlist_items (user_id, item_name, item_desc, item_img, city, itinerary_id, day_index) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [user_id, item_name, item_desc, item_img, city, itinerary_id, day_index]
+      `INSERT INTO wishlist_items (user_id, item_name, item_desc, item_img, city, itinerary_id, day_index, category) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [user_id, item_name, item_desc, item_img, city, itinerary_id, day_index, category || 'souvenir']
     )
 
     return NextResponse.json({ success: true, action: 'added' })
