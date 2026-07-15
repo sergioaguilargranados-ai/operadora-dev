@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Bell, User, Calendar, Mail, Phone, Shield, Users, ChevronRight, Plus, Upload, X, Loader2, LogOut, Trash2 } from "lucide-react"
+import { ChevronLeft, Bell, User, Calendar, Mail, Phone, Shield, Users, ChevronRight, Plus, Upload, X, Loader2, LogOut, Trash2, Globe } from "lucide-react"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
@@ -79,6 +79,15 @@ export default function MobileProfilePage() {
 
   const handleEdit = () => {
     router.push('/mobile/perfil/editar')
+  }
+
+  const handleLanguageChange = (langCode: string) => {
+    const select = document.querySelector('.goog-te-combo') as HTMLSelectElement
+    if (select) {
+      select.value = langCode
+      select.dispatchEvent(new Event('change'))
+    }
+    toast({ title: 'Idioma cambiado', description: 'Traduciendo la aplicación...' })
   }
 
   const handleAddDocument = () => {
@@ -251,6 +260,29 @@ export default function MobileProfilePage() {
         {/* Info List Card */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
           
+          {/* Idioma Selector */}
+          <div className="flex items-center p-4">
+            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
+              <Globe className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Idioma</h3>
+              <p className="text-xs text-gray-500">Traducción automática</p>
+            </div>
+            <select 
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              className="bg-gray-100 border-none text-sm font-medium rounded-lg p-2 text-gray-700 outline-none focus:ring-2 focus:ring-black cursor-pointer"
+              defaultValue="es"
+            >
+              <option value="es">Español</option>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="pt">Português</option>
+              <option value="de">Deutsch</option>
+              <option value="it">Italiano</option>
+            </select>
+          </div>
+
           {/* Item */}
           <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
             <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">

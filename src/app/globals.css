@@ -164,3 +164,16 @@
 .rdp-calendar button:not([data-disabled]):not([data-selected]):hover {
   background-color: rgb(243, 244, 246) !important;
 }
+
+/* ========================================
+   Google Translate Customization
+   ======================================== */
+body {
+  top: 0 !important;
+}
+.skiptranslate {
+  display: none !important;
+}
+.VIpgJd-ZVi9od-ORHb-OEVmcd {
+  display: none !important;
+}
