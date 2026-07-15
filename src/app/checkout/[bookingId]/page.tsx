@@ -223,7 +223,6 @@ export default function CheckoutPage({
         description: error.message,
         variant: 'destructive'
       })
-    } finally {
       setProcessing(false)
     }
   }
@@ -260,17 +259,15 @@ export default function CheckoutPage({
         description: 'El pago parcial/total ha sido registrado con éxito'
       })
       
-      // Refrescar booking para actualizar balances
-      await fetchBooking()
-      setManualReference('')
-      setManualNotes('')
+      // Redirigir de regreso a la vista de reserva
+      router.push(`/reserva/${booking.id}`)
+      
     } catch (error: any) {
       toast({
         title: 'Error',
         description: error.message,
         variant: 'destructive'
       })
-    } finally {
       setProcessing(false)
     }
   }
@@ -395,11 +392,9 @@ export default function CheckoutPage({
                     onClick={() => setPaymentMethod('stripe')}
                     className="flex flex-col items-center py-4 h-auto"
                   >
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/512px-Stripe_Logo%2C_revised_2016.svg.png"
-                      alt="Stripe"
-                      className="h-5 mb-1"
-                    />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
                     <span className="text-xs sm:text-sm">Tarjeta</span>
                   </Button>
                   <Button
@@ -419,11 +414,9 @@ export default function CheckoutPage({
                     onClick={() => setPaymentMethod('mercadopago')}
                     className="flex flex-col items-center py-4 h-auto px-1"
                   >
-                    <img
-                      src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/6.6.82/mercadopago/logo__small.png"
-                      alt="Mercado Pago"
-                      className="h-5 mb-1"
-                    />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1 text-current" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M14.6 22h-5.2v-7.8h5.2V22zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.8 13.8l-1.3 1.3c-.4.4-1 .4-1.4 0l-1.1-1.1-1.1 1.1c-.4.4-1 .4-1.4 0l-1.3-1.3v-4.2h7.6v4.2z" />
+                    </svg>
                     <span className="text-xs sm:text-sm text-center">Mercado Pago</span>
                   </Button>
                   <Button

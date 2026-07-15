@@ -609,6 +609,38 @@ export default function BookingDetailsPage() {
                       <Badge className="capitalize">{booking.payment_status}</Badge>
                     </div>
                   )}
+
+                  {/* Historial de Pagos */}
+                  {booking.payment_history && booking.payment_history.length > 0 && (
+                    <div className="mt-4 border-t pt-4">
+                      <h4 className="font-semibold text-sm mb-3">Historial de Pagos</h4>
+                      <div className="space-y-3">
+                        {booking.payment_history.map((payment: any) => (
+                          <div key={payment.id} className="bg-slate-50 p-3 rounded-lg text-sm border border-slate-100">
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="font-medium">{formatCurrency(payment.amount, payment.currency)}</span>
+                              <Badge variant="outline" className="text-[10px] capitalize bg-white">{payment.status}</Badge>
+                            </div>
+                            <div className="text-xs text-slate-500 space-y-1">
+                              <p className="flex justify-between">
+                                <span>Método:</span>
+                                <span className="capitalize">{payment.payment_method}</span>
+                              </p>
+                              {payment.transaction_id && (
+                                <p className="flex justify-between">
+                                  <span>Ref:</span>
+                                  <span className="font-mono text-[10px]">{payment.transaction_id}</span>
+                                </p>
+                              )}
+                              <p className="text-[10px] mt-1 text-slate-400">
+                                {formatDate(payment.created_at)}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <Separator className="my-4" />

@@ -116,6 +116,21 @@ export async function GET(
       console.error('Error fetching custom itinerary:', e)
     }
 
+    // Fetch Payment History
+    try {
+      const { queryMany } = require('@/lib/db')
+      const paymentHistory = await queryMany(`
+        SELECT id, amount, currency, status, payment_method, transaction_id, created_at, metadata
+        FROM payment_transactions
+        WHERE booking_id = $1
+        ORDER BY created_at DESC
+      `, [id])
+      
+      formattedBooking.payment_history = paymentHistory
+    } catch (e) {
+      console.error('Error fetching payment history:', e)
+    }
+
     return NextResponse.json({
       success: true,
       booking: formattedBooking,

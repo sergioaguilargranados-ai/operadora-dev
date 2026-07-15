@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       // 1. Insertar el pago
       await client.query(`
         INSERT INTO payment_transactions (
-          booking_id, user_id, tenant_id, amount, currency, status, payment_method, external_reference, payment_details
+          booking_id, user_id, tenant_id, amount, currency, status, payment_method, transaction_id, metadata
         ) VALUES (
           $1, $2, $3, $4, $5, 'completed', $6, $7, $8
         )
