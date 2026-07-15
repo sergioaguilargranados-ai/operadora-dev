@@ -177,44 +177,7 @@ export default function MobileMapPage() {
   if (myHotelPlace) categories.unshift({ name: "Mi Hotel", icon: Hotel })
   if (searchedPlace) categories.push({ name: "Búsqueda", icon: Search })
 
-  const basePlaces: Place[] = [
-    {
-      id: 1,
-      name: "Palacio de Bellas Artes",
-      category: "Monumentos",
-      lat: 19.4344,
-      lng: -99.1412,
-      desc: "Centro cultural más importante de México y monumento icónico de la CDMX.",
-      icon: Landmark
-    },
-    {
-      id: 2,
-      name: "Catedral Metropolitana",
-      category: "Monumentos",
-      lat: 19.4326,
-      lng: -99.1332,
-      desc: "Monumento arquitectónico principal en el Zócalo de la Ciudad de México.",
-      icon: Landmark
-    },
-    {
-      id: 3,
-      name: "Restaurante Gran Central",
-      category: "Restaurantes",
-      lat: 19.4356,
-      lng: -99.1376,
-      desc: "Comida gourmet e internacional con un ambiente tradicional y elegante.",
-      icon: Coffee
-    },
-    {
-      id: 4,
-      name: "Museo Franz Mayer",
-      category: "Museos",
-      lat: 19.4372,
-      lng: -99.1428,
-      desc: "Colecciones de arte decorativo, diseño y fotografía temporal.",
-      icon: Compass
-    }
-  ]
+  const basePlaces: Place[] = []
 
   let allPlaces = [...basePlaces]
   if (myHotelPlace) allPlaces.push(myHotelPlace)
