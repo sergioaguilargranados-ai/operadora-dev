@@ -480,10 +480,10 @@ export default function BookingDetailsPage() {
                   <Separator className="my-4" />
                   
                   <div className="space-y-6">
-                    {booking.custom_itinerary.days.map((day: any) => (
-                      <div key={day.id} className="relative pl-6 border-l-2 border-blue-200">
+                    {booking.custom_itinerary.days.map((day: any, dayIdx: number) => (
+                      <div key={day.id || day.day || dayIdx} className="relative pl-6 border-l-2 border-blue-200">
                         <div className="absolute w-4 h-4 bg-blue-500 rounded-full -left-[9px] top-1 border-4 border-white shadow-sm"></div>
-                        <h3 className="font-bold text-lg text-slate-800">Día {day.day_number}: {day.title}</h3>
+                        <h3 className="font-bold text-lg text-slate-800">Día {day.day_number || day.day}: {day.title}</h3>
                         
                         <div className="flex gap-4 mt-2 text-sm text-slate-600">
                           {day.city && (
@@ -500,9 +500,10 @@ export default function BookingDetailsPage() {
                           <div className="mt-3">
                             <span className="text-sm font-semibold text-slate-700 block mb-1">Actividades:</span>
                             <ul className="list-disc list-inside text-sm text-slate-600">
-                              {day.activities.map((act: string, idx: number) => (
-                                <li key={idx}>{act}</li>
-                              ))}
+                              {day.activities.map((act: any, idx: number) => {
+                                const actText = typeof act === 'string' ? act : (act.title ? `${act.time ? act.time + ' - ' : ''}${act.title}` : act.description);
+                                return actText ? <li key={idx}>{actText}</li> : null;
+                              })}
                             </ul>
                           </div>
                         )}
