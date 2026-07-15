@@ -460,13 +460,13 @@ export default function BookingDetailsPage() {
             )}
 
             {/* Itinerario (IA) */}
-            {booking.custom_itinerary && booking.custom_itinerary.days && booking.custom_itinerary.days.length > 0 && (
+            {booking.custom_itinerary && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <Card className="p-6 border-none shadow-soft mt-6">
+                <Card className="p-6 border-none shadow-soft mt-6 bg-blue-50/50">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold flex items-center gap-2">
                       <MapPin className="w-5 h-5 text-blue-600" />
@@ -476,39 +476,45 @@ export default function BookingDetailsPage() {
                       Generado por IA ✨
                     </Badge>
                   </div>
-                  <p className="text-muted-foreground mb-4">{booking.custom_itinerary.description}</p>
-                  <Separator className="my-4" />
                   
-                  <div className="space-y-6">
-                    {booking.custom_itinerary.days.map((day: any, dayIdx: number) => (
-                      <div key={day.id || day.day || dayIdx} className="relative pl-6 border-l-2 border-blue-200">
-                        <div className="absolute w-4 h-4 bg-blue-500 rounded-full -left-[9px] top-1 border-4 border-white shadow-sm"></div>
-                        <h3 className="font-bold text-lg text-slate-800">Día {day.day_number || day.day}: {day.title}</h3>
-                        
-                        <div className="flex gap-4 mt-2 text-sm text-slate-600">
-                          {day.city && (
-                            <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {day.city}</span>
-                          )}
-                          {day.hotel && day.hotel !== 'N/A' && (
-                            <span className="flex items-center gap-1"><Hotel className="w-4 h-4" /> {day.hotel}</span>
-                          )}
-                        </div>
-                        
-                        <p className="text-slate-600 mt-3 whitespace-pre-wrap leading-relaxed">{day.description}</p>
-                        
-                        {day.activities && day.activities.length > 0 && (
-                          <div className="mt-3">
-                            <span className="text-sm font-semibold text-slate-700 block mb-1">Actividades:</span>
-                            <ul className="list-disc list-inside text-sm text-slate-600">
-                              {day.activities.map((act: any, idx: number) => {
-                                const actText = typeof act === 'string' ? act : (act.title ? `${act.time ? act.time + ' - ' : ''}${act.title}` : act.description);
-                                return actText ? <li key={idx}>{actText}</li> : null;
-                              })}
-                            </ul>
-                          </div>
-                        )}
+                  <div className="bg-white rounded-lg p-5 border border-blue-100 shadow-sm">
+                    <h3 className="font-bold text-lg text-slate-800 mb-2">
+                      {booking.custom_itinerary.title || bookingDetails.destination || "Tour Completo"}
+                    </h3>
+                    <p className="text-slate-600 mb-4 line-clamp-3">
+                      {booking.custom_itinerary.description || "Tu itinerario enriquecido con todos los detalles día por día."}
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-4 mb-6">
+                      <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full">
+                        <Calendar className="w-4 h-4 text-blue-500" />
+                        <span>{booking.custom_itinerary.days?.length || 0} Días de viaje</span>
                       </div>
-                    ))}
+                      {booking.custom_itinerary.destination && (
+                        <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full">
+                          <MapPin className="w-4 h-4 text-blue-500" />
+                          <span>{booking.custom_itinerary.destination}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <Button 
+                      className="w-full sm:w-auto gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={() => {
+                        if (booking.custom_itinerary.shared_token) {
+                          router.push(`/itinerary/shared/${booking.custom_itinerary.shared_token}`);
+                        } else {
+                          toast({
+                            title: 'Enlace no disponible',
+                            description: 'Este itinerario aún no tiene un enlace de visualización público.',
+                            variant: 'destructive'
+                          });
+                        }
+                      }}
+                    >
+                      Ver Itinerario Completo
+                      <ArrowLeft className="w-4 h-4 rotate-180" />
+                    </Button>
                   </div>
                 </Card>
               </motion.div>
