@@ -150,11 +150,26 @@ El 'name' no debe pasar de 6 palabras.
     } catch (e) {
       console.error('JSON Parse error from OpenAI:', responseText)
       challenges = [
-        { name: `Caminata por ${destination}`, points: 1500, img: "https://images.unsplash.com/photo-1590483868205-d91d96078696?auto=format&fit=crop&w=150&q=80" },
-        { name: `Explorando el centro histórico`, points: 2000, img: "https://images.unsplash.com/photo-1549474776-6644ee7890bc?auto=format&fit=crop&w=150&q=80" },
-        { name: `Recorrido de monumentos`, points: 3000, img: "https://images.unsplash.com/photo-1574347713437-080c98e217d1?auto=format&fit=crop&w=150&q=80" }
+        { name: `Caminata por ${destination}`, points: 1500 },
+        { name: `Explorando el centro histórico`, points: 2000 },
+        { name: `Recorrido de monumentos`, points: 3000 }
       ]
     }
+
+    // Assign guaranteed valid images to prevent broken links
+    const validImages = [
+      "https://images.unsplash.com/photo-1590483868205-d91d96078696?auto=format&fit=crop&w=150&q=80", // Arch
+      "https://images.unsplash.com/photo-1549474776-6644ee7890bc?auto=format&fit=crop&w=150&q=80", // Plaza
+      "https://images.unsplash.com/photo-1574347713437-080c98e217d1?auto=format&fit=crop&w=150&q=80", // Monument
+      "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=150&q=80", // Paris street
+      "https://images.unsplash.com/photo-1543305113-82b47b116037?auto=format&fit=crop&w=150&q=80"  // European vibe
+    ]
+
+    challenges = challenges.map((ch: any, i: number) => ({
+      name: ch.name,
+      points: ch.points,
+      img: validImages[i % validImages.length]
+    }))
 
     return NextResponse.json({
       success: true,
