@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
 import { PageHeader } from "@/components/PageHeader"
 import {
@@ -28,6 +29,7 @@ export default function ComunicacionPage() {
   const [loading, setLoading] = useState(false)
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [isAlert, setIsAlert] = useState(false)
 
   // Centro de Comunicación — vista del equipo interno (agente)
   const currentUserId = 1
@@ -142,6 +144,7 @@ export default function ComunicacionPage() {
           sender_type: userType,
           sender_name: 'Usuario', // TODO: nombre real
           body: newMessage,
+          message_type: isAlert ? 'alert' : 'text',
           tenant_id: tenantId
         })
       })
@@ -465,9 +468,21 @@ export default function ComunicacionPage() {
                       <Send className="w-4 h-4" />
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Presiona Enter para enviar, Shift+Enter para nueva línea
-                  </p>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-muted-foreground">
+                      Presiona Enter para enviar, Shift+Enter para nueva línea
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Switch 
+                        checked={isAlert}
+                        onCheckedChange={setIsAlert}
+                        id="alert-mode"
+                      />
+                      <label htmlFor="alert-mode" className="text-sm cursor-pointer text-gray-700 font-medium">
+                        Enviar como Alerta Importante (App)
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </>
             ) : (

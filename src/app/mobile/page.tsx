@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { useRouter } from "next/navigation"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
+import { NotificationBell } from "@/components/NotificationBell"
 import { 
   User, Briefcase, CreditCard, Users, ShoppingBag, 
   ChevronRight, Bell, Menu, Loader2, Headphones, Trophy, Plane
@@ -112,12 +113,7 @@ export default function MobileHomePage() {
             />
           </div>
 
-          <button 
-            onClick={() => router.push('/mobile/notificaciones')} 
-            className="p-2 -mr-1 text-white hover:text-gray-300 flex-shrink-0"
-          >
-            <Bell className="w-6 h-6" />
-          </button>
+          <NotificationBell isWhite={true} />
         </div>
 
         {/* Hero Text */}
