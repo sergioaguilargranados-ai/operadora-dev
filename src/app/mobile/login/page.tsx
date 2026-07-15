@@ -278,7 +278,7 @@ export default function MobileLoginPage() {
         
         {/* DEBUG VERSION FOOTER */}
         <div className="absolute bottom-2 left-0 right-0 z-20 text-center">
-          <p className="text-[10px] text-white/70 font-mono shadow-sm">v2.362 | Build: {new Date().toLocaleString('es-MX', {timeZone: 'America/Mexico_City'})} CST</p>
+          <p className="text-[10px] text-white/70 font-mono shadow-sm">v2.375 | Build: {new Date().toLocaleString('es-MX', {timeZone: 'America/Mexico_City'})} CST</p>
         </div>
       </div>
     </div>
