@@ -123,7 +123,7 @@ export default function MobileHomePage() {
         {/* Hero Text */}
         <div className="absolute bottom-8 left-6 z-20">
           <h1 className="text-3xl font-light text-white mb-1 flex items-center gap-2">
-            Hola, <span className="font-semibold">{name}</span>
+            Hola, <span className="font-semibold notranslate">{name}</span>
             <Plane className="w-6 h-6 text-white" strokeWidth={1.5} />
           </h1>
           <p className="text-gray-200 text-sm">{welcomePhrase}</p>
@@ -202,7 +202,7 @@ export default function MobileHomePage() {
       >
         <div className="p-6 border-b border-gray-100 flex flex-col items-center pt-12 bg-gray-50">
           <MobileLogo variant="dark" size="sm" logoUrl={customLogoUrl} />
-          <h2 className="mt-4 font-semibold text-gray-900">Hola, {name}</h2>
+          <h2 className="mt-4 font-semibold text-gray-900">Hola, <span className="notranslate">{name}</span></h2>
           <p className="text-xs text-gray-500">{user?.email}</p>
         </div>
         

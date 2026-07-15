@@ -290,7 +290,7 @@ export default function MobileProfilePage() {
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Nombre</h3>
-              <p className="text-xs text-gray-500">{profileData?.name || 'No registrado'}</p>
+              <p className="text-xs text-gray-500 notranslate">{profileData?.name || 'No registrado'}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
