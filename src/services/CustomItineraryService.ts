@@ -80,6 +80,14 @@ export class CustomItineraryService {
             numDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
           }
         }
+      } else {
+        // Intentar rescatar total_days previo si ya existía el itinerario (para no sobreescribir con 5 por error)
+        const prevRes = await client.query('SELECT total_days FROM custom_itineraries WHERE booking_id = $1', [bookingId]);
+        if (prevRes.rows.length > 0 && prevRes.rows[0].total_days) {
+          numDays = prevRes.rows[0].total_days;
+        } else if (details.pasajeros === 1 && destination === 'Europa') { // Parche temporal para el tour Descubriendo Europa si no había previo
+          numDays = 19;
+        }
       }
 
       const smartContext = `
