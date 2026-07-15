@@ -360,6 +360,20 @@ export class CommunicationService {
 
     const message = result.rows[0]
 
+    // Actualizar metadata del thread
+    await query(
+      `UPDATE communication_threads 
+       SET last_message_at = CURRENT_TIMESTAMP,
+           unread_count_client = unread_count_client + $1,
+           unread_count_agent = unread_count_agent + $2
+       WHERE id = $3`,
+      [
+        data.sender_type === 'agent' || data.sender_type === 'system' ? 1 : 0,
+        data.sender_type === 'client' ? 1 : 0,
+        data.thread_id
+      ]
+    )
+
     // Si no requiere moderación, enviar inmediatamente
     if (!needsModeration) {
       await this.deliverMessage(message.id, data.tenant_id)
@@ -655,7 +669,20 @@ export class CommunicationService {
   /**
    * Obtener preferencias de usuario
    */
-  static async getUserPreferences(userId: number): Promise<CommunicationPreferences> {
+  static async getUserPreferences(userId: number | null): Promise<CommunicationPreferences> {
+    if (!userId) {
+      return {
+        user_id: 0,
+        email_enabled: true,
+        sms_enabled: false,
+        whatsapp_enabled: false,
+        in_app_enabled: true,
+        tenant_id: 1,
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+    }
+
     let prefs = await queryOne<CommunicationPreferences>(
       `SELECT * FROM communication_preferences WHERE user_id = $1`,
       [userId]

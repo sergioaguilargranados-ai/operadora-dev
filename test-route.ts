@@ -1,31 +1,24 @@
-require('dotenv').config({path: '.env.local'});
-require('ts-node').register({ transpileOnly: true });
+import { config } from 'dotenv';
+config({path: '.env.local'});
+import { NextRequest } from 'next/server';
+import { POST } from './src/app/api/communication/messages/route';
 
-const WeatherService = require('./src/services/WeatherService').default;
-
-async function testRoute() {
-  const city = "Palacio Real de Madrid";
-  const date = "2026-07-04";
-
-  console.log(`Testing route for city=${city}, date=${date}`);
-
-  try {
-    let forecast = await WeatherService.getForecast(city, date);
-    console.log("First getForecast result:", forecast);
-
-    if (!forecast) {
-      console.log("Forecast was null, calling fetchAndSaveForecast...");
-      await WeatherService.fetchAndSaveForecast(city);
-      
-      console.log("fetchAndSaveForecast finished, calling getForecast again...");
-      const newForecast = await WeatherService.getForecast(city, date);
-      console.log("Second getForecast result:", newForecast);
-    }
-  } catch (err) {
-    console.error("Caught error in route:", err);
-  }
+async function test() {
+  const req = new NextRequest('http://localhost/api/communication/messages', {
+    method: 'POST',
+    body: JSON.stringify({
+      thread_id: 24,
+      sender_id: 1,
+      sender_type: 'agent',
+      sender_name: 'Usuario',
+      body: '¡Hola! Recuerda subir la copia de tu pasaporte',
+      message_type: 'alert',
+      tenant_id: 1
+    })
+  });
   
-  process.exit(0);
+  const res = await POST(req);
+  console.log(res.status);
+  console.log(await res.json());
 }
-
-testRoute();
+test().catch(console.error).finally(()=>process.exit(0));
