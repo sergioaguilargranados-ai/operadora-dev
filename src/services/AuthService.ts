@@ -28,6 +28,7 @@ export interface LoginData {
   device_fingerprint?: string
   ip_address?: string
   user_agent?: string
+  accepted_terms?: boolean
 }
 
 export class AuthService {
@@ -198,6 +199,11 @@ export class AuthService {
           success: false
         })
         throw new Error('Credenciales inválidas')
+      }
+
+      // Guardar que aceptó los términos si viene en el payload
+      if (data.accepted_terms) {
+        await query('UPDATE users SET accepted_terms_at = NOW() WHERE id = $1', [user.id])
       }
 
       // Verificar status si existe columna
