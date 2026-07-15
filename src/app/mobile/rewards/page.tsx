@@ -21,8 +21,44 @@ export default function MobileRewardsPage() {
 
   const [referralData, setReferralData] = useState<any>(null)
   const [rankingData, setRankingData] = useState<any[]>([])
-  const [loadingReferrals, setLoadingReferrals] = useState(false)
+  const [loadingReferrals, setLoadingReferrals] = useState(true)
   const [copied, setCopied] = useState(false)
+
+  const [challenges, setChallenges] = useState<any[]>([])
+  const [loadingChallenges, setLoadingChallenges] = useState(true)
+
+  // Demo: animar la barra de progreso al cargar
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setProgress(user?.total_steps || 14500)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [user?.total_steps])
+
+  // Fetch Dynamic Challenges
+  useEffect(() => {
+    if (!user) return
+    const fetchChallenges = async () => {
+      try {
+        setLoadingChallenges(true)
+        const token = localStorage.getItem('token') || ''
+        const res = await fetch('/api/rewards/challenges', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.success && data.data.length > 0) {
+            setChallenges(data.data)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching challenges:', error)
+      } finally {
+        setLoadingChallenges(false)
+      }
+    }
+    fetchChallenges()
+  }, [user])
   
   const MAX_STEPS = 10000 // Meta principal configurable
 
@@ -252,12 +288,26 @@ export default function MobileRewardsPage() {
                 
                 {/* Suma más pasos (Interactividad) */}
                 <div>
-                  <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Suma más pasos (Demo Interactivo)</h2>
-                  <p className="text-xs text-gray-500 mb-4">Haz clic para enviar el progreso a la base de datos.</p>
+                  <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Retos de tu próximo viaje</h2>
+                  <p className="text-xs text-gray-500 mb-4">Rutas recomendadas basadas en tu itinerario.</p>
                   <div className="grid grid-cols-1 gap-3 mb-4">
-                    <PlaceItem img="https://images.unsplash.com/photo-1590483868205-d91d96078696?auto=format&fit=crop&w=150&q=80" name="Museo Arqueológico" points={500} onAdd={() => handleAddSteps(500, 'Museo Arqueológico')} />
-                    <PlaceItem img="https://images.unsplash.com/photo-1549474776-6644ee7890bc?auto=format&fit=crop&w=150&q=80" name="Plaza Principal" points={800} onAdd={() => handleAddSteps(800, 'Plaza Principal')} />
-                    <PlaceItem img="https://images.unsplash.com/photo-1574347713437-080c98e217d1?auto=format&fit=crop&w=150&q=80" name="Monumento Histórico" points={1200} onAdd={() => handleAddSteps(1200, 'Monumento Histórico')} />
+                    {loadingChallenges ? (
+                      <div className="animate-pulse space-y-3">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="h-20 bg-gray-100 rounded-2xl w-full"></div>
+                        ))}
+                      </div>
+                    ) : (
+                      challenges.map((challenge, idx) => (
+                        <PlaceItem 
+                          key={idx}
+                          img={challenge.img} 
+                          name={challenge.name} 
+                          points={challenge.points} 
+                          onAdd={() => handleAddSteps(challenge.points, challenge.name)} 
+                        />
+                      ))
+                    )}
                   </div>
                 </div>
 
