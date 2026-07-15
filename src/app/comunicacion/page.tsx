@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 import { PageHeader } from "@/components/PageHeader"
 import {
   MessageCircle, Send, Search, Filter, Archive, AlertCircle,
@@ -30,6 +32,12 @@ export default function ComunicacionPage() {
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [isAlert, setIsAlert] = useState(false)
+  const [isNewMessageModalOpen, setIsNewMessageModalOpen] = useState(false)
+  const [newThreadEmail, setNewThreadEmail] = useState('')
+  const [newThreadSubject, setNewThreadSubject] = useState('')
+  const [newThreadMessage, setNewThreadMessage] = useState('')
+  const [newThreadIsAlert, setNewThreadIsAlert] = useState(false)
+  const [isCreatingThread, setIsCreatingThread] = useState(false)
 
   // Centro de Comunicación — vista del equipo interno (agente)
   const currentUserId = 1
@@ -167,10 +175,11 @@ export default function ComunicacionPage() {
           variant: 'destructive'
         })
       }
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error sending message:', error)
       toast({
         title: 'Error',
-        description: error.message,
+        description: 'No se pudo enviar el mensaje',
         variant: 'destructive'
       })
     } finally {
@@ -178,8 +187,67 @@ export default function ComunicacionPage() {
     }
   }
 
-  const formatDate = (date: string) => {
-    const d = new Date(date)
+  const handleCreateNewThread = async () => {
+    if (!newThreadEmail.trim() || !newThreadSubject.trim() || !newThreadMessage.trim()) {
+      toast({
+        title: 'Campos requeridos',
+        description: 'Por favor completa el correo, asunto y mensaje',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    setIsCreatingThread(true)
+
+    try {
+      const res = await fetch('/api/communication/new-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: newThreadEmail,
+          subject: newThreadSubject,
+          message: newThreadMessage,
+          isAlert: newThreadIsAlert
+        })
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        toast({
+          title: 'Mensaje enviado',
+          description: 'Se ha creado la nueva conversación'
+        })
+        
+        setIsNewMessageModalOpen(false)
+        setNewThreadEmail('')
+        setNewThreadSubject('')
+        setNewThreadMessage('')
+        setNewThreadIsAlert(false)
+        
+        loadThreads()
+        
+        // Select the newly created thread
+        const newThreadId = data.data.thread_id
+        // Load threads again to find it and select it, or just rely on next fetch
+        // Para simplificar, recargamos la lista
+      } else {
+        throw new Error(data.error || 'Error al enviar mensaje')
+      }
+    } catch (error: any) {
+      console.error('Error creating thread:', error)
+      toast({
+        title: 'Error',
+        description: error.message || 'No se pudo crear la conversación',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsCreatingThread(false)
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    const d = new Date(dateString)
     const now = new Date()
     const diff = now.getTime() - d.getTime()
     const hours = diff / (1000 * 60 * 60)
@@ -251,14 +319,78 @@ export default function ComunicacionPage() {
           {/* Lista de hilos */}
           <Card className="lg:col-span-1 p-4 flex flex-col overflow-hidden">
             <div className="mb-4 space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar conversaciones..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Dialog open={isNewMessageModalOpen} onOpenChange={setIsNewMessageModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="icon" variant="outline" className="shrink-0 bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200">
+                      <Plus className="w-5 h-5" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Nuevo Mensaje</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="email">Correo del destinatario</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="cliente@ejemplo.com"
+                          value={newThreadEmail}
+                          onChange={(e) => setNewThreadEmail(e.target.value)}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="subject">Asunto</Label>
+                        <Input
+                          id="subject"
+                          placeholder="Asunto del mensaje"
+                          value={newThreadSubject}
+                          onChange={(e) => setNewThreadSubject(e.target.value)}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="message">Mensaje</Label>
+                        <Textarea
+                          id="message"
+                          placeholder="Escribe el mensaje aquí..."
+                          value={newThreadMessage}
+                          onChange={(e) => setNewThreadMessage(e.target.value)}
+                          className="min-h-[100px]"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="new-alert"
+                          checked={newThreadIsAlert}
+                          onCheckedChange={setNewThreadIsAlert}
+                        />
+                        <Label htmlFor="new-alert" className="flex items-center gap-1 text-red-600 font-medium">
+                          <AlertCircle className="w-4 h-4" />
+                          Marcar como alerta importante
+                        </Label>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsNewMessageModalOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button onClick={handleCreateNewThread} disabled={isCreatingThread}>
+                        {isCreatingThread ? 'Enviando...' : 'Enviar mensaje'}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               <Tabs value={filter} onValueChange={setFilter}>
