@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Search, SlidersHorizontal, ArrowLeft, MapPin, Compass, Landmark, Coffee, BadgeHelp, Navigation } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api'
+import { GoogleMap, useLoadScript, Marker, DirectionsRenderer } from '@react-google-maps/api'
 
 const mapContainerStyle = {
   width: '100%',
@@ -28,6 +28,7 @@ export default function MobileMapPage() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
   const [locError, setLocError] = useState<string | null>(null)
+  const [directionsResponse, setDirectionsResponse] = useState<google.maps.DirectionsResult | null>(null)
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || "",
@@ -56,6 +57,29 @@ export default function MobileMapPage() {
       setUserLocation({ lat: 19.4326, lng: -99.1332 })
     }
   }, [])
+
+  // Calcular ruta cuando se selecciona un lugar
+  useEffect(() => {
+    if (selectedPlace && userLocation && window.google) {
+      const directionsService = new window.google.maps.DirectionsService()
+      directionsService.route(
+        {
+          origin: userLocation,
+          destination: { lat: selectedPlace.lat, lng: selectedPlace.lng },
+          travelMode: window.google.maps.TravelMode.DRIVING, // Puedes cambiar a WALKING si lo prefieren
+        },
+        (result, status) => {
+          if (status === window.google.maps.DirectionsStatus.OK && result) {
+            setDirectionsResponse(result)
+          } else {
+            console.error(`Error al calcular la ruta: ${status}`)
+          }
+        }
+      )
+    } else {
+      setDirectionsResponse(null)
+    }
+  }, [selectedPlace, userLocation, isLoaded])
 
   const categories = [
     { name: "Monumentos", icon: Landmark },
@@ -195,6 +219,21 @@ export default function MobileMapPage() {
                 }}
               />
             ))}
+
+            {/* Renderizar la ruta trazada */}
+            {directionsResponse && (
+              <DirectionsRenderer
+                directions={directionsResponse}
+                options={{
+                  suppressMarkers: true, // Para mantener nuestros propios marcadores personalizados
+                  polylineOptions: {
+                    strokeColor: '#0066FF',
+                    strokeWeight: 5,
+                    strokeOpacity: 0.8,
+                  },
+                }}
+              />
+            )}
           </GoogleMap>
         )}
       </div>
@@ -215,6 +254,7 @@ export default function MobileMapPage() {
               <button 
                 onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedPlace.lat},${selectedPlace.lng}`, '_blank')}
                 className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
+                title="Abrir GPS externo"
               >
                 <Navigation className="w-5 h-5" />
               </button>
