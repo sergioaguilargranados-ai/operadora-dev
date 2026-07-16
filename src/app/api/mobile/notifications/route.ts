@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       SELECT 
         m.id, 
         m.body, 
-        m.subject,
+        t.subject,
         m.message_type, 
         m.created_at,
         m.sender_name,

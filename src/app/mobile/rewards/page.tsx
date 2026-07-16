@@ -288,7 +288,7 @@ export default function MobileRewardsPage() {
         
         {/* Top Navbar */}
         <div className="absolute top-0 left-0 right-0 p-4 z-20 flex justify-between items-center text-white">
-          <button onClick={() => router.back()} className="p-2 -ml-2">
+          <button type="button" onClick={() => router.push('/mobile')} className="p-2 -ml-2 active:scale-95 transition-transform">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <MobileLogo
