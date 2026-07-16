@@ -34,6 +34,9 @@ export default function MobileRewardsPage() {
   const [recommendations, setRecommendations] = useState<any>(null)
   const [loadingRecs, setLoadingRecs] = useState(true)
 
+  const [video1Url, setVideo1Url] = useState("https://www.youtube.com/embed/5Wn3L7Yf7d4?si=r7kFzB2-D3R4Jp9w")
+  const [video2Url, setVideo2Url] = useState("https://www.youtube.com/embed/L1Y5X14bM1w?si=7Y0GqF3tH6a5pL8r")
+
   const [plannedChallenges, setPlannedChallenges] = useState<string[]>([])
   const [completedChallenges, setCompletedChallenges] = useState<string[]>([])
   const [checkingGPS, setCheckingGPS] = useState<string | null>(null)
@@ -89,8 +92,24 @@ export default function MobileRewardsPage() {
       }
     }
 
+    const fetchVideos = async () => {
+      try {
+        const res = await fetch('/api/settings?keys=PACKING_TIPS_VIDEO_1_URL,PACKING_TIPS_VIDEO_2_URL')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.success && data.settings) {
+            if (data.settings.PACKING_TIPS_VIDEO_1_URL) setVideo1Url(data.settings.PACKING_TIPS_VIDEO_1_URL)
+            if (data.settings.PACKING_TIPS_VIDEO_2_URL) setVideo2Url(data.settings.PACKING_TIPS_VIDEO_2_URL)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching videos:', error)
+      }
+    }
+
     fetchChallenges()
     fetchRecommendations()
+    fetchVideos()
 
     // Cargar estados locales
     if (typeof window !== 'undefined') {
@@ -523,8 +542,8 @@ export default function MobileRewardsPage() {
                     <div className="w-full rounded-2xl overflow-hidden shadow-sm aspect-video bg-gray-100 relative">
                       <iframe 
                         className="absolute inset-0 w-full h-full"
-                        src="https://www.youtube.com/embed/5Wn3L7Yf7d4?si=r7kFzB2-D3R4Jp9w" 
-                        title="YouTube video player" 
+                        src={video1Url}
+                        title="YouTube video player 1" 
                         frameBorder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                         allowFullScreen
@@ -533,8 +552,8 @@ export default function MobileRewardsPage() {
                     <div className="w-full rounded-2xl overflow-hidden shadow-sm aspect-video bg-gray-100 relative">
                       <iframe 
                         className="absolute inset-0 w-full h-full"
-                        src="https://www.youtube.com/embed/L1Y5X14bM1w?si=7Y0GqF3tH6a5pL8r" 
-                        title="YouTube video player" 
+                        src={video2Url}
+                        title="YouTube video player 2" 
                         frameBorder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                         allowFullScreen

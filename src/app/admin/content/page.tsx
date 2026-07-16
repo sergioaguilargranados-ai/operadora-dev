@@ -1101,6 +1101,26 @@ export default function AdminContentPage() {
                   />
                 </div>
 
+                {/* Packing Tips Videos */}
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-semibold mb-2">🧳 Videos de Tips para Empacar</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    URLs de los videos que aparecen en la sección de Retos (AS Rewards)
+                  </p>
+                  <div className="space-y-4">
+                    <VideoUrlEditor
+                      settingKey="PACKING_TIPS_VIDEO_1_URL"
+                      label="URL del Video 1"
+                      onSave={() => showToast('Video 1 actualizado', 'success')}
+                    />
+                    <VideoUrlEditor
+                      settingKey="PACKING_TIPS_VIDEO_2_URL"
+                      label="URL del Video 2"
+                      onSave={() => showToast('Video 2 actualizado', 'success')}
+                    />
+                  </div>
+                </div>
+
                 {/* Video Home */}
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-2">🏠 Video Página Principal</h3>
