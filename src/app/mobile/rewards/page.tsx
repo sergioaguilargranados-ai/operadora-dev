@@ -767,12 +767,12 @@ function BenefitTier({ icon, title, req, desc, note }: { icon: string, title: st
 
 function SocialButton({ color, name, icon, onClick }: { color: string, name: string, icon: React.ReactNode, onClick?: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={onClick}>
+    <button type="button" className="flex flex-col items-center gap-2 cursor-pointer outline-none bg-transparent border-none p-0 m-0" onClick={onClick}>
       <div className={`w-12 h-12 rounded-full ${color} flex items-center justify-center shadow-sm hover:scale-105 transition-transform`}>
         {icon}
       </div>
       <span className="text-[9px] font-bold text-gray-600">{name}</span>
-    </div>
+    </button>
   )
 }
 
