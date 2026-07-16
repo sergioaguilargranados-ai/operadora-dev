@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       FROM messages m
       JOIN communication_threads t ON m.thread_id = t.id
       LEFT JOIN tour_quotes tq ON t.reference_type = 'tour_quote' AND t.reference_id = tq.id
-      WHERE (t.client_id = $1 OR tq.client_email = $2)
+      WHERE (t.client_id = $1 OR tq.contact_email = $2)
         AND m.sender_type != 'client'
         AND m.is_internal = false
       ORDER BY m.created_at DESC
