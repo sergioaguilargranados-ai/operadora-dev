@@ -423,7 +423,7 @@ export default function ComunicacionPage() {
                         : 'hover:bg-gray-50'
                     }`}
                   >
-                    <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-start justify-between mb-1">
                       <div className="flex items-center gap-2">
                         {getPriorityIcon(thread.priority)}
                         <span className="font-semibold text-sm line-clamp-1">{thread.subject}</span>
@@ -434,6 +434,12 @@ export default function ComunicacionPage() {
                         </span>
                       )}
                     </div>
+                    
+                    {userType === 'agent' && (thread.client_name || thread.client_email) && (
+                      <div className="text-[11px] text-blue-600 font-medium mb-2 truncate">
+                        Para: {thread.client_name || thread.client_email}
+                      </div>
+                    )}
                     
                     {thread.last_message_body && (
                       <div className="text-xs text-gray-500 line-clamp-2 mb-2 italic">
@@ -485,6 +491,11 @@ export default function ComunicacionPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h2 className="font-bold text-lg">{selectedThread.subject}</h2>
+                      {userType === 'agent' && (selectedThread.client_name || selectedThread.client_email) && (
+                        <div className="text-sm text-blue-600 mt-0.5 font-medium">
+                          Para: {selectedThread.client_name || selectedThread.client_email}
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 mt-1">
                         {getStatusBadge(selectedThread.status)}
                         {selectedThread.reference_type && (
