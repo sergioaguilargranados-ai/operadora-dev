@@ -16,7 +16,7 @@ const mapContainerStyle = {
 const libraries: ("places")[] = ["places"]
 
 interface Place {
-  id: number
+  id: string | number
   name: string
   category: string
   lat: number
@@ -134,43 +134,49 @@ export default function MobileMapPage() {
     setIsFetchingPlaces(true)
     const service = new window.google.maps.places.PlacesService(mapInstance);
     
-    let queryType = ""
-    let queryKeyword = ""
+    const typesToSearch: string[] = []
 
     switch (selectedCategory) {
-      case "Monumentos": queryType = "tourist_attraction"; break;
-      case "Restaurantes": queryType = "restaurant"; break;
-      case "Museos": queryType = "museum"; break;
+      case "Monumentos": typesToSearch.push("tourist_attraction"); break;
+      case "Restaurantes": typesToSearch.push("restaurant"); break;
+      case "Museos": typesToSearch.push("museum"); break;
       case "Baños públicos": 
-        queryType = "convenience_store"; 
-        queryKeyword = "public restroom"; 
+        typesToSearch.push("gas_station");
+        typesToSearch.push("shopping_mall");
+        typesToSearch.push("convenience_store");
         break;
-      default: queryType = "point_of_interest";
+      default: typesToSearch.push("point_of_interest");
     }
 
-    const request: google.maps.places.PlaceSearchRequest = {
-      location: userLocation,
-      radius: 2000,
-      type: queryType,
-      keyword: queryKeyword || undefined
-    };
+    Promise.all(typesToSearch.map(type => new Promise<Place[]>((resolve) => {
+      const request: google.maps.places.PlaceSearchRequest = {
+        location: userLocation,
+        radius: 2000,
+        type: type
+      };
 
-    service.nearbySearch(request, (results, status) => {
-      setIsFetchingPlaces(false)
-      if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
-        const places: Place[] = results.map((r, i) => ({
-          id: i,
-          name: r.name || "Lugar",
-          category: selectedCategory,
-          lat: r.geometry?.location?.lat() || 0,
-          lng: r.geometry?.location?.lng() || 0,
-          desc: r.vicinity || "",
-          icon: MapPin
-        })).filter(p => p.lat !== 0)
-        setFetchedPlaces(places)
-      } else {
-        setFetchedPlaces([])
-      }
+      service.nearbySearch(request, (results, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
+          const places: Place[] = results.map((r, i) => ({
+            id: r.place_id || `${Date.now()}-${Math.random()}`,
+            name: r.name || "Lugar",
+            category: selectedCategory,
+            lat: r.geometry?.location?.lat() || 0,
+            lng: r.geometry?.location?.lng() || 0,
+            desc: r.vicinity || "",
+            icon: MapPin
+          })).filter(p => p.lat !== 0)
+          resolve(places)
+        } else {
+          resolve([])
+        }
+      });
+    }))).then((resultsArray) => {
+      const allPlaces = resultsArray.flat();
+      // Deduplicar por coordenadas
+      const uniquePlaces = Array.from(new Map(allPlaces.map(p => [`${p.lat}-${p.lng}`, p])).values());
+      setFetchedPlaces(uniquePlaces);
+      setIsFetchingPlaces(false);
     });
 
   }, [selectedCategory, mapInstance, userLocation, isLoaded])
