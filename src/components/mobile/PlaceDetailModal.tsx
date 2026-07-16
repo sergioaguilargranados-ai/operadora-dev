@@ -141,7 +141,7 @@ export function PlaceDetailModal({ isOpen, onClose, place }: PlaceDetailModalPro
                   loading="lazy"
                   allowFullScreen
                   referrerPolicy="no-referrer-when-downgrade"
-                  src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&q=${encodeURIComponent((place?.name + ' ' + (place?.location || '')).trim())}`}
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent((place?.name + ' ' + (place?.location || '')).trim())}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
                 ></iframe>
               </div>
             </div>
