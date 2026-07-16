@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Bell, User, Calendar, Mail, Phone, Shield, Users, ChevronRight, Plus, Upload, X, Loader2, LogOut, Trash2, Globe } from "lucide-react"
+import NotificationBell from "@/components/mobile/NotificationBell"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
@@ -220,7 +221,7 @@ export default function MobileProfilePage() {
           />
 
           <button onClick={() => router.push('/mobile/notificaciones')} className="text-black hover:text-gray-600 p-2 -mr-2">
-            <Bell className="w-6 h-6" />
+            <NotificationBell className="w-6 h-6" />
           </button>
         </div>
 

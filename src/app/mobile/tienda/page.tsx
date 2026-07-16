@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Bell, ShoppingCart, Search, SlidersHorizontal, ShoppingBag, Heart, Loader2 } from "lucide-react"
+import NotificationBell from "@/components/mobile/NotificationBell"
 import { Input } from "@/components/ui/input"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { useCart } from "@/contexts/CartContext"
@@ -59,7 +60,7 @@ export default function MobileStorePage() {
 
           <div className="flex gap-4">
             <button onClick={() => router.push('/mobile/notificaciones')} className="text-white hover:text-gray-300">
-              <Bell className="w-6 h-6" />
+              <NotificationBell className="w-6 h-6" />
             </button>
             <button onClick={() => router.push('/mobile/tienda/carrito')} className="text-white hover:text-gray-300 relative">
               <ShoppingCart className="w-6 h-6" />

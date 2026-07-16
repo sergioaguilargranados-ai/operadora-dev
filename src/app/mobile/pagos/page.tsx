@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Bell, CreditCard, Wallet, Search, Calendar, Landmark } from "lucide-react"
+import NotificationBell from "@/components/mobile/NotificationBell"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
@@ -90,7 +91,7 @@ export default function MobilePaymentsPage() {
           logoUrl={customLogoUrl}
         />
         <button onClick={() => router.push('/mobile/notificaciones')} className="text-black hover:text-gray-600 p-2 -mr-2">
-          <Bell className="w-6 h-6" />
+          <NotificationBell className="w-6 h-6" />
         </button>
       </div>
 

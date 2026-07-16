@@ -7,6 +7,7 @@ import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { ChallengesRouteMapModal } from "@/components/mobile/ChallengesRouteMapModal"
 import { ChevronLeft, Bell, Gift, Compass, MapPin, Play, Droplets, Sun, Briefcase, Footprints, Video, Image as ImageIcon, Copy, Share2, Trophy, Users, CheckCircle2, Link as LinkIcon, Loader2, Pill } from "lucide-react"
+import NotificationBell from "@/components/mobile/NotificationBell"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 
@@ -297,7 +298,7 @@ export default function MobileRewardsPage() {
             logoUrl={customLogoUrl}
           />
           <button onClick={() => router.push('/mobile/notificaciones')} className="text-white hover:text-gray-300 p-2 -mr-2">
-            <Bell className="w-6 h-6" />
+            <NotificationBell className="w-6 h-6" />
           </button>
         </div>
 

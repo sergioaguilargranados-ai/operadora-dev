@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Bell, Calendar as CalendarIcon, ChevronDown, ChevronRight, MapPin, Loader2 } from "lucide-react"
+import NotificationBell from "@/components/mobile/NotificationBell"
 import { useAuth } from '@/contexts/AuthContext'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
@@ -164,7 +165,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
           logoUrl={customLogoUrl}
         />
         <button onClick={() => router.push('/mobile/notificaciones')} className="text-black hover:text-gray-600 p-2 -mr-2">
-          <Bell className="w-6 h-6" />
+          <NotificationBell className="w-6 h-6" />
         </button>
       </div>
 

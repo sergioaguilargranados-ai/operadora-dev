@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Bell, MapPin, Loader2, Heart, Plus, Info } from "lucide-react"
+import NotificationBell from "@/components/mobile/NotificationBell"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
@@ -93,7 +94,7 @@ export default function WishlistPage() {
           logoUrl={customLogoUrl}
         />
         <button onClick={() => router.push('/mobile/notificaciones')} className="text-black hover:text-gray-600 p-2 -mr-2">
-          <Bell className="w-6 h-6" />
+          <NotificationBell className="w-6 h-6" />
         </button>
       </div>
 
