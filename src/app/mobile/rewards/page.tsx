@@ -34,8 +34,8 @@ export default function MobileRewardsPage() {
   const [recommendations, setRecommendations] = useState<any>(null)
   const [loadingRecs, setLoadingRecs] = useState(true)
 
-  const [video1Url, setVideo1Url] = useState("https://www.youtube.com/embed/5Wn3L7Yf7d4?si=r7kFzB2-D3R4Jp9w")
-  const [video2Url, setVideo2Url] = useState("https://www.youtube.com/embed/L1Y5X14bM1w?si=7Y0GqF3tH6a5pL8r")
+  const [video1Url, setVideo1Url] = useState("https://www.youtube.com/embed/n42V-T_Ld5Y?si=uVlY5m05Xo_P6Bf1")
+  const [video2Url, setVideo2Url] = useState("https://www.youtube.com/embed/zHkE_sA_08I?si=WXZUeQhVqj-bU_7d")
 
   const [plannedChallenges, setPlannedChallenges] = useState<string[]>([])
   const [completedChallenges, setCompletedChallenges] = useState<string[]>([])

@@ -37,7 +37,15 @@ export async function GET(request: NextRequest) {
     if (bookingsRes.rows.length === 0) {
       return NextResponse.json({
         success: true,
-        data: null
+        data: {
+          weatherTips: [
+            { title: "Prepárate para tu aventura", desc: "Asegúrate de revisar el clima antes de empacar." },
+            { title: "Comodidad ante todo", desc: "Usa zapatos cómodos para caminar mucho." }
+          ],
+          medications: [
+            { title: "Botiquín básico", desc: "Lleva paracetamol y curitas por si acaso." }
+          ]
+        }
       })
     }
 

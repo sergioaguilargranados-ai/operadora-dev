@@ -37,7 +37,11 @@ export async function GET(request: NextRequest) {
     if (bookingsRes.rows.length === 0) {
       return NextResponse.json({
         success: true,
-        data: [] // No trips, will fallback in UI
+        data: [
+          { name: `Caminata Exploratoria`, points: 1500, img: "https://images.unsplash.com/photo-1590483868205-d91d96078696?auto=format&fit=crop&w=150&q=80", lat: 19.4326, lng: -99.1332 },
+          { name: `Visita Guiada`, points: 2000, img: "https://images.unsplash.com/photo-1549474776-6644ee7890bc?auto=format&fit=crop&w=150&q=80", lat: 19.4350, lng: -99.1410 },
+          { name: `Tour de Sabores`, points: 3000, img: "https://images.unsplash.com/photo-1574347713437-080c98e217d1?auto=format&fit=crop&w=150&q=80", lat: 19.4270, lng: -99.1670 }
+        ]
       })
     }
 
