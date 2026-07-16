@@ -160,18 +160,39 @@ El 'name' no debe pasar de 6 palabras.
       ]
     }
 
-    challenges = challenges.map((ch: any, i: number) => ({
-      id: `challenge_${Date.now()}_${i}`,
-      name: ch.name,
-      points: ch.points,
-      lat: ch.lat || 0,
-      lng: ch.lng || 0,
-      img: `https://picsum.photos/seed/${encodeURIComponent(ch.name || 'travel')}/150/150`
+    const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+    const resolvedChallenges = await Promise.all(challenges.map(async (ch: any, i: number) => {
+      let img = `https://picsum.photos/seed/${encodeURIComponent(ch.name || 'travel')}/400/400`;
+
+      if (GOOGLE_API_KEY) {
+        try {
+          const query = encodeURIComponent(`${ch.name} ${destination}`);
+          const url = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${query}&inputtype=textquery&fields=photos&key=${GOOGLE_API_KEY}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.candidates && data.candidates.length > 0 && data.candidates[0].photos && data.candidates[0].photos.length > 0) {
+            const photoRef = data.candidates[0].photos[0].photo_reference;
+            img = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${photoRef}&key=${GOOGLE_API_KEY}`;
+          }
+        } catch(e) {
+          console.error("Error fetching place photo for", ch.name, e);
+        }
+      }
+
+      return {
+        id: `challenge_${Date.now()}_${i}`,
+        name: ch.name,
+        points: ch.points,
+        lat: ch.lat || 0,
+        lng: ch.lng || 0,
+        img
+      };
     }))
 
     return NextResponse.json({
       success: true,
-      data: challenges
+      data: resolvedChallenges
     })
 
   } catch (error: any) {
