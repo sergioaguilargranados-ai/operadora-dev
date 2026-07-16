@@ -261,6 +261,11 @@ export default function ComunicacionPage() {
     }
   }
 
+  const formatDateTime = (dateString: string) => {
+    const d = new Date(dateString)
+    return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+  }
+
   const getStatusBadge = (status: string) => {
     const variants: any = {
       active: 'default',
@@ -545,7 +550,7 @@ export default function ComunicacionPage() {
                           return (
                             <div className="flex items-center gap-1 mt-2 px-2 py-1 bg-green-50 border border-green-200 rounded-md text-xs text-green-700">
                               <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
-                              <span>Enviado · {channels}{sentD?.sent_at ? ` · ${formatDate(sentD.sent_at)}` : ''}</span>
+                              <span>Enviado · {channels}{sentD?.sent_at ? ` · ${formatDateTime(sentD.sent_at)}` : ''}</span>
                             </div>
                           )
                         }
@@ -578,7 +583,7 @@ export default function ComunicacionPage() {
                             )}
                             <div className="whitespace-pre-wrap">{message.body}</div>
                             <div className={`text-xs mt-2 ${isOwn ? 'text-blue-100' : 'text-muted-foreground'}`}>
-                              {formatDate(message.created_at)}
+                              {formatDateTime(message.created_at)}
                               {message.status === 'sent' && isOwn && (
                                 <CheckCircle2 className="w-3 h-3 inline ml-1" />
                               )}
