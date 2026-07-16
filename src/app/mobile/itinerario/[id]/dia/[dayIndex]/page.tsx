@@ -158,6 +158,23 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               fetchedItinerary.days = []
             }
           }
+
+          // Reparar si el Día 1 guardado es en realidad la descripción de MegaTravel
+          if (fetchedItinerary.days && fetchedItinerary.days.length > 0) {
+            const first = fetchedItinerary.days[0]
+            const second = fetchedItinerary.days[1]
+            const fTitle = (first.title || '').toUpperCase()
+            const sTitle = (second?.title || '').toUpperCase()
+            
+            if (
+              (fTitle.includes('DÍAS') && fTitle.includes('NOCHES')) ||
+              (fTitle.length > 50 && !fTitle.startsWith('DÍA') && !fTitle.startsWith('DIA')) ||
+              (sTitle.includes('DÍA 1') || sTitle.includes('DIA 1'))
+            ) {
+              fetchedItinerary.days.shift()
+            }
+          }
+
           setItinerary(fetchedItinerary)
           const days = fetchedItinerary.days || []
           const index = parseInt(params.dayIndex, 10) || 0
@@ -180,6 +197,21 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               places: [{ name: pkg.region || 'Ubicación' }]
             }))
             
+            if (generatedDays.length > 0) {
+              const first = generatedDays[0]
+              const second = generatedDays[1]
+              const fTitle = (first.title || '').toUpperCase()
+              const sTitle = (second?.title || '').toUpperCase()
+              
+              if (
+                (fTitle.includes('DÍAS') && fTitle.includes('NOCHES')) ||
+                (fTitle.length > 50 && !fTitle.startsWith('DÍA') && !fTitle.startsWith('DIA')) ||
+                (sTitle.includes('DÍA 1') || sTitle.includes('DIA 1'))
+              ) {
+                generatedDays.shift()
+              }
+            }
+
             setItinerary({
               title: pkg.name,
               destination: pkg.region,

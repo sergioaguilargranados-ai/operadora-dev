@@ -37,6 +37,26 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
               dbItinerary.days = []
             }
           }
+
+          // Reparar si el Día 1 guardado es en realidad la descripción de MegaTravel
+          if (dbItinerary.days && dbItinerary.days.length > 0) {
+            const first = dbItinerary.days[0]
+            const second = dbItinerary.days[1]
+            const fTitle = (first.title || '').toUpperCase()
+            const sTitle = (second?.title || '').toUpperCase()
+            
+            if (
+              (fTitle.includes('DÍAS') && fTitle.includes('NOCHES')) ||
+              (fTitle.length > 50 && !fTitle.startsWith('DÍA') && !fTitle.startsWith('DIA')) ||
+              (sTitle.includes('DÍA 1') || sTitle.includes('DIA 1'))
+            ) {
+              if (!dbItinerary.description) {
+                dbItinerary.description = first.title + (first.description ? " " + first.description : "")
+              }
+              dbItinerary.days.shift()
+            }
+          }
+
           setItinerary(dbItinerary)
         } else {
           // Fallback a MegaTravel si no existe itinerario personalizado
@@ -53,10 +73,29 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
               places: [{ name: pkg.region || 'Ubicación' }]
             }))
             
+            let pkgDesc = pkg.description || ''
+            if (generatedDays.length > 0) {
+              const first = generatedDays[0]
+              const second = generatedDays[1]
+              const fTitle = (first.title || '').toUpperCase()
+              const sTitle = (second?.title || '').toUpperCase()
+              
+              if (
+                (fTitle.includes('DÍAS') && fTitle.includes('NOCHES')) ||
+                (fTitle.length > 50 && !fTitle.startsWith('DÍA') && !fTitle.startsWith('DIA')) ||
+                (sTitle.includes('DÍA 1') || sTitle.includes('DIA 1'))
+              ) {
+                if (!pkgDesc) {
+                  pkgDesc = first.title + (first.description ? " " + first.description : "")
+                }
+                generatedDays.shift()
+              }
+            }
+
             setItinerary({
               title: pkg.name,
               destination: pkg.region,
-              description: pkg.description,
+              description: pkgDesc,
               days: generatedDays
             })
           }
@@ -179,6 +218,18 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
         </div>
       )}
 
+      {/* Descripción General del Itinerario */}
+      {itinerary?.description && (
+        <div className="px-4 mb-6">
+          <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-sm border border-gray-100 p-5">
+            <h3 className="font-bold text-gray-900 mb-2">Acerca del Viaje</h3>
+            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+              {itinerary.description}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Days List */}
       <div className="px-4 space-y-4">
         {days.length === 0 ? (
@@ -216,7 +267,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
               </div>
               
               <div className="flex items-end justify-between gap-4 mt-2">
-                <p className="text-xs text-gray-600 leading-relaxed flex-1 line-clamp-2 bg-white/50 p-2 rounded-xl border border-gray-50">
+                <p className="text-xs text-gray-600 leading-relaxed flex-1 bg-white/50 p-2 rounded-xl border border-gray-50">
                   {day.description || day.desc || `Disfruta de ${day.title} y sus maravillas.`}
                 </p>
               </div>
