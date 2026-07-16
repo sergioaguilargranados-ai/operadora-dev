@@ -426,14 +426,20 @@ export default function ComunicacionPage() {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
                         {getPriorityIcon(thread.priority)}
-                        <span className="font-semibold text-sm">{thread.subject}</span>
+                        <span className="font-semibold text-sm line-clamp-1">{thread.subject}</span>
                       </div>
                       {thread.last_message_at && (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
                           {formatDate(thread.last_message_at)}
                         </span>
                       )}
                     </div>
+                    
+                    {thread.last_message_body && (
+                      <div className="text-xs text-gray-500 line-clamp-2 mb-2 italic">
+                        {thread.last_message_body}
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-2 mb-2">
                       {getStatusBadge(thread.status)}

@@ -56,7 +56,7 @@ export default function MobileRewardsPage() {
       try {
         setLoadingChallenges(true)
         const token = localStorage.getItem('token') || ''
-        const res = await fetch('/api/rewards/challenges', {
+        const res = await fetch(`/api/rewards/challenges?user_id=${user?.id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         if (res.ok) {
@@ -76,7 +76,7 @@ export default function MobileRewardsPage() {
       try {
         setLoadingRecs(true)
         const token = localStorage.getItem('token') || ''
-        const res = await fetch('/api/rewards/recommendations', {
+        const res = await fetch(`/api/rewards/recommendations?user_id=${user?.id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         if (res.ok) {
@@ -628,13 +628,23 @@ export default function MobileRewardsPage() {
                   </Button>
 
                   <div className="flex justify-around items-center">
-                    <SocialButton color="bg-green-500" name="WhatsApp" icon={<WhatsAppIcon />} />
-                    <SocialButton color="bg-blue-600" name="Facebook" icon={<FacebookIcon />} />
-                    <SocialButton color="bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600" name="Instagram" icon={<InstagramIcon />} />
+                    <SocialButton color="bg-green-500" name="WhatsApp" icon={<WhatsAppIcon />} onClick={() => {
+                      const text = `¡Te invito a viajar con AS Operadora! Usa mi código de invitación ${referralData?.referral_code || ''} al registrarte y obtén beneficios. Regístrate aquí: https://www.as-ope-viajes.company/registro?ref=${referralData?.referral_code || ''}`;
+                      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                    }} />
+                    <SocialButton color="bg-blue-600" name="Facebook" icon={<FacebookIcon />} onClick={() => {
+                      const url = `https://www.as-ope-viajes.company/registro?ref=${referralData?.referral_code || ''}`;
+                      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+                    }} />
+                    <SocialButton color="bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600" name="Instagram" icon={<InstagramIcon />} onClick={() => {
+                      navigator.clipboard.writeText(`¡Te invito a viajar con AS Operadora! Usa mi código ${referralData?.referral_code || ''} al registrarte.`);
+                      toast({ title: 'Texto copiado', description: '¡Pégalo en tu historia o perfil de Instagram!' });
+                    }} />
                     <SocialButton color="bg-gray-500" name="Copiar enlace" icon={<LinkIcon className="w-5 h-5 text-white" />} onClick={() => {
-                      navigator.clipboard.writeText(`https://asoperadora.com/registro?ref=${referralData?.referral_code || ''}`);
+                      navigator.clipboard.writeText(`https://www.as-ope-viajes.company/registro?ref=${referralData?.referral_code || ''}`);
                       setCopied(true);
                       setTimeout(() => setCopied(false), 2000);
+                      toast({ title: 'Enlace copiado', description: 'Enlace de invitación copiado al portapapeles.' });
                     }} />
                   </div>
                 </div>

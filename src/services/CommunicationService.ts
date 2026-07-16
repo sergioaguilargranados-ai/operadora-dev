@@ -153,7 +153,8 @@ export class CommunicationService {
     let sql = `
       SELECT t.*,
              u_agent.name as agent_name,
-             u_client.name as client_name
+             u_client.name as client_name,
+             (SELECT body FROM messages m WHERE m.thread_id = t.id ORDER BY m.created_at DESC LIMIT 1) as last_message_body
       FROM communication_threads t
       LEFT JOIN users u_agent ON t.assigned_agent_id = u_agent.id
       LEFT JOIN users u_client ON t.client_id = u_client.id
@@ -208,7 +209,8 @@ export class CommunicationService {
       SELECT t.*,
              u_client.name as client_name,
              u_client.email as client_email,
-             u_agent.name as agent_name
+             u_agent.name as agent_name,
+             (SELECT body FROM messages m WHERE m.thread_id = t.id ORDER BY m.created_at DESC LIMIT 1) as last_message_body
       FROM communication_threads t
       LEFT JOIN users u_client ON t.client_id = u_client.id
       LEFT JOIN users u_agent ON t.assigned_agent_id = u_agent.id
