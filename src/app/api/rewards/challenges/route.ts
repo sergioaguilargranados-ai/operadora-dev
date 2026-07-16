@@ -160,7 +160,7 @@ El 'name' no debe pasar de 6 palabras.
       ]
     }
 
-    const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
 
     const resolvedChallenges = await Promise.all(challenges.map(async (ch: any, i: number) => {
       let img = `https://picsum.photos/seed/${encodeURIComponent(ch.name || 'travel')}/400/400`;

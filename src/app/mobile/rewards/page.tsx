@@ -743,6 +743,11 @@ export default function MobileRewardsPage() {
           )}
         </div>
       </div>
+      <ChallengesRouteMapModal 
+        isOpen={isRouteMapOpen} 
+        onClose={() => setIsRouteMapOpen(false)} 
+        challenges={challenges} 
+      />
     </div>
   )
 }
