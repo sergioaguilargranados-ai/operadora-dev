@@ -27,9 +27,10 @@ async function getUserIdFromToken(request: NextRequest): Promise<number | null> 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const userId = searchParams.get('userId') || request.cookies.get('as_user_id')?.value
+    const rawUserId = searchParams.get('userId') || request.cookies.get('as_user_id')?.value
+    const userId = parseInt(rawUserId as string, 10)
 
-    if (!userId) {
+    if (!userId || isNaN(userId)) {
       return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
     }
 
@@ -76,9 +77,10 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const { messageIds, userId } = await request.json()
-    const finalUserId = userId || request.cookies.get('as_user_id')?.value
+    const rawUserId = userId || request.cookies.get('as_user_id')?.value
+    const finalUserId = parseInt(rawUserId as string, 10)
 
-    if (!finalUserId) {
+    if (!finalUserId || isNaN(finalUserId)) {
       return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
     }
 
