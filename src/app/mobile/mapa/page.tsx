@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Input } from "@/components/ui/input"
-import { Search, SlidersHorizontal, ArrowLeft, MapPin, Compass, Landmark, Coffee, BadgeHelp, Navigation, Hotel } from "lucide-react"
+import { Search, SlidersHorizontal, ArrowLeft, MapPin, Compass, Landmark, Coffee, BadgeHelp, Navigation, Hotel, ChevronUp, ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { GoogleMap, useLoadScript, Marker, DirectionsRenderer, Autocomplete } from '@react-google-maps/api'
 import { useAuth } from "@/contexts/AuthContext"
@@ -36,6 +36,9 @@ export default function MobileMapPage() {
   const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null)
   const [locError, setLocError] = useState<string | null>(null)
   const [directionsResponse, setDirectionsResponse] = useState<google.maps.DirectionsResult | null>(null)
+  
+  // Drawer state
+  const [isDrawerExpanded, setIsDrawerExpanded] = useState(true)
   
   // Google Places Autocomplete state
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null)
@@ -369,75 +372,87 @@ export default function MobileMapPage() {
       </div>
 
       {/* Dynamic Detail Bottom Drawer */}
-      <div className="absolute bottom-16 left-0 right-0 bg-white rounded-t-3xl shadow-2xl border-t z-30 p-5">
-        <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
+      <div className={`absolute bottom-16 left-0 right-0 bg-white rounded-t-3xl shadow-2xl border-t z-30 transition-all duration-300 ease-in-out ${isDrawerExpanded ? 'p-5' : 'p-3'}`}>
+        <div 
+          className="w-full flex flex-col items-center justify-center cursor-pointer mb-2"
+          onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
+        >
+          <div className="w-12 h-1 bg-gray-300 rounded-full mb-1" />
+          {isDrawerExpanded ? (
+            <ChevronDown className="w-4 h-4 text-gray-400" />
+          ) : (
+            <ChevronUp className="w-4 h-4 text-gray-400" />
+          )}
+        </div>
 
-        {selectedPlace ? (
-          <div className="space-y-3">
-            <div className="flex justify-between items-start">
-              <div className="pr-2">
-                <span className="text-[10px] uppercase font-extrabold text-primary tracking-wider bg-blue-50 px-2 py-0.5 rounded">
-                  {selectedPlace.category}
-                </span>
-                <h3 className="font-extrabold text-lg text-gray-900 mt-1 notranslate">{selectedPlace.name}</h3>
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isDrawerExpanded ? 'max-h-[50vh] opacity-100' : 'max-h-0 opacity-0'}`}>
+          {selectedPlace ? (
+            <div className="space-y-3">
+              <div className="flex justify-between items-start">
+                <div className="pr-2">
+                  <span className="text-[10px] uppercase font-extrabold text-primary tracking-wider bg-blue-50 px-2 py-0.5 rounded">
+                    {selectedPlace.category}
+                  </span>
+                  <h3 className="font-extrabold text-lg text-gray-900 mt-1 notranslate">{selectedPlace.name}</h3>
+                </div>
+                <button 
+                  onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedPlace.lat},${selectedPlace.lng}`, '_blank')}
+                  className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors shrink-0"
+                  title="Abrir GPS externo"
+                >
+                  <Navigation className="w-5 h-5" />
+                </button>
               </div>
-              <button 
-                onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedPlace.lat},${selectedPlace.lng}`, '_blank')}
-                className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors shrink-0"
-                title="Abrir GPS externo"
-              >
-                <Navigation className="w-5 h-5" />
-              </button>
+              <p className="text-xs text-gray-500 leading-relaxed">{selectedPlace.desc}</p>
+              <div className="flex gap-2 pt-2">
+                <button 
+                  onClick={() => {
+                    setSelectedPlace(null)
+                    setDirectionsResponse(null)
+                  }}
+                  className="w-full py-2.5 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50"
+                >
+                  Cerrar Detalle
+                </button>
+              </div>
             </div>
-            <p className="text-xs text-gray-500 leading-relaxed">{selectedPlace.desc}</p>
-            <div className="flex gap-2 pt-2">
-              <button 
-                onClick={() => {
-                  setSelectedPlace(null)
-                  setDirectionsResponse(null)
-                }}
-                className="w-full py-2.5 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50"
-              >
-                Cerrar Detalle
-              </button>
+          ) : (
+            <div>
+              <h3 className="font-extrabold text-base text-gray-900">Explora el mapa</h3>
+              <p className="text-xs text-gray-400 mt-1">Selecciona un marcador en el mapa o busca puntos de interés en la barra superior.</p>
+              
+              {isFetchingPlaces ? (
+                <div className="flex justify-center mt-6">
+                  <Compass className="w-6 h-6 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 mt-4 max-h-[30vh] overflow-y-auto pr-2 scrollbar-thin">
+                  {filteredPlaces.map((p) => (
+                    <div 
+                      key={p.id}
+                      onClick={() => {
+                        setSelectedPlace(p)
+                        setMapCenter({ lat: p.lat, lng: p.lng })
+                      }}
+                      className="p-3 border rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer flex gap-3 items-center shrink-0"
+                    >
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${p.category === 'Mi Hotel' ? 'bg-yellow-100' : 'bg-gray-100'}`}>
+                        <MapPin className={`w-4 h-4 ${p.category === 'Mi Hotel' ? 'text-yellow-600' : 'text-gray-700'}`} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-xs text-gray-900 truncate notranslate">{p.name}</p>
+                        <p className="text-[9px] text-gray-400 mt-0.5 truncate">{p.category}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {filteredPlaces.length === 0 && selectedCategory !== "Búsqueda" && selectedCategory !== "Mi Hotel" && (
+                     <div className="col-span-2 text-center text-xs text-gray-400 py-4">No se encontraron lugares de esta categoría cerca de ti.</div>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
-        ) : (
-          <div>
-            <h3 className="font-extrabold text-base text-gray-900">Explora el mapa</h3>
-            <p className="text-xs text-gray-400 mt-1">Selecciona un marcador en el mapa o busca puntos de interés en la barra superior.</p>
-            
-            {isFetchingPlaces ? (
-              <div className="flex justify-center mt-6">
-                <Compass className="w-6 h-6 animate-spin text-gray-400" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 mt-4 max-h-[30vh] overflow-y-auto pr-2 scrollbar-thin">
-                {filteredPlaces.map((p) => (
-                  <div 
-                    key={p.id}
-                    onClick={() => {
-                      setSelectedPlace(p)
-                      setMapCenter({ lat: p.lat, lng: p.lng })
-                    }}
-                    className="p-3 border rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer flex gap-3 items-center shrink-0"
-                  >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${p.category === 'Mi Hotel' ? 'bg-yellow-100' : 'bg-gray-100'}`}>
-                      <MapPin className={`w-4 h-4 ${p.category === 'Mi Hotel' ? 'text-yellow-600' : 'text-gray-700'}`} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-xs text-gray-900 truncate notranslate">{p.name}</p>
-                      <p className="text-[9px] text-gray-400 mt-0.5 truncate">{p.category}</p>
-                    </div>
-                  </div>
-                ))}
-                {filteredPlaces.length === 0 && selectedCategory !== "Búsqueda" && selectedCategory !== "Mi Hotel" && (
-                   <div className="col-span-2 text-center text-xs text-gray-400 py-4">No se encontraron lugares de esta categoría cerca de ti.</div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )
