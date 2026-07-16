@@ -313,13 +313,6 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         <button onClick={() => router.push(`/mobile/itinerario/${params.id}`)} className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors border border-white/30">
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <button 
-          onClick={toggleDayWishlist} 
-          disabled={isSavingDay}
-          className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors border ${isDaySaved ? 'bg-white text-red-500 border-white shadow-lg' : 'bg-white/20 backdrop-blur-md text-white border-white/30 hover:bg-white/30'}`}
-        >
-          {isSavingDay ? <Loader2 className="w-5 h-5 animate-spin" /> : <Bookmark className={`w-5 h-5 ${isDaySaved ? 'fill-red-500' : ''}`} />}
-        </button>
       </div>
 
       {/* Background Blobs for Premium Feel */}

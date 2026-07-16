@@ -54,12 +54,6 @@ export function PlaceDetailModal({ isOpen, onClose, place }: PlaceDetailModalPro
             <button onClick={onClose} className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30">
               <X className="w-6 h-6" />
             </button>
-            <button 
-              onClick={() => setIsSaved(!isSaved)}
-              className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30"
-            >
-              <Heart className={`w-5 h-5 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} />
-            </button>
           </div>
         </div>
 
@@ -139,8 +133,16 @@ export function PlaceDetailModal({ isOpen, onClose, place }: PlaceDetailModalPro
             {/* Mapa Preview */}
             <div>
               <h3 className="font-serif font-bold text-lg text-gray-900 mb-4">Ubicación</h3>
-              <div className="h-48 rounded-2xl overflow-hidden border border-gray-100">
-                <ItineraryRouteMap cities={[place?.location || place?.name]} />
+              <div className="h-48 rounded-2xl overflow-hidden border border-gray-100 bg-gray-100 relative">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&q=${encodeURIComponent((place?.name + ' ' + (place?.location || '')).trim())}`}
+                ></iframe>
               </div>
             </div>
             

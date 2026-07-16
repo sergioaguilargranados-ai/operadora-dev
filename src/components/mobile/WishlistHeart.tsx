@@ -49,13 +49,19 @@ export function WishlistHeart({ item, city, itineraryId, dayIndex }: WishlistHea
     checkStatus()
   }, [user?.id, item.name, itineraryId])
 
-  const toggleWishlist = async () => {
+  const toggleWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    
     if (!user?.id) {
       toast({ title: "Inicia sesión", description: "Debes iniciar sesión para guardar en tu wishlist", variant: "destructive" })
       return
     }
 
-    setIsLoading(true)
+    const previousState = isSaved
+    setIsSaved(!isSaved) // Optimistic update
+    // No bloqueamos con isLoading para que se sienta instantáneo
+    
     try {
       const res = await fetch('/api/wishlist', {
         method: 'POST',
@@ -81,31 +87,26 @@ export function WishlistHeart({ item, city, itineraryId, dayIndex }: WishlistHea
           description: nowSaved ? `${item.name} añadido a tu wishlist.` : `${item.name} removido de tu wishlist.` 
         })
       } else {
+        setIsSaved(previousState) // Revert on logic error
         throw new Error(data.error)
       }
     } catch (err) {
+      setIsSaved(previousState) // Revert on network error
       console.error("Error toggling wishlist:", err)
       toast({ title: "Error", description: "No se pudo actualizar la wishlist", variant: "destructive" })
-    } finally {
-      setIsLoading(false)
     }
   }
 
   return (
     <button 
       onClick={toggleWishlist}
-      disabled={isLoading}
       className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center shadow-sm transition-colors ${
         isSaved ? 'bg-red-50' : 'bg-white'
       }`}
     >
-      {isLoading ? (
-        <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />
-      ) : (
-        <Heart 
-          className={`w-3 h-3 transition-colors ${isSaved ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
-        />
-      )}
+      <Heart 
+        className={`w-3 h-3 transition-colors ${isSaved ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
+      />
     </button>
   )
 }
