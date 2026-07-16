@@ -7,6 +7,8 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
+import { FoodDetailModal } from "@/components/mobile/FoodDetailModal"
+import { PlaceDetailModal } from "@/components/mobile/PlaceDetailModal"
 
 export default function WishlistPage() {
   const router = useRouter()
@@ -18,6 +20,8 @@ export default function WishlistPage() {
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'place' | 'food' | 'souvenir'>('all')
+  const [selectedFood, setSelectedFood] = useState<any>(null)
+  const [selectedPlace, setSelectedPlace] = useState<any>(null)
 
   useEffect(() => {
     if (!user?.id) return
@@ -174,7 +178,19 @@ export default function WishlistPage() {
               
               <div className="space-y-6 pt-2">
                 {groupedItems[city].map((item) => (
-                  <div key={item.id} className="flex gap-4 items-center group cursor-pointer" onClick={() => router.push(`/mobile/itinerario/${item.itinerary_id}/dia/${item.day_index}`)}>
+                  <div 
+                    key={item.id} 
+                    className="flex gap-4 items-center group cursor-pointer" 
+                    onClick={() => {
+                      const category = item.category || 'souvenir'
+                      if (category === 'food') {
+                        setSelectedFood({ name: item.item_name, desc: item.item_desc, img: item.item_img, category: 'Comida', location: item.city })
+                      } else {
+                        // Place and souvenir fallback to PlaceDetailModal
+                        setSelectedPlace({ name: item.item_name, desc: item.item_desc, img: item.item_img, location: item.city, category: category === 'place' ? 'Lugar' : 'Souvenir' })
+                      }
+                    }}
+                  >
                     <div className="w-20 h-20 bg-[#f6f5f3] rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0 border border-gray-50">
                       <img src={item.item_img} alt={item.item_name} className="w-full h-full object-cover mix-blend-multiply" />
                     </div>
@@ -216,6 +232,19 @@ export default function WishlistPage() {
           </div>
         </div>
       )}
+
+      {/* Modals */}
+      <FoodDetailModal 
+        isOpen={!!selectedFood} 
+        onClose={() => setSelectedFood(null)} 
+        food={selectedFood} 
+      />
+      
+      <PlaceDetailModal 
+        isOpen={!!selectedPlace}
+        onClose={() => setSelectedPlace(null)}
+        place={selectedPlace}
+      />
 
     </div>
   )
