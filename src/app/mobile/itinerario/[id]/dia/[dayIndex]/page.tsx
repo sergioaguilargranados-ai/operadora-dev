@@ -629,13 +629,6 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         </div>
       </div>
 
-      {/* Action Bar (Contenido normal) */}
-      <div className="px-4 pb-8">
-        <button className="w-full bg-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-          <CalendarIcon className="w-5 h-5" />
-          Reservar tours para este destino
-        </button>
-      </div>
 
       <CurrencyCalculator 
         isOpen={isCalculatorOpen} 
