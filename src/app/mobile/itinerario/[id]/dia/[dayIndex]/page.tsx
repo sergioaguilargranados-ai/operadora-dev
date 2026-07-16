@@ -341,7 +341,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           <div className="absolute bottom-6 left-6 right-6 text-white">
             <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-flex mb-3 border border-white/30">
               <p className="text-xs font-bold uppercase tracking-wider text-white">
-                Día {dayData?.day || 1} {dayData?.date ? `- ${dayData.date}` : ''}
+                Día {parseInt(params.dayIndex) + 1} {dayData?.date ? `- ${dayData.date}` : ''}
               </p>
             </div>
             <h1 className="text-4xl font-serif font-bold mb-2 text-white leading-tight">

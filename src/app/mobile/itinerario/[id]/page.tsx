@@ -252,7 +252,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
                 <div className="flex-1">
                   <div className="flex justify-between items-start">
                     <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-full mb-1 inline-block">
-                      Día {day.day || index + 1}
+                      Día {index + 1}
                     </p>
                     <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-black transition-colors">
                       <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
