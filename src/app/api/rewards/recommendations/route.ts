@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     // 1. Find user's nearest upcoming trip
     const bookingsRes = await dbQuery(`
-      SELECT id, destination, service_name, special_requests
+      SELECT id, destination, special_requests
       FROM bookings 
       WHERE user_id = $1 AND booking_status != 'cancelled'
       ORDER BY created_at DESC 

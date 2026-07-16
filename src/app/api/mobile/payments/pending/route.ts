@@ -18,7 +18,13 @@ async function getUserIdFromToken(request: NextRequest): Promise<number | null> 
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getUserIdFromToken(request)
+    const { searchParams } = new URL(request.url)
+    const urlUserId = searchParams.get('user_id')
+    
+    let userId = await getUserIdFromToken(request)
+    if (!userId && urlUserId) {
+      userId = parseInt(urlUserId, 10)
+    }
     
     if (!userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })

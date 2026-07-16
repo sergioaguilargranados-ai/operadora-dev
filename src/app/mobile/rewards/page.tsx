@@ -662,15 +662,21 @@ export default function MobileRewardsPage() {
                   <h3 className="text-xl font-serif font-bold text-gray-900 mb-6">Invitados confirmados</h3>
                   
                   <div className="space-y-4 mb-6">
-                    {/* Hardcoded checkmarks mimicking prototype */}
-                    <div className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span className="text-sm font-semibold text-black">María González</span></div>
-                    <div className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span className="text-sm font-semibold text-black">Carlos López</span></div>
-                    <div className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span className="text-sm font-semibold text-black">Ana Hernández</span></div>
-                    <div className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span className="text-sm font-semibold text-black">José Ramírez</span></div>
-                    <div className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span className="text-sm font-semibold text-black">Laura Torres</span></div>
-                    <div className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span className="text-sm font-semibold text-black">Miguel Ruiz</span></div>
-                    <div className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span className="text-sm font-semibold text-black">Fernanda Díaz</span></div>
-                    <div className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span className="text-sm font-semibold text-black">Arturo Castillo</span></div>
+                    {loadingReferrals ? (
+                      <p className="text-sm text-gray-500">Cargando invitados...</p>
+                    ) : (!referralData?.referrals || referralData.referrals.length === 0) ? (
+                      <p className="text-sm text-gray-500">Aún no tienes invitados confirmados.</p>
+                    ) : (
+                      referralData.referrals.slice(0, 8).map((ref: any, idx: number) => (
+                        <div key={idx} className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <CheckCircle2 className={`w-5 h-5 ${ref.status === 'purchased' ? 'text-amber-500' : 'text-green-500'}`} />
+                            <span className="text-sm font-semibold text-black">{ref.referred_name || 'Usuario'}</span>
+                          </div>
+                          <span className="text-xs font-bold text-gray-500">+{ref.points_awarded} pts</span>
+                        </div>
+                      ))
+                    )}
                   </div>
                   
                   <Button className="w-full bg-black text-white hover:bg-gray-800 rounded-xl font-bold h-12">

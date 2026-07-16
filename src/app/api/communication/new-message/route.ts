@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     if (isTodos) {
       // 1a. Obtener todos los clientes activos
-      const usersRes = await query(`SELECT id, name, email FROM users WHERE role = 'client' AND is_active = true`)
+      const usersRes = await query(`SELECT id, name, email FROM users WHERE role ILIKE 'client' AND is_active = true`)
       recipients = usersRes.rows
     } else if (isPackageKey && packageCode) {
       // 1b. Obtener clientes que tengan reservas de este paquete
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
         const newUserResult = await query(
           `INSERT INTO users (
             name, email, password_hash, role, is_active, created_at, updated_at
-          ) VALUES ($1, $2, $3, 'client', true, NOW(), NOW())
+          ) VALUES ($1, $2, $3, 'CLIENT', true, NOW(), NOW())
           RETURNING id`,
           [name || email.split('@')[0], email.trim(), randomPass]
         )

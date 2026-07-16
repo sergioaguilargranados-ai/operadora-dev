@@ -28,10 +28,13 @@ export async function GET(request: Request) {
     }
 
     // 2. Get referred users count
-    const referrals = await db.queryMany(
-      'SELECT * FROM user_referrals WHERE referrer_id = $1 ORDER BY created_at DESC',
-      [userId]
-    )
+    const referrals = await db.queryMany(`
+      SELECT ur.*, u.name as referred_name 
+      FROM user_referrals ur
+      JOIN users u ON ur.referred_id = u.id
+      WHERE ur.referrer_id = $1 
+      ORDER BY ur.created_at DESC
+    `, [userId])
 
     // 3. Get Ranking (Top 10 referrers)
     const ranking = await db.queryMany(`

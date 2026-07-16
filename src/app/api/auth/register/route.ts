@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
       agency_id,
       corporate_role,
       agency_role,
-      internal_role
+      internal_role,
+      referral_code
     } = body
 
     // Validar datos requeridos
@@ -64,7 +65,8 @@ export async function POST(request: NextRequest) {
       agency_id,
       corporate_role,
       agency_role,
-      internal_role
+      internal_role,
+      referral_code
     }, ipAddress)
 
     console.log('✅ REGISTRO EXITOSO:', {

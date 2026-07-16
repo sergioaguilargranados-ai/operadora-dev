@@ -50,7 +50,7 @@ export default function MobilePaymentsPage() {
     try {
       setLoadingPending(true)
       const token = localStorage.getItem('token') || ''
-      const res = await fetch('/api/mobile/payments/pending', {
+      const res = await fetch(`/api/mobile/payments/pending?user_id=${user?.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const data = await res.json()

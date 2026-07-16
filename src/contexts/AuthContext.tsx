@@ -125,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const register = async (name: string, email: string, password: string, phone?: string): Promise<boolean> => {
+  const register = async (name: string, email: string, password: string, phone?: string, referralCode?: string): Promise<boolean> => {
     if (!mounted) return false
 
     try {
@@ -138,7 +138,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name,
           email,
           password,
-          phone: phone || ''
+          phone: phone || '',
+          referral_code: referralCode
         })
       })
 

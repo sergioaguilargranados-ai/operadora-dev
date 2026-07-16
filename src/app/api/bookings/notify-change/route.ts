@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
             `SELECT 
         b.id,
         b.user_id,
-        b.service_name,
+        b.destination as service_name,
         b.travel_date,
         b.passengers,
         b.total_price,

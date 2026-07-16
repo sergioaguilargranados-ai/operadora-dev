@@ -1,24 +1,26 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Logo } from "@/components/Logo"
 import { useAuth } from "@/contexts/AuthContext"
-import { Mail, Lock, User, Phone, AlertCircle, CheckCircle } from "lucide-react"
+import { Mail, Lock, User, Phone, AlertCircle, CheckCircle, Ticket } from "lucide-react"
 
-export default function RegistroPage() {
+function RegistroFormContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { register } = useAuth()
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    referralCode: searchParams.get('ref') || ""
   })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -51,7 +53,8 @@ export default function RegistroPage() {
         formData.name,
         formData.email,
         formData.password,
-        formData.phone
+        formData.phone,
+        formData.referralCode
       )
 
       if (success) {
@@ -172,6 +175,22 @@ export default function RegistroPage() {
 
             <div>
               <label className="block text-sm font-medium mb-2">
+                Código de invitación (opcional)
+              </label>
+              <div className="relative">
+                <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Ej. AS-12-ABCD"
+                  className="pl-10 uppercase"
+                  value={formData.referralCode}
+                  onChange={(e) => handleChange('referralCode', e.target.value.toUpperCase())}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
                 Contraseña *
               </label>
               <div className="relative">
@@ -248,5 +267,15 @@ export default function RegistroPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+import { Suspense } from 'react'
+
+export default function RegistroPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">Cargando...</div>}>
+      <RegistroFormContent />
+    </Suspense>
   )
 }

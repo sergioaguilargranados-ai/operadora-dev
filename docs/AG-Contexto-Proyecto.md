@@ -1,7 +1,7 @@
 # 🎯 AG-Contexto-Proyecto - AS Operadora
 
-**Última actualización:** 15 de Julio de 2026 - 13:25 CST  
-**Versión actual:** v2.424  
+**Última actualización:** 16 de Julio de 2026 - 01:38 CST  
+**Versión actual:** v2.425  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity, trabajar de esta manera es para tener un mejor control de los cambios que se hacen en el proyecto y asegurar que todo funcione correctamente. 
 
@@ -16,8 +16,9 @@
 ### Cliente
 Sergio Aguilar Granados
 
-### Repositorio Git
+### Repositorio Git y URLs
 - **Ambiente de Pruebas / Liberación:** `https://github.com/sergioaguilargranados-ai/operadora-dev.git`
+- **Dominio de Desarrollo:** `https://www.as-ope-viajes.company/` (Usado para pruebas y desarrollo)
 - **Repositorio Producción Legacy:** `https://github.com/sergioaguilargranados-ai/as-operadora.git`
 - **Deploy:** Liberaciones en ambiente de pruebas sobre `operadora-dev`
 

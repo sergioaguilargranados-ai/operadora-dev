@@ -9,7 +9,14 @@
 
 ## 📅 HISTORIAL DE CAMBIOS
 
-### v2.368 - 03 de Julio de 2026 - 23:09 CST
+### v2.425 - 16 de Julio de 2026 - 01:38 CST
+**🛠️ Correcciones Menores de PWA y CRM**
+- **IA en PWA:** Corrección en el query SQL (se eliminó la columna inexistente `service_name`) en `/api/rewards/recommendations` y `/api/rewards/challenges` para que el sistema detone correctamente OpenAI y genere las recomendaciones y retos en tiempo real en la PWA en lugar de los textos de fallback.
+- **Pagos Pendientes PWA:** Corrección en la ruta `/api/mobile/payments/pending` para que lea correctamente el parámetro `user_id` desde los `searchParams` y despliegue los saldos pendientes reales en vez de retornar `401 Unauthorized`.
+- **Notificaciones CRM:** Solución del fallo silencioso 404 al intentar enviar notificaciones con destinatario "todos". Se cambió la sensibilidad de mayúsculas/minúsculas en el query (ahora usa `ILIKE 'client'`) dado que el rol en DB es 'CLIENT'.
+- **Contexto:** Se agregó el URL `https://www.as-ope-viajes.company/` en el documento de contexto `AG-Contexto-Proyecto.md`.
+
+### v2.424 - 15 de Julio de 2026 - 13:25 CST
 **🚀 6 Mejoras Funcionales y Visuales de la PWA**
 - **Footer Fijo y Widgets:** Footer adaptado a `fixed` con `backdrop-blur`, reubicación de la versión de compilación y ajuste de los widgets de WhatsApp/Chat a un tamaño más sutil (44px).
 - **Wishlist Activa:** Implementación completa con base de datos, API (`/api/wishlist`) y nueva vista para gestión interactiva de souvenirs favoritos.

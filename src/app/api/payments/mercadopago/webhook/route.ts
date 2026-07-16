@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { MercadoPagoService } from '@/services/MercadoPagoService'
 import { query } from '@/lib/db'
+import { ReferralService } from '@/services/ReferralService'
 
 export async function POST(req: NextRequest) {
   try {
@@ -100,6 +101,11 @@ export async function POST(req: NextRequest) {
           `, [bookingId])
 
           console.log(`✅ MercadoPago payment approved: Booking #${bookingId} - $${payment.transactionAmount} ${payment.currencyId}`)
+          
+          // Reward if applicable
+          if (userId && payment.transactionAmount > 0) {
+            ReferralService.processPurchaseReward(bookingId, userId, payment.transactionAmount).catch(err => console.error('Error awarding referral points:', err));
+          }
         } else if (internalStatus === 'failed') {
           await query(`
             UPDATE bookings

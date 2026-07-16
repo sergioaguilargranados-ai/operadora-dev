@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { queryOne, updateOne, query, transaction } from '@/lib/db'
 import { notificationService } from '@/services/NotificationService'
+import { ReferralService } from '@/services/ReferralService'
 
 export async function POST(request: NextRequest) {
   try {
@@ -78,6 +79,16 @@ export async function POST(request: NextRequest) {
         SET payment_status = $1, updated_at = NOW()
         WHERE id = $2
       `, [newPaymentStatus, bookingId])
+
+      // Referral Reward si se completó el pago
+      if (newPaymentStatus === 'paid' && booking.user_id && totalPrice > 0) {
+        // En background
+        ReferralService.processPurchaseReward(
+          bookingId, 
+          booking.user_id, 
+          totalPrice
+        ).catch(err => console.error('Error awarding referral points:', err));
+      }
     })
 
     // 4. Lanzar notificación automática al cliente de forma asíncrona (fire and forget)
