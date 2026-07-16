@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
-import { ChevronLeft, Bell, Gift, Compass, MapPin, Play, Droplets, Sun, Briefcase, Footprints, Video, Image as ImageIcon, Copy, Share2, Trophy, Users, CheckCircle2, Link as LinkIcon, Loader2 } from "lucide-react"
+import { ChallengesRouteMapModal } from "@/components/mobile/ChallengesRouteMapModal"
+import { ChevronLeft, Bell, Gift, Compass, MapPin, Play, Droplets, Sun, Briefcase, Footprints, Video, Image as ImageIcon, Copy, Share2, Trophy, Users, CheckCircle2, Link as LinkIcon, Loader2, Pill } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 
@@ -28,6 +29,10 @@ export default function MobileRewardsPage() {
 
   const [challenges, setChallenges] = useState<any[]>([])
   const [loadingChallenges, setLoadingChallenges] = useState(true)
+  const [isRouteMapOpen, setIsRouteMapOpen] = useState(false)
+  
+  const [recommendations, setRecommendations] = useState<any>(null)
+  const [loadingRecs, setLoadingRecs] = useState(true)
 
   const [plannedChallenges, setPlannedChallenges] = useState<string[]>([])
   const [completedChallenges, setCompletedChallenges] = useState<string[]>([])
@@ -63,7 +68,29 @@ export default function MobileRewardsPage() {
         setLoadingChallenges(false)
       }
     }
+
+    const fetchRecommendations = async () => {
+      try {
+        setLoadingRecs(true)
+        const token = localStorage.getItem('token') || ''
+        const res = await fetch('/api/rewards/recommendations', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.success && data.data) {
+            setRecommendations(data.data)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching recommendations:', error)
+      } finally {
+        setLoadingRecs(false)
+      }
+    }
+
     fetchChallenges()
+    fetchRecommendations()
 
     // Cargar estados locales
     if (typeof window !== 'undefined') {
@@ -422,21 +449,100 @@ export default function MobileRewardsPage() {
                       })
                     )}
                   </div>
-                  <Button className="w-full bg-black text-white font-bold rounded-xl h-12 mt-2 shadow-sm hover:bg-gray-800">
+                  <Button 
+                    onClick={() => setIsRouteMapOpen(true)}
+                    className="w-full bg-black text-white font-bold rounded-xl h-12 mt-2 shadow-sm hover:bg-gray-800"
+                  >
                     Ver en mapa
                   </Button>
                 </div>
 
                 <hr className="border-gray-100" />
 
-                {/* Recomendaciones */}
+                {/* Recomendaciones (Clima) */}
                 <div>
                   <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Recomendaciones para tu viaje</h2>
                   <div className="space-y-4">
-                    <RecItem icon={<Droplets className="w-6 h-6 text-green-600"/>} bg="bg-green-50" title="Hidrátate" desc="Bebe suficiente agua durante todo el día." />
-                    <RecItem icon={<Sun className="w-6 h-6 text-yellow-600"/>} bg="bg-yellow-50" title="Protege tu piel" desc="Usa protector solar y reaplica cada 3 horas." />
+                    {loadingRecs ? (
+                      <div className="animate-pulse space-y-3">
+                        <div className="h-16 bg-gray-100 rounded-2xl w-full"></div>
+                        <div className="h-16 bg-gray-100 rounded-2xl w-full"></div>
+                      </div>
+                    ) : recommendations?.weatherTips ? (
+                      recommendations.weatherTips.map((tip: any, idx: number) => (
+                        <RecItem 
+                          key={idx} 
+                          icon={idx % 2 === 0 ? <Sun className="w-6 h-6 text-yellow-600"/> : <Droplets className="w-6 h-6 text-blue-600"/>} 
+                          bg={idx % 2 === 0 ? "bg-yellow-50" : "bg-blue-50"} 
+                          title={tip.title} 
+                          desc={tip.desc} 
+                        />
+                      ))
+                    ) : (
+                      <>
+                        <RecItem icon={<Droplets className="w-6 h-6 text-green-600"/>} bg="bg-green-50" title="Hidrátate" desc="Bebe suficiente agua durante todo el día." />
+                        <RecItem icon={<Sun className="w-6 h-6 text-yellow-600"/>} bg="bg-yellow-50" title="Protege tu piel" desc="Usa protector solar y reaplica cada 3 horas." />
+                      </>
+                    )}
                   </div>
                 </div>
+
+                <hr className="border-gray-100" />
+
+                {/* Medicamentos */}
+                <div>
+                  <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Botiquín de Viaje Sugerido</h2>
+                  <div className="space-y-4">
+                    {loadingRecs ? (
+                      <div className="animate-pulse space-y-3">
+                        <div className="h-16 bg-gray-100 rounded-2xl w-full"></div>
+                        <div className="h-16 bg-gray-100 rounded-2xl w-full"></div>
+                      </div>
+                    ) : recommendations?.medications ? (
+                      recommendations.medications.map((med: any, idx: number) => (
+                        <RecItem 
+                          key={idx} 
+                          icon={<Pill className="w-6 h-6 text-red-600"/>} 
+                          bg="bg-red-50" 
+                          title={med.title} 
+                          desc={med.desc} 
+                        />
+                      ))
+                    ) : (
+                      <RecItem icon={<Pill className="w-6 h-6 text-red-600"/>} bg="bg-red-50" title="Botiquín básico" desc="Paracetamol, curitas y medicina personal." />
+                    )}
+                  </div>
+                </div>
+
+                <hr className="border-gray-100" />
+
+                {/* Tips para empacar */}
+                <div>
+                  <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Tips para empacar</h2>
+                  <div className="space-y-4">
+                    <div className="w-full rounded-2xl overflow-hidden shadow-sm aspect-video bg-gray-100 relative">
+                      <iframe 
+                        className="absolute inset-0 w-full h-full"
+                        src="https://www.youtube.com/embed/5Wn3L7Yf7d4?si=r7kFzB2-D3R4Jp9w" 
+                        title="YouTube video player" 
+                        frameBorder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                    <div className="w-full rounded-2xl overflow-hidden shadow-sm aspect-video bg-gray-100 relative">
+                      <iframe 
+                        className="absolute inset-0 w-full h-full"
+                        src="https://www.youtube.com/embed/L1Y5X14bM1w?si=7Y0GqF3tH6a5pL8r" 
+                        title="YouTube video player" 
+                        frameBorder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
@@ -761,6 +867,12 @@ function RecItem({ icon, bg, title, desc }: { icon: React.ReactNode, bg: string,
         <h4 className="font-bold text-gray-900 text-sm">{title}</h4>
         <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">{desc}</p>
       </div>
+      {/* Map Modal */}
+      <ChallengesRouteMapModal
+        isOpen={isRouteMapOpen}
+        onClose={() => setIsRouteMapOpen(false)}
+        challenges={challenges}
+      />
     </div>
   )
 }
