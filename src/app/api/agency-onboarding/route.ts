@@ -1,7 +1,7 @@
 // API: Solicitud de registro como agencia
 // POST /api/agency-onboarding - Formulario público de solicitud
 // GET /api/agency-onboarding - Listar solicitudes (admin only)
-// Build: 15 Jul 2026 - v2.423
+// Build: 15 Jul 2026 - v2.424
 
 import { NextRequest, NextResponse } from 'next/server';
 import { query, queryOne, queryMany } from '@/lib/db';

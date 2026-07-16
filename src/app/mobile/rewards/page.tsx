@@ -468,7 +468,7 @@ export default function MobileRewardsPage() {
                         <div className="h-16 bg-gray-100 rounded-2xl w-full"></div>
                         <div className="h-16 bg-gray-100 rounded-2xl w-full"></div>
                       </div>
-                    ) : recommendations?.weatherTips ? (
+                    ) : Array.isArray(recommendations?.weatherTips) ? (
                       recommendations.weatherTips.map((tip: any, idx: number) => (
                         <RecItem 
                           key={idx} 
@@ -498,7 +498,7 @@ export default function MobileRewardsPage() {
                         <div className="h-16 bg-gray-100 rounded-2xl w-full"></div>
                         <div className="h-16 bg-gray-100 rounded-2xl w-full"></div>
                       </div>
-                    ) : recommendations?.medications ? (
+                    ) : Array.isArray(recommendations?.medications) ? (
                       recommendations.medications.map((med: any, idx: number) => (
                         <RecItem 
                           key={idx} 
@@ -859,20 +859,14 @@ function BadgeItem({ icon, bg, title, desc, locked }: any) {
 
 function RecItem({ icon, bg, title, desc }: { icon: React.ReactNode, bg: string, title: string, desc: string }) {
   return (
-    <div className="flex items-start gap-4">
-      <div className={`w-12 h-12 rounded-full ${bg} flex items-center justify-center flex-shrink-0 mt-1`}>
+    <div className="flex gap-4">
+      <div className={`w-12 h-12 rounded-2xl ${bg} flex items-center justify-center shrink-0`}>
         {icon}
       </div>
       <div>
-        <h4 className="font-bold text-gray-900 text-sm">{title}</h4>
-        <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">{desc}</p>
+        <h4 className="font-bold text-gray-900 text-sm">{String(title || '')}</h4>
+        <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">{String(desc || '')}</p>
       </div>
-      {/* Map Modal */}
-      <ChallengesRouteMapModal
-        isOpen={isRouteMapOpen}
-        onClose={() => setIsRouteMapOpen(false)}
-        challenges={challenges}
-      />
     </div>
   )
 }
