@@ -378,7 +378,7 @@ export default function MobileMapPage() {
       </div>
 
       {/* Dynamic Detail Bottom Drawer */}
-      <div className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl border-t z-30 transition-all duration-300 ease-in-out ${isDrawerExpanded ? 'p-5' : 'p-3'}`}>
+      <div className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] border-t z-30 transition-all duration-300 ease-in-out ${isDrawerExpanded ? 'p-5 pb-safe' : 'p-3 pb-10'}`}>
         <div 
           className="w-full flex flex-col items-center justify-center cursor-pointer mb-2"
           onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
