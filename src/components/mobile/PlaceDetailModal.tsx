@@ -54,6 +54,12 @@ export function PlaceDetailModal({ isOpen, onClose, place }: PlaceDetailModalPro
             <button onClick={onClose} className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30">
               <X className="w-6 h-6" />
             </button>
+            <button 
+              onClick={() => setIsSaved(!isSaved)}
+              className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30"
+            >
+              <Heart className={`w-5 h-5 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} />
+            </button>
           </div>
         </div>
 

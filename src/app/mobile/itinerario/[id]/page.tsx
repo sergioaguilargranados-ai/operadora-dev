@@ -225,7 +225,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
           <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-sm border border-gray-100 p-5">
             <h3 className="font-bold text-gray-900 mb-2">Acerca del Viaje</h3>
             <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
-              {itinerary.description}
+              {itinerary.description?.replace(/[¿]?El mejor viaje\?/gi, '¡El mejor viaje!')}
             </p>
           </div>
         </div>
