@@ -809,6 +809,14 @@ Antes de finalizar cualquier sesión:
 - **API Detect mejorada:** `src/app/api/tenant/detect/route.ts` ahora extrae `logo_mobile_url` directamente de la tabla `mobile_app_content` y lo entrega al `WhiteLabelContext`.
 - **Lección:** Nunca usar SVG con `@import` Google Fonts cargado como `<img>` - el browser no ejecuta el `@import`. Usar componentes React con `font-family` inline o Next.js `next/font`.
 
+### Centro de Notificaciones y Preparación para Producción PWA (v2.427 - 16 Jul 2026)
+- **Funcionalidad:** Reparación del motor de notificaciones móviles, inclusión de campana inteligente (badges dinámicos) y planeación para paso a Vercel Production.
+- **Base de Datos:** Se creó la tabla `message_reads` en Neon para resolver el fallo 500 (`relation does not exist`).
+- **Backend:** Se ajustó la consulta de `tour_quotes` para usar `contact_email` en lugar de `client_email` y se aplicó un casteo seguro a `integer` sobre `userId` en `/api/mobile/notifications`.
+- **Frontend:** Implementación global del componente `NotificationBell.tsx` en las cabeceras móviles. Corrección del renderizado del modal del mapa (`ChallengesRouteMapModal`) en los AS Retos.
+- **AS Retos:** Extracción real de fotos usando Google Places API en lugar de Picsum, respetando la variable de entorno y los fallbacks.
+- **Lección:** Es crítico mantener alineada la estructura de base de datos compartida entre entornos (Dev vs Prod) y documentar claramente los atrasos de ramas (ej. `dev` vs `main` en Vercel) antes de un pase a producción que involucre nuevas tablas de IA y mensajería.
+
 ---
 
 **Documento creado:** 17 de Enero de 2026 - 02:00 CST  
