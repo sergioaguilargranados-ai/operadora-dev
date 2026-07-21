@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Bell, MapPin, Loader2, Heart, Plus, Info } from "lucide-react"
+import { ChevronLeft, Bell, MapPin, Loader2, Heart, Plus, Info, Image as ImageIcon, FileText, Camera, Upload, X } from "lucide-react"
 import NotificationBell from "@/components/mobile/NotificationBell"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -23,6 +23,17 @@ export default function WishlistPage() {
   const [filter, setFilter] = useState<'all' | 'place' | 'food' | 'souvenir'>('all')
   const [selectedFood, setSelectedFood] = useState<any>(null)
   const [selectedPlace, setSelectedPlace] = useState<any>(null)
+
+  // Modal states for adding an item
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [newType, setNewType] = useState<'place' | 'food' | 'souvenir'>('place')
+  const [newDest, setNewDest] = useState('')
+  const [newName, setNewName] = useState('')
+  const [newDesc, setNewDesc] = useState('')
+  const [newImg, setNewImg] = useState('')
+  const [uploadingImg, setUploadingImg] = useState(false)
+  const [savingItem, setSavingItem] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!user?.id) return
@@ -57,11 +68,86 @@ export default function WishlistPage() {
   }
 
   const handleAddClick = () => {
-    toast({
-      title: "Guardar artículos",
-      description: "Guarda artículos tocando el corazón en tu itinerario.",
-      duration: 4000
-    })
+    setIsAddModalOpen(true)
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      setUploadingImg(true)
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        const res = await fetch('/api/admin/upload-image', {
+          method: 'POST',
+          body: formData
+        })
+        const data = await res.json()
+        if (data.success) {
+          setNewImg(data.url)
+          toast({ title: 'Imagen subida', description: 'La foto se ha cargado correctamente.' })
+        } else {
+          toast({ title: 'Error', description: 'No se pudo subir la imagen.', variant: 'destructive' })
+        }
+      } catch (err) {
+        console.error(err)
+        toast({ title: 'Error', description: 'Error al conectar para subir la imagen.', variant: 'destructive' })
+      } finally {
+        setUploadingImg(false)
+      }
+    }
+  }
+
+  const handleSaveWishlistItem = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newName.trim() || !newDest.trim()) {
+      toast({ title: 'Campos requeridos', description: 'Por favor completa el Nombre y el Destino.', variant: 'destructive' })
+      return
+    }
+    
+    setSavingItem(true)
+    try {
+      const fallbackImgs = {
+        food: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80",
+        place: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=400&q=80",
+        souvenir: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=400&q=80"
+      }
+      
+      const payload = {
+        user_id: user?.id,
+        item_name: newName,
+        item_desc: newDesc,
+        item_img: newImg || fallbackImgs[newType],
+        city: newDest,
+        category: newType
+      }
+      
+      const res = await fetch('/api/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: 'Guardado', description: 'Artículo agregado a tu wishlist.' })
+        setIsAddModalOpen(false)
+        // Reset form
+        setNewType('place')
+        setNewDest('')
+        setNewName('')
+        setNewDesc('')
+        setNewImg('')
+        // Refresh list
+        fetchWishlist()
+      } else {
+        toast({ title: 'Error', description: data.error || 'No se pudo guardar el artículo.', variant: 'destructive' })
+      }
+    } catch (err) {
+      console.error(err)
+      toast({ title: 'Error', description: 'Error al conectar con la base de datos.', variant: 'destructive' })
+    } finally {
+      setSavingItem(false)
+    }
   }
 
   const filteredItems = filter === 'all' 
@@ -246,6 +332,155 @@ export default function WishlistPage() {
         onClose={() => setSelectedPlace(null)}
         place={selectedPlace}
       />
+
+      {/* Modal Agregar a tu Wishlist */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center transition-opacity duration-300">
+          <div className="w-full max-w-md bg-white rounded-t-3xl p-6 relative animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col font-sans">
+            <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4 flex-shrink-0" />
+            
+            <button 
+              onClick={() => setIsAddModalOpen(false)}
+              className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 absolute top-6 right-6"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h2 className="text-2xl font-serif font-bold text-gray-900 mb-1">Agregar a tu wishlist</h2>
+            <p className="text-xs text-gray-500 mb-6 leading-relaxed">
+              Guarda ese lugar, comida o souvenir que no quieres olvidar.
+            </p>
+
+            <form onSubmit={handleSaveWishlistItem} className="space-y-4">
+              {/* Tipo */}
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                  <Heart className="w-3.5 h-3.5" /> Tipo
+                </span>
+                <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
+                  {(['place', 'food', 'souvenir'] as const).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setNewType(type)}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                        newType === type ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      {type === 'place' ? 'Lugar' : type === 'food' ? 'Comida' : 'Souvenir'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Destino */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5" /> Destino
+                </label>
+                <input
+                  type="text"
+                  value={newDest}
+                  onChange={(e) => setNewDest(e.target.value)}
+                  placeholder="Ej. París, Francia"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                  required
+                />
+              </div>
+
+              {/* Nombre */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                  <ImageIcon className="w-3.5 h-3.5" /> Nombre
+                </label>
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Ej. Torre Eiffel"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                  required
+                />
+              </div>
+
+              {/* Descripción */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5" /> Descripción (opcional)
+                </label>
+                <textarea
+                  value={newDesc}
+                  onChange={(e) => setNewDesc(e.target.value)}
+                  placeholder="Agrega detalles que quieras recordar..."
+                  rows={3}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-black focus:ring-1 focus:ring-black transition-all resize-none"
+                />
+              </div>
+
+              {/* Agregar foto */}
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                  <Camera className="w-3.5 h-3.5" /> Agregar foto (opcional)
+                </span>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-200 rounded-2xl p-5 text-center cursor-pointer hover:border-black transition-colors flex flex-col items-center justify-center bg-gray-50 relative min-h-[90px]"
+                >
+                  {uploadingImg ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-black" />
+                  ) : newImg ? (
+                    <div className="w-full flex items-center justify-between px-2">
+                      <div className="flex items-center gap-2">
+                        <img src={newImg} alt="Preview" className="h-10 w-10 object-cover rounded-lg border" />
+                        <span className="text-[10px] text-green-600 font-bold">¡Imagen cargada!</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setNewImg(''); }}
+                        className="text-red-500 p-1 hover:bg-red-50 rounded-full"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5 text-gray-400 mb-1" />
+                      <span className="text-xs font-bold text-gray-700">Toca para seleccionar una foto</span>
+                      <span className="text-[9px] text-gray-400">JPG, PNG - Máx. 5MB</span>
+                    </>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </div>
+
+              {/* Acciones */}
+              <div className="pt-4 space-y-2">
+                <button
+                  type="submit"
+                  disabled={savingItem || uploadingImg}
+                  className="w-full bg-black text-white py-3.5 rounded-xl font-bold text-xs hover:bg-gray-800 transition-colors disabled:bg-gray-400 flex items-center justify-center gap-2"
+                >
+                  {savingItem && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Guardar en wishlist
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="w-full text-center py-2 text-xs font-bold text-gray-500 hover:text-gray-800 transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   )

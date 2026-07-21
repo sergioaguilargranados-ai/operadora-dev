@@ -220,8 +220,8 @@ export default function MobileProfilePage() {
             logoUrl={customLogoUrl}
           />
 
-          <button onClick={() => router.push('/mobile/notificaciones')} className="text-black hover:text-gray-600 p-2 -mr-2">
-            <NotificationBell className="w-6 h-6" />
+          <button onClick={() => router.push('/mobile/notificaciones')} className="text-white hover:text-gray-300 p-2 -mr-2">
+            <NotificationBell className="w-6 h-6 text-white" />
           </button>
         </div>
 
@@ -374,40 +374,44 @@ export default function MobileProfilePage() {
 
           <div className="divide-y divide-gray-100">
             {documents.map((doc, index) => (
-              <div key={doc.id} className="flex items-center p-4">
-                <div className="w-8 h-8 bg-black text-white rounded-md flex items-center justify-center flex-shrink-0 mr-4 font-bold text-xs">
+              <div key={doc.id} className="flex items-center p-4 gap-2">
+                <div className="w-8 h-8 bg-black text-white rounded-md flex items-center justify-center flex-shrink-0 mr-2 font-bold text-xs">
                   {index + 1}
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">{doc.name}</h3>
-                  <p className="text-xs text-gray-500">
-                    {doc.fileName ? `Subido: ${doc.fileName}` : `Agrega o actualiza tu ${doc.name.toLowerCase()}.`}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight truncate">{doc.name}</h3>
+                  <p className="text-xs text-gray-500 truncate">
+                    {doc.fileName ? `Subido: ${doc.fileName.split('/').pop()?.split('-').slice(1).join('-') || doc.fileName.split('/').pop()}` : `Agrega o actualiza tu ${doc.name.toLowerCase()}.`}
                   </p>
                 </div>
                 
                 {uploadingId === doc.id ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                  <div className="flex-shrink-0 px-2">
+                    <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                  </div>
                 ) : (
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 flex-shrink-0 items-center">
                     {doc.fileName && (
                       <button 
                         onClick={() => window.open(doc.fileName!, '_blank')} 
-                        className="p-2 text-blue-500 hover:text-blue-700"
+                        className="p-1.5 text-blue-500 hover:text-blue-700 text-xs font-bold"
                       >
                         Ver
                       </button>
                     )}
                     <button 
                       onClick={() => handleUploadClick(doc.id)} 
-                      className="p-2 text-gray-400 hover:text-black"
+                      className="p-1.5 text-gray-400 hover:text-black"
+                      title="Subir archivo"
                     >
-                      <Upload className="w-5 h-5" />
+                      <Upload className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteDocument(doc.name)}
-                      className="p-2 text-red-500 hover:text-red-700"
+                      className="p-1.5 text-red-500 hover:text-red-700"
+                      title="Eliminar archivo"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 )}

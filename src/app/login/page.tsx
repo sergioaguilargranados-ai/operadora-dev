@@ -1,3 +1,4 @@
+// Build: 21 Jul 2026 - 13:55 CST - v2.426
 "use client"
 
 import { useState } from "react"
@@ -8,11 +9,13 @@ import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Logo } from "@/components/Logo"
 import { useAuth } from "@/contexts/AuthContext"
+import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { Mail, Lock, AlertCircle } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
   const { login } = useAuth()
+  const { companyName } = useWhiteLabel()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -103,7 +106,7 @@ export default function LoginPage() {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2">Iniciar sesión</h1>
             <p className="text-muted-foreground">
-              Accede a tu cuenta de AS Club
+              Accede a tu cuenta de {companyName || 'AS Rewards'}
             </p>
           </div>
 

@@ -1,3 +1,4 @@
+// Build: 21 Jul 2026 - 13:55 CST - v2.426
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
 import { Serwist, StaleWhileRevalidate, NetworkOnly, CacheFirst } from "serwist";
@@ -42,6 +43,26 @@ const serwist = new Serwist({
       matcher: ({ url }) => url.pathname.startsWith('/api/itineraries'),
       handler: new CacheFirst({
         cacheName: 'itinerary-cache',
+      }),
+    },
+    // Caché para bookings, groups, profile y wishlist (StaleWhileRevalidate)
+    {
+      matcher: ({ url }) => 
+        url.pathname.startsWith('/api/bookings') || 
+        url.pathname.startsWith('/api/groups') || 
+        url.pathname.startsWith('/api/mobile/profile') || 
+        url.pathname.startsWith('/api/wishlist'),
+      handler: new StaleWhileRevalidate({
+        cacheName: 'trip-metadata-cache',
+      }),
+    },
+    // Caché para fotos e imágenes (Unsplash y Vercel Blob)
+    {
+      matcher: ({ url }) => 
+        url.hostname.includes('unsplash.com') || 
+        url.hostname.includes('vercel-storage.com'),
+      handler: new CacheFirst({
+        cacheName: 'trip-media-cache',
       }),
     },
     // Background sync para POSTs (carrito, pasos)

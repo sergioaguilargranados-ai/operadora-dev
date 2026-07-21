@@ -375,40 +375,48 @@ export default function MobileRewardsPage() {
                     <p className="text-sm text-gray-400 py-4">Cargando recompensas...</p>
                   ) : (
                     <div className="space-y-4">
-                      {rewardsSteps.length === 0 ? (
-                        <p className="text-sm text-gray-400 py-2">No hay recompensas configuradas.</p>
-                      ) : (
-                        rewardsSteps.map((step, idx) => {
-                          const reqSteps = getStepThreshold(idx)
-                          const isActive = progress >= reqSteps
-                          return (
-                            <div key={idx} className="space-y-2">
-                              <RewardItem 
-                                steps={`${reqSteps.toLocaleString()} pasos`} 
-                                reward={step.title} 
-                                desc={step.description}
-                                active={isActive} 
-                              />
-                              {/* Media Assets from CMS */}
-                              {(step.image_url || step.video_url) && (
-                                <div className="ml-11 flex gap-2 overflow-x-auto pb-1">
-                                  {step.image_url && (
-                                    <div className="h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden border">
-                                      <img src={step.image_url} alt="Premio" className="w-full h-full object-cover" />
-                                    </div>
-                                  )}
-                                  {step.video_url && (
-                                    <div className="h-16 w-24 flex-shrink-0 bg-gray-900 rounded-lg flex flex-col justify-center items-center relative overflow-hidden">
-                                      <Play className="w-5 h-5 text-white/80 z-10" fill="white" />
-                                      <video src={step.video_url} className="absolute inset-0 w-full h-full object-cover opacity-50" />
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )
-                        })
-                      )}
+                      {(() => {
+                        const filteredSteps = rewardsSteps.filter(step => {
+                          const title = step.title?.toLowerCase() || '';
+                          const desc = step.description?.toLowerCase() || '';
+                          return !title.includes('registra') && !desc.includes('registra') &&
+                                 !title.includes('regístra') && !desc.includes('regístra');
+                        });
+                        return filteredSteps.length === 0 ? (
+                          <p className="text-sm text-gray-400 py-2">No hay recompensas configuradas.</p>
+                        ) : (
+                          filteredSteps.map((step, idx) => {
+                            const reqSteps = getStepThreshold(idx)
+                            const isActive = progress >= reqSteps
+                            return (
+                              <div key={idx} className="space-y-2">
+                                <RewardItem 
+                                  steps={`${reqSteps.toLocaleString()} pasos`} 
+                                  reward={step.title} 
+                                  desc={step.description}
+                                  active={isActive} 
+                                />
+                                {/* Media Assets from CMS */}
+                                {(step.image_url || step.video_url) && (
+                                  <div className="ml-11 flex gap-2 overflow-x-auto pb-1">
+                                    {step.image_url && (
+                                      <div className="h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden border">
+                                        <img src={step.image_url} alt="Premio" className="w-full h-full object-cover" />
+                                      </div>
+                                    )}
+                                    {step.video_url && (
+                                      <div className="h-16 w-24 flex-shrink-0 bg-gray-900 rounded-lg flex flex-col justify-center items-center relative overflow-hidden">
+                                        <Play className="w-5 h-5 text-white/80 z-10" fill="white" />
+                                        <video src={step.video_url} className="absolute inset-0 w-full h-full object-cover opacity-50" />
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })
+                        );
+                      })()}
                     </div>
                   )}
                 </div>

@@ -1,3 +1,4 @@
+// Build: 21 Jul 2026 - 13:55 CST - v2.426
 "use client"
 
 import { useState } from "react"
@@ -8,12 +9,14 @@ import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Logo } from "@/components/Logo"
 import { useAuth } from "@/contexts/AuthContext"
+import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { Mail, Lock, User, Phone, AlertCircle, CheckCircle, Ticket } from "lucide-react"
 
 function RegistroFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { register } = useAuth()
+  const { companyName } = useWhiteLabel()
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -88,7 +91,7 @@ function RegistroFormContent() {
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <Card className="w-full max-w-md p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">Únete a AS Club</h1>
+            <h1 className="text-3xl font-bold mb-2">Únete a {companyName || 'AS Rewards'}</h1>
             <p className="text-muted-foreground">
               Crea tu cuenta y comienza a disfrutar beneficios exclusivos
             </p>
@@ -104,7 +107,7 @@ function RegistroFormContent() {
           {/* Beneficios */}
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
             <h3 className="font-semibold text-sm mb-2 text-blue-900">
-              Beneficios de AS Club:
+              Beneficios de {companyName || 'AS Rewards'}:
             </h3>
             <ul className="space-y-1.5 text-sm text-blue-800">
               <li className="flex items-center gap-2">
@@ -246,7 +249,14 @@ function RegistroFormContent() {
 
             <Button
               type="submit"
-              className="w-full h-12 bg-[#0066FF] hover:bg-[#0052CC] text-white font-semibold"
+              className="w-full h-12 text-white font-semibold transition-colors duration-300"
+              style={{ backgroundColor: 'var(--brand-primary, #0066FF)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--brand-primary-hover, #0052CC)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--brand-primary, #0066FF)'
+              }}
               disabled={loading}
             >
               {loading ? "Creando cuenta..." : "Crear cuenta"}

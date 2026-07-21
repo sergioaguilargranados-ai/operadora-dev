@@ -1,13 +1,20 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 01 de Julio de 2026 - 17:46 CST  
-**Versión actual:** v2.360  
+**Última actualización:** 21 de Julio de 2026 - 13:55 CST  
+**Versión actual:** v2.426  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.426 - 21 de Julio de 2026 - 13:55 CST
+**🚀 Pestañas de Itinerario, Flujo de Compartir e Integración Offline PWA**
+- **Pestañas de Itinerario (`/mobile/itinerario/[id]`):** Implementación de la barra de pestañas segmentada con las vistas de *Resumen* (métricas, próximos pasos interactivos y lista de hoteles), *Itinerario* (ruta y días) y *Documentos* (integrado con documentos de perfil y descargas de viaje).
+- **Flujo de Compartir en Grupos (`/mobile/viajes-grupales`):** Sustitución del botón plano por el módulo interactivo de invitaciones que carga el código de referido del usuario y botones para compartir en redes sociales (WhatsApp, Facebook, Instagram, copiar link).
+- **Portal de Registro y Login (`/registro`, `/login`):** Renombre de marca de "AS Club" a "AS Rewards" de forma dinámica y marca blanca con soporte del nombre de inquilino (`companyName`) y estilos adaptados a la paleta del Tenant.
+- **Soporte Offline PWA (`sw.ts` y `/mobile`):** Configuración de caché en el Service Worker para persistir APIs JSON de reservas/perfil y fotos/PDFs en disco. Se programó una precarga silenciosa al entrar al inicio para guardar todos los activos del próximo viaje en segundo plano.
 
 ### v2.425 - 16 de Julio de 2026 - 01:38 CST
 **🛠️ Correcciones Menores de PWA y CRM**
