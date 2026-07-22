@@ -1,5 +1,5 @@
 // API para gestionar imágenes de tours manualmente
-// Build: 22 Jul 2026 - v2.428
+// Build: 22 Jul 2026 - v2.429
 // Permite:
 //   GET  ?code=MT-XXXXX        → Ver estado actual de imagen del tour
 //   POST ?code=MT-XXXXX        → Establecer imagen manualmente (body: { imageUrl: "..." })

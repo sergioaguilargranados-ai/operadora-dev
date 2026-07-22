@@ -1,13 +1,20 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 22 de Julio de 2026 - 08:21 CST  
-**Versión actual:** v2.428  
+**Última actualización:** 22 de Julio de 2026 - 17:58 CST  
+**Versión actual:** v2.429  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.429 - 22 de Julio de 2026 - 17:58 CST
+**Hotfix: Sintaxis de Perfil, Referidos y Ciclo de Redirección**
+- **Bugfix en Registro de Referidos:** Se agregó lógica en `/api/auth/register` para que además de detectar códigos de Agentes, también vincule correctamente a los Usuarios normales en la tabla `user_referrals` y permita que el sistema AS Rewards asigne los puntos.
+- **Ciclo Infinito de Navegación PWA:** Se corrigió el redireccionamiento en `/mobile/itinerario/active`, usando `router.replace` en lugar de `router.push`, evitando que el historial atrape al usuario en un ciclo al intentar volver atrás.
+- **Resolución de Sintaxis (Vercel Build):** Se solucionó un error de llaves y etiquetas huérfanas introducido en `mobile/perfil/page.tsx` para reactivar los pases de compilación exitosos.
+
 
 ### v2.428 - 22 de Julio de 2026 - 08:21 CST
 **Mejoras UI/UX en PWA Móvil: Perfil e Itinerario**

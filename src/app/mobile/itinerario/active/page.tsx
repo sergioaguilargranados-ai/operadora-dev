@@ -11,7 +11,7 @@ export default function MobileActiveItineraryRedirect() {
 
   useEffect(() => {
     if (isAuthenticated === false) {
-      router.push('/mobile/login')
+      router.replace('/mobile/login')
       return
     }
 
@@ -52,16 +52,16 @@ export default function MobileActiveItineraryRedirect() {
           })
 
           if (nearestTripId) {
-            router.push(`/mobile/itinerario/${nearestTripId}?tab=itinerario`)
+            router.replace(`/mobile/itinerario/${nearestTripId}?tab=itinerario`)
           } else {
-            router.push('/mobile/itinerario')
+            router.replace('/mobile/itinerario')
           }
         } else {
-          router.push('/mobile/itinerario')
+          router.replace('/mobile/itinerario')
         }
       } catch (error) {
         console.error("Error fetching tours:", error)
-        router.push('/mobile/itinerario')
+        router.replace('/mobile/itinerario')
       }
     }
 
