@@ -1,5 +1,5 @@
 // API para forzar re-scrape de un tour específico
-// Build: 21 Jul 2026 - v2.426
+// Build: 22 Jul 2026 - v2.427
 // Permite re-scrapear un tour individual para probar cambios antes de lanzar sync completo.
 // GET: Muestra info del tour y URL que se scrapeará
 // POST: Ejecuta el re-scrape y devuelve resultados

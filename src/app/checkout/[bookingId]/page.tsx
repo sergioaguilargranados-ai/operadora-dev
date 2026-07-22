@@ -52,6 +52,18 @@ export default function CheckoutPage({
   const [manualNotes, setManualNotes] = useState('')
 
   useEffect(() => {
+    // Si viene un token en la URL, setearlo para logueo sin fricción
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const token = urlParams.get('token')
+      if (token) {
+        document.cookie = `as_token=${encodeURIComponent(token)};path=/;samesite=lax`
+        localStorage.setItem('as_token', token)
+        // Limpiar URL para no dejar el token expuesto
+        const newUrl = window.location.pathname
+        window.history.replaceState({}, document.title, newUrl)
+      }
+    }
     fetchBooking()
   }, [bookingId])
 

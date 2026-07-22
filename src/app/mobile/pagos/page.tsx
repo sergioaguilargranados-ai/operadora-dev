@@ -216,7 +216,17 @@ export default function MobilePaymentsPage() {
                 </div>
               </div>
               
-              <p className="text-[10px] text-gray-400 text-center mt-1">Contacta a tu agente de viajes para saldar este monto.</p>
+              <div className="mt-2 text-center">
+                <button
+                  onClick={() => {
+                    const token = localStorage.getItem('as_token') || localStorage.getItem('token') || '';
+                    window.open(`/checkout/${p.booking_id}?token=${encodeURIComponent(token)}`, '_blank');
+                  }}
+                  className="w-full bg-black text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:bg-gray-900 transition-colors"
+                >
+                  Pagar ahora
+                </button>
+              </div>
             </div>
           ))}
         </div>

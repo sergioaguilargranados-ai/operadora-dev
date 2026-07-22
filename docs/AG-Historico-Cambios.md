@@ -1,13 +1,21 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 21 de Julio de 2026 - 13:55 CST  
-**Versión actual:** v2.426  
+**Última actualización:** 22 de Julio de 2026 - 01:06 CST  
+**Versión actual:** v2.427  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.427 - 22 de Julio de 2026 - 01:06 CST
+**🛒 Pasarela de Pagos Unificada para Tienda PWA**
+- **Autenticación sin Fricción:** El checkout principal (`/checkout/[bookingId]`) ahora acepta un `?token=` temporal en la URL para auto-inyectar la sesión al saltar de la App Móvil (PWA) al navegador web, sin requerir re-autenticación.
+- **Botón "Pagar ahora" (PWA):** En pagos pendientes (`/mobile/pagos`), el CTA se reemplazó por un botón negro estilizado que envía a la pasarela externa de Stripe/PayPal en el navegador web con la sesión activa.
+- **Unificación de Checkout Tienda:** El carrito de compras (`/api/mobile/store/checkout`) ya no auto-paga las órdenes. Ahora crea una orden `pending` y una reserva espejo en `bookings` (`booking_type: 'store_order'`). Esto canaliza los productos del carrito por la misma pasarela financiera de los viajes (Stripe, Paypal, MercadoPago).
+- **Procesamiento Síncrono de Recompensas:** Se implementó el servicio `StoreOrderService` que es invocado por los webhooks y endpoints de captura (`stripe`, `paypal`, `mercadopago`, `manual`). Cuando un pago es aprobado, procesa la orden de tienda y abona automáticamente los puntos a la billetera digital y métricas de referidos.
+
 
 ### v2.426 - 21 de Julio de 2026 - 13:55 CST
 **🚀 Pestañas de Itinerario, Flujo de Compartir e Integración Offline PWA**

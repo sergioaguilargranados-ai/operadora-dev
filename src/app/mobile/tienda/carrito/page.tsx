@@ -32,14 +32,19 @@ export default function MobileCartPage() {
       })
 
       const data = await res.json()
-      if (data.success) {
-        toast({ title: "Pedido Confirmado", description: "Tu compra se ha procesado con éxito" })
+      if (data.success && data.booking_id) {
+        toast({ title: "Pedido Iniciado", description: "Redirigiendo a pasarela de pagos..." })
         clearCart()
+        
+        // Abrir navegador con token para pago
+        const token = localStorage.getItem('as_token') || localStorage.getItem('token') || ''
+        window.open(`/checkout/${data.booking_id}?token=${encodeURIComponent(token)}`, '_blank')
+        
         setTimeout(() => {
           router.push("/mobile/tienda")
-        }, 1500)
+        }, 500)
       } else {
-        toast({ title: "Error", description: data.error, variant: "destructive" })
+        toast({ title: "Error", description: data.error || 'Error al procesar', variant: "destructive" })
       }
     } catch (err) {
       console.error(err)
@@ -106,14 +111,14 @@ export default function MobileCartPage() {
           {/* Payment Form (Simulated Gateway) */}
           <form onSubmit={handleCheckout} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 mt-4">
             <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-[#0066FF]" /> Pasarela de Pruebas
+              <ShieldCheck className="w-5 h-5 text-[#0066FF]" /> Pago Seguro
             </h2>
             
             <div className="bg-blue-50 rounded-xl p-4 flex items-start gap-3 mb-6">
               <ShieldCheck className="w-5 h-5 text-[#0066FF] flex-shrink-0 mt-0.5" />
               <p className="text-xs text-blue-900 leading-relaxed">
-                Tus pagos están protegidos por encriptación de 256 bits. 
-                Los fondos se debitarán mediante nuestro simulador de pasarela de pruebas.
+                Serás redirigido a nuestra pasarela de pagos segura. 
+                Tus pagos están protegidos por encriptación de 256 bits.
               </p>
             </div>
 

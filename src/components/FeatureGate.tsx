@@ -1,5 +1,5 @@
 // FeatureGate.tsx - Componente para control de visibilidad de features
-// Build: 21 Jul 2026 - v2.426 - Sistema de Administración Granular
+// Build: 22 Jul 2026 - v2.427 - Sistema de Administración Granular
 
 'use client';
 

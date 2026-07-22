@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { queryOne, updateOne, query, transaction } from '@/lib/db'
 import { notificationService } from '@/services/NotificationService'
 import { ReferralService } from '@/services/ReferralService'
+import { StoreOrderService } from '@/services/StoreOrderService'
 
 export async function POST(request: NextRequest) {
   try {
@@ -81,13 +82,18 @@ export async function POST(request: NextRequest) {
       `, [newPaymentStatus, bookingId])
 
       // Referral Reward si se completó el pago
-      if (newPaymentStatus === 'paid' && booking.user_id && totalPrice > 0) {
-        // En background
-        ReferralService.processPurchaseReward(
-          bookingId, 
-          booking.user_id, 
-          totalPrice
-        ).catch(err => console.error('Error awarding referral points:', err));
+      if (newPaymentStatus === 'paid') {
+        // Procesar si es store_order
+        StoreOrderService.handleStoreOrderPayment(bookingId).catch(err => console.error(err));
+        
+        if (booking.user_id && totalPrice > 0) {
+          // En background
+          ReferralService.processPurchaseReward(
+            bookingId, 
+            booking.user_id, 
+            totalPrice
+          ).catch(err => console.error('Error awarding referral points:', err));
+        }
       }
     })
 

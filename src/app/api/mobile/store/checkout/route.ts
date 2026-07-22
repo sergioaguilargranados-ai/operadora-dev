@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       const orderRes = await client.query(
         `INSERT INTO store_orders (tenant_id, user_id, total_amount, status)
          VALUES ($1, $2, $3, $4) RETURNING id`,
-        [tenant_id, user_id, total_amount, 'paid'] // Simulando que el pago ya se procesó
+        [tenant_id, user_id, total_amount, 'pending']
       )
       
       const order_id = orderRes.rows[0].id
@@ -62,8 +62,34 @@ export async function POST(request: Request) {
         )
       }
 
+      // Create Booking to use standard payment gateway
+      const bookingRes = await client.query(
+        `INSERT INTO bookings (
+          tenant_id, 
+          user_id, 
+          booking_type, 
+          destination, 
+          booking_status, 
+          payment_status, 
+          total_price, 
+          currency,
+          special_requests
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+        [
+          tenant_id,
+          user_id,
+          'store_order',
+          'Compra en Tienda PWA',
+          'pending_confirmation',
+          'pending',
+          total_amount,
+          'MXN',
+          JSON.stringify({ store_order_id: order_id })
+        ]
+      )
+
       await client.query('COMMIT')
-      return NextResponse.json({ success: true, order_id })
+      return NextResponse.json({ success: true, order_id, booking_id: bookingRes.rows[0].id })
     } catch (err) {
       await client.query('ROLLBACK')
       throw err

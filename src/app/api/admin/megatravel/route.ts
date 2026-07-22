@@ -1,5 +1,5 @@
 // API Admin MegaTravel - Sincronización y gestión de paquetes
-// Build: 21 Jul 2026 - v2.426 - Sistema Híbrido MegaTravel
+// Build: 22 Jul 2026 - v2.427 - Sistema Híbrido MegaTravel
 
 import { NextRequest, NextResponse } from 'next/server';
 import { MegaTravelSyncService } from '@/services/MegaTravelSyncService';
