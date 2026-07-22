@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { 
   ChevronLeft, Bell, Calendar as CalendarIcon, ChevronRight, MapPin, Loader2, 
   Bookmark, CheckCircle2, Bed, Tag, Users, Plane, ClipboardList, Info, 
@@ -29,7 +29,9 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
   const [activeBooking, setActiveBooking] = useState<any>(null)
   const [profileDocs, setProfileDocs] = useState<any[]>([])
   const [isBookmarked, setIsBookmarked] = useState(false)
-  const [activeTab, setActiveTab] = useState<'resumen' | 'itinerario' | 'documentos'>('resumen')
+  const searchParams = useSearchParams()
+  const tabParam = searchParams?.get('tab') as 'resumen' | 'itinerario' | 'documentos' | null
+  const [activeTab, setActiveTab] = useState<'resumen' | 'itinerario' | 'documentos'>(tabParam || 'resumen')
 
   useEffect(() => {
     const fetchData = async () => {

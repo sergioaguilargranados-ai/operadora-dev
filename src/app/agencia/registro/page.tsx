@@ -1,6 +1,6 @@
 // Página pública: Solicitud de registro como agencia
 // /agencia/registro - Formulario de onboarding
-// Build: 22 Jul 2026 - v2.427
+// Build: 22 Jul 2026 - v2.428
 
 'use client'
 

@@ -1,13 +1,20 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 22 de Julio de 2026 - 01:06 CST  
-**Versión actual:** v2.427  
+**Última actualización:** 22 de Julio de 2026 - 08:21 CST  
+**Versión actual:** v2.428  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.428 - 22 de Julio de 2026 - 08:21 CST
+**Mejoras UI/UX en PWA Móvil: Perfil e Itinerario**
+- **Cambio de Contraseña:** Se creó la vista específica `/mobile/perfil/password` para actualizar la contraseña desde la app móvil, integrándola con el menú principal y el endpoint `/api/auth/change-password`.
+- **Edición de Documentos:** Se agregó un botón de edición (ícono de lápiz) en la lista de documentos del perfil (`/mobile/perfil`), permitiendo renombrarlos directamente mediante un nuevo método `PUT` en `/api/mobile/documents`.
+- **Acceso Directo a Itinerario Activo:** Se redirigió la opción "Itinerario" del menú hamburguesa hacia una nueva ruta intermedia (`/mobile/itinerario/active`) que calcula el viaje más próximo y redirige automáticamente al usuario a su detalle con la pestaña `?tab=itinerario` preseleccionada.
+
 
 ### v2.427 - 22 de Julio de 2026 - 01:06 CST
 **🛒 Pasarela de Pagos Unificada para Tienda PWA**

@@ -94,7 +94,7 @@ export default function MobileHomePage() {
       icon: <Briefcase className="w-6 h-6" strokeWidth={1.5} />,
       title: "Itinerario",
       desc: "Revisa tus itinerarios, vuelos y detalles de tu viaje.",
-      route: "/mobile/itinerario",
+      route: "/mobile/itinerario/active",
     },
     {
       icon: <CreditCard className="w-6 h-6" strokeWidth={1.5} />,
@@ -268,7 +268,7 @@ export default function MobileHomePage() {
                 { label: "Mapa", icon: <MapPin className="w-5 h-5 text-gray-800" strokeWidth={1.5} />, route: "/mobile/mapa" },
                 { label: "AS Rewards", icon: <Gift className="w-5 h-5 text-gray-800" strokeWidth={1.5} />, route: "/mobile/rewards" },
                 { label: "Pagos", icon: <CreditCard className="w-5 h-5 text-gray-800" strokeWidth={1.5} />, route: "/mobile/pagos" },
-                { label: "Itinerario", icon: <Calendar className="w-5 h-5 text-gray-800" strokeWidth={1.5} />, route: "/mobile/itinerario" },
+                { label: "Itinerario", icon: <Calendar className="w-5 h-5 text-gray-800" strokeWidth={1.5} />, route: "/mobile/itinerario/active" },
                 { label: "Tienda", icon: <ShoppingBag className="w-5 h-5 text-gray-800" strokeWidth={1.5} />, route: "/mobile/tienda" },
                 { label: "Creo tu grupo", icon: <Users className="w-5 h-5 text-gray-800" strokeWidth={1.5} />, route: "/mobile/viajes-grupales" },
                 { label: "¿Necesitas ayuda?", icon: <HelpCircle className="w-5 h-5 text-gray-800" strokeWidth={1.5} />, route: "/mobile/ayuda" },
@@ -278,7 +278,7 @@ export default function MobileHomePage() {
               title: "CUENTA",
               items: [
                 { label: "Idioma", icon: <Globe className="w-5 h-5 text-gray-800" strokeWidth={1.5} />, route: "/mobile/perfil" },
-                { label: "Cambiar contraseña", icon: <Lock className="w-5 h-5 text-gray-800" strokeWidth={1.5} />, route: "/mobile/perfil/editar" },
+                { label: "Cambiar contraseña", icon: <Lock className="w-5 h-5 text-gray-800" strokeWidth={1.5} />, route: "/mobile/perfil/password" },
               ]
             },
             {
