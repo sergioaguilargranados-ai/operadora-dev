@@ -698,39 +698,11 @@ export default function MobileRewardsPage() {
                     )}
                   </div>
                   
-                  <Button className="w-full bg-black text-white hover:bg-gray-800 rounded-xl font-bold h-12">
+                  <Button 
+                    onClick={() => router.push('/mobile/rewards/invitados')}
+                    className="w-full bg-black text-white hover:bg-gray-800 rounded-xl font-bold h-12"
+                  >
                     Ver todos
-                  </Button>
-                </div>
-
-                {/* Ranking AS */}
-                <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-                  <h3 className="text-xl font-serif font-bold text-gray-900 mb-6">Ranking AS</h3>
-                  
-                  <div className="space-y-4 mb-6">
-                    {loadingReferrals ? (
-                      <p className="text-sm text-gray-500">Cargando ranking...</p>
-                    ) : rankingData.length === 0 ? (
-                      <p className="text-sm text-gray-500">Aún no hay ranking disponible.</p>
-                    ) : (
-                      rankingData.map((rankUser, idx) => (
-                        <div key={idx} className="flex items-center gap-4">
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 ${idx === 0 ? 'bg-yellow-400 text-white shadow-sm' : idx === 1 ? 'bg-gray-300 text-gray-700 shadow-sm' : idx === 2 ? 'bg-amber-600 text-white shadow-sm' : 'bg-black text-white'}`}>
-                            {idx + 1}
-                          </div>
-                          <div className="flex-1">
-                            <span className="font-bold text-gray-900 text-sm">{rankUser.name}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-xs font-semibold text-black">{rankUser.referral_count} invitados</span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  
-                  <Button className="w-full bg-black text-white hover:bg-gray-800 rounded-xl font-bold h-12">
-                    Ver clasificación completa
                   </Button>
                 </div>
                 

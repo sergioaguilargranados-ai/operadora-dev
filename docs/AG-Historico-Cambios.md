@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 22 de Julio de 2026 - 17:58 CST  
-**Versión actual:** v2.429  
+**Última actualización:** 23 de Julio de 2026 - 12:12 CST  
+**Versión actual:** v2.430  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -9,7 +9,15 @@
 
 ## 📅 HISTORIAL DE CAMBIOS
 
-### v2.429 - 22 de Julio de 2026 - 17:58 CST
+### v2.430 - 23 de Julio de 2026 - 12:12 CST
+**Reestructuración de Referidos en PWA Móvil: Lista de Invitados y Eliminación de Ranking**
+- **Eliminación del Ranking AS:** Se quitó la tarjeta de "Ranking AS" de la pestaña de AS Rewards en `/mobile/rewards` para simplificar la interfaz.
+- **Navegación al Detalle de Invitados:** Se enlazó el botón "Ver todos" de la tarjeta "Invitados confirmados" hacia la nueva página móvil `/mobile/rewards/invitados`.
+- **Nueva Vista de Detalle (`/mobile/rewards/invitados`):**
+  - Implementación de la vista premium de invitados con buscador dinámico de nombres y filtro de estado.
+  - Se eliminó el botón de navegación `>` innecesario en cada fila.
+  - Se colocó un contador verde que muestra el número de invitados referidos a su vez por ellos (`sub_referrals_count`).
+- **Soporte en Backend API (`/api/mobile/referrals`):** Se modificó la consulta GET para calcular dinámicamente y con casting síncrono `sub_referrals_count` para cada referido del usuario mediante una subconsulta optimizada.
 **Hotfix: Sintaxis de Perfil, Referidos y Ciclo de Redirección**
 - **Bugfix en Registro de Referidos:** Se agregó lógica en `/api/auth/register` para que además de detectar códigos de Agentes, también vincule correctamente a los Usuarios normales en la tabla `user_referrals` y permita que el sistema AS Rewards asigne los puntos.
 - **Ciclo Infinito de Navegación PWA:** Se corrigió el redireccionamiento en `/mobile/itinerario/active`, usando `router.replace` en lugar de `router.push`, evitando que el historial atrape al usuario en un ciclo al intentar volver atrás.

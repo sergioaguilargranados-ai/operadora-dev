@@ -29,7 +29,10 @@ export async function GET(request: Request) {
 
     // 2. Get referred users count
     const referrals = await db.queryMany(`
-      SELECT ur.*, u.name as referred_name 
+      SELECT 
+        ur.*, 
+        u.name as referred_name,
+        (SELECT COUNT(*)::int FROM user_referrals ur2 WHERE ur2.referrer_id = ur.referred_id) as sub_referrals_count
       FROM user_referrals ur
       JOIN users u ON ur.referred_id = u.id
       WHERE ur.referrer_id = $1 

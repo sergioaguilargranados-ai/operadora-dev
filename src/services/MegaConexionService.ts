@@ -1,5 +1,5 @@
 // MegaConexionService.ts - Servicio para extraer datos de Mega Conexión
-// Build: 22 Jul 2026 - v2.429 - Compatibilidad Vercel con puppeteer-core + @sparticuz/chromium
+// Build: 23 Jul 2026 - v2.430 - Compatibilidad Vercel con puppeteer-core + @sparticuz/chromium
 //
 // Este servicio complementa MegaTravelScrapingService extrayendo datos que
 // están más completos en las URLs de Mega Conexión (vi.php)
