@@ -24,6 +24,9 @@ const nextConfig = {
     domains: [
       "source.unsplash.com",
       "images.unsplash.com",
+      "plus.unsplash.com",
+      "images.pexels.com",
+      "upload.wikimedia.org",
       "ext.same-assets.com",
       "ugc.same-assets.com",
     ],
@@ -36,6 +39,21 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "plus.unsplash.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "upload.wikimedia.org",
         pathname: "/**",
       },
       {
