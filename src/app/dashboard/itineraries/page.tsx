@@ -510,8 +510,8 @@ export default function ItinerariesPage() {
         
         // Limpiar el disclaimer/resumen inicial de MegaTravel
         if (cleanItinerary.length > 1) {
-          const firstTitle = (cleanItinerary[0].title || '').toUpperCase();
-          const secondTitle = (cleanItinerary[1].title || '').toUpperCase();
+          const firstTitle = (cleanItinerary[0]?.title || '').toUpperCase();
+          const secondTitle = (cleanItinerary[1]?.title || '').toUpperCase();
           
           if (
             (firstTitle.includes('DÍAS') && firstTitle.includes('NOCHES')) ||
@@ -555,9 +555,9 @@ export default function ItinerariesPage() {
       }
 
       alert(`Sincronización exitosa desde la Base de Datos. Se cargaron ${pkg.itinerary?.length || 0} días del tour: ${pkg.name}`)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error syncing tour:', error)
-      alert('Hubo un error de conexión al intentar sincronizar el tour.')
+      alert(`Hubo un error al intentar sincronizar el tour: ${error.message}`)
     } finally {
       setLoading(false)
     }
