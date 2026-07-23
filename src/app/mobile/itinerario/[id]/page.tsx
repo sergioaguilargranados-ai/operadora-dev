@@ -546,7 +546,14 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
             {/* Ruta del Viaje (Mapa Minimalista) */}
             {days.length > 0 && (
               <ItineraryRouteMap 
-                cities={days.map((d: any) => d.places?.[0]?.name || d.title).filter(Boolean)} 
+                cities={(() => {
+                  const mappedCities = days.map((d: any) => {
+                    const placeName = d.places?.[0]?.name;
+                    return (placeName && placeName !== 'Ubicación') ? placeName : null;
+                  }).filter(Boolean);
+                  
+                  return mappedCities.length > 0 ? mappedCities : (itinerary?.destination ? [itinerary.destination] : []);
+                })()} 
               />
             )}
 
