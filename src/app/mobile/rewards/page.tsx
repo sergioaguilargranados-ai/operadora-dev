@@ -742,7 +742,7 @@ export default function MobileRewardsPage() {
                     <h3 className="text-xl font-serif font-bold text-white mb-2 max-w-[200px] leading-tight">Tu próximo viaje podría ser gratis</h3>
                     <p className="text-[10px] text-gray-200 mb-4 max-w-[220px]">Invita viajeros, acumula beneficios y alcanza el nivel Leyenda AS para obtener un viaje sin costo.</p>
                     <Button 
-                      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                      onClick={() => router.push('/mobile/viajes-grupales')}
                       className="bg-white text-black hover:bg-gray-100 rounded-xl font-bold text-xs h-10 px-6 w-fit"
                     >
                       Invitar amigos

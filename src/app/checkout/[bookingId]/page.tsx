@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { PageHeader } from '@/components/PageHeader'
 import { useToast } from '@/hooks/use-toast'
 import StripeCheckoutForm from '@/components/StripeCheckoutForm'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Inicializar Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '')
@@ -37,6 +38,9 @@ export default function CheckoutPage({
   const bookingId = parseInt(resolvedParams.bookingId)
   const router = useRouter()
   const { toast } = useToast()
+  const { user } = useAuth()
+  
+  const isAgentOrHigher = user?.role && ['agente', 'admin', 'superadmin', 'agency_admin', 'master', 'agencia'].includes(user.role.toLowerCase())
 
   const [booking, setBooking] = useState<Booking | null>(null)
   const [loading, setLoading] = useState(true)
@@ -431,16 +435,18 @@ export default function CheckoutPage({
                     </svg>
                     <span className="text-xs sm:text-sm text-center">Mercado Pago</span>
                   </Button>
-                  <Button
-                    variant={paymentMethod === 'manual' ? 'default' : 'outline'}
-                    onClick={() => setPaymentMethod('manual')}
-                    className="flex flex-col items-center py-4 h-auto px-1"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    <span className="text-xs sm:text-sm text-center">Pago Manual</span>
-                  </Button>
+                  {isAgentOrHigher && (
+                    <Button
+                      variant={paymentMethod === 'manual' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('manual')}
+                      className="flex flex-col items-center py-4 h-auto px-1"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      <span className="text-xs sm:text-sm text-center">Pago Manual</span>
+                    </Button>
+                  )}
                 </div>
 
                 <Separator className="my-6" />

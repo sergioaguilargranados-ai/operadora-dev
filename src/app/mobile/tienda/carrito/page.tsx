@@ -143,7 +143,7 @@ export default function MobileCartPage() {
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 z-20">
           <Button 
             onClick={handleCheckout}
-            disabled={loading || !cardNumber}
+            disabled={loading}
             className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg hover:bg-gray-900 shadow-xl shadow-black/10"
           >
             {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (

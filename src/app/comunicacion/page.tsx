@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { PageHeader } from "@/components/PageHeader"
+import { useAuth } from "@/contexts/AuthContext"
 import {
   MessageCircle, Send, Search, Filter, Archive, AlertCircle,
   Clock, CheckCircle2, Circle, Paperclip, MoreVertical, X, Plus,
@@ -39,10 +40,12 @@ export default function ComunicacionPage() {
   const [newThreadIsAlert, setNewThreadIsAlert] = useState(false)
   const [isCreatingThread, setIsCreatingThread] = useState(false)
 
-  // Centro de Comunicación — vista del equipo interno (agente)
-  const currentUserId = 1
-  const userType = 'agent' as 'client' | 'agent'
-  const tenantId = 1
+  // Centro de Comunicación
+  const { user } = useAuth()
+  const currentUserId = user?.id || 1
+  const isAgentOrHigher = user?.role && ['agente', 'admin', 'superadmin', 'agency_admin', 'master', 'agencia'].includes(user.role.toLowerCase())
+  const userType = isAgentOrHigher ? 'agent' : 'client'
+  const tenantId = user?.tenant_id || 1
 
   useEffect(() => {
     loadThreads()
@@ -68,6 +71,7 @@ export default function ComunicacionPage() {
       // Admin: obtener TODOS los threads sin restricción de usuario
       const params = new URLSearchParams()
       if (filter !== 'all') params.append('status', filter)
+      if (userType === 'client') params.append('client_id', currentUserId.toString())
 
       const res = await fetch(`/api/communication/threads/all?${params}`)
       const data = await res.json()
@@ -334,14 +338,15 @@ export default function ComunicacionPage() {
                     className="pl-10"
                   />
                 </div>
-                <Dialog open={isNewMessageModalOpen} onOpenChange={setIsNewMessageModalOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="default" className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white gap-2">
-                      <Plus className="w-4 h-4" />
-                      <span className="hidden sm:inline">Nuevo Mensaje</span>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
+                {userType === 'agent' && (
+                  <Dialog open={isNewMessageModalOpen} onOpenChange={setIsNewMessageModalOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="default" className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                        <Plus className="w-4 h-4" />
+                        <span className="hidden sm:inline">Nuevo Mensaje</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Nuevo Mensaje</DialogTitle>
                     </DialogHeader>
@@ -400,6 +405,7 @@ export default function ComunicacionPage() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+                )}
               </div>
 
               <Tabs value={filter} onValueChange={setFilter}>
