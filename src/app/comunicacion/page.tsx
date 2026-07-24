@@ -664,7 +664,7 @@ export default function ComunicacionPage() {
 
       {/* Footer con versión */}
       <div className="text-center py-3 text-xs text-muted-foreground border-t">
-        AS Operadora · Centro de Comunicación · v2.430b · 2026-07-23 22:41 CST
+        AS Operadora · Centro de Comunicación · v2.431 · 2026-07-23 23:20 CST
       </div>
     </div>
   )
