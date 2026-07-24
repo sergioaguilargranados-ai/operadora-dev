@@ -1,13 +1,18 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 23 de Julio de 2026 - 12:12 CST  
-**Versión actual:** v2.430  
+**Última actualización:** 23 de Julio de 2026 - 17:15 CST  
+**Versión actual:** v2.430b  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.430b - 23 de Julio de 2026 - 17:15 CST
+**Ajuste de UI en Invitados PWA: Eliminación de Filtros**
+- **Eliminación del Dropdown de Filtros:** Se quitó la caja de selección de estado ("Todos", "Registrados", "Confirmados") de la barra de búsqueda en la pantalla de invitados confirmados (`/mobile/rewards/invitados`) para simplificar la interfaz.
+- **Buscador de Ancho Completo:** La barra de búsqueda ahora abarca el ancho completo para una mejor visualización en pantallas móviles.
 
 ### v2.430 - 23 de Julio de 2026 - 12:12 CST
 **Reestructuración de Referidos en PWA Móvil: Lista de Invitados y Eliminación de Ranking**

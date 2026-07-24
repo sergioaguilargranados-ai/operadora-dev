@@ -15,7 +15,6 @@ export default function ConfirmedGuestsPage() {
   const [referrals, setReferrals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [filterStatus, setFilterStatus] = useState("all") // all, registered, purchased
 
   useEffect(() => {
     if (!user) return
@@ -48,14 +47,11 @@ export default function ConfirmedGuestsPage() {
     }
   }
 
-  // Filtrar invitados por búsqueda y status
+  // Filtrar invitados por búsqueda
   const filteredGuests = referrals.filter((guest) => {
-    const matchesSearch = (guest.referred_name || "")
+    return (guest.referred_name || "")
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
-    
-    if (filterStatus === "all") return matchesSearch
-    return matchesSearch && guest.status === filterStatus
   })
 
   return (
@@ -91,10 +87,10 @@ export default function ConfirmedGuestsPage() {
 
       {/* Main Content Area */}
       <div className="bg-white rounded-t-3xl -mt-6 relative z-30 flex-1 shadow-sm border-t border-gray-100 flex flex-col">
-        {/* Search & Filter Controls */}
-        <div className="p-5 flex gap-3 items-center border-b border-gray-50 flex-shrink-0">
+        {/* Search Control */}
+        <div className="p-5 border-b border-gray-50 flex-shrink-0">
           {/* Search bar */}
-          <div className="relative flex-1">
+          <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -103,24 +99,6 @@ export default function ConfirmedGuestsPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 hover:bg-gray-100/70 focus:bg-white text-sm text-black placeholder-gray-400 border border-gray-100 rounded-xl outline-none focus:ring-1 focus:ring-black transition-all"
             />
-          </div>
-
-          {/* Filter dropdown */}
-          <div className="relative">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="appearance-none bg-gray-50 hover:bg-gray-100/70 border border-gray-100 text-sm text-black font-semibold py-2.5 pl-4 pr-9 rounded-xl outline-none focus:ring-1 focus:ring-black transition-all cursor-pointer"
-            >
-              <option value="all">Todos</option>
-              <option value="registered">Registrados</option>
-              <option value="purchased">Confirmados</option>
-            </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
           </div>
         </div>
 
