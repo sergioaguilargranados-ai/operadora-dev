@@ -1337,7 +1337,7 @@ export default function AdminContentPage() {
                             )}
                           </td>
                           <td className="px-4 py-3 text-gray-500">
-                            {log.duration_seconds ? \`\${log.duration_seconds}s\` : '-'}
+                            {log.duration_seconds ? `${log.duration_seconds}s` : '-'}
                           </td>
                           <td className="px-4 py-3 text-gray-700 truncate max-w-xs" title={log.message}>
                             {log.message || '-'}
