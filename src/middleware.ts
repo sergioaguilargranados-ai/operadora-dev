@@ -145,6 +145,15 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/mobile', request.url))
     }
     
+    // Evitar bucle infinito: Si llegaron aquí porque se les denegó el acceso (rol inválido/corrupto),
+    // borramos la sesión corrupta y los dejamos en la landing page.
+    if (url.searchParams.get('access_denied')) {
+      const response = NextResponse.next()
+      response.cookies.delete('as_token')
+      response.cookies.delete('as_user')
+      return response
+    }
+
     const userPayload = extractUserFromToken(request)
     if (userPayload) {
       return NextResponse.redirect(new URL('/portal', request.url))
