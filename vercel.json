@@ -12,15 +12,15 @@
         },
         {
             "path": "/api/cron/megatravel-sync",
-            "schedule": "0 * * * *"
+            "schedule": "0 2 * * *"
         },
         {
             "path": "/api/cron/update-rates",
-            "schedule": "0 * * * *"
+            "schedule": "0 3 * * *"
         },
         {
             "path": "/api/cron/update-weather",
-            "schedule": "0 * * * *"
+            "schedule": "0 4 * * *"
         }
     ]
 }
