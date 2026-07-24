@@ -1,5 +1,5 @@
 // API de Viajes Grupales (MegaTravel) - Endpoint público
-// Build: 24 Jul 2026 - v2.431 - Sistema Híbrido MegaTravel
+// Build: 24 Jul 2026 - v2.432 - Sistema Híbrido MegaTravel
 
 import { NextRequest, NextResponse } from 'next/server';
 import { MegaTravelSyncService } from '@/services/MegaTravelSyncService';
