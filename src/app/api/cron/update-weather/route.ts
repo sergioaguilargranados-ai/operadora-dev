@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       SELECT distinct destination as region
       FROM itineraries 
       WHERE start_date >= CURRENT_DATE 
-      AND start_date <= CURRENT_DATE + INTERVAL '15 days'
+      AND start_date <= CURRENT_DATE + INTERVAL '30 days'
     `)
     
     // As a fallback, hardcode some common ones if there are no upcoming trips

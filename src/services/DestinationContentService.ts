@@ -155,14 +155,16 @@ export class DestinationContentService {
 
       // Enriquecer con imágenes reales de Pexels/Unsplash
       const foodsWithImages = await DestinationContentService.fetchRealImages(
-        generated.foods.map(f => ({ name: f.name, image_search: f.image_search }))
+        generated.foods.map(f => ({ name: f.name, image_search: f.image_search })),
+        false, city, country
       );
       const placesWithImages = await DestinationContentService.fetchRealImages(
         generated.places.map(p => ({ name: p.name, image_search: p.image_search })),
-        true
+        true, city, country
       );
       const souvenirsWithImages = await DestinationContentService.fetchRealImages(
-        generated.souvenirs.map(s => ({ name: s.name, image_search: s.image_search }))
+        generated.souvenirs.map(s => ({ name: s.name, image_search: s.image_search })),
+        false, city, country
       );
 
       // Obtener imagen hero del destino
@@ -355,7 +357,9 @@ REQUISITOS:
   // ────────────────────────────────────────────────────────
   static async fetchRealImages(
     items: ImageSearchItem[],
-    fetchGallery: boolean = false
+    fetchGallery: boolean = false,
+    cityFallback: string = '',
+    countryFallback: string = ''
   ): Promise<Array<{ name: string; img: string; gallery?: string[] }>> {
     const pexelsKey = process.env.PEXELS_API_KEY;
     const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
@@ -365,59 +369,69 @@ REQUISITOS:
 
     for (const item of items) {
       try {
-        const searchQuery = encodeURIComponent(item.image_search);
-        let photoUrls: string[] = [];
+        // Fallbacks: If specific search fails, try searching just the city
+        const fallbackQueries = [
+          searchQuery,
+          encodeURIComponent(`${cityFallback} ${countryFallback} ${item.name}`.trim()),
+          encodeURIComponent(`${cityFallback} ${countryFallback} tourism`.trim())
+        ];
 
-        // 1. Intentar con Pexels primero
-        if (pexelsKey && photoUrls.length === 0) {
-          const response = await fetch(
-            `https://api.pexels.com/v1/search?query=${searchQuery}&per_page=${perPage}`,
-            { headers: { Authorization: pexelsKey } }
-          );
-          if (response.ok) {
-            const data = await response.json();
-            if (data?.photos?.length > 0) {
-              photoUrls = data.photos.map((p: any) => p.src?.large || p.src?.medium).filter(Boolean);
+        for (const query of fallbackQueries) {
+          if (photoUrls.length > 0 || !query) break;
+
+          // 1. Pexels
+          if (pexelsKey && photoUrls.length === 0) {
+            const response = await fetch(
+              `https://api.pexels.com/v1/search?query=${query}&per_page=${perPage}`,
+              { headers: { Authorization: pexelsKey } }
+            );
+            if (response.ok) {
+              const data = await response.json();
+              if (data?.photos?.length > 0) {
+                photoUrls = data.photos.map((p: any) => p.src?.large || p.src?.medium).filter(Boolean);
+              }
             }
           }
-        }
 
-        // 2. Intentar con Unsplash si no hay respuesta de Pexels
-        if (unsplashKey && photoUrls.length === 0) {
-          const response = await fetch(
-            `https://api.unsplash.com/search/photos?query=${searchQuery}&per_page=${perPage}&client_id=${unsplashKey}`
-          );
-          if (response.ok) {
-            const data = await response.json();
-            if (data?.results?.length > 0) {
-              photoUrls = data.results.map((r: any) => r.urls?.regular || r.urls?.small).filter(Boolean);
+          // 2. Unsplash
+          if (unsplashKey && photoUrls.length === 0) {
+            const response = await fetch(
+              `https://api.unsplash.com/search/photos?query=${query}&per_page=${perPage}&client_id=${unsplashKey}`
+            );
+            if (response.ok) {
+              const data = await response.json();
+              if (data?.results?.length > 0) {
+                photoUrls = data.results.map((r: any) => r.urls?.regular || r.urls?.small).filter(Boolean);
+              }
             }
           }
-        }
 
-        // 3. Fallback a Wikipedia (¡Sin límites de API!)
-        if (photoUrls.length === 0) {
-          try {
-            const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${searchQuery}&utf8=&format=json`);
-            if (searchRes.ok) {
-              const searchData = await searchRes.json();
-              if (searchData?.query?.search?.length > 0) {
-                const title = searchData.query.search[0].title;
-                const imgRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles=${encodeURIComponent(title)}`);
-                if (imgRes.ok) {
-                  const imgData = await imgRes.json();
-                  const pages = imgData?.query?.pages;
-                  if (pages) {
-                    const pageId = Object.keys(pages)[0];
-                    if (pages[pageId]?.original?.source) {
-                      photoUrls = [pages[pageId].original.source];
+          // 3. Wikipedia
+          if (photoUrls.length === 0) {
+            try {
+              const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&utf8=&format=json`);
+              if (searchRes.ok) {
+                const searchData = await searchRes.json();
+                if (searchData?.query?.search?.length > 0) {
+                  const title = searchData.query.search[0].title;
+                  const imgRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles=${encodeURIComponent(title)}`);
+                  if (imgRes.ok) {
+                    const imgData = await imgRes.json();
+                    const pages = imgData?.query?.pages;
+                    if (pages) {
+                      const pageId = Object.keys(pages)[0];
+                      const url = pages[pageId]?.original?.source;
+                      // Filter out svg/tif which don't render well
+                      if (url && !url.endsWith('.svg') && !url.endsWith('.tif') && !url.endsWith('.pdf')) {
+                        photoUrls = [url];
+                      }
                     }
                   }
                 }
               }
+            } catch (e) {
+              console.error('Wikipedia fallback error:', e);
             }
-          } catch (e) {
-            console.error('Wikipedia fallback error:', e);
           }
         }
 

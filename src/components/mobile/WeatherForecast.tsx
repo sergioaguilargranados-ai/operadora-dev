@@ -121,6 +121,21 @@ export function WeatherForecast({ city, date }: WeatherForecastProps) {
   }
 
   if (!data || !data.data) {
+    const targetDate = new Date(date);
+    const today = new Date();
+    const diffDays = Math.ceil((targetDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+    
+    if (diffDays > 14) {
+      return (
+        <div className="bg-[#FDECDA] p-4 rounded-3xl border border-orange-100 shadow-sm flex flex-col items-center justify-center min-h-[150px] text-center">
+          <Umbrella className="w-8 h-8 text-orange-300 mb-2 opacity-50" />
+          <p className="text-sm font-bold text-[#4A3B2C]">Clima aún no disponible</p>
+          <p className="text-[10px] text-[#8A7B6C] mt-1 px-2">
+            El pronóstico para {city} se activará automáticamente 15 días antes de tu llegada.
+          </p>
+        </div>
+      )
+    }
     return null
   }
 

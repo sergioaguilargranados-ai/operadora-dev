@@ -4,27 +4,20 @@ import { DestinationContentService } from '@/services/DestinationContentService'
 
 export async function GET(request: NextRequest) {
   try {
-    const result = await pool.query(`SELECT id, title FROM itineraries WHERE title ILIKE '%gran tour de europa%'`);
-    
-    if (result.rows.length === 0) {
-      return NextResponse.json({ success: false, error: 'No se encontró el itinerario Gran Tour de Europa.' }, { status: 404 });
-    }
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
 
-    const itinerary = result.rows[0];
-    
-    // Obtener destinos únicos
-    const plan = await DestinationContentService.getEnrichmentPlan(itinerary.id);
-    const cities = plan.map((p: any) => p.city).join(', ');
+    let childArgs = ['tsx', 'scripts/regenerate_tour_data.ts'];
+    let message = 'Regeneración iniciada en lote (últimos 5 modificados) en segundo plano.';
 
-    // Borrar de cache
-    for (const dest of plan) {
-      const key = DestinationContentService.generateDestinationKey(dest.city, dest.country);
-      await DestinationContentService.deleteContent(key);
+    if (id) {
+      childArgs.push(id.toString());
+      message = `Regeneración iniciada en segundo plano para el itinerario ID ${id}. Esto tomará varios minutos.`;
     }
 
     // Enriquecer (se ejecuta en un proceso de Node.js independiente para garantizar que la respuesta HTTP termine inmediatamente)
     const { spawn } = require('child_process');
-    const child = spawn('npx', ['tsx', 'scripts/regenerate_tour_data.ts', itinerary.id.toString()], {
+    const child = spawn('npx', childArgs, {
       detached: true,
       stdio: 'ignore',
       cwd: process.cwd()
@@ -33,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      message: `Regeneración iniciada en segundo plano. Esto tomará varios minutos. Destinos: ${cities}`
+      message: message
     });
 
   } catch (error: any) {

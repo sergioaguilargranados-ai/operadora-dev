@@ -1,5 +1,5 @@
 // Catálogo de Tours y Viajes Grupales
-// Build: 23 Jul 2026 - v2.431 - Fix filtro regiones dinámicas desde DB
+// Build: 24 Jul 2026 - v2.431 - Fix filtro regiones dinámicas desde DB
 
 'use client'
 

@@ -1252,7 +1252,7 @@ export default function AdminContentPage() {
 
                 <CronProcessRunner 
                   title="Pronóstico del Clima (Próximos Viajes)"
-                  description="Revisa los itinerarios de los próximos 15 días y descarga el clima desde OpenWeatherMap."
+                  description="Revisa los itinerarios de los próximos 30 días y descarga el clima desde OpenWeatherMap."
                   endpoint="/api/cron/update-weather"
                   icon={<CloudRain className="w-5 h-5 text-blue-500" />}
                   cronKey="update_weather"
