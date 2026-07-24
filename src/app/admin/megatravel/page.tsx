@@ -331,7 +331,7 @@ export default function MegaTravelAdminPage() {
             <footer className="bg-white border-t border-gray-200 mt-12 py-6">
                 <div className="container mx-auto px-4 text-center text-sm text-gray-600">
                     <p>© 2026 AS Operadora - Panel de Administración MegaTravel</p>
-                    <p className="text-xs mt-1 opacity-50">v2.432 | 24 Jul 2026 02:03</p>
+                    <p className="text-xs mt-1 opacity-50">v2.432 | 24 Jul 2026 02:11</p>
                 </div>
             </footer>
         </div>

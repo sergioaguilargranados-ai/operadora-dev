@@ -28,6 +28,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       if (result.rows.length > 0) itinerary = result.rows[0]
     }
 
+    // 3. Fallback: try by title or destination (for manually created trips without tour_id)
+    if (!itinerary && isNaN(Number(idOrTourId))) {
+      const searchPattern = `%${idOrTourId}%`
+      const result = await dbQuery('SELECT * FROM itineraries WHERE title ILIKE $1 OR destination ILIKE $1 ORDER BY id DESC LIMIT 1', [searchPattern])
+      if (result.rows.length > 0) itinerary = result.rows[0]
+    }
+
     if (!itinerary) {
       return NextResponse.json({ success: false, error: 'Itinerario no encontrado' }, { status: 404 })
     }
