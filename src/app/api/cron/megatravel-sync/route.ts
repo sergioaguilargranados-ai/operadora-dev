@@ -15,6 +15,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MegaTravelScrapingService } from '@/services/MegaTravelScrapingService';
 import { pool } from '@/lib/db';
+import { shouldRunCron, startCronLog, finishCronLog } from '@/lib/cronHelper';
 
 export const maxDuration = 300; // 5 minutos max por invocación
 export const dynamic = 'force-dynamic';
@@ -24,6 +25,7 @@ const PAUSE_BETWEEN_TOURS_MS = 2000; // 2 segundos entre tours
 
 export async function GET(request: NextRequest) {
     const startTime = Date.now();
+    let logId: number | null = null;
 
     try {
         // ========== AUTENTICACIÓN ==========
@@ -37,6 +39,14 @@ export async function GET(request: NextRequest) {
             }, { status: 401 });
         }
 
+        const searchParams = request.nextUrl?.searchParams || new URL(request.url).searchParams;
+        const force = searchParams.get('force') === 'true';
+
+        if (!(await shouldRunCron('megatravel_sync', force))) {
+            return NextResponse.json({ success: true, message: 'Skipped by schedule' });
+        }
+
+        logId = await startCronLog('megatravel_sync');
         console.log('🌙 [CRON] Iniciando sincronización nocturna de MegaTravel...');
 
         // ========== OBTENER TOURS PENDIENTES ==========
@@ -174,9 +184,12 @@ export async function GET(request: NextRequest) {
         `);
         const remaining = parseInt(remainingResult.rows[0]?.remaining || '0');
 
+        const message = `Sincronización completada: ${successCount}/${tours.length} exitosos. Quedan ${remaining} pendientes.`;
+        await finishCronLog(logId, 'success', message, { processed: tours.length, success: successCount, error: errorCount, remaining });
+
         return NextResponse.json({
             success: true,
-            message: `Sincronización cron completada`,
+            message: message,
             syncId,
             processed: tours.length,
             success_count: successCount,
@@ -187,9 +200,11 @@ export async function GET(request: NextRequest) {
             timestamp: new Date().toISOString()
         });
 
-    } catch (error) {
+    } catch (error: any) {
         const duration = Date.now() - startTime;
         console.error('❌ [CRON] Error fatal en sincronización:', error);
+        
+        await finishCronLog(logId, 'error', error.message || 'Error desconocido');
 
         return NextResponse.json({
             success: false,

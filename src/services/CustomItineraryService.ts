@@ -82,9 +82,12 @@ export class CustomItineraryService {
         }
       } else {
         // Intentar rescatar total_days previo si ya existía el itinerario (para no sobreescribir con 5 por error)
-        const prevRes = await client.query('SELECT total_days FROM custom_itineraries WHERE booking_id = $1', [bookingId]);
-        if (prevRes.rows.length > 0 && prevRes.rows[0].total_days) {
-          numDays = prevRes.rows[0].total_days;
+        const prevRes = await client.query('SELECT days FROM itineraries WHERE booking_id = $1', [bookingId]);
+        if (prevRes.rows.length > 0 && prevRes.rows[0].days) {
+          const daysArr = typeof prevRes.rows[0].days === 'string' ? JSON.parse(prevRes.rows[0].days) : prevRes.rows[0].days;
+          if (Array.isArray(daysArr) && daysArr.length > 0) {
+            numDays = daysArr.length;
+          }
         } else if (details.pasajeros === 1 && destination === 'Europa') { // Parche temporal para el tour Descubriendo Europa si no había previo
           numDays = 19;
         }
@@ -189,30 +192,24 @@ Asegúrate de que las palabras clave de la imagen estén en inglés para obtener
       await client.query('BEGIN');
 
       // Borrar si existía uno previo
-      await client.query('DELETE FROM custom_itineraries WHERE booking_id = $1', [bookingId]);
+      await client.query('DELETE FROM itineraries WHERE booking_id = $1', [bookingId]);
 
       // Guardar
       const insertItin = await client.query(`
-        INSERT INTO custom_itineraries (booking_id, tenant_id, title, description, total_days, destination)
-        VALUES ($1, $2, $3, $4, $5, $6) RETURNING id
-      `, [bookingId, booking.tenant_id, parsed.title, parsed.description, parsed.total_days, destination]);
+        INSERT INTO itineraries (booking_id, user_id, title, description, destination, start_date, end_date, days)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
+      `, [
+        bookingId, 
+        booking.user_id, 
+        parsed.title, 
+        parsed.description, 
+        destination, 
+        startDateStr || null, 
+        endDateStr || null, 
+        JSON.stringify(parsed.days)
+      ]);
       
       const itineraryId = insertItin.rows[0].id;
-
-      for (const day of parsed.days) {
-        await client.query(`
-          INSERT INTO custom_itinerary_days (
-            itinerary_id, day_number, title, description, meals, hotel, city, activities, highlights, optional_activities, foods, places, souvenirs, phrases, practical_info
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-        `, [
-          itineraryId, day.day_number, day.title, day.description, 
-          day.meals || '', day.hotel || '', day.city || destination,
-          day.activities || [], day.highlights || [], day.optional_activities || [],
-          JSON.stringify(day.foods || []), JSON.stringify(day.places || []), 
-          JSON.stringify(day.souvenirs || []), JSON.stringify(day.phrases || []), 
-          JSON.stringify(day.practical_info || {})
-        ]);
-      }
 
       await client.query('COMMIT');
       return true;

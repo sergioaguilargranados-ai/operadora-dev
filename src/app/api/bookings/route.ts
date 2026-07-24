@@ -274,9 +274,9 @@ export async function POST(request: NextRequest) {
 
     // DISPARAR GENERACIÓN DE ITINERARIO (ASÍNCRONO)
     // Para no bloquear la respuesta, importamos y lanzamos la promesa al aire
-    import('@/services/CustomItineraryService').then(({ CustomItineraryService }) => {
-      CustomItineraryService.generateItineraryForBooking(booking.id).catch(err => {
-        console.error(`Error background generando itinerario IA para reserva ${booking.id}:`, err);
+    import('@/services/TripWorkflowService').then(({ TripWorkflowService }) => {
+      TripWorkflowService.executePostBookingWorkflow(booking.id).catch(err => {
+        console.error(`Error background generando itinerario para reserva ${booking.id}:`, err);
       });
     });
 
