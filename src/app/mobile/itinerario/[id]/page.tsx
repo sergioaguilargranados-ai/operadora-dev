@@ -56,7 +56,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
           // Reparar si el Día 1 guardado es en realidad la descripción de MegaTravel
           if (dbItinerary.days && dbItinerary.days.length > 0) {
             const first = dbItinerary.days[0]
-            const second = dbItinerary.days[1]
+            const second = dbItinerary.days.length > 1 ? dbItinerary.days[1] : null
             const fTitle = (first.title || '').toUpperCase()
             const sTitle = (second?.title || '').toUpperCase()
             
@@ -68,7 +68,9 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
               if (!dbItinerary.description) {
                 dbItinerary.description = first.title + (first.description ? " " + first.description : "")
               }
-              dbItinerary.days.shift()
+              if (dbItinerary.days.length > 1) {
+                dbItinerary.days.shift()
+              }
             }
           }
           setItinerary(dbItinerary)
@@ -90,7 +92,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
             let pkgDesc = pkg.description || ''
             if (generatedDays.length > 0) {
               const first = generatedDays[0]
-              const second = generatedDays[1]
+              const second = generatedDays.length > 1 ? generatedDays[1] : null
               const fTitle = (first.title || '').toUpperCase()
               const sTitle = (second?.title || '').toUpperCase()
               
@@ -102,7 +104,9 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
                 if (!pkgDesc) {
                   pkgDesc = first.title + (first.description ? " " + first.description : "")
                 }
-                generatedDays.shift()
+                if (generatedDays.length > 1) {
+                  generatedDays.shift()
+                }
               }
             }
 
