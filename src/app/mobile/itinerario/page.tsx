@@ -44,7 +44,8 @@ export default function MobileTripsListPage() {
           bookingsList.forEach((b: any) => {
             try {
               const details = typeof b.special_requests === 'string' ? JSON.parse(b.special_requests) : (b.special_requests || {})
-              const tripId = details.tour_id || b.id.toString()
+              const tripName = b.service_name || details.tour_name || details.destination
+              const tripId = details.tour_id || tripName || b.id.toString()
               
               if (!userToursMap.has(tripId)) {
                 
