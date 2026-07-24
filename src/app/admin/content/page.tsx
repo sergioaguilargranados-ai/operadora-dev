@@ -19,7 +19,7 @@ import { DestinationContentManager } from "@/components/admin/DestinationContent
 import {
   Plus, Edit, Trash2, DollarSign, Calendar, Plane, Hotel, Package,
   Home, Globe, CheckCircle2, AlertCircle, X, RefreshCw, Smartphone,
-  Image as ImageIcon, Search, Eye, Save, ExternalLink, ChevronDown, ChevronUp, AlertTriangle, Star, MapPin, Loader2, ShoppingBag, Settings, CloudRain
+  Image as ImageIcon, Search, Eye, Save, ExternalLink, ChevronDown, ChevronUp, AlertTriangle, Star, MapPin, Loader2, ShoppingBag, Settings, CloudRain, Sparkles
 } from "lucide-react"
 import { CronProcessRunner } from "@/components/admin/CronProcessRunner"
 
@@ -60,6 +60,10 @@ export default function AdminContentPage() {
     isSyncing: false, progress: 0, currentBatch: 0, totalBatches: 0, logs: []
   })
 
+  // Cron Settings state
+  const [cronSettings, setCronSettings] = useState<any[]>([])
+  const [cronLogs, setCronLogs] = useState<any[]>([])
+
   // Airlines Catalog state
   const [airlinesList, setAirlinesList] = useState<any[]>([])
   const [airlinesLoading, setAirlinesLoading] = useState(false)
@@ -76,29 +80,60 @@ export default function AdminContentPage() {
 
   const loadAllContent = async () => {
     try {
-      const [heroRes, promosRes, flightsRes, packagesRes] = await Promise.all([
+      const [heroRes, promosRes, flightsRes, packagesRes, cronsRes, logsRes] = await Promise.all([
         fetch('/api/homepage/hero'),
         fetch('/api/promotions'),
         fetch('/api/homepage/flight-destinations'),
-        fetch('/api/featured-packages')
+        fetch('/api/featured-packages'),
+        fetch('/api/admin/cron-settings'),
+        fetch('/api/admin/cron-logs')
       ])
 
-      const [heroData, promosData, flightsData, packagesData] = await Promise.all([
+      const [heroData, promosData, flightsData, packagesData, cronsData, logsData] = await Promise.all([
         heroRes.json(),
         promosRes.json(),
         flightsRes.json(),
-        packagesRes.json()
+        packagesRes.json(),
+        cronsRes.json(),
+        logsRes.json()
       ])
 
       if (heroData.success) setHeroData(heroData.data)
       if (promosData.success) setPromotions(promosData.data)
       if (flightsData.success) setFlightDestinations(flightsData.data)
       if (packagesData.success) setPackages(packagesData.data)
+      if (cronsData && cronsData.success) setCronSettings(cronsData.data)
+      if (logsData && logsData.success) setCronLogs(logsData.logs)
     } catch (error) {
       console.error('Error loading content:', error)
       showToast('Error al cargar contenido', 'error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleUpdateCronSetting = async (cronKey: string, isActive: boolean, hour: string) => {
+    try {
+      const res = await fetch('/api/admin/cron-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cron_key: cronKey, is_active: isActive, scheduled_hour: hour })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCronSettings(prev => {
+          const exists = prev.find(c => c.cron_key === cronKey);
+          if (exists) {
+            return prev.map(c => c.cron_key === cronKey ? data.data : c);
+          }
+          return [...prev, data.data];
+        });
+        showToast('Configuración actualizada', 'success');
+      } else {
+        showToast(data.error || 'Error al actualizar', 'error');
+      }
+    } catch (error) {
+      showToast('Error de red', 'error');
     }
   }
 
@@ -1101,6 +1136,26 @@ export default function AdminContentPage() {
                   />
                 </div>
 
+                {/* Packing Tips Videos */}
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-semibold mb-2">🧳 Videos de Tips para Empacar</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    URLs de los videos que aparecen en la sección de Retos (AS Rewards)
+                  </p>
+                  <div className="space-y-4">
+                    <VideoUrlEditor
+                      settingKey="PACKING_TIPS_VIDEO_1_URL"
+                      label="URL del Video 1"
+                      onSave={() => showToast('Video 1 actualizado', 'success')}
+                    />
+                    <VideoUrlEditor
+                      settingKey="PACKING_TIPS_VIDEO_2_URL"
+                      label="URL del Video 2"
+                      onSave={() => showToast('Video 2 actualizado', 'success')}
+                    />
+                  </div>
+                </div>
+
                 {/* Video Home */}
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-2">🏠 Video Página Principal</h3>
@@ -1189,6 +1244,10 @@ export default function AdminContentPage() {
                   description="Descarga las divisas (EUR, USD, etc.) a MXN para el día de hoy usando la API configurada."
                   endpoint="/api/cron/update-rates"
                   icon={<DollarSign className="w-5 h-5 text-green-600" />}
+                  cronKey="update_rates"
+                  isActive={cronSettings.find(c => c.cron_key === 'update_rates')?.is_active}
+                  scheduledHour={cronSettings.find(c => c.cron_key === 'update_rates')?.scheduled_hour}
+                  onSettingChange={handleUpdateCronSetting}
                 />
 
                 <CronProcessRunner 
@@ -1196,7 +1255,98 @@ export default function AdminContentPage() {
                   description="Revisa los itinerarios de los próximos 15 días y descarga el clima desde OpenWeatherMap."
                   endpoint="/api/cron/update-weather"
                   icon={<CloudRain className="w-5 h-5 text-blue-500" />}
+                  cronKey="update_weather"
+                  isActive={cronSettings.find(c => c.cron_key === 'update_weather')?.is_active}
+                  scheduledHour={cronSettings.find(c => c.cron_key === 'update_weather')?.scheduled_hour}
+                  onSettingChange={handleUpdateCronSetting}
                 />
+
+                <CronProcessRunner 
+                  title="Scraping de MegaTravel"
+                  description="Mantiene actualizado el catálogo principal, incluyendo precios de vuelos y hoteles."
+                  endpoint="/api/cron/megatravel-sync"
+                  icon={<RefreshCw className="w-5 h-5 text-indigo-500" />}
+                  cronKey="megatravel_sync"
+                  isActive={cronSettings.find(c => c.cron_key === 'megatravel_sync')?.is_active}
+                  scheduledHour={cronSettings.find(c => c.cron_key === 'megatravel_sync')?.scheduled_hour}
+                  onSettingChange={handleUpdateCronSetting}
+                />
+
+                <CronProcessRunner 
+                  title="Regeneración de Destinos (IA)"
+                  description="Fuerza la regeneración de datos ricos (Recetas paso a paso, Galerías completas, Actividades) usando Gemini."
+                  endpoint="/api/cron/regenerate-tour"
+                  icon={<Sparkles className="w-5 h-5 text-purple-500" />}
+                />
+              </div>
+            </Card>
+
+            <Card className="p-6 mt-6 overflow-hidden">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold">Bitácora de Ejecuciones (Logs)</h2>
+                <Button variant="outline" size="sm" onClick={() => loadAllContent()}>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Actualizar
+                </Button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-gray-500 uppercase bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3">Fecha y Hora</th>
+                      <th className="px-4 py-3">Proceso</th>
+                      <th className="px-4 py-3">Estado</th>
+                      <th className="px-4 py-3">Duración</th>
+                      <th className="px-4 py-3">Mensaje</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cronLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="text-center py-6 text-gray-500">No hay registros de procesos aún.</td>
+                      </tr>
+                    ) : (
+                      cronLogs.map((log) => (
+                        <tr key={log.id} className="border-b hover:bg-gray-50">
+                          <td className="px-4 py-3 font-medium whitespace-nowrap">
+                            {new Date(log.started_at).toLocaleString('es-MX', {
+                              timeZone: 'America/Mexico_City',
+                              dateStyle: 'short',
+                              timeStyle: 'medium'
+                            })}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-mono">
+                              {log.cron_key}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            {log.status === 'success' ? (
+                              <span className="flex items-center text-green-600 text-xs font-medium">
+                                <CheckCircle2 className="w-3 h-3 mr-1" /> Éxito
+                              </span>
+                            ) : log.status === 'running' ? (
+                              <span className="flex items-center text-blue-600 text-xs font-medium">
+                                <Loader2 className="w-3 h-3 mr-1 animate-spin" /> En curso
+                              </span>
+                            ) : (
+                              <span className="flex items-center text-red-600 text-xs font-medium">
+                                <AlertCircle className="w-3 h-3 mr-1" /> Error
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-gray-500">
+                            {log.duration_seconds ? \`\${log.duration_seconds}s\` : '-'}
+                          </td>
+                          <td className="px-4 py-3 text-gray-700 truncate max-w-xs" title={log.message}>
+                            {log.message || '-'}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </Card>
           </TabsContent>

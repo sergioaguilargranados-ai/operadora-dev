@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Bell, User, Calendar, Mail, Phone, Shield, Users, ChevronRight, Plus, Upload, X, Loader2, LogOut, Trash2 } from "lucide-react"
+import { ChevronLeft, Bell, User, Calendar, Mail, Phone, Shield, Users, ChevronRight, Plus, Upload, X, Loader2, LogOut, Trash2, Globe, Pencil } from "lucide-react"
+import NotificationBell from "@/components/mobile/NotificationBell"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
@@ -81,6 +82,15 @@ export default function MobileProfilePage() {
     router.push('/mobile/perfil/editar')
   }
 
+  const handleLanguageChange = (langCode: string) => {
+    const select = document.querySelector('.goog-te-combo') as HTMLSelectElement
+    if (select) {
+      select.value = langCode
+      select.dispatchEvent(new Event('change'))
+    }
+    toast({ title: 'Idioma cambiado', description: 'Traduciendo la aplicación...' })
+  }
+
   const handleAddDocument = () => {
     const docName = prompt("Escribe el nombre del documento (Ej. Visa, Pasaporte):")
     if (docName) {
@@ -93,6 +103,30 @@ export default function MobileProfilePage() {
     fileInputRef.current?.click()
   }
 
+  const handleEditDocumentName = async (docId: string, currentName: string) => {
+    const newName = prompt("Nuevo nombre del documento:", currentName)
+    if (!newName || newName === currentName || !user?.id) return
+
+    try {
+      const res = await fetch('/api/mobile/documents', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, old_name: currentName, new_name: newName })
+      })
+      const data = await res.json()
+      
+      if (data.success) {
+        toast({ title: 'Actualizado', description: 'Nombre del documento actualizado' })
+        setDocuments(prev => prev.map(d => d.id === docId ? { ...d, name: newName } : d))
+      } else {
+        toast({ title: 'Error', description: 'No se pudo actualizar el nombre', variant: 'destructive' })
+      }
+    } catch (err) {
+      console.error(err)
+      toast({ title: 'Error', description: 'Error al actualizar el nombre', variant: 'destructive' })
+    }
+  }
+
   const handleDeleteDocument = async (docName: string) => {
     if (!user?.id || !confirm(`¿Estás seguro de que deseas eliminar el documento ${docName}?`)) return
     
@@ -102,9 +136,9 @@ export default function MobileProfilePage() {
       })
       const data = await res.json()
       
-      if (data.success) {
+      if (data.success || !docName) {
         toast({ title: 'Eliminado', description: 'Documento eliminado correctamente' })
-        setDocuments(prev => prev.map(d => d.name === docName ? { ...d, fileName: null } : d))
+        setDocuments(prev => prev.filter(d => d.name !== docName))
       } else {
         toast({ title: 'Error', description: 'No se pudo eliminar el documento', variant: 'destructive' })
       }
@@ -210,8 +244,8 @@ export default function MobileProfilePage() {
             logoUrl={customLogoUrl}
           />
 
-          <button onClick={() => router.push('/mobile/notificaciones')} className="text-white hover:text-gray-300">
-            <Bell className="w-6 h-6" />
+          <button onClick={() => router.push('/mobile/notificaciones')} className="text-white hover:text-gray-300 p-2 -mr-2">
+            <NotificationBell className="w-6 h-6 text-white" />
           </button>
         </div>
 
@@ -251,6 +285,29 @@ export default function MobileProfilePage() {
         {/* Info List Card */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
           
+          {/* Idioma Selector */}
+          <div className="flex items-center p-4">
+            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
+              <Globe className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Idioma</h3>
+              <p className="text-xs text-gray-500">Traducción automática</p>
+            </div>
+            <select 
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              className="bg-gray-100 border-none text-sm font-medium rounded-lg p-2 text-gray-700 outline-none focus:ring-2 focus:ring-black cursor-pointer"
+              defaultValue="es"
+            >
+              <option value="es">Español</option>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="pt">Português</option>
+              <option value="de">Deutsch</option>
+              <option value="it">Italiano</option>
+            </select>
+          </div>
+
           {/* Item */}
           <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
             <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
@@ -258,7 +315,7 @@ export default function MobileProfilePage() {
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Nombre</h3>
-              <p className="text-xs text-gray-500">{profileData?.name || 'No registrado'}</p>
+              <p className="text-xs text-gray-500 notranslate">{profileData?.name || 'No registrado'}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
@@ -341,42 +398,51 @@ export default function MobileProfilePage() {
 
           <div className="divide-y divide-gray-100">
             {documents.map((doc, index) => (
-              <div key={doc.id} className="flex items-center p-4">
-                <div className="w-8 h-8 bg-black text-white rounded-md flex items-center justify-center flex-shrink-0 mr-4 font-bold text-xs">
+              <div key={doc.id} className="flex items-center p-4 gap-2">
+                <div className="w-8 h-8 bg-black text-white rounded-md flex items-center justify-center flex-shrink-0 mr-2 font-bold text-xs">
                   {index + 1}
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">{doc.name}</h3>
-                  <p className="text-xs text-gray-500">
-                    {doc.fileName ? `Subido: ${doc.fileName}` : `Agrega o actualiza tu ${doc.name.toLowerCase()}.`}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight truncate">{doc.name}</h3>
+                  <p className="text-xs text-gray-500 truncate">
+                    {doc.fileName ? `Subido: ${doc.fileName.split('/').pop()?.split('-').slice(1).join('-') || doc.fileName.split('/').pop()}` : `Agrega o actualiza tu ${doc.name.toLowerCase()}.`}
                   </p>
                 </div>
                 
                 {uploadingId === doc.id ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                  <div className="flex-shrink-0 px-2">
+                    <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                  </div>
                 ) : (
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 flex-shrink-0 items-center">
                     {doc.fileName && (
-                      <>
-                        <button 
-                          onClick={() => window.open(doc.fileName!, '_blank')} 
-                          className="p-2 text-blue-500 hover:text-blue-700"
-                        >
-                          Ver
-                        </button>
-                        <button
-                          onClick={() => handleDeleteDocument(doc.name)}
-                          className="p-2 text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </>
+                      <button 
+                        onClick={() => window.open(doc.fileName!, '_blank')} 
+                        className="p-1.5 text-blue-500 hover:text-blue-700 text-xs font-bold"
+                      >
+                        Ver
+                      </button>
                     )}
                     <button 
-                      onClick={() => handleUploadClick(doc.id)} 
-                      className="p-2 text-gray-400 hover:text-black"
+                      onClick={() => handleEditDocumentName(doc.id, doc.name)} 
+                      className="p-1.5 text-gray-400 hover:text-black"
+                      title="Editar nombre"
                     >
-                      <Upload className="w-5 h-5" />
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => handleUploadClick(doc.id)} 
+                      className="p-1.5 text-gray-400 hover:text-black"
+                      title="Subir archivo"
+                    >
+                      <Upload className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteDocument(doc.name)}
+                      className="p-1.5 text-red-500 hover:text-red-700"
+                      title="Eliminar archivo"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 )}

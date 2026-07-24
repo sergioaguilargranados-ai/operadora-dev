@@ -3,6 +3,7 @@ import { PayPalService } from '@/services/PayPalService'
 import { query } from '@/lib/db'
 import NotificationService from '@/services/NotificationService'
 import { emailService } from '@/services/EmailService'
+import { StoreOrderService } from '@/services/StoreOrderService'
 
 /**
  * POST /api/payments/paypal/capture-order
@@ -103,6 +104,9 @@ export async function POST(request: NextRequest) {
          AND tenant_id = $3`,
       [bookingId, userId, tenantId]
     )
+
+    // Si la reserva es de la tienda móvil, procesar orden y referidos
+    await StoreOrderService.handleStoreOrderPayment(bookingId)
 
     // Obtener datos de la reserva para enviar email
     const bookingResult = await query(

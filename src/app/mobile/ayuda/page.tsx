@@ -61,17 +61,7 @@ export default function MobileHelpPage() {
         </div>
 
         <h1 className="text-3xl font-serif font-bold text-gray-900 mb-2">¿Necesitas ayuda?</h1>
-        <p className="text-sm text-gray-600 mb-6 text-center">Selecciona el tema que mejor describe tu situación.</p>
-
-        <div className="relative w-full">
-          <Search className="absolute left-3.5 top-3.5 w-5 h-5 text-gray-400" />
-          <Input 
-            placeholder="Buscar ayuda..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-11 h-12 rounded-xl border-gray-200 focus-visible:ring-black text-base placeholder:text-gray-400 shadow-sm"
-          />
-        </div>
+        <p className="text-sm text-gray-600 mb-2 text-center">Selecciona el tema que mejor describe tu situación.</p>
       </div>
 
       <div className="px-4 mt-6 space-y-6">

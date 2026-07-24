@@ -45,24 +45,26 @@ function safeParseJSON(value: any, fallback: any = {}) {
 export default function BookingDetailsPage() {
   const router = useRouter()
   const params = useParams()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [booking, setBooking] = useState<any>(null)
   const [generatingPDF, setGeneratingPDF] = useState(false)
 
   useEffect(() => {
+    if (authLoading) return;
+
     if (!isAuthenticated) {
       router.push('/login')
       return
     }
 
     loadBookingDetails()
-  }, [isAuthenticated, params.id])
+  }, [isAuthenticated, authLoading, params.id])
 
   const loadBookingDetails = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('as_token')
       const response = await fetch(`/api/bookings/${params.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
@@ -224,7 +226,7 @@ export default function BookingDetailsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
       {/* Header */}
-      <PageHeader showBackButton={true} backButtonHref="/">
+      <PageHeader showBackButton={true} backButtonHref="/mis-reservas">
         <div className="flex gap-2">
           {booking.status === 'confirmed' && (
             <Button
@@ -364,6 +366,38 @@ export default function BookingDetailsPage() {
                     )}
                   </div>
                 )}
+
+                {(bookingType === 'package' || bookingType === 'tour') && bookingDetails.destination && (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Destino Principal</p>
+                      <p className="font-semibold text-lg flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-blue-600" />
+                        {bookingDetails.destination}
+                      </p>
+                    </div>
+                    
+                    {bookingDetails.fecha_inicio && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Fecha de Inicio</p>
+                        <p className="font-semibold flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          {bookingDetails.fecha_inicio}
+                        </p>
+                      </div>
+                    )}
+
+                    {bookingDetails.pasajeros && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Pasajeros</p>
+                        <p className="font-semibold flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          {bookingDetails.pasajeros}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </Card>
             </motion.div>
 
@@ -422,7 +456,68 @@ export default function BookingDetailsPage() {
                 <Card className="p-6 border-none shadow-soft">
                   <h2 className="text-xl font-semibold mb-4">Solicitudes Especiales</h2>
                   <Separator className="my-4" />
-                  <p className="text-muted-foreground">{booking.special_requests}</p>
+                  <p className="text-muted-foreground whitespace-pre-wrap">{booking.special_requests}</p>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Itinerario (IA) */}
+            {booking.custom_itinerary && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Card className="p-6 border-none shadow-soft mt-6 bg-blue-50/50">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-blue-600" />
+                      Itinerario del Viaje
+                    </h2>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-none">
+                      Generado por IA ✨
+                    </Badge>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-5 border border-blue-100 shadow-sm">
+                    <h3 className="font-bold text-lg text-slate-800 mb-2">
+                      {booking.custom_itinerary.title || bookingDetails.destination || "Tour Completo"}
+                    </h3>
+                    <p className="text-slate-600 mb-4 line-clamp-3">
+                      {booking.custom_itinerary.description || "Tu itinerario enriquecido con todos los detalles día por día."}
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-4 mb-6">
+                      <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full">
+                        <Calendar className="w-4 h-4 text-blue-500" />
+                        <span>{booking.custom_itinerary.days?.length || 0} Días de viaje</span>
+                      </div>
+                      {booking.custom_itinerary.destination && (
+                        <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full">
+                          <MapPin className="w-4 h-4 text-blue-500" />
+                          <span>{booking.custom_itinerary.destination}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <Button 
+                      className="w-full sm:w-auto gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={() => {
+                        if (booking.custom_itinerary.shared_token) {
+                          router.push(`/itinerary/shared/${booking.custom_itinerary.shared_token}`);
+                        } else {
+                          toast({
+                            title: 'Enlace no disponible',
+                            description: 'Este itinerario aún no tiene un enlace de visualización público.',
+                            variant: 'destructive'
+                          });
+                        }
+                      }}
+                    >
+                      Ver Itinerario Completo
+                      <ArrowLeft className="w-4 h-4 rotate-180" />
+                    </Button>
+                  </div>
                 </Card>
               </motion.div>
             )}
@@ -487,17 +582,65 @@ export default function BookingDetailsPage() {
 
                   <Separator />
 
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Total</p>
-                    <p className="text-3xl font-bold text-primary">
-                      {formatCurrency(parseFloat(booking.total_price || booking.total_amount) || 0, booking.currency)}
-                    </p>
+                  <div className="bg-blue-50 p-4 rounded-lg space-y-2">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Costo Total</p>
+                      <p className="text-2xl font-bold text-primary">
+                        {formatCurrency(parseFloat(booking.total_price || booking.total_amount) || 0, booking.currency)}
+                      </p>
+                    </div>
+                    {booking.paid_amount !== undefined && booking.paid_amount > 0 && (
+                      <>
+                        <div className="flex justify-between text-green-600 font-semibold text-sm">
+                          <span>Pagado:</span>
+                          <span>{formatCurrency(booking.paid_amount, booking.currency)}</span>
+                        </div>
+                        {booking.pending_balance !== undefined && booking.pending_balance > 0 && (
+                          <div className="flex justify-between text-blue-600 font-bold text-lg pt-1 border-t border-blue-200">
+                            <span>Saldo pendiente:</span>
+                            <span>{formatCurrency(booking.pending_balance, booking.currency)}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
 
                   {booking.payment_status && (
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Estado de Pago</p>
                       <Badge className="capitalize">{booking.payment_status}</Badge>
+                    </div>
+                  )}
+
+                  {/* Historial de Pagos */}
+                  {booking.payment_history && booking.payment_history.length > 0 && (
+                    <div className="mt-4 border-t pt-4">
+                      <h4 className="font-semibold text-sm mb-3">Historial de Pagos</h4>
+                      <div className="space-y-3">
+                        {booking.payment_history.map((payment: any) => (
+                          <div key={payment.id} className="bg-slate-50 p-3 rounded-lg text-sm border border-slate-100">
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="font-medium">{formatCurrency(payment.amount, payment.currency)}</span>
+                              <Badge variant="outline" className="text-[10px] capitalize bg-white">{payment.status}</Badge>
+                            </div>
+                            <div className="text-xs text-slate-500 space-y-1">
+                              <p className="flex justify-between">
+                                <span>Método:</span>
+                                <span className="capitalize">{payment.payment_method}</span>
+                              </p>
+                              {payment.transaction_id && (
+                                <p className="flex justify-between">
+                                  <span>Ref:</span>
+                                  <span className="font-mono text-[10px]">{payment.transaction_id}</span>
+                                </p>
+                              )}
+                              <p className="text-[10px] mt-1 text-slate-400">
+                                {formatDate(payment.created_at)}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

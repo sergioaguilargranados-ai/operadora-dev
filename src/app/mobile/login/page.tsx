@@ -26,6 +26,7 @@ export default function MobileLoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   
   // Content / Tenant Config
   const [mobileContent, setMobileContent] = useState<any>(null)
@@ -72,11 +73,18 @@ export default function MobileLoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const needsTerms = tenantConfig && !tenantConfig.has_accepted_terms && mobileContent?.sections_json?.docs?.terms_url
+    if (needsTerms && !acceptedTerms) {
+      setError("Debes aceptar los Términos y Condiciones para continuar.")
+      return
+    }
+
     setError("")
     setLoading(true)
 
     try {
-      const res = await login(email, password)
+      const res = await login(email, password, acceptedTerms)
       if (res && res.success) {
         router.push("/mobile")
       } else {
@@ -197,6 +205,41 @@ export default function MobileLoginPage() {
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
+
+              {/* TÉRMINOS Y CONDICIONES (Solo si es primera vez) */}
+              {tenantConfig && !tenantConfig.has_accepted_terms && (
+                <div className="mt-6 flex flex-col gap-3 animate-in fade-in duration-300">
+                  {mobileContent?.sections_json?.docs?.terms_url && (
+                    <div className="flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        id="terms_mobile"
+                        className="w-4 h-4 mt-1 accent-black rounded"
+                        checked={acceptedTerms}
+                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                      />
+                      <label htmlFor="terms_mobile" className="text-sm text-gray-700">
+                        Acepto los <a href={mobileContent.sections_json.docs.terms_url} target="_blank" rel="noopener noreferrer" className="text-[#0066FF] hover:underline font-medium">Términos y Condiciones</a>
+                      </label>
+                    </div>
+                  )}
+                  
+                  {(mobileContent?.sections_json?.docs?.privacy_url || mobileContent?.sections_json?.docs?.loyalty_url) && (
+                    <div className="text-xs text-gray-500 mt-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      Al iniciar sesión, también aceptas nuestro:
+                      <div className="flex flex-col gap-1 mt-1.5">
+                        {mobileContent?.sections_json?.docs?.privacy_url && (
+                          <a href={mobileContent.sections_json.docs.privacy_url} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-black hover:underline flex items-center gap-1">• Aviso de Privacidad</a>
+                        )}
+                        {mobileContent?.sections_json?.docs?.loyalty_url && (
+                          <a href={mobileContent.sections_json.docs.loyalty_url} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-black hover:underline flex items-center gap-1">• Programa de Lealtad</a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
             </div>
           )}
 
@@ -220,29 +263,7 @@ export default function MobileLoginPage() {
           </div>
         </form>
 
-        {/* Documentos Oficiales */}
-        {(mobileContent?.sections_json?.docs?.terms_url || mobileContent?.sections_json?.docs?.privacy_url || mobileContent?.sections_json?.docs?.loyalty_url) && step === 1 && (
-          <div className="mt-8 flex flex-col items-center gap-2 animate-in fade-in duration-300">
-            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Documentos Oficiales</h4>
-            <div className="flex flex-wrap justify-center gap-4 text-xs font-medium">
-              {mobileContent?.sections_json?.docs?.terms_url && (
-                <a href={mobileContent?.sections_json?.docs?.terms_url} target="_blank" rel="noopener noreferrer" className="text-[#0066FF] hover:underline flex items-center gap-1">
-                  Términos y Condiciones
-                </a>
-              )}
-              {mobileContent?.sections_json?.docs?.privacy_url && (
-                <a href={mobileContent?.sections_json?.docs?.privacy_url} target="_blank" rel="noopener noreferrer" className="text-[#0066FF] hover:underline flex items-center gap-1">
-                  Aviso de Privacidad
-                </a>
-              )}
-              {mobileContent?.sections_json?.docs?.loyalty_url && (
-                <a href={mobileContent?.sections_json?.docs?.loyalty_url} target="_blank" rel="noopener noreferrer" className="text-[#0066FF] hover:underline flex items-center gap-1">
-                  Programa de Lealtad
-                </a>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Documentos Oficiales (Movidos a la Fase 2) */}
 
       </div>
 
@@ -254,6 +275,11 @@ export default function MobileLoginPage() {
           alt="Santorini" 
           className="w-full h-full object-cover object-top"
         />
+        
+        {/* DEBUG VERSION FOOTER */}
+        <div className="absolute bottom-2 left-0 right-0 z-20 text-center">
+          <p className="text-[10px] text-white/70 font-mono shadow-sm">v2.375 | Build: {new Date().toLocaleString('es-MX', {timeZone: 'America/Mexico_City'})} CST</p>
+        </div>
       </div>
     </div>
   )

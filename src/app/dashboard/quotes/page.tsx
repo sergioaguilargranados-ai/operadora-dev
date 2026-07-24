@@ -1,5 +1,5 @@
 "use client"
-// Build: 26 Feb 2026 - v2.333 - Cenefa estándar, botones texto blanco, acciones PDF/WhatsApp/Email en tours
+// Build: 23 Jul 2026 - v2.430b - Cenefa estándar, botones texto blanco, acciones PDF/WhatsApp/Email en tours
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -75,7 +75,7 @@ export default function QuotesPage() {
 
   // Booking Modal States
   const [bookingModal, setBookingModal] = useState<{ open: boolean; quote: Quote | null }>({ open: false, quote: null })
-  const [bookingForm, setBookingForm] = useState({ lead_traveler_name: '', lead_traveler_email: '', lead_traveler_phone: '', adults: 1, travel_start_date: '' })
+  const [bookingForm, setBookingForm] = useState({ lead_traveler_name: '', lead_traveler_email: '', lead_traveler_phone: '', adults: 1, travel_start_date: '', travel_end_date: '' })
   const [creatingBooking, setCreatingBooking] = useState(false)
 
   const handleOpenBookingModal = (quote: Quote) => {
@@ -85,7 +85,8 @@ export default function QuotesPage() {
       lead_traveler_email: quote.customer_email || '',
       lead_traveler_phone: quote.customer_phone || '',
       adults: 1,
-      travel_start_date: quote.travel_start_date || ''
+      travel_start_date: quote.travel_start_date || '',
+      travel_end_date: quote.travel_end_date || ''
     })
   }
 
@@ -115,6 +116,7 @@ export default function QuotesPage() {
           details: {
             destination: q.destination,
             fecha_inicio: bookingForm.travel_start_date,
+            fecha_fin: bookingForm.travel_end_date,
             pasajeros: bookingForm.adults,
             contacto: {
               nombre: bookingForm.lead_traveler_name,
@@ -522,6 +524,15 @@ export default function QuotesPage() {
                   type="date"
                   value={bookingForm.travel_start_date}
                   onChange={(e) => setBookingForm({ ...bookingForm, travel_start_date: e.target.value })}
+                  disabled={creatingBooking}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Fecha de Fin</label>
+                <Input
+                  type="date"
+                  value={bookingForm.travel_end_date}
+                  onChange={(e) => setBookingForm({ ...bookingForm, travel_end_date: e.target.value })}
                   disabled={creatingBooking}
                 />
               </div>

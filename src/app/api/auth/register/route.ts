@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
       agency_id,
       corporate_role,
       agency_role,
-      internal_role
+      internal_role,
+      referral_code
     } = body
 
     // Validar datos requeridos
@@ -64,7 +65,8 @@ export async function POST(request: NextRequest) {
       agency_id,
       corporate_role,
       agency_role,
-      internal_role
+      internal_role,
+      referral_code
     }, ipAddress)
 
     console.log('✅ REGISTRO EXITOSO:', {
@@ -198,6 +200,25 @@ export async function POST(request: NextRequest) {
               tenantId: agent.tenant_id,
               referralCode
             });
+          } else {
+            // Buscar si es el código de un usuario normal (app de recompensas)
+            const referrerUser = await queryOne<{ id: number }>(
+              `SELECT id FROM users WHERE referral_code = $1 LIMIT 1`,
+              [referralCode]
+            );
+
+            if (referrerUser) {
+              await dbQuery(
+                `INSERT INTO user_referrals (referrer_id, referred_id, points_awarded, status)
+                 VALUES ($1, $2, 0, 'active')`,
+                [referrerUser.id, result.user.id]
+              );
+              console.log('🔗 Referido de usuario (App) vinculado:', {
+                referrerId: referrerUser.id,
+                referredId: result.user.id,
+                referralCode
+              });
+            }
           }
         }
       } catch (referralError) {

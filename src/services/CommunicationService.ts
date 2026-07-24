@@ -153,7 +153,8 @@ export class CommunicationService {
     let sql = `
       SELECT t.*,
              u_agent.name as agent_name,
-             u_client.name as client_name
+             u_client.name as client_name,
+             (SELECT body FROM messages m WHERE m.thread_id = t.id ORDER BY m.created_at DESC LIMIT 1) as last_message_body
       FROM communication_threads t
       LEFT JOIN users u_agent ON t.assigned_agent_id = u_agent.id
       LEFT JOIN users u_client ON t.client_id = u_client.id
@@ -208,7 +209,8 @@ export class CommunicationService {
       SELECT t.*,
              u_client.name as client_name,
              u_client.email as client_email,
-             u_agent.name as agent_name
+             u_agent.name as agent_name,
+             (SELECT body FROM messages m WHERE m.thread_id = t.id ORDER BY m.created_at DESC LIMIT 1) as last_message_body
       FROM communication_threads t
       LEFT JOIN users u_client ON t.client_id = u_client.id
       LEFT JOIN users u_agent ON t.assigned_agent_id = u_agent.id
@@ -360,9 +362,26 @@ export class CommunicationService {
 
     const message = result.rows[0]
 
-    // Si no requiere moderación, enviar inmediatamente
+    // Actualizar metadata del thread
+    await query(
+      `UPDATE communication_threads 
+       SET last_message_at = CURRENT_TIMESTAMP,
+           unread_count_client = unread_count_client + $1,
+           unread_count_agent = unread_count_agent + $2
+       WHERE id = $3`,
+      [
+        data.sender_type === 'agent' || data.sender_type === 'system' ? 1 : 0,
+        data.sender_type === 'client' ? 1 : 0,
+        data.thread_id
+      ]
+    )
+
+    // Si no requiere moderación, enviar inmediatamente pero de forma asíncrona (fire and forget)
+    // para no colgar el request HTTP mientras se contacta a los proveedores externos (SendGrid, Twilio, etc)
     if (!needsModeration) {
-      await this.deliverMessage(message.id, data.tenant_id)
+      this.deliverMessage(message.id, data.tenant_id).catch(err => {
+        console.error('[CommunicationService] Error en entrega en segundo plano:', err)
+      })
     }
 
     return message
@@ -655,7 +674,20 @@ export class CommunicationService {
   /**
    * Obtener preferencias de usuario
    */
-  static async getUserPreferences(userId: number): Promise<CommunicationPreferences> {
+  static async getUserPreferences(userId: number | null): Promise<CommunicationPreferences> {
+    if (!userId) {
+      return {
+        user_id: 0,
+        email_enabled: true,
+        sms_enabled: false,
+        whatsapp_enabled: false,
+        in_app_enabled: true,
+        tenant_id: 1,
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+    }
+
     let prefs = await queryOne<CommunicationPreferences>(
       `SELECT * FROM communication_preferences WHERE user_id = $1`,
       [userId]

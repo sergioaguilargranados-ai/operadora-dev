@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { PageHeader } from '@/components/PageHeader'
 import { useToast } from '@/hooks/use-toast'
 import StripeCheckoutForm from '@/components/StripeCheckoutForm'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Inicializar Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '')
@@ -20,6 +21,8 @@ interface Booking {
   type: string
   service_name: string
   total_price: number
+  paid_amount?: number
+  pending_balance?: number
   currency: string
   status: string
   payment_status: string
@@ -35,15 +38,36 @@ export default function CheckoutPage({
   const bookingId = parseInt(resolvedParams.bookingId)
   const router = useRouter()
   const { toast } = useToast()
+  const { user } = useAuth()
+  
+  const isAgentOrHigher = user?.role && ['agente', 'admin', 'superadmin', 'agency_admin', 'master', 'agencia'].includes(user.role.toLowerCase())
 
   const [booking, setBooking] = useState<Booking | null>(null)
   const [loading, setLoading] = useState(true)
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal' | 'mercadopago'>('stripe')
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal' | 'mercadopago' | 'manual'>('stripe')
   const [clientSecret, setClientSecret] = useState('')
   const [paypalOrderId, setPaypalOrderId] = useState('')
   const [processing, setProcessing] = useState(false)
 
+  // Manual payment state
+  const [manualAmount, setManualAmount] = useState<string>('')
+  const [manualMethod, setManualMethod] = useState<'transfer' | 'cash'>('transfer')
+  const [manualReference, setManualReference] = useState('')
+  const [manualNotes, setManualNotes] = useState('')
+
   useEffect(() => {
+    // Si viene un token en la URL, setearlo para logueo sin fricción
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const token = urlParams.get('token')
+      if (token) {
+        document.cookie = `as_token=${encodeURIComponent(token)};path=/;samesite=lax`
+        localStorage.setItem('as_token', token)
+        // Limpiar URL para no dejar el token expuesto
+        const newUrl = window.location.pathname
+        window.history.replaceState({}, document.title, newUrl)
+      }
+    }
     fetchBooking()
   }, [bookingId])
 
@@ -54,12 +78,17 @@ export default function CheckoutPage({
 
       const data = await res.json()
       setBooking(data.booking)
+      if (data.booking.pending_balance) {
+        setManualAmount(data.booking.pending_balance.toString())
+      } else {
+        setManualAmount(data.booking.total_price.toString())
+      }
 
       // Verificar si ya está pagada
       if (data.booking.payment_status === 'paid') {
         toast({
           title: 'Reserva ya pagada',
-          description: 'Esta reserva ya ha sido pagada'
+          description: 'Esta reserva ya ha sido pagada en su totalidad'
         })
         router.push(`/reserva/${bookingId}`)
         return
@@ -210,7 +239,51 @@ export default function CheckoutPage({
         description: error.message,
         variant: 'destructive'
       })
-    } finally {
+      setProcessing(false)
+    }
+  }
+
+  const handleManualPayment = async () => {
+    if (!booking) return
+    const amountNum = parseFloat(manualAmount)
+    if (isNaN(amountNum) || amountNum <= 0) {
+      toast({ title: 'Error', description: 'Monto inválido', variant: 'destructive' })
+      return
+    }
+
+    setProcessing(true)
+    try {
+      const res = await fetch('/api/payments/manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId: booking.id,
+          amount: amountNum,
+          method: manualMethod,
+          reference: manualReference,
+          notes: manualNotes
+        })
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Error registrando pago')
+      }
+
+      toast({
+        title: 'Pago registrado',
+        description: 'El pago parcial/total ha sido registrado con éxito'
+      })
+      
+      // Redirigir de regreso a la vista de reserva
+      router.push(`/reserva/${booking.id}`)
+      
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive'
+      })
       setProcessing(false)
     }
   }
@@ -291,11 +364,26 @@ export default function CheckoutPage({
 
                   <Separator />
 
-                  <div className="pt-2">
+                  <div className="pt-2 space-y-2">
                     <div className="flex justify-between items-center">
-                      <p className="text-lg font-semibold">Total</p>
-                      <p className="text-2xl font-bold text-blue-600">
+                      <p className="text-gray-600">Costo total</p>
+                      <p className="font-semibold">
                         ${booking.total_price.toFixed(2)} {booking.currency.toUpperCase()}
+                      </p>
+                    </div>
+                    {booking.paid_amount !== undefined && booking.paid_amount > 0 && (
+                      <div className="flex justify-between items-center text-green-600">
+                        <p>Pagado</p>
+                        <p className="font-semibold">
+                          -${booking.paid_amount.toFixed(2)} {booking.currency.toUpperCase()}
+                        </p>
+                      </div>
+                    )}
+                    <Separator />
+                    <div className="flex justify-between items-center pt-2">
+                      <p className="text-lg font-semibold">Saldo a pagar</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        ${(booking.pending_balance ?? booking.total_price).toFixed(2)} {booking.currency.toUpperCase()}
                       </p>
                     </div>
                   </div>
@@ -314,19 +402,16 @@ export default function CheckoutPage({
               <Card className="p-6">
                 <h3 className="font-semibold mb-4">Método de pago</h3>
 
-                {/* Selector de método de pago - 3 opciones */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
                   <Button
                     variant={paymentMethod === 'stripe' ? 'default' : 'outline'}
                     onClick={() => setPaymentMethod('stripe')}
                     className="flex flex-col items-center py-4 h-auto"
                   >
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/512px-Stripe_Logo%2C_revised_2016.svg.png"
-                      alt="Stripe"
-                      className="h-5 mb-1"
-                    />
-                    <span className="text-sm">Tarjeta</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    <span className="text-xs sm:text-sm">Tarjeta</span>
                   </Button>
                   <Button
                     variant={paymentMethod === 'paypal' ? 'default' : 'outline'}
@@ -338,20 +423,30 @@ export default function CheckoutPage({
                       alt="PayPal"
                       className="h-6 mb-1"
                     />
-                    <span className="text-sm">PayPal</span>
+                    <span className="text-xs sm:text-sm">PayPal</span>
                   </Button>
                   <Button
                     variant={paymentMethod === 'mercadopago' ? 'default' : 'outline'}
                     onClick={() => setPaymentMethod('mercadopago')}
-                    className="flex flex-col items-center py-4 h-auto"
+                    className="flex flex-col items-center py-4 h-auto px-1"
                   >
-                    <img
-                      src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/6.6.82/mercadopago/logo__small.png"
-                      alt="Mercado Pago"
-                      className="h-5 mb-1"
-                    />
-                    <span className="text-sm">Mercado Pago</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1 text-current" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M14.6 22h-5.2v-7.8h5.2V22zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.8 13.8l-1.3 1.3c-.4.4-1 .4-1.4 0l-1.1-1.1-1.1 1.1c-.4.4-1 .4-1.4 0l-1.3-1.3v-4.2h7.6v4.2z" />
+                    </svg>
+                    <span className="text-xs sm:text-sm text-center">Mercado Pago</span>
                   </Button>
+                  {isAgentOrHigher && (
+                    <Button
+                      variant={paymentMethod === 'manual' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('manual')}
+                      className="flex flex-col items-center py-4 h-auto px-1"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      <span className="text-xs sm:text-sm text-center">Pago Manual</span>
+                    </Button>
+                  )}
                 </div>
 
                 <Separator className="my-6" />
@@ -457,6 +552,71 @@ export default function CheckoutPage({
                       <p>Pago seguro con Mercado Pago</p>
                       <Badge variant="secondary" className="text-xs">Compra Protegida</Badge>
                     </div>
+                  </div>
+                )}
+
+                {/* Formulario Pago Manual */}
+                {paymentMethod === 'manual' && (
+                  <div className="space-y-4">
+                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg text-sm mb-4">
+                      <strong>Uso exclusivo para agentes:</strong> Registra un pago parcial o total recibido fuera de la plataforma (Transferencia, Depósito o Efectivo).
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Monto a registrar</label>
+                        <input 
+                          type="number" 
+                          className="w-full px-3 py-2 border rounded-md" 
+                          value={manualAmount}
+                          onChange={(e) => setManualAmount(e.target.value)}
+                          max={booking.pending_balance ?? booking.total_price}
+                          step="0.01"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Método de pago</label>
+                        <select 
+                          className="w-full px-3 py-2 border rounded-md"
+                          value={manualMethod}
+                          onChange={(e) => setManualMethod(e.target.value as any)}
+                        >
+                          <option value="transfer">Transferencia / Depósito</option>
+                          <option value="cash">Efectivo</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Referencia / Comprobante (Opcional)</label>
+                      <input 
+                        type="text" 
+                        className="w-full px-3 py-2 border rounded-md" 
+                        placeholder="Ej. SPEI 12345678, Recibo #102"
+                        value={manualReference}
+                        onChange={(e) => setManualReference(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Notas internas (Opcional)</label>
+                      <textarea 
+                        className="w-full px-3 py-2 border rounded-md" 
+                        placeholder="Cualquier información adicional..."
+                        value={manualNotes}
+                        onChange={(e) => setManualNotes(e.target.value)}
+                        rows={2}
+                      />
+                    </div>
+
+                    <Button
+                      onClick={handleManualPayment}
+                      disabled={processing}
+                      className="w-full mt-4"
+                      size="lg"
+                    >
+                      {processing ? 'Registrando...' : 'Registrar Pago Manual'}
+                    </Button>
                   </div>
                 )}
               </Card>

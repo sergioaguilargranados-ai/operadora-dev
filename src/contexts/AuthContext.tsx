@@ -14,7 +14,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<{ success: boolean; needsSetup?: boolean }>
+  login: (email: string, password: string, acceptedTerms?: boolean) => Promise<{ success: boolean; needsSetup?: boolean }>
   register: (name: string, email: string, password: string, phone?: string) => Promise<boolean>
   logout: () => void
   isAuthenticated: boolean
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; needsSetup?: boolean }> => {
+  const login = async (email: string, password: string, acceptedTerms?: boolean): Promise<{ success: boolean; needsSetup?: boolean }> => {
     if (!mounted) return { success: false }
 
     try {
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, accepted_terms: acceptedTerms })
       })
 
       const data = await response.json()
@@ -125,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const register = async (name: string, email: string, password: string, phone?: string): Promise<boolean> => {
+  const register = async (name: string, email: string, password: string, phone?: string, referralCode?: string): Promise<boolean> => {
     if (!mounted) return false
 
     try {
@@ -138,7 +138,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name,
           email,
           password,
-          phone: phone || ''
+          phone: phone || '',
+          referral_code: referralCode
         })
       })
 

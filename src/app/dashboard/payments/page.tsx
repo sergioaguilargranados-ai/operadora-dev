@@ -139,20 +139,21 @@ export default function PaymentsDashboardPage() {
     }
 
     paymentsData.forEach(payment => {
-      stats.total_amount += payment.amount
+      const amt = Number(payment.amount) || 0;
+      stats.total_amount += amt
 
       switch (payment.status) {
         case 'pending':
-          stats.pending_amount += payment.amount
+          stats.pending_amount += amt
           break
         case 'completed':
-          stats.completed_amount += payment.amount
+          stats.completed_amount += amt
           break
         case 'refunded':
-          stats.refunded_amount += payment.amount
+          stats.refunded_amount += amt
           break
         case 'failed':
-          stats.failed_amount += payment.amount
+          stats.failed_amount += amt
           break
       }
     })
@@ -310,7 +311,7 @@ export default function PaymentsDashboardPage() {
             <div>
               <p className="text-sm text-green-700 mb-1">Completados</p>
               <p className="text-2xl font-bold text-green-600">
-                ${stats.completed_amount.toLocaleString()}
+                ${stats.completed_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
             <div className="text-3xl">✅</div>
@@ -322,7 +323,7 @@ export default function PaymentsDashboardPage() {
             <div>
               <p className="text-sm text-yellow-700 mb-1">Pendientes</p>
               <p className="text-2xl font-bold text-yellow-600">
-                ${stats.pending_amount.toLocaleString()}
+                ${stats.pending_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
             <div className="text-3xl">⏳</div>
@@ -334,7 +335,7 @@ export default function PaymentsDashboardPage() {
             <div>
               <p className="text-sm text-red-700 mb-1">Reembolsados</p>
               <p className="text-2xl font-bold text-red-600">
-                ${stats.refunded_amount.toLocaleString()}
+                ${stats.refunded_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
             <div className="text-3xl">↩️</div>
@@ -465,7 +466,7 @@ export default function PaymentsDashboardPage() {
                     </TableCell>
                     <TableCell>
                       <p className="font-semibold">
-                        ${payment.amount.toLocaleString()} {payment.currency.toUpperCase()}
+                        ${payment.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {payment.currency.toUpperCase()}
                       </p>
                     </TableCell>
                     <TableCell>

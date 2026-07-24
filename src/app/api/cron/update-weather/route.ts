@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
 import WeatherService from '@/services/WeatherService'
+import { shouldRunCron, startCronLog, finishCronLog } from '@/lib/cronHelper'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -12,7 +13,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const searchParams = request.nextUrl?.searchParams || new URL(request.url).searchParams
+  const force = searchParams.get('force') === 'true'
+
+  if (!(await shouldRunCron('update_weather', force))) {
+    return NextResponse.json({ success: true, message: 'Skipped by schedule' })
+  }
+
+  let logId: number | null = null;
   try {
+    logId = await startCronLog('update_weather')
+    
     // Determine unique cities in upcoming itineraries (say, next 15 days)
     // For now, we can just get all unique cities from the database or just a few major ones if we want to save API calls
     // But since this is specific to itineraries, let's grab unique locations from upcoming groups
@@ -41,9 +52,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, message: `Updated weather for ${successCount} cities` })
+    const message = `Updated weather for ${successCount} cities`
+    await finishCronLog(logId, 'success', message)
+    return NextResponse.json({ success: true, message })
   } catch (error: any) {
     console.error('Error in cron update-weather:', error)
+    await finishCronLog(logId, 'error', error.message)
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 }

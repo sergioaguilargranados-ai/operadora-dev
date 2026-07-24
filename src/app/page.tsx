@@ -17,6 +17,12 @@ export default function InicioLanding() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Si la PWA se abre en la raíz, redirigir a /mobile
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      router.replace('/mobile');
+      return;
+    }
+
     fetch('/api/inicio/content')
       .then(res => res.json())
       .then(res => {
@@ -26,7 +32,7 @@ export default function InicioLanding() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [router]);
 
   const handleRegister = (type: string) => {
     router.push(`/registro-leads?type=${encodeURIComponent(type)}`);
@@ -343,7 +349,7 @@ export default function InicioLanding() {
             <PwaInstallButton />
           </div>
           <div className="mt-12 text-center border-t border-gray-800 pt-6">
-            <span className="text-[10px] text-gray-500">v2.390 | 14 Jul 2026 18:06 CST | AS Operadora viajes y eventos</span>
+            <span className="text-[10px] text-gray-500">v2.430b | 23 Jul 2026 22:41 CST | AS Operadora viajes y eventos</span>
           </div>
         </div>
       </section>

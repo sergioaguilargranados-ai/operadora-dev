@@ -8,8 +8,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 import { PageHeader } from "@/components/PageHeader"
+import { useAuth } from "@/contexts/AuthContext"
 import {
   MessageCircle, Send, Search, Filter, Archive, AlertCircle,
   Clock, CheckCircle2, Circle, Paperclip, MoreVertical, X, Plus,
@@ -28,11 +32,20 @@ export default function ComunicacionPage() {
   const [loading, setLoading] = useState(false)
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [isAlert, setIsAlert] = useState(false)
+  const [isNewMessageModalOpen, setIsNewMessageModalOpen] = useState(false)
+  const [newThreadEmail, setNewThreadEmail] = useState('')
+  const [newThreadSubject, setNewThreadSubject] = useState('')
+  const [newThreadMessage, setNewThreadMessage] = useState('')
+  const [newThreadIsAlert, setNewThreadIsAlert] = useState(false)
+  const [isCreatingThread, setIsCreatingThread] = useState(false)
 
-  // Centro de Comunicación — vista del equipo interno (agente)
-  const currentUserId = 1
-  const userType = 'agent' as 'client' | 'agent'
-  const tenantId = 1
+  // Centro de Comunicación
+  const { user } = useAuth()
+  const currentUserId = user?.id || 1
+  const isAgentOrHigher = user?.role && ['agente', 'admin', 'superadmin', 'agency_admin', 'master', 'agencia'].includes(user.role.toLowerCase())
+  const userType = isAgentOrHigher ? 'agent' : 'client'
+  const tenantId = user?.tenant_id || 1
 
   useEffect(() => {
     loadThreads()
@@ -58,6 +71,7 @@ export default function ComunicacionPage() {
       // Admin: obtener TODOS los threads sin restricción de usuario
       const params = new URLSearchParams()
       if (filter !== 'all') params.append('status', filter)
+      if (userType === 'client') params.append('client_id', currentUserId.toString())
 
       const res = await fetch(`/api/communication/threads/all?${params}`)
       const data = await res.json()
@@ -142,6 +156,7 @@ export default function ComunicacionPage() {
           sender_type: userType,
           sender_name: 'Usuario', // TODO: nombre real
           body: newMessage,
+          message_type: isAlert ? 'alert' : 'text',
           tenant_id: tenantId
         })
       })
@@ -164,10 +179,11 @@ export default function ComunicacionPage() {
           variant: 'destructive'
         })
       }
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error sending message:', error)
       toast({
         title: 'Error',
-        description: error.message,
+        description: 'No se pudo enviar el mensaje',
         variant: 'destructive'
       })
     } finally {
@@ -175,8 +191,67 @@ export default function ComunicacionPage() {
     }
   }
 
-  const formatDate = (date: string) => {
-    const d = new Date(date)
+  const handleCreateNewThread = async () => {
+    if (!newThreadEmail.trim() || !newThreadSubject.trim() || !newThreadMessage.trim()) {
+      toast({
+        title: 'Campos requeridos',
+        description: 'Por favor completa el correo, asunto y mensaje',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    setIsCreatingThread(true)
+
+    try {
+      const res = await fetch('/api/communication/new-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: newThreadEmail,
+          subject: newThreadSubject,
+          message: newThreadMessage,
+          isAlert: newThreadIsAlert
+        })
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        toast({
+          title: 'Mensaje enviado',
+          description: 'Se ha creado la nueva conversación'
+        })
+        
+        setIsNewMessageModalOpen(false)
+        setNewThreadEmail('')
+        setNewThreadSubject('')
+        setNewThreadMessage('')
+        setNewThreadIsAlert(false)
+        
+        loadThreads()
+        
+        // Select the newly created thread
+        const newThreadId = data.data.thread_id
+        // Load threads again to find it and select it, or just rely on next fetch
+        // Para simplificar, recargamos la lista
+      } else {
+        throw new Error(data.error || 'Error al enviar mensaje')
+      }
+    } catch (error: any) {
+      console.error('Error creating thread:', error)
+      toast({
+        title: 'Error',
+        description: error.message || 'No se pudo crear la conversación',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsCreatingThread(false)
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    const d = new Date(dateString)
     const now = new Date()
     const diff = now.getTime() - d.getTime()
     const hours = diff / (1000 * 60 * 60)
@@ -188,6 +263,11 @@ export default function ComunicacionPage() {
     } else {
       return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
     }
+  }
+
+  const formatDateTime = (dateString: string) => {
+    const d = new Date(dateString)
+    return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
   }
 
   const getStatusBadge = (status: string) => {
@@ -248,14 +328,84 @@ export default function ComunicacionPage() {
           {/* Lista de hilos */}
           <Card className="lg:col-span-1 p-4 flex flex-col overflow-hidden">
             <div className="mb-4 space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar conversaciones..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                {userType === 'agent' && (
+                  <Dialog open={isNewMessageModalOpen} onOpenChange={setIsNewMessageModalOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="default" className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                        <Plus className="w-4 h-4" />
+                        <span className="hidden sm:inline">Nuevo Mensaje</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Nuevo Mensaje</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="email">Destinatario o Palabra Clave</Label>
+                        <Input
+                          id="email"
+                          type="text"
+                          placeholder="cliente@ejemplo.com, 'todos' o clave 'AS-123'"
+                          value={newThreadEmail}
+                          onChange={(e) => setNewThreadEmail(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Palabras clave: Escribe <span className="font-semibold text-blue-600">todos</span> para notificar a todos tus clientes activos, o escribe la <span className="font-semibold text-blue-600">clave de un paquete (ej. AS-1234)</span> para enviar solo a clientes con esa reserva activa o futura.
+                        </p>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="subject">Asunto</Label>
+                        <Input
+                          id="subject"
+                          placeholder="Asunto del mensaje"
+                          value={newThreadSubject}
+                          onChange={(e) => setNewThreadSubject(e.target.value)}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="message">Mensaje</Label>
+                        <Textarea
+                          id="message"
+                          placeholder="Escribe el mensaje aquí..."
+                          value={newThreadMessage}
+                          onChange={(e) => setNewThreadMessage(e.target.value)}
+                          className="min-h-[100px]"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="new-alert"
+                          checked={newThreadIsAlert}
+                          onCheckedChange={setNewThreadIsAlert}
+                        />
+                        <Label htmlFor="new-alert" className="flex items-center gap-1 text-red-600 font-medium">
+                          <AlertCircle className="w-4 h-4" />
+                          Marcar como alerta importante
+                        </Label>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsNewMessageModalOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button onClick={handleCreateNewThread} disabled={isCreatingThread}>
+                        {isCreatingThread ? 'Enviando...' : 'Enviar mensaje'}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+                )}
               </div>
 
               <Tabs value={filter} onValueChange={setFilter}>
@@ -284,17 +434,29 @@ export default function ComunicacionPage() {
                         : 'hover:bg-gray-50'
                     }`}
                   >
-                    <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-start justify-between mb-1">
                       <div className="flex items-center gap-2">
                         {getPriorityIcon(thread.priority)}
-                        <span className="font-semibold text-sm">{thread.subject}</span>
+                        <span className="font-semibold text-sm line-clamp-1">{thread.subject}</span>
                       </div>
                       {thread.last_message_at && (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
                           {formatDate(thread.last_message_at)}
                         </span>
                       )}
                     </div>
+                    
+                    {userType === 'agent' && (thread.client_name || thread.client_email) && (
+                      <div className="text-[11px] text-blue-600 font-medium mb-2 truncate">
+                        Para: {thread.client_name || thread.client_email}
+                      </div>
+                    )}
+                    
+                    {thread.last_message_body && (
+                      <div className="text-xs text-gray-500 line-clamp-2 mb-2 italic">
+                        {thread.last_message_body}
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-2 mb-2">
                       {getStatusBadge(thread.status)}
@@ -340,6 +502,11 @@ export default function ComunicacionPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h2 className="font-bold text-lg">{selectedThread.subject}</h2>
+                      {userType === 'agent' && (selectedThread.client_name || selectedThread.client_email) && (
+                        <div className="text-sm text-blue-600 mt-0.5 font-medium">
+                          Para: {selectedThread.client_name || selectedThread.client_email}
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 mt-1">
                         {getStatusBadge(selectedThread.status)}
                         {selectedThread.reference_type && (
@@ -389,7 +556,7 @@ export default function ComunicacionPage() {
                           return (
                             <div className="flex items-center gap-1 mt-2 px-2 py-1 bg-green-50 border border-green-200 rounded-md text-xs text-green-700">
                               <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
-                              <span>Enviado · {channels}{sentD?.sent_at ? ` · ${formatDate(sentD.sent_at)}` : ''}</span>
+                              <span>Enviado · {channels}{sentD?.sent_at ? ` · ${formatDateTime(sentD.sent_at)}` : ''}</span>
                             </div>
                           )
                         }
@@ -422,7 +589,7 @@ export default function ComunicacionPage() {
                             )}
                             <div className="whitespace-pre-wrap">{message.body}</div>
                             <div className={`text-xs mt-2 ${isOwn ? 'text-blue-100' : 'text-muted-foreground'}`}>
-                              {formatDate(message.created_at)}
+                              {formatDateTime(message.created_at)}
                               {message.status === 'sent' && isOwn && (
                                 <CheckCircle2 className="w-3 h-3 inline ml-1" />
                               )}
@@ -465,9 +632,21 @@ export default function ComunicacionPage() {
                       <Send className="w-4 h-4" />
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Presiona Enter para enviar, Shift+Enter para nueva línea
-                  </p>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-muted-foreground">
+                      Presiona Enter para enviar, Shift+Enter para nueva línea
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Switch 
+                        checked={isAlert}
+                        onCheckedChange={setIsAlert}
+                        id="alert-mode"
+                      />
+                      <label htmlFor="alert-mode" className="text-sm cursor-pointer text-gray-700 font-medium">
+                        Enviar como Alerta Importante (App)
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </>
             ) : (
@@ -485,7 +664,7 @@ export default function ComunicacionPage() {
 
       {/* Footer con versión */}
       <div className="text-center py-3 text-xs text-muted-foreground border-t">
-        AS Operadora · Centro de Comunicación · v2.343 · 2026-05-07 13:00 CST
+        AS Operadora · Centro de Comunicación · v2.430b · 2026-07-23 22:41 CST
       </div>
     </div>
   )

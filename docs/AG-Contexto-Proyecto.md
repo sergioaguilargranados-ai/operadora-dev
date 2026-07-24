@@ -1,9 +1,12 @@
 # 🎯 AG-Contexto-Proyecto - AS Operadora
 
-**Última actualización:** 03 de Julio de 2026 - 00:43 CST  
-**Versión actual:** v2.361  
+**Última actualización:** 23 de Julio de 2026 - 17:15 CST  
+**Versión actual:** v2.430b  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity, trabajar de esta manera es para tener un mejor control de los cambios que se hacen en el proyecto y asegurar que todo funcione correctamente. 
+
+## 📌 REGLAS DE COMUNICACIÓN (IMPORTANTE)
+- **Idioma:** Toda comunicación hacia el usuario y entre agentes **DEBE SER EXCLUSIVAMENTE EN ESPAÑOL**. No utilizar inglés en las respuestas, resúmenes ni en los mensajes entre subagentes.
 
 ## 📌 INFORMACIÓN DEL PROYECTO
 
@@ -13,16 +16,17 @@
 ### Cliente
 Sergio Aguilar Granados
 
-### Repositorio Git
+### Repositorio Git y URLs
 - **Ambiente de Pruebas / Liberación:** `https://github.com/sergioaguilargranados-ai/operadora-dev.git`
+- **Dominio de Desarrollo:** `https://www.as-ope-viajes.company/` (Usado para pruebas y desarrollo)
 - **Repositorio Producción Legacy:** `https://github.com/sergioaguilargranados-ai/as-operadora.git`
 - **Deploy:** Liberaciones en ambiente de pruebas sobre `operadora-dev`
 
 ### Objetivo
-Sistema completo de gestión de viajes corporativos con búsqueda, reservas, aprobaciones, pagos, reportes y dashboard ejecutivo. Competir con plataformas como Expedia con funcionalidades superiores.
+Resumen ejecutivo y flujo de desarrollo.
 
 ### AL VERSIONAR CONSERVAR V0.000 CON FECHA Y HORA
-- **Versión:** V2.361 2026-07-03 00:43:00 CST 
+- **Versión:** V2.430b 2026-07-23 17:15:00 CST 
 La fecha y hora tiempo del CDMX
 
 
@@ -62,6 +66,13 @@ La fecha y hora tiempo del CDMX
 - AES-256 (encriptación)
 - Rate limiting
 - CORS configurado
+
+### Inteligencia Artificial & Herramientas Agentic
+- **Agentes IA:** AntiGravity AI Assistant (Google DeepMind) basado en Gemini Advanced Agentic Coding.
+- **Flujo de Trabajo:** Planificación autónoma (Planning Mode), ejecución iterativa, validación y creación de artefactos (Implementation Plans, Walkthroughs, Tasks).
+- **Herramientas del Agente:** Capacidades de lectura/escritura de archivos (multi_replace_file_content), ejecución de scripts en terminal local (Windows), y búsqueda de patrones (grep_search).
+- **Directrices para Agentes Futuros:** Todos los agentes deben consultar y apegarse estrictamente a los archivos de contexto en `/DOCS` (como este documento) antes de realizar modificaciones arquitectónicas o cambios que rompan el estilo existente. Es imperativo respetar el Multi-Tenant (Marca Blanca) y las validaciones de roles implementadas.
+- **Continuidad de Sesiones:** Para dar seguimiento, **los agentes DEBEN LEER SIEMPRE el archivo más reciente en la carpeta `docs/CHATS/`** al iniciar una nueva sesión. Ahí se documenta el cierre, lo que se hizo, y los siguientes pasos a realizar.
 
 ---
 

@@ -40,6 +40,7 @@ interface Booking {
   status: string
   total_amount: number
   total_price: number
+  paid_amount?: number
   currency: string
   payment_status: string
   lead_traveler_name: string
@@ -370,8 +371,20 @@ export default function MisReservasPage() {
                             {formatCurrency(booking.total_price || booking.total_amount, booking.currency)}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Monto total
+                            Costo Total
                           </p>
+                          {booking.paid_amount !== undefined && booking.paid_amount > 0 && (
+                            <div className="mt-1">
+                              <p className="text-sm font-semibold text-green-600">
+                                Pagado: {formatCurrency(booking.paid_amount, booking.currency)}
+                              </p>
+                              {((booking.total_price || booking.total_amount) - booking.paid_amount) > 0 && (
+                                <p className="text-xs text-blue-600 font-medium">
+                                  Saldo: {formatCurrency((booking.total_price || booking.total_amount) - booking.paid_amount, booking.currency)}
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex gap-1.5 flex-wrap justify-end">

@@ -18,10 +18,6 @@ export default function MobileCartPage() {
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!cardNumber || cardNumber.length < 16) {
-      toast({ title: "Error", description: "Número de tarjeta inválido", variant: "destructive" })
-      return
-    }
 
     try {
       setLoading(true)
@@ -36,14 +32,19 @@ export default function MobileCartPage() {
       })
 
       const data = await res.json()
-      if (data.success) {
-        toast({ title: "Pedido Confirmado", description: "Tu compra se ha procesado con éxito" })
+      if (data.success && data.booking_id) {
+        toast({ title: "Pedido Iniciado", description: "Redirigiendo a pasarela de pagos..." })
         clearCart()
+        
+        // Abrir navegador con token para pago
+        const token = localStorage.getItem('as_token') || localStorage.getItem('token') || ''
+        window.open(`/checkout/${data.booking_id}?token=${encodeURIComponent(token)}`, '_blank')
+        
         setTimeout(() => {
           router.push("/mobile/tienda")
-        }, 1500)
+        }, 500)
       } else {
-        toast({ title: "Error", description: data.error, variant: "destructive" })
+        toast({ title: "Error", description: data.error || 'Error al procesar', variant: "destructive" })
       }
     } catch (err) {
       console.error(err)
@@ -110,38 +111,28 @@ export default function MobileCartPage() {
           {/* Payment Form (Simulated Gateway) */}
           <form onSubmit={handleCheckout} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 mt-4">
             <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-gray-400" /> Datos de Pago
+              <ShieldCheck className="w-5 h-5 text-[#0066FF]" /> Pago Seguro
             </h2>
             
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Número de Tarjeta</label>
-                <input 
-                  type="text" 
-                  placeholder="4152 3134 5431 8219" 
-                  value={cardNumber}
-                  onChange={e => setCardNumber(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-black"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Vencimiento</label>
-                  <input type="text" placeholder="MM/YY" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-black" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">CVC</label>
-                  <input type="text" placeholder="123" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-black" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-blue-50/50 rounded-xl p-3 flex items-center gap-3 mt-6">
-              <ShieldCheck className="w-5 h-5 text-blue-600 flex-shrink-0" />
-              <p className="text-[10px] text-blue-900 leading-tight">
-                Pago 100% seguro. Usamos un simulador de pasarela para esta demo.
+            <div className="bg-blue-50 rounded-xl p-4 flex items-start gap-3 mb-6">
+              <ShieldCheck className="w-5 h-5 text-[#0066FF] flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-900 leading-relaxed">
+                Serás redirigido a nuestra pasarela de pagos segura. 
+                Tus pagos están protegidos por encriptación de 256 bits.
               </p>
             </div>
+
+            <Button
+              type="submit"
+              disabled={loading || cartItems.length === 0}
+              className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg hover:bg-gray-900"
+            >
+              {loading ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                <>Pagar ahora <ArrowRight className="w-5 h-5 ml-2" /></>
+              )}
+            </Button>
           </form>
 
         </div>
@@ -152,7 +143,7 @@ export default function MobileCartPage() {
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 z-20">
           <Button 
             onClick={handleCheckout}
-            disabled={loading || !cardNumber}
+            disabled={loading}
             className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg hover:bg-gray-900 shadow-xl shadow-black/10"
           >
             {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (

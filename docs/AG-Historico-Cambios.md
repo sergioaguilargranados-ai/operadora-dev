@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 01 de Julio de 2026 - 17:46 CST  
-**Versión actual:** v2.360  
+**Última actualización:** 23 de Julio de 2026 - 17:15 CST  
+**Versión actual:** v2.430b  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -9,7 +9,56 @@
 
 ## 📅 HISTORIAL DE CAMBIOS
 
-### v2.368 - 03 de Julio de 2026 - 23:09 CST
+### v2.430b - 23 de Julio de 2026 - 17:15 CST
+**Ajuste de UI en Invitados PWA: Eliminación de Filtros**
+- **Eliminación del Dropdown de Filtros:** Se quitó la caja de selección de estado ("Todos", "Registrados", "Confirmados") de la barra de búsqueda en la pantalla de invitados confirmados (`/mobile/rewards/invitados`) para simplificar la interfaz.
+- **Buscador de Ancho Completo:** La barra de búsqueda ahora abarca el ancho completo para una mejor visualización en pantallas móviles.
+
+### v2.430 - 23 de Julio de 2026 - 12:12 CST
+**Reestructuración de Referidos en PWA Móvil: Lista de Invitados y Eliminación de Ranking**
+- **Eliminación del Ranking AS:** Se quitó la tarjeta de "Ranking AS" de la pestaña de AS Rewards en `/mobile/rewards` para simplificar la interfaz.
+- **Navegación al Detalle de Invitados:** Se enlazó el botón "Ver todos" de la tarjeta "Invitados confirmados" hacia la nueva página móvil `/mobile/rewards/invitados`.
+- **Nueva Vista de Detalle (`/mobile/rewards/invitados`):**
+  - Implementación de la vista premium de invitados con buscador dinámico de nombres y filtro de estado.
+  - Se eliminó el botón de navegación `>` innecesario en cada fila.
+  - Se colocó un contador verde que muestra el número de invitados referidos a su vez por ellos (`sub_referrals_count`).
+- **Soporte en Backend API (`/api/mobile/referrals`):** Se modificó la consulta GET para calcular dinámicamente y con casting síncrono `sub_referrals_count` para cada referido del usuario mediante una subconsulta optimizada.
+**Hotfix: Sintaxis de Perfil, Referidos y Ciclo de Redirección**
+- **Bugfix en Registro de Referidos:** Se agregó lógica en `/api/auth/register` para que además de detectar códigos de Agentes, también vincule correctamente a los Usuarios normales en la tabla `user_referrals` y permita que el sistema AS Rewards asigne los puntos.
+- **Ciclo Infinito de Navegación PWA:** Se corrigió el redireccionamiento en `/mobile/itinerario/active`, usando `router.replace` en lugar de `router.push`, evitando que el historial atrape al usuario en un ciclo al intentar volver atrás.
+- **Resolución de Sintaxis (Vercel Build):** Se solucionó un error de llaves y etiquetas huérfanas introducido en `mobile/perfil/page.tsx` para reactivar los pases de compilación exitosos.
+
+
+### v2.428 - 22 de Julio de 2026 - 08:21 CST
+**Mejoras UI/UX en PWA Móvil: Perfil e Itinerario**
+- **Cambio de Contraseña:** Se creó la vista específica `/mobile/perfil/password` para actualizar la contraseña desde la app móvil, integrándola con el menú principal y el endpoint `/api/auth/change-password`.
+- **Edición de Documentos:** Se agregó un botón de edición (ícono de lápiz) en la lista de documentos del perfil (`/mobile/perfil`), permitiendo renombrarlos directamente mediante un nuevo método `PUT` en `/api/mobile/documents`.
+- **Acceso Directo a Itinerario Activo:** Se redirigió la opción "Itinerario" del menú hamburguesa hacia una nueva ruta intermedia (`/mobile/itinerario/active`) que calcula el viaje más próximo y redirige automáticamente al usuario a su detalle con la pestaña `?tab=itinerario` preseleccionada.
+
+
+### v2.427 - 22 de Julio de 2026 - 01:06 CST
+**🛒 Pasarela de Pagos Unificada para Tienda PWA**
+- **Autenticación sin Fricción:** El checkout principal (`/checkout/[bookingId]`) ahora acepta un `?token=` temporal en la URL para auto-inyectar la sesión al saltar de la App Móvil (PWA) al navegador web, sin requerir re-autenticación.
+- **Botón "Pagar ahora" (PWA):** En pagos pendientes (`/mobile/pagos`), el CTA se reemplazó por un botón negro estilizado que envía a la pasarela externa de Stripe/PayPal en el navegador web con la sesión activa.
+- **Unificación de Checkout Tienda:** El carrito de compras (`/api/mobile/store/checkout`) ya no auto-paga las órdenes. Ahora crea una orden `pending` y una reserva espejo en `bookings` (`booking_type: 'store_order'`). Esto canaliza los productos del carrito por la misma pasarela financiera de los viajes (Stripe, Paypal, MercadoPago).
+- **Procesamiento Síncrono de Recompensas:** Se implementó el servicio `StoreOrderService` que es invocado por los webhooks y endpoints de captura (`stripe`, `paypal`, `mercadopago`, `manual`). Cuando un pago es aprobado, procesa la orden de tienda y abona automáticamente los puntos a la billetera digital y métricas de referidos.
+
+
+### v2.426 - 21 de Julio de 2026 - 13:55 CST
+**🚀 Pestañas de Itinerario, Flujo de Compartir e Integración Offline PWA**
+- **Pestañas de Itinerario (`/mobile/itinerario/[id]`):** Implementación de la barra de pestañas segmentada con las vistas de *Resumen* (métricas, próximos pasos interactivos y lista de hoteles), *Itinerario* (ruta y días) y *Documentos* (integrado con documentos de perfil y descargas de viaje).
+- **Flujo de Compartir en Grupos (`/mobile/viajes-grupales`):** Sustitución del botón plano por el módulo interactivo de invitaciones que carga el código de referido del usuario y botones para compartir en redes sociales (WhatsApp, Facebook, Instagram, copiar link).
+- **Portal de Registro y Login (`/registro`, `/login`):** Renombre de marca de "AS Club" a "AS Rewards" de forma dinámica y marca blanca con soporte del nombre de inquilino (`companyName`) y estilos adaptados a la paleta del Tenant.
+- **Soporte Offline PWA (`sw.ts` y `/mobile`):** Configuración de caché en el Service Worker para persistir APIs JSON de reservas/perfil y fotos/PDFs en disco. Se programó una precarga silenciosa al entrar al inicio para guardar todos los activos del próximo viaje en segundo plano.
+
+### v2.425 - 16 de Julio de 2026 - 01:38 CST
+**🛠️ Correcciones Menores de PWA y CRM**
+- **IA en PWA:** Corrección en el query SQL (se eliminó la columna inexistente `service_name`) en `/api/rewards/recommendations` y `/api/rewards/challenges` para que el sistema detone correctamente OpenAI y genere las recomendaciones y retos en tiempo real en la PWA en lugar de los textos de fallback.
+- **Pagos Pendientes PWA:** Corrección en la ruta `/api/mobile/payments/pending` para que lea correctamente el parámetro `user_id` desde los `searchParams` y despliegue los saldos pendientes reales en vez de retornar `401 Unauthorized`.
+- **Notificaciones CRM:** Solución del fallo silencioso 404 al intentar enviar notificaciones con destinatario "todos". Se cambió la sensibilidad de mayúsculas/minúsculas en el query (ahora usa `ILIKE 'client'`) dado que el rol en DB es 'CLIENT'.
+- **Contexto:** Se agregó el URL `https://www.as-ope-viajes.company/` en el documento de contexto `AG-Contexto-Proyecto.md`.
+
+### v2.424 - 15 de Julio de 2026 - 13:25 CST
 **🚀 6 Mejoras Funcionales y Visuales de la PWA**
 - **Footer Fijo y Widgets:** Footer adaptado a `fixed` con `backdrop-blur`, reubicación de la versión de compilación y ajuste de los widgets de WhatsApp/Chat a un tamaño más sutil (44px).
 - **Wishlist Activa:** Implementación completa con base de datos, API (`/api/wishlist`) y nueva vista para gestión interactiva de souvenirs favoritos.

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Bell, ShoppingCart, Search, SlidersHorizontal, ShoppingBag, Heart, Loader2 } from "lucide-react"
+import NotificationBell from "@/components/mobile/NotificationBell"
 import { Input } from "@/components/ui/input"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { useCart } from "@/contexts/CartContext"
@@ -59,7 +60,7 @@ export default function MobileStorePage() {
 
           <div className="flex gap-4">
             <button onClick={() => router.push('/mobile/notificaciones')} className="text-white hover:text-gray-300">
-              <Bell className="w-6 h-6" />
+              <NotificationBell className="w-6 h-6" />
             </button>
             <button onClick={() => router.push('/mobile/tienda/carrito')} className="text-white hover:text-gray-300 relative">
               <ShoppingCart className="w-6 h-6" />
@@ -132,14 +133,14 @@ export default function MobileStorePage() {
             <Loader2 className="w-8 h-8 animate-spin text-black mb-2" />
             <p className="text-sm text-gray-500">Cargando productos...</p>
           </div>
-        ) : products.length === 0 ? (
+        ) : products.filter(p => (activeCategory === "Todos" || p.category === activeCategory) && p.name.toLowerCase().includes(search.toLowerCase())).length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <ShoppingBag className="w-12 h-12 text-gray-300 mb-4" />
             <p className="text-gray-500 font-medium">No hay productos disponibles.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 pb-8">
-            {products.map((product) => (
+            {products.filter(p => (activeCategory === "Todos" || p.category === activeCategory) && p.name.toLowerCase().includes(search.toLowerCase())).map((product) => (
               <div 
                 key={product.id} 
                 className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm flex flex-col active:scale-95 transition-transform"

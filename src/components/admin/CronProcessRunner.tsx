@@ -2,16 +2,24 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Square, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Play, Square, CheckCircle, XCircle, Loader2, Clock } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CronProcessRunnerProps {
   title: string;
   description: string;
   endpoint: string;
   icon?: React.ReactNode;
+  cronKey?: string;
+  isActive?: boolean;
+  scheduledHour?: string;
+  onSettingChange?: (cronKey: string, isActive: boolean, hour: string) => void;
 }
 
-export function CronProcessRunner({ title, description, endpoint, icon }: CronProcessRunnerProps) {
+export function CronProcessRunner({ 
+  title, description, endpoint, icon, cronKey, isActive, scheduledHour, onSettingChange 
+}: CronProcessRunnerProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [status, setStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle');
@@ -29,14 +37,16 @@ export function CronProcessRunner({ title, description, endpoint, icon }: CronPr
     setIsRunning(true);
     setStatus('running');
     setLogs([]);
-    addLog(`Iniciando proceso: ${title}...`);
-    addLog(`Endpoint: GET ${endpoint}`);
+    addLog(`Iniciando proceso manual: ${title}...`);
+    // Pass force=true to override cron schedule
+    const url = endpoint.includes('?') ? `${endpoint}&force=true` : `${endpoint}?force=true`;
+    addLog(`Endpoint: GET ${url}`);
     
     try {
       addLog('Ejecutando petición (por favor espera)...');
       
       const startTime = Date.now();
-      const res = await fetch(endpoint);
+      const res = await fetch(url);
       const data = await res.json();
       const duration = ((Date.now() - startTime) / 1000).toFixed(1);
       
@@ -60,13 +70,49 @@ export function CronProcessRunner({ title, description, endpoint, icon }: CronPr
   return (
     <div className="bg-gradient-to-r from-slate-50 to-gray-50 border border-gray-200 rounded-xl p-6 mb-6 shadow-sm">
       <div className="flex justify-between items-start mb-4">
-        <div>
+        <div className="flex-1 pr-4">
           <h3 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
             {icon} {title}
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 mb-4">
             {description}
           </p>
+          
+          {cronKey && onSettingChange && (
+            <div className="flex items-center gap-6 p-3 bg-white rounded-lg border border-gray-100 shadow-sm inline-flex">
+              <div className="flex items-center gap-2">
+                <Switch 
+                  checked={isActive} 
+                  onCheckedChange={(checked) => onSettingChange(cronKey, checked, scheduledHour || '03:00')}
+                />
+                <span className="text-sm font-medium">{isActive ? 'Activo' : 'Pausado'}</span>
+              </div>
+              
+              <div className="w-px h-6 bg-gray-200"></div>
+              
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">Hora:</span>
+                <Select 
+                  value={scheduledHour} 
+                  onValueChange={(val) => onSettingChange(cronKey, isActive || false, val)}
+                  disabled={!isActive}
+                >
+                  <SelectTrigger className="w-[100px] h-8 text-xs">
+                    <SelectValue placeholder="Hora" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 24 }).map((_, i) => {
+                      const hr = i.toString().padStart(2, '0');
+                      return (
+                        <SelectItem key={hr} value={`${hr}:00`}>{hr}:00</SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
         </div>
         <Button
           onClick={runProcess}

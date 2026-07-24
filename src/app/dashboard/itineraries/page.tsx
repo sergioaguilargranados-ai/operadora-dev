@@ -506,9 +506,27 @@ export default function ItinerariesPage() {
       }))
 
       if (pkg.itinerary && pkg.itinerary.length > 0) {
+        let cleanItinerary = [...pkg.itinerary];
+        
+        // Limpiar el disclaimer/resumen inicial de MegaTravel
+        if (cleanItinerary.length > 1) {
+          const firstTitle = (cleanItinerary[0]?.title || '').toUpperCase();
+          const secondTitle = (cleanItinerary[1]?.title || '').toUpperCase();
+          
+          if (
+            (firstTitle.includes('DÍAS') && firstTitle.includes('NOCHES')) ||
+            (firstTitle.length > 40 && !firstTitle.startsWith('DÍA') && !firstTitle.startsWith('DIA')) ||
+            (secondTitle.includes('DÍA 1') || secondTitle.includes('DIA 1')) ||
+            firstTitle.includes('SENTIDO INVERSO') ||
+            firstTitle.includes('OPERARÁ')
+          ) {
+            cleanItinerary.shift();
+          }
+        }
+
         const baseStartDate = new Date(startDateToUse + 'T12:00:00Z')
 
-        const generatedDays = pkg.itinerary.map((dayItem: any, index: number) => {
+        const generatedDays = cleanItinerary.map((dayItem: any, index: number) => {
           const currentDate = new Date(baseStartDate)
           currentDate.setUTCDate(currentDate.getUTCDate() + index)
 
@@ -537,9 +555,9 @@ export default function ItinerariesPage() {
       }
 
       alert(`Sincronización exitosa desde la Base de Datos. Se cargaron ${pkg.itinerary?.length || 0} días del tour: ${pkg.name}`)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error syncing tour:', error)
-      alert('Hubo un error de conexión al intentar sincronizar el tour.')
+      alert(`Hubo un error al intentar sincronizar el tour: ${error.message}`)
     } finally {
       setLoading(false)
     }

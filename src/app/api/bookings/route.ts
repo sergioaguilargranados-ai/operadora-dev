@@ -29,7 +29,12 @@ export async function GET(request: NextRequest) {
         lead_traveler_name,
         lead_traveler_email,
         special_requests,
-        created_at
+        created_at,
+        COALESCE((
+          SELECT SUM(amount) 
+          FROM payment_transactions 
+          WHERE booking_id = bookings.id AND status = 'completed'
+        ), 0) as paid_amount
       FROM bookings
       WHERE 1=1
     `
@@ -178,6 +183,12 @@ export async function POST(request: NextRequest) {
           console.log(`✅ Nuevo usuario creado y Setup Token generado para: ${travelerEmail}`);
         }
 
+        // ASIGNAR LA RESERVA AL VIAJERO EN LA BASE DE DATOS
+        if (user && user.id) {
+          await query('UPDATE bookings SET user_id = $1 WHERE id = $2', [user.id, booking.id]);
+          booking.user_id = user.id; // Actualizar localmente por si se usa abajo
+        }
+
         // 2. Enviar correos
         const { sendBookingConfirmationEmail, sendAccountSetupEmail } = await import('@/lib/emailHelper');
         
@@ -260,6 +271,14 @@ export async function POST(request: NextRequest) {
         // No fallar la reserva si la comisión falla
       }
     }
+
+    // DISPARAR GENERACIÓN DE ITINERARIO (ASÍNCRONO)
+    // Para no bloquear la respuesta, importamos y lanzamos la promesa al aire
+    import('@/services/TripWorkflowService').then(({ TripWorkflowService }) => {
+      TripWorkflowService.executePostBookingWorkflow(booking.id).catch(err => {
+        console.error(`Error background generando itinerario para reserva ${booking.id}:`, err);
+      });
+    });
 
     return NextResponse.json(
       successResponse({ booking: payload, id: booking.id }),

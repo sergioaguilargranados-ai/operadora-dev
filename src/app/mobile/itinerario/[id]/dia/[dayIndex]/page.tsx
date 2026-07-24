@@ -8,12 +8,20 @@ import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { WishlistHeart } from "@/components/mobile/WishlistHeart"
 import { CurrencyCalculator } from "@/components/mobile/CurrencyCalculator"
 import { WeatherForecast } from "@/components/mobile/WeatherForecast"
+import { useToast } from "@/hooks/use-toast"
+import { FoodDetailModal } from "@/components/mobile/FoodDetailModal"
+import { PlaceDetailModal } from "@/components/mobile/PlaceDetailModal"
+
 export default function MobileItineraryDayDetail({ params }: { params: { id: string, dayIndex: string } }) {
   const router = useRouter()
   const { logoUrl, logoMobileUrl } = useWhiteLabel()
   const customLogoUrl = logoMobileUrl || logoUrl || null
+  const { toast } = useToast()
+  
   const [loading, setLoading] = useState(true)
   const [itinerary, setItinerary] = useState<any>(null)
+  const [isDaySaved, setIsDaySaved] = useState(false)
+  const [isSavingDay, setIsSavingDay] = useState(false)
   
   const [dayData, setDayData] = useState<any>(null)
   
@@ -22,6 +30,8 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
   const [isTranslating, setIsTranslating] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false)
+  const [selectedFood, setSelectedFood] = useState<any>(null)
+  const [selectedPlace, setSelectedPlace] = useState<any>(null)
 
   // Map from name/symbol to code
   const getCurrencyCode = (name: string, symbol: string) => {
@@ -148,6 +158,23 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               fetchedItinerary.days = []
             }
           }
+
+          // Reparar si el Día 1 guardado es en realidad la descripción de MegaTravel
+          if (fetchedItinerary.days && fetchedItinerary.days.length > 0) {
+            const first = fetchedItinerary.days[0]
+            const second = fetchedItinerary.days[1]
+            const fTitle = (first.title || '').toUpperCase()
+            const sTitle = (second?.title || '').toUpperCase()
+            
+            if (
+              (fTitle.includes('DÍAS') && fTitle.includes('NOCHES')) ||
+              (fTitle.length > 50 && !fTitle.startsWith('DÍA') && !fTitle.startsWith('DIA')) ||
+              (sTitle.includes('DÍA 1') || sTitle.includes('DIA 1'))
+            ) {
+              fetchedItinerary.days.shift()
+            }
+          }
+
           setItinerary(fetchedItinerary)
           const days = fetchedItinerary.days || []
           const index = parseInt(params.dayIndex, 10) || 0
@@ -170,6 +197,21 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               places: [{ name: pkg.region || 'Ubicación' }]
             }))
             
+            if (generatedDays.length > 0) {
+              const first = generatedDays[0]
+              const second = generatedDays[1]
+              const fTitle = (first.title || '').toUpperCase()
+              const sTitle = (second?.title || '').toUpperCase()
+              
+              if (
+                (fTitle.includes('DÍAS') && fTitle.includes('NOCHES')) ||
+                (fTitle.length > 50 && !fTitle.startsWith('DÍA') && !fTitle.startsWith('DIA')) ||
+                (sTitle.includes('DÍA 1') || sTitle.includes('DIA 1'))
+              ) {
+                generatedDays.shift()
+              }
+            }
+
             setItinerary({
               title: pkg.name,
               destination: pkg.region,
@@ -214,7 +256,48 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
   
   const currencyCode = getCurrencyCode(dayData?.practical_info?.currency?.name || '', dayData?.practical_info?.currency?.symbol || '')
 
-  if (loading) {
+  const toggleDayWishlist = async () => {
+    if (!user?.id) {
+      toast({ title: "Inicia sesión", description: "Debes iniciar sesión para guardar en tu wishlist", variant: "destructive" })
+      return
+    }
+
+    setIsSavingDay(true)
+    try {
+      const res = await fetch('/api/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          item_name: dayData?.title || `Día ${parseInt(params.dayIndex) + 1}`,
+          item_desc: dayData?.description || dayData?.desc || "Detalle del día",
+          item_img: dayData?.hero_image || "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=400&q=80",
+          city: dayData?.places?.[0]?.name || "Destino",
+          itinerary_id: parseInt(params.id),
+          day_index: parseInt(params.dayIndex)
+        })
+      })
+      const data = await res.json()
+      
+      if (data.success) {
+        const nowSaved = data.action === 'added'
+        setIsDaySaved(nowSaved)
+        toast({ 
+          title: nowSaved ? "Guardado" : "Eliminado", 
+          description: nowSaved ? "Día añadido a tu wishlist." : "Día removido de tu wishlist." 
+        })
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (err) {
+      console.error("Error toggling wishlist:", err)
+      toast({ title: "Error", description: "No se pudo guardar", variant: "destructive" })
+    } finally {
+      setIsSavingDay(false)
+    }
+  }
+
+  if (loading || !dayData) {
     return (
       <div className="min-h-screen bg-[#FDFDFD] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
@@ -223,20 +306,12 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] font-sans pb-6">
+    <div className="min-h-screen bg-[#FDFDFD] font-sans pb-24 relative">
       
-      {/* Top Navigation */}
-      <div className="bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-40 shadow-sm">
-        <button onClick={() => router.push(`/mobile/itinerario/${params.id}`)} className="text-gray-900 active:scale-95 p-2 -ml-2 rounded-full hover:bg-gray-100">
+      {/* Absolute top navbar over the image */}
+      <div className="absolute top-0 w-full px-4 pt-8 flex items-center justify-between z-30">
+        <button onClick={() => router.push(`/mobile/itinerario/${params.id}`)} className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors border border-white/30">
           <ChevronLeft className="w-6 h-6" />
-        </button>
-        <MobileLogo
-          variant="dark"
-          size="md"
-          logoUrl={customLogoUrl}
-        />
-        <button className="text-gray-900 active:scale-95 p-2 -mr-2 rounded-full hover:bg-gray-100">
-          <Bookmark className="w-5 h-5" />
         </button>
       </div>
 
@@ -259,7 +334,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           <div className="absolute bottom-6 left-6 right-6 text-white">
             <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-flex mb-3 border border-white/30">
               <p className="text-xs font-bold uppercase tracking-wider text-white">
-                Día {dayData?.day || 1} {dayData?.date ? `- ${dayData.date}` : ''}
+                Día {parseInt(params.dayIndex) + 1} {dayData?.date ? `- ${dayData.date}` : ''}
               </p>
             </div>
             <h1 className="text-4xl font-serif font-bold mb-2 text-white leading-tight">
@@ -294,8 +369,16 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         <h2 className="text-lg font-serif font-bold text-gray-900 px-4 mb-4">Gastronomía recomendada</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-none">
           {foods.map((food, i) => (
-            <div key={i} className="w-[140px] flex-shrink-0 flex flex-col">
-              <img src={food.img} alt={food.name} className="w-full h-24 object-cover rounded-xl mb-2 shadow-sm" />
+            <div key={i} className="w-[140px] flex-shrink-0 flex flex-col cursor-pointer active:scale-95 transition-transform relative" onClick={() => setSelectedFood(food)}>
+              <div className="relative mb-2">
+                <img src={food.img} alt={food.name} className="w-full h-24 object-cover rounded-xl shadow-sm" />
+                <WishlistHeart 
+                  item={{...food, category: 'food'}} 
+                  city={destinationName} 
+                  itineraryId={parseInt(params.id)} 
+                  dayIndex={parseInt(params.dayIndex)} 
+                />
+              </div>
               <h4 className="font-bold text-sm text-gray-900 mb-1 leading-tight">{food.name}</h4>
               <p className="text-xs text-gray-500 leading-tight">{food.desc}</p>
             </div>
@@ -310,8 +393,16 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         <h2 className="text-lg font-serif font-bold text-gray-900 px-4 mb-4">Lugares imperdibles</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-none">
           {places.map((place, i) => (
-            <div key={i} className="w-[120px] flex-shrink-0 flex flex-col">
-              <img src={place.img} alt={place.name} className="w-full h-[120px] object-cover rounded-2xl mb-2 shadow-sm" />
+            <div key={i} className="w-[120px] flex-shrink-0 flex flex-col cursor-pointer active:scale-95 transition-transform relative" onClick={() => setSelectedPlace(place)}>
+              <div className="relative mb-2">
+                <img src={place.img} alt={place.name} className="w-full h-[120px] object-cover rounded-2xl shadow-sm" />
+                <WishlistHeart 
+                  item={{...place, category: 'place'}} 
+                  city={destinationName} 
+                  itineraryId={parseInt(params.id)} 
+                  dayIndex={parseInt(params.dayIndex)} 
+                />
+              </div>
               <h4 className="font-bold text-sm text-gray-900 mb-1 leading-tight">{place.name}</h4>
               <p className="text-[10px] text-gray-500 leading-tight">{place.desc}</p>
             </div>
@@ -324,11 +415,11 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
       {practicalInfo && (
       <div className="px-4 mb-8">
         <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Información práctica</h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="columns-2 gap-3 space-y-3">
           
           {practicalInfo.currency && (
           <div 
-            className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col active:scale-95 transition-transform cursor-pointer"
+            className="break-inside-avoid bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col active:scale-95 transition-transform cursor-pointer"
             onClick={() => setIsCalculatorOpen(true)}
           >
             <div className="flex items-center gap-2 mb-2">
@@ -343,8 +434,14 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           </div>
           )}
 
+          {practicalInfo?.climate && (
+          <div className="break-inside-avoid">
+            <WeatherForecast city={itinerary?.destination || "Madrid, España"} date={dayData.date} />
+          </div>
+          )}
+
           {practicalInfo.language && (
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+          <div className="break-inside-avoid bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                 <Volume2 className="w-4 h-4" />
@@ -358,12 +455,8 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           </div>
           )}
 
-          {practicalInfo?.climate && (
-            <WeatherForecast city={destinationName} date={dayData?.date || new Date().toISOString().split('T')[0]} />
-          )}
-
           {practicalInfo?.timezone && (
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+          <div className="break-inside-avoid bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                 <span className="text-sm font-bold">GMT</span>
@@ -378,7 +471,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           )}
 
           {practicalInfo?.voltage && (
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+          <div className="break-inside-avoid bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                 <span className="text-sm font-bold">⚡</span>
@@ -393,7 +486,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           )}
 
           {practicalInfo?.emergency && (
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+          <div className="break-inside-avoid bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                 <span className="text-sm font-bold">📞</span>
@@ -410,6 +503,12 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         </div>
       </div>
       )}
+
+      {/* Clima de 7 días (WeatherForecast) */}
+      <div className="px-4 mb-8">
+        <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Pronóstico del clima</h2>
+        <WeatherForecast city={destinationName} date={dayData?.date || new Date().toISOString().split('T')[0]} />
+      </div>
 
       {/* Consejos de viaje — Dinámicos */}
       {travelTips.length > 0 && (
@@ -472,7 +571,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               <div className="relative bg-[#f6f5f3] h-[120px] rounded-2xl mb-2 flex items-center justify-center p-2">
                 <img src={item.img} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
                 <WishlistHeart 
-                  item={item} 
+                  item={{...item, category: 'souvenir'}} 
                   city={destinationName} 
                   itineraryId={parseInt(params.id)} 
                   dayIndex={parseInt(params.dayIndex)} 
@@ -530,18 +629,23 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         </div>
       </div>
 
-      {/* Action Bar (Contenido normal) */}
-      <div className="px-4 pb-8">
-        <button className="w-full bg-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-          <CalendarIcon className="w-5 h-5" />
-          Reservar tours para este destino
-        </button>
-      </div>
 
       <CurrencyCalculator 
         isOpen={isCalculatorOpen} 
         onClose={() => setIsCalculatorOpen(false)} 
         targetCurrency={practicalInfo?.currency ? getCurrencyCode(practicalInfo.currency.name, practicalInfo.currency.symbol) : 'USD'}
+      />
+
+      <FoodDetailModal 
+        isOpen={!!selectedFood} 
+        onClose={() => setSelectedFood(null)} 
+        food={selectedFood} 
+      />
+
+      <PlaceDetailModal 
+        isOpen={!!selectedPlace} 
+        onClose={() => setSelectedPlace(null)} 
+        place={selectedPlace} 
       />
     </div>
   )
