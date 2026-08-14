@@ -27,43 +27,50 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'El nombre es requerido' }, { status: 400 });
     }
 
-    if (email) {
-      // Validar contra usuarios existentes
-      const existingUser = await query(`SELECT id FROM users WHERE email = $1 LIMIT 1`, [email]);
-      if (existingUser.rows.length > 0) {
-        return NextResponse.json({ success: false, error: 'Este correo electrónico ya está registrado.' }, { status: 400 });
-      }
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
 
-      // Validar contra el CRM principal
-      const existing = await query(`SELECT id FROM crm_contacts WHERE email = $1 LIMIT 1`, [email]);
-      if (existing.rows.length > 0) {
-        return NextResponse.json({ success: false, error: 'Este correo electrónico ya está registrado.' }, { status: 400 });
+    if (cleanEmail) {
+      // Validar si ya existe una cuenta de usuario completa con este email
+      const existingUser = await query(`SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1`, [cleanEmail]);
+      if (existingUser.rows.length > 0) {
+        return NextResponse.json({ success: false, error: 'Este correo electrónico ya está registrado. Por favor inicia sesión.' }, { status: 400 });
       }
     }
 
-    // Si viene contraseña, crear la cuenta de usuario
-    if (password && email) {
+    // Crear o asegurar la cuenta de usuario en la tabla `users`
+    let createdUser: any = null;
+    if (cleanEmail) {
       try {
         const bcrypt = (await import('bcryptjs')).default;
-        const passwordHash = await bcrypt.hash(password, 10);
+        const passwordHash = password 
+          ? await bcrypt.hash(password, 10) 
+          : await bcrypt.hash('Temporal123!', 10);
+        
         const roleMap: Record<string, string> = {
-          'Viajero': 'cliente',
-          'Agencia de Viajes': 'agencia',
-          'Agencia de Eventos': 'agencia',
-          'Empresa': 'corporativo',
-          'Proveedor': 'proveedor'
+          'Viajero': 'CLIENT',
+          'Agencia de Viajes': 'AGENCY',
+          'Agencia de Eventos': 'AGENCY',
+          'Empresa': 'CORPORATE',
+          'Proveedor': 'PROVIDER'
         };
-        const userRole = roleMap[final_job] || 'cliente';
-        const userStatus = final_job === 'Viajero' ? 'active' : 'pending';
+        const userRole = roleMap[final_job] || 'CLIENT';
 
-        await query(
-          `INSERT INTO users (name, email, password_hash, phone, role, status, referral_code, company_name)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-           ON CONFLICT (email) DO NOTHING`,
-          [final_name, email, passwordHash, final_phone || null, userRole, userStatus, referralCode || null, final_agency || null]
+        const userInsert = await query(
+          `INSERT INTO users (name, email, password_hash, phone, role, is_active, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+           ON CONFLICT (email) DO UPDATE SET 
+             name = EXCLUDED.name,
+             password_hash = CASE WHEN $3 != '' THEN EXCLUDED.password_hash ELSE users.password_hash END,
+             phone = EXCLUDED.phone,
+             updated_at = NOW()
+           RETURNING id, name, email, role, is_active`,
+          [final_name, cleanEmail, passwordHash, final_phone || '', userRole, true]
         );
-      } catch (userErr) {
-        console.error('Error al crear usuario en registro-leads:', userErr);
+        createdUser = userInsert.rows[0];
+        console.log('✅ Usuario registrado/actualizado exitosamente en tabla users:', createdUser);
+      } catch (userErr: any) {
+        console.error('❌ Error al crear usuario en tabla users:', userErr.message);
+        throw new Error(`Error al crear usuario en el sistema: ${userErr.message}`);
       }
     }
 
@@ -78,15 +85,15 @@ export async function POST(request: Request) {
         job_title
       ) VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *`,
-      [final_name, final_phone, final_agency, website, social_media, email, final_job]
+      [final_name, final_phone, final_agency, website, social_media, cleanEmail, final_job]
     );
 
     // Enviar correo de bienvenida con formato corporativo si hay un email
     let emailResult: any = null;
-    if (email) {
+    if (cleanEmail) {
       emailResult = await sendLandingWelcomeEmail({
         name: final_name,
-        email: email,
+        email: cleanEmail,
         type: final_job,
         phone: final_phone,
         company: final_agency,
@@ -108,8 +115,9 @@ export async function POST(request: Request) {
         'Proveedor': 'provider'
       };
       await crmService.createContact({
+        user_id: createdUser?.id || undefined,
         full_name: final_name,
-        email: email,
+        email: cleanEmail,
         phone: final_phone,
         company: final_agency,
         position: final_job,
@@ -123,7 +131,12 @@ export async function POST(request: Request) {
       console.error('Error al sincronizar con CRM:', crmError);
     }
 
-    return NextResponse.json({ success: true, data: result.rows[0], emailSent: emailResult });
+    return NextResponse.json({ 
+      success: true, 
+      data: result.rows[0], 
+      user: createdUser,
+      emailSent: emailResult 
+    });
   } catch (error: any) {
     console.error('Error saving expo lead:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
