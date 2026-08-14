@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 13 de Agosto de 2026 - 21:45 CST  
-**Versión actual:** v2.468  
+**Última actualización:** 13 de Agosto de 2026 - 23:31 CST  
+**Versión actual:** v2.473  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -9,7 +9,13 @@
 
 ## 📅 HISTORIAL DE CAMBIOS
 
-### v2.468 - 13 de Agosto de 2026 - 21:45 CST
+### v2.473 - 13 de Agosto de 2026 - 23:31 CST
+**Generación del Plan de Trabajo Oficial Gantt & Matriz de Liberación por Fases a Producción**
+- **Generación de Archivo Excel Profesional (`docs/AG-Plan-De-Trabajo-Gantt-Entregas-2026.xlsx`):**
+  - **Hoja 1 (Resumen Macro Actividades):** Resumen de las 9 Macro Actividades con cálculo de effort en Horas-Hombre (HH: 485 HH totales), duración en días laborables (67 días), fechas de inicio/fin y fase de entrega asignada.
+  - **Hoja 2 (Diagrama Gantt Detallado):** Estructura WBS detallada por subtareas con barras visuales semana a semana desde Agosto hasta Noviembre de 2026.
+  - **Hoja 3 (Matriz de Liberación por Fases):** Hitos y entregables clave por bloques a producción (Fase 1: MVP PWA/Portal -> Fase 2: B2B/B2E -> Fase 3: App Nativa -> Fase 4: Productos Complementarios).
+- **Documento Maestro Markdown (`docs/AG-Plan-De-Trabajo-Gantt-Entregas-2026.md`):** Reporte visual completo del plan de entregas con cronograma ASCII Gantt y matriz de fases.
 **Sanitización Integral de Credenciales en Documentación y Scripts**
 - **Sanitización de Cadena de Conexión de Neon PostgreSQL:** Eliminación de la contraseña real de la base de datos `npg_rsdKEkaw1ZS2` y URLs crudas de Neon en `docs/AG-Contexto-Proyecto.md`, `docs/AG-Resumen-v2.295.md`, `docs/reporte_proveedores.md`, `.same/*` y scripts auxiliares en `/scripts` y `/scratch`.
 - **Sustitución por Variables de Entorno Dinámicas (`process.env.DATABASE_URL`):** Todos los scripts de prueba y migración ahora cargan `.env.local` sin almacenar fallbacks con contraseñas en código duro.
