@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 13 de Agosto de 2026 - 21:43 CST  
-**Versión actual:** v2.467  
+**Última actualización:** 13 de Agosto de 2026 - 21:45 CST  
+**Versión actual:** v2.468  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -9,7 +9,7 @@
 
 ## 📅 HISTORIAL DE CAMBIOS
 
-### v2.467 - 13 de Agosto de 2026 - 21:43 CST
+### v2.468 - 13 de Agosto de 2026 - 21:45 CST
 **Sanitización Integral de Credenciales en Documentación y Scripts**
 - **Sanitización de Cadena de Conexión de Neon PostgreSQL:** Eliminación de la contraseña real de la base de datos `npg_rsdKEkaw1ZS2` y URLs crudas de Neon en `docs/AG-Contexto-Proyecto.md`, `docs/AG-Resumen-v2.295.md`, `docs/reporte_proveedores.md`, `.same/*` y scripts auxiliares en `/scripts` y `/scratch`.
 - **Sustitución por Variables de Entorno Dinámicas (`process.env.DATABASE_URL`):** Todos los scripts de prueba y migración ahora cargan `.env.local` sin almacenar fallbacks con contraseñas en código duro.
