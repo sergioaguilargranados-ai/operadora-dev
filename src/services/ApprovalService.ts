@@ -10,7 +10,7 @@
  */
 
 import { db } from '@/lib/db'
-import NotificationService from './NotificationService'
+import { NotificationService } from './NotificationService'
 
 interface CreateApprovalParams {
   bookingId: number

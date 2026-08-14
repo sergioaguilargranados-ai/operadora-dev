@@ -13,7 +13,9 @@ export async function POST(request: Request) {
       social_media, 
       email, 
       job_title, type,
-      providerProduct
+      providerProduct,
+      password,
+      referralCode
     } = body;
     
     const final_name = contact_name || fullName;
@@ -26,10 +28,42 @@ export async function POST(request: Request) {
     }
 
     if (email) {
+      // Validar contra usuarios existentes
+      const existingUser = await query(`SELECT id FROM users WHERE email = $1 LIMIT 1`, [email]);
+      if (existingUser.rows.length > 0) {
+        return NextResponse.json({ success: false, error: 'Este correo electrónico ya está registrado.' }, { status: 400 });
+      }
+
       // Validar contra el CRM principal
       const existing = await query(`SELECT id FROM crm_contacts WHERE email = $1 LIMIT 1`, [email]);
       if (existing.rows.length > 0) {
         return NextResponse.json({ success: false, error: 'Este correo electrónico ya está registrado.' }, { status: 400 });
+      }
+    }
+
+    // Si viene contraseña, crear la cuenta de usuario
+    if (password && email) {
+      try {
+        const bcrypt = (await import('bcryptjs')).default;
+        const passwordHash = await bcrypt.hash(password, 10);
+        const roleMap: Record<string, string> = {
+          'Viajero': 'cliente',
+          'Agencia de Viajes': 'agencia',
+          'Agencia de Eventos': 'agencia',
+          'Empresa': 'corporativo',
+          'Proveedor': 'proveedor'
+        };
+        const userRole = roleMap[final_job] || 'cliente';
+        const userStatus = final_job === 'Viajero' ? 'active' : 'pending';
+
+        await query(
+          `INSERT INTO users (name, email, password_hash, phone, role, status, referral_code, company_name)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           ON CONFLICT (email) DO NOTHING`,
+          [final_name, email, passwordHash, final_phone || null, userRole, userStatus, referralCode || null, final_agency || null]
+        );
+      } catch (userErr) {
+        console.error('Error al crear usuario en registro-leads:', userErr);
       }
     }
 

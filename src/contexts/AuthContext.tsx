@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react'
 
 interface User {
   id: string
@@ -14,7 +14,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<{ success: boolean; needsSetup?: boolean }>
+  login: (email: string, password: string, acceptedTerms?: boolean) => Promise<{ success: boolean; needsSetup?: boolean }>
   register: (name: string, email: string, password: string, phone?: string) => Promise<boolean>
   logout: () => void
   isAuthenticated: boolean
@@ -67,6 +67,13 @@ const removeCookie = (name: string): void => {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [showInactivityWarning, setShowInactivityWarning] = useState(false)
+
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const warningTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  const TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 horas para evitar cierres de sesión no deseados
+  const WARNING_MS = (24 * 60 - 10) * 60 * 1000; // 23 horas 50 minutos (advertencia previa)
 
   // Cargar usuario del localStorage al iniciar (solo en el cliente)
   useEffect(() => {
@@ -82,7 +89,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; needsSetup?: boolean }> => {
+  useEffect(() => {
+    if (!user) {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current)
+      if (warningTimerRef.current) clearTimeout(warningTimerRef.current)
+      setShowInactivityWarning(false)
+      return
+    }
+
+    const resetTimers = () => {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current)
+      if (warningTimerRef.current) clearTimeout(warningTimerRef.current)
+  
+      warningTimerRef.current = setTimeout(() => {
+        setShowInactivityWarning(true)
+      }, WARNING_MS)
+  
+      inactivityTimerRef.current = setTimeout(() => {
+        logout()
+        window.location.href = '/login?expired=1'
+      }, TIMEOUT_MS)
+    }
+
+    resetTimers()
+
+    const handleActivity = () => {
+      // Solo resetear automáticamente si la advertencia no está visible.
+      // Si está visible, el usuario debe interactuar con el botón del modal explícitamente.
+      if (!showInactivityWarning) {
+        resetTimers()
+      }
+    }
+
+    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart']
+    events.forEach(e => window.addEventListener(e, handleActivity))
+
+    return () => {
+      events.forEach(e => window.removeEventListener(e, handleActivity))
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current)
+      if (warningTimerRef.current) clearTimeout(warningTimerRef.current)
+    }
+  }, [user, showInactivityWarning])
+
+  const handleKeepActive = () => {
+    setShowInactivityWarning(false)
+    // El useEffect se volverá a ejecutar y reseteará los timers
+  }
+
+  const login = async (email: string, password: string, acceptedTerms?: boolean): Promise<{ success: boolean; needsSetup?: boolean }> => {
     if (!mounted) return { success: false }
 
     try {
@@ -91,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, accepted_terms: acceptedTerms })
       })
 
       const data = await response.json()
@@ -125,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const register = async (name: string, email: string, password: string, phone?: string): Promise<boolean> => {
+  const register = async (name: string, email: string, password: string, phone?: string, referralCode?: string): Promise<boolean> => {
     if (!mounted) return false
 
     try {
@@ -138,7 +192,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name,
           email,
           password,
-          phone: phone || ''
+          phone: phone || '',
+          referral_code: referralCode
         })
       })
 
@@ -193,6 +248,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading: !mounted
     }}>
       {children}
+      
+      {showInactivityWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Tu sesión está por expirar</h2>
+            <p className="text-gray-600 mb-6">
+              Has estado inactivo por un tiempo. Tu sesión se cerrará en 5 minutos por seguridad.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={handleKeepActive}
+                className="w-full py-2 px-4 bg-slate-900 text-white rounded-md font-medium hover:bg-slate-800 transition-colors"
+              >
+                Mantener sesión activa
+              </button>
+              <button 
+                onClick={() => {
+                  logout()
+                  window.location.href = '/login?expired=1'
+                }}
+                className="w-full py-2 px-4 bg-gray-100 text-gray-700 rounded-md font-medium hover:bg-gray-200 transition-colors"
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AuthContext.Provider>
   )
 }

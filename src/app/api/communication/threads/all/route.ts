@@ -22,9 +22,20 @@ export async function GET(request: NextRequest) {
         `
         const params: any[] = []
 
+        const conditions: string[] = []
         if (status && status !== 'all') {
-            sql += ` WHERE t.status = $1`
+            conditions.push(`t.status = $${params.length + 1}`)
             params.push(status)
+        }
+        
+        const clientId = searchParams.get('client_id')
+        if (clientId) {
+            conditions.push(`t.client_id = $${params.length + 1}`)
+            params.push(clientId)
+        }
+        
+        if (conditions.length > 0) {
+            sql += ` WHERE ` + conditions.join(' AND ')
         }
 
         sql += ` ORDER BY t.last_message_at DESC NULLS LAST, t.created_at DESC LIMIT 200`

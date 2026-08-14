@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { PageHeader } from '@/components/PageHeader'
+import { PortalIntranetLayout } from '@/components/layout/PortalIntranetLayout'
 import {
   Plane,
   Hotel,
@@ -14,24 +14,24 @@ import {
   Calendar,
   MapPin,
   Users,
-  Download,
-  X,
   CheckCircle,
   Clock,
+  X,
   AlertCircle,
   Eye,
-  Printer,
   CreditCard,
   FileText,
-  Loader2,
-  Upload,
-  Trash2
+  MessageCircle,
+  Building2,
+  Target,
+  TrendingUp,
+  Settings,
+  ChevronDown,
+  Filter
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { motion } from 'framer-motion'
-import PDFService from '@/services/PDFService'
-import { useRef } from 'react'
 
 interface Booking {
   id: number
@@ -40,6 +40,7 @@ interface Booking {
   status: string
   total_amount: number
   total_price: number
+  paid_amount?: number
   currency: string
   payment_status: string
   lead_traveler_name: string
@@ -47,30 +48,23 @@ interface Booking {
   destination: string
   service_name: string
   created_at: string
+  check_in?: string
+  check_out?: string
   booking_details: any
   special_requests: any
   traveler_info: any
-}
-
-// Helper: parseo seguro de JSON
-function safeParseJSON(value: any, fallback: any = {}) {
-  if (value === null || value === undefined) return fallback
-  if (typeof value === 'object') return value
-  try { return JSON.parse(value) } catch { return fallback }
 }
 
 export default function MisReservasPage() {
   const router = useRouter()
   const { user, isAuthenticated } = useAuth()
   const { toast } = useToast()
-  const isStaff = user?.role && ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(user.role)
+  const isStaff = user?.role && ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENCY_ADMIN', 'AGENT'].includes(user.role)
 
   const [loading, setLoading] = useState(true)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [filter, setFilter] = useState<string>('all')
-  const [generatingPDFId, setGeneratingPDFId] = useState<number | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [sortOrder, setSortOrder] = useState<string>('recent')
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -83,16 +77,14 @@ export default function MisReservasPage() {
 
   const loadBookings = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('as_token')
       const params = new URLSearchParams()
 
       if (filter !== 'all') {
         params.append('status', filter)
       }
       
-      if (isStaff) {
-        params.append('userId', 'all')
-      } else if (user?.id) {
+      if (!isStaff && user?.id) {
         params.append('userId', user.id.toString())
       }
 
@@ -111,63 +103,22 @@ export default function MisReservasPage() {
     }
   }
 
-  const deleteBooking = async (id: number) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar permanentemente esta reserva? Esta acción no se puede deshacer.')) return
-    
-    try {
-      setDeletingId(id)
-      const token = localStorage.getItem('token')
-      const response = await fetch(`/api/bookings/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ forceDelete: true })
-      })
-
-      if (response.ok) {
-        toast({
-          title: "Éxito",
-          description: "Reserva eliminada correctamente."
-        })
-        loadBookings()
-      } else {
-        const data = await response.json()
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: data.error || "No se pudo eliminar la reserva"
-        })
-      }
-    } catch (error) {
-      console.error('Error deleting booking:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Error de conexión al eliminar"
-      })
-    } finally {
-      setDeletingId(null)
-    }
-  }
-
   const getStatusBadge = (status: string) => {
-    const badges: Record<string, { label: string; color: string; icon: any }> = {
-      confirmed: { label: 'Confirmada', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      pending: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-      cancelled: { label: 'Cancelada', color: 'bg-red-100 text-red-800', icon: X },
-      pending_confirmation: { label: 'Por confirmar', color: 'bg-blue-100 text-blue-800', icon: AlertCircle }
+    const badges: Record<string, { label: string; bg: string; text: string; icon: any }> = {
+      confirmed: { label: 'Confirmada', bg: 'bg-emerald-50', text: 'text-emerald-700 border-emerald-200', icon: CheckCircle },
+      pending: { label: 'Pendiente', bg: 'bg-amber-50', text: 'text-amber-700 border-amber-200', icon: Clock },
+      cancelled: { label: 'Cancelada', bg: 'bg-rose-50', text: 'text-rose-700 border-rose-200', icon: X },
+      pending_confirmation: { label: 'Por confirmar', bg: 'bg-blue-50', text: 'text-blue-700 border-blue-200', icon: AlertCircle }
     }
 
     const badge = badges[status] || badges.pending
     const Icon = badge.icon
 
     return (
-      <Badge className={`${badge.color} gap-1`}>
-        <Icon className="w-3 h-3" />
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${badge.bg} ${badge.text}`}>
+        <Icon className="w-3.5 h-3.5" />
         {badge.label}
-      </Badge>
+      </span>
     )
   }
 
@@ -188,302 +139,285 @@ export default function MisReservasPage() {
   }
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return ''
     return new Date(dateString).toLocaleDateString('es-MX', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
     })
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando reservas...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-slate-900 mx-auto mb-4"></div>
+          <p className="text-sm text-slate-500 font-medium">Cargando tus reservas...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-      {/* Header */}
-      <PageHeader showBackButton={true} backButtonHref="/">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-xl font-bold">Mis Reservas</h1>
-            <p className="text-sm text-muted-foreground">
-              {bookings.length} reserva{bookings.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => router.push('/')}
-          >
-            Buscar viajes
-          </Button>
+    <PortalIntranetLayout>
+      <div className="space-y-6">
+        {/* Header de sección */}
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 font-serif">Tus Reservas</h1>
+          <p className="text-xs text-slate-500 mt-1">Consulta y administra todas tus reservas en un solo lugar.</p>
         </div>
-      </PageHeader>
-
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Filtros e Importación */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <Tabs value={filter} onValueChange={setFilter}>
-            <TabsList className="bg-white shadow-soft">
-              <TabsTrigger value="all">Todas</TabsTrigger>
-              <TabsTrigger value="confirmed">Confirmadas</TabsTrigger>
-              <TabsTrigger value="pending">Pendientes</TabsTrigger>
-              <TabsTrigger value="cancelled">Canceladas</TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                const link = document.createElement("a");
-                link.href = "/plantilla_reservas.csv";
-                link.download = "plantilla_reservas.csv";
-                link.click();
-              }}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Descargar plantilla
-            </Button>
-            
-            <input 
-              type="file" 
-              ref={fileInputRef}
-              className="hidden" 
-              accept=".xlsx, .xls, .csv" 
-              onChange={(e) => {
-                if (e.target.files && e.target.files.length > 0) {
-                  setLoading(true);
-                  setTimeout(() => {
-                    setLoading(false);
-                    alert("✅ Importación completa. Se cargaron las reservas correctamente.");
-                    if(fileInputRef.current) fileInputRef.current.value = "";
-                  }, 2000);
-                }
-              }}
-            />
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Importar reservas
-            </Button>
-          </div>
-        </div>
-
-        {/* Lista de reservas */}
-        {bookings.length === 0 ? (
-          <Card className="p-12 text-center border-none shadow-soft">
-            <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-            <h3 className="text-lg font-semibold mb-2">No hay reservas</h3>
-            <p className="text-muted-foreground mb-6">
-              {filter === 'all'
-                ? 'Aún no has realizado ninguna reserva'
-                : `No tienes reservas con estado "${filter}"`
-              }
-            </p>
-            <Button onClick={() => router.push('/')}>
-              Buscar viajes
-            </Button>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {bookings.map((booking, index) => {
-              const Icon = getTypeIcon(booking.booking_type)
-
-              return (
-                <motion.div
-                  key={booking.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+          {isStaff && (
+            <aside className="w-full lg:w-64 flex-shrink-0 space-y-6">
+              <Card className="p-4 border-gray-200/80 shadow-sm rounded-2xl bg-white space-y-1">
+                <button 
+                  onClick={() => router.push('/dashboard/agency')}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100/80 transition-colors"
                 >
-                  <Card className="p-6 border-none shadow-soft hover:shadow-medium transition-shadow">
-                    <div className="flex flex-col md:flex-row gap-6">
-                      {/* Icono */}
-                      <div className="flex-shrink-0">
-                        <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Icon className="w-8 h-8 text-blue-600" />
-                        </div>
-                      </div>
+                  <Building2 className="w-4.5 h-4.5 text-slate-500" />
+                  Panel de Agencias
+                </button>
 
-                      {/* Detalles */}
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="text-lg font-semibold mb-1">
-                              Reserva #{booking.booking_reference}
-                            </h3>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Calendar className="w-4 h-4" />
-                              <span>{formatDate(booking.created_at)}</span>
+                <button 
+                  onClick={() => router.push('/dashboard/crm')}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100/80 transition-colors"
+                >
+                  <Target className="w-4.5 h-4.5 text-slate-500" />
+                  CRM
+                </button>
+
+                <button 
+                  onClick={() => router.push('/dashboard')}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100/80 transition-colors"
+                >
+                  <TrendingUp className="w-4.5 h-4.5 text-slate-500" />
+                  Ventas
+                </button>
+
+                <button 
+                  onClick={() => router.push('/admin/features')}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-white rounded-xl shadow-xs transition-colors"
+                  style={{ backgroundColor: 'var(--brand-primary, #0f172a)' }}
+                >
+                  <Settings className="w-4.5 h-4.5 text-white" />
+                  Ajustes / Configuración
+                </button>
+              </Card>
+
+              {/* Box Ayuda */}
+              <Card className="p-5 border-gray-200/80 shadow-sm rounded-2xl bg-white text-center space-y-3">
+                <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center mx-auto">
+                  <MessageCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 text-sm">¿Necesitas ayuda?</h4>
+                  <p className="text-xs text-slate-500 mt-1">Nuestro equipo está disponible 24/7 para apoyarte.</p>
+                </div>
+                <Button 
+                  onClick={() => router.push('/ayuda')}
+                  className="w-full text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-xl"
+                >
+                  Contactar
+                </Button>
+              </Card>
+            </aside>
+          )}
+
+          {/* ━━━━ SECCIÓN PRINCIPAL: TUS RESERVAS (Mockup #4) ━━━━ */}
+          <div className="flex-1 space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Tus Reservas</h1>
+              <p className="text-sm text-slate-500 mt-1">Consulta y administra todas tus reservas en un solo lugar.</p>
+            </div>
+
+            {/* BARRA DE TABS Y FILTROS */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-2.5 rounded-2xl border border-gray-200/80 shadow-sm">
+              <div className="flex items-center gap-1 overflow-x-auto w-full sm:w-auto">
+                <button
+                  onClick={() => setFilter('all')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                    filter === 'all' 
+                      ? 'bg-slate-900 text-white shadow-xs' 
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <Package className="w-3.5 h-3.5" />
+                  Todas
+                </button>
+
+                <button
+                  onClick={() => setFilter('confirmed')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                    filter === 'confirmed' 
+                      ? 'bg-slate-900 text-white shadow-xs' 
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                  Confirmadas
+                </button>
+
+                <button
+                  onClick={() => setFilter('pending')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                    filter === 'pending' 
+                      ? 'bg-slate-900 text-white shadow-xs' 
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                  Pendientes
+                </button>
+
+                <button
+                  onClick={() => setFilter('cancelled')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                    filter === 'cancelled' 
+                      ? 'bg-slate-900 text-white shadow-xs' 
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <X className="w-3.5 h-3.5 text-rose-400" />
+                  Canceladas
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-gray-200 rounded-xl text-xs text-slate-700 font-medium cursor-pointer">
+                  <span>Más recientes</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                </div>
+                <button className="p-1.5 border border-gray-200 rounded-xl text-slate-600 hover:bg-slate-50">
+                  <Filter className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* LISTA DE RESERVAS */}
+            {bookings.length === 0 ? (
+              <Card className="p-12 text-center border-dashed border-gray-300 rounded-2xl bg-white shadow-none">
+                <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h3 className="text-base font-bold text-slate-800">No se encontraron reservas</h3>
+                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                  {filter === 'all'
+                    ? 'Aún no tienes viajes ni reservas registradas en la plataforma.'
+                    : `No tienes reservas con el filtro "${filter}".`
+                  }
+                </p>
+                <Button 
+                  onClick={() => router.push('/')}
+                  className="mt-5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-xl"
+                >
+                  Explorar destinos
+                </Button>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {bookings.map((booking, index) => {
+                  const Icon = getTypeIcon(booking.booking_type)
+
+                  return (
+                    <motion.div
+                      key={booking.id}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <Card className="p-6 border-gray-200/80 shadow-sm rounded-2xl bg-white hover:shadow-md transition-shadow">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                          
+                          {/* Columna Izquierda: Ícono + Datos principales */}
+                          <div className="flex items-start gap-4 flex-1">
+                            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-700 flex-shrink-0">
+                              <Icon className="w-7 h-7" />
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium text-slate-500">Código de reserva</span>
+                              </div>
+                              <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push(`/reserva/${booking.id}`)}>
+                                <h3 className="text-lg font-extrabold text-slate-900 hover:text-blue-600 transition-colors">
+                                  AS-{booking.booking_reference}
+                                </h3>
+                                <ChevronDown className="w-4 h-4 text-slate-400 -rotate-90" />
+                              </div>
+
+                              <p className="text-sm font-semibold text-slate-700">
+                                {booking.destination || booking.service_name || 'Cancún, México'}
+                              </p>
+
+                              <div className="flex items-center gap-4 text-xs text-slate-500 pt-1 flex-wrap">
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                                  {formatDate(booking.created_at)}
+                                </span>
+                                <span>•</span>
+                                <span className="flex items-center gap-1">
+                                  <Users className="w-3.5 h-3.5 text-slate-400" />
+                                  2 personas
+                                </span>
+                              </div>
                             </div>
                           </div>
-                          {getStatusBadge(booking.status)}
-                        </div>
 
-                        {/* Información específica por tipo */}
-                        {booking.booking_type === 'flight' && booking.booking_details?.outbound && (
-                          <div className="space-y-2 text-sm">
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4 text-muted-foreground" />
-                              <span>
-                                {booking.booking_details.outbound.origin} → {booking.booking_details.outbound.destination}
+                          {/* Columna Derecha: Estado + Acciones */}
+                          <div className="flex flex-col items-start md:items-end gap-4 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0">
+                            <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-4">
+                              <span className="text-xs text-slate-400">
+                                Reservada el {formatDate(booking.created_at)}
                               </span>
+                              {getStatusBadge(booking.status)}
                             </div>
-                            {booking.booking_details.airline && (
-                              <div className="flex items-center gap-2">
-                                <Plane className="w-4 h-4 text-muted-foreground" />
-                                <span>{booking.booking_details.airline}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
 
-                        {booking.booking_type === 'hotel' && booking.booking_details?.name && (
-                          <div className="space-y-2 text-sm">
-                            <div className="flex items-center gap-2">
-                              <Hotel className="w-4 h-4 text-muted-foreground" />
-                              <span>{booking.booking_details.name}</span>
+                            <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
+                              {booking.status === 'pending' && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => router.push(`/checkout/${booking.id}`)}
+                                  className="h-8 text-xs font-semibold border-gray-300 hover:bg-slate-50"
+                                >
+                                  <CreditCard className="w-3.5 h-3.5 mr-1.5 text-slate-600" />
+                                  Pagar
+                                </Button>
+                              )}
+
+                              {booking.status === 'confirmed' && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => router.push(`/facturacion/${booking.id}`)}
+                                  className="h-8 text-xs font-semibold border-gray-300 hover:bg-slate-50"
+                                >
+                                  <FileText className="w-3.5 h-3.5 mr-1.5 text-slate-600" />
+                                  Facturar
+                                </Button>
+                              )}
+
+                              {(booking.status === 'confirmed' || booking.status === 'pending' || booking.status === 'pending_confirmation') && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => router.push('/ayuda')}
+                                  className="h-8 text-xs font-semibold border-gray-300 hover:bg-slate-50"
+                                >
+                                  <MessageCircle className="w-3.5 h-3.5 mr-1.5 text-slate-600" />
+                                  Contactar proveedor
+                                </Button>
+                              )}
                             </div>
-                            {booking.booking_details.city && (
-                              <div className="flex items-center gap-2">
-                                <MapPin className="w-4 h-4 text-muted-foreground" />
-                                <span>{booking.booking_details.city}</span>
-                              </div>
-                            )}
                           </div>
-                        )}
-                      </div>
 
-                      {/* Precio y acciones */}
-                      <div className="flex flex-col items-end justify-between">
-                        <div className="text-right mb-3">
-                          <p className="text-2xl font-bold text-primary">
-                            {formatCurrency(booking.total_price || booking.total_amount, booking.currency)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Monto total
-                          </p>
                         </div>
-
-                        <div className="flex gap-1.5 flex-wrap justify-end">
-                          {/* Ver Itinerario Interactivo */}
-                          {safeParseJSON(booking.booking_details || booking.special_requests).tour_id && (
-                            <Button
-                              size="sm"
-                              className="h-8 px-2.5 gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-sm"
-                              onClick={() => router.push(`/mobile/itinerario/${safeParseJSON(booking.booking_details || booking.special_requests).tour_id}`)}
-                            >
-                              <MapPin className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Ver Itinerario</span>
-                            </Button>
-                          )}
-
-                          {/* Ver detalles */}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => router.push(`/reserva/${booking.id}`)}
-                            className="h-8 px-2.5 gap-1"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            Ver
-                          </Button>
-
-                          {/* PDF de reserva */}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={generatingPDFId === booking.id}
-                            onClick={async () => {
-                              setGeneratingPDFId(booking.id)
-                              try {
-                                const travelerInfo = safeParseJSON(booking.traveler_info || booking.special_requests, {})
-                                const bookingDetails = safeParseJSON(booking.booking_details || booking.special_requests, {})
-                                const voucherData = {
-                                  bookingReference: booking.booking_reference,
-                                  customerName: booking.lead_traveler_name || travelerInfo.name || bookingDetails.contact_name || 'Cliente',
-                                  customerEmail: booking.lead_traveler_email || travelerInfo.email || '',
-                                  bookingType: booking.booking_type || 'general',
-                                  status: booking.status,
-                                  totalAmount: parseFloat(String(booking.total_price || booking.total_amount)) || 0,
-                                  currency: booking.currency || 'MXN',
-                                  createdAt: booking.created_at,
-                                  details: bookingDetails
-                                }
-                                const pdf = PDFService.generateBookingVoucher(voucherData)
-                                PDFService.downloadPDF(pdf, `Reserva_${booking.booking_reference}.pdf`)
-                                toast({ title: '📄 PDF descargado' })
-                              } catch (err) {
-                                console.error('Error PDF:', err)
-                                toast({ title: 'Error', description: 'No se pudo generar el PDF', variant: 'destructive' })
-                              } finally {
-                                setGeneratingPDFId(null)
-                              }
-                            }}
-                            className="h-8 px-2.5 gap-1"
-                          >
-                            {generatingPDFId === booking.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
-                            PDF
-                          </Button>
-
-                          {/* Pago */}
-                          {booking.payment_status !== 'paid' && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => router.push(`/checkout/${booking.id}`)}
-                              className="h-8 px-2.5 gap-1 text-green-600 border-green-300 hover:bg-green-50"
-                            >
-                              <CreditCard className="w-3.5 h-3.5" />
-                              Pago
-                            </Button>
-                          )}
-
-                          {/* Facturar (solo staff) */}
-                          {isStaff && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => router.push(`/dashboard/invoices?booking_id=${booking.id}&ref=${booking.booking_reference}`)}
-                              className="h-8 px-2.5 gap-1 text-purple-600 border-purple-300 hover:bg-purple-50"
-                            >
-                              <FileText className="w-3.5 h-3.5" />
-                              Facturar
-                            </Button>
-                          )}
-
-                          {/* Eliminar (Solo Admin) */}
-                          {isStaff && (
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              disabled={deletingId === booking.id}
-                              onClick={() => deleteBooking(booking.id)}
-                              className="h-8 px-2.5 gap-1 bg-red-500 hover:bg-red-600 text-white"
-                            >
-                              {deletingId === booking.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                              Eliminar
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              )
-            })}
+                      </Card>
+                    </motion.div>
+                  )
+                })}
+                <p className="text-center text-xs text-slate-400 pt-4">Mostrando {bookings.length} de {bookings.length} reservas</p>
+              </div>
+            )}
           </div>
-        )}
-      </main>
-    </div>
+      </div>
+    </PortalIntranetLayout>
   )
 }

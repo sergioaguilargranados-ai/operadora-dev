@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { PortalIntranetLayout } from '@/components/layout/PortalIntranetLayout'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { PageHeader } from '@/components/PageHeader'
 import {
     Users, UserPlus, DollarSign, TrendingUp, Briefcase, Link2, Search,
     Loader2, Eye, Edit, BarChart3, Wallet, Clock, CheckCircle,
@@ -90,8 +90,9 @@ const COLORS = ['#FF6B00', '#0066FF', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'
 // Componente Principal
 // ═══════════════════════════════════════
 
-export default function AgencyDashboardPage() {
+function AgencyDashboardContent() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const { user, isAuthenticated } = useAuth()
     const { toast } = useToast()
 
@@ -102,6 +103,14 @@ export default function AgencyDashboardPage() {
     const [commissionsLoaded, setCommissionsLoaded] = useState(false)
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState<'overview' | 'agents' | 'clients' | 'commissions'>('overview')
+
+    useEffect(() => {
+        const tab = searchParams.get('tab')
+        if (tab === 'agentes') setActiveTab('agents')
+        else if (tab === 'clientes') setActiveTab('clients')
+        else if (tab === 'comisiones') setActiveTab('commissions')
+        else if (tab === 'resumen') setActiveTab('overview')
+    }, [searchParams])
     const [searchQuery, setSearchQuery] = useState('')
 
     // Modal crear agente
@@ -306,18 +315,18 @@ export default function AgencyDashboardPage() {
     // ═══════════════════════════════════════
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/20">
-            <PageHeader showBackButton={true} backButtonHref="/dashboard">
-                <div>
-                    <h1 className="text-xl font-bold flex items-center gap-2">
-                        <Building2 className="w-5 h-5" />
-                        Dashboard de Agencia
-                    </h1>
-                    <p className="text-sm text-muted-foreground">{(user as any)?.company_name || 'Mi Agencia'}</p>
+        <PortalIntranetLayout>
+            <div className="space-y-6">
+                {/* Header de la Agencia */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4">
+                    <div>
+                        <h1 className="text-2xl font-black text-slate-900 font-serif flex items-center gap-2">
+                            <Building2 className="w-6 h-6 text-slate-700" />
+                            Dashboard de Agencia
+                        </h1>
+                        <p className="text-xs text-slate-500 mt-1">{(user as any)?.company_name || 'Mi Agencia'}</p>
+                    </div>
                 </div>
-            </PageHeader>
-
-            <main className="container mx-auto px-4 py-6 max-w-7xl">
                 {/* Tab Navigation */}
                 <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
                     {[
@@ -329,7 +338,7 @@ export default function AgencyDashboardPage() {
                         <Button
                             key={tab.id}
                             variant={activeTab === tab.id ? 'default' : 'outline'}
-                            className={`gap-2 whitespace-nowrap ${activeTab === tab.id ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white' : ''}`}
+                            className={`gap-2 whitespace-nowrap ${activeTab === tab.id ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
                             onClick={() => setActiveTab(tab.id as any)}
                         >
                             <tab.icon className="w-4 h-4" />
@@ -365,6 +374,7 @@ export default function AgencyDashboardPage() {
                                     </div>
                                     <h3 className="text-3xl font-bold">{stats?.total_clients || 0}</h3>
                                     <p className="text-sm text-muted-foreground">Clientes</p>
+                                    <p className="text-xs text-blue-600 mt-1">12 nuevos este mes</p>
                                 </Card>
                             </motion.div>
 
@@ -422,7 +432,7 @@ export default function AgencyDashboardPage() {
                                             <div className="text-center">
                                                 <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
                                                 <p>Agrega agentes para ver su rendimiento</p>
-                                                <Button size="sm" className="mt-3 bg-orange-500 hover:bg-orange-600" onClick={() => setShowAgentModal(true)}>
+                                                <Button size="sm" className="mt-3 bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setShowAgentModal(true)}>
                                                     <Plus className="w-4 h-4 mr-1" /> Agregar Agente
                                                 </Button>
                                             </div>
@@ -467,42 +477,98 @@ export default function AgencyDashboardPage() {
                             </motion.div>
                         </div>
 
-                        {/* Top Agentes Table */}
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
-                            <Card className="p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                                        <TrendingUp className="w-5 h-5" />
-                                        Top Agentes
-                                    </h3>
-                                    <Button variant="outline" size="sm" onClick={() => setActiveTab('agents')}>
-                                        Ver todos <ChevronRight className="w-4 h-4 ml-1" />
-                                    </Button>
-                                </div>
-                                {(stats?.top_agents || []).length > 0 ? (
-                                    <div className="space-y-3">
-                                        {(stats?.top_agents || []).map((agent, i) => (
-                                            <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 bg-orange-500/10 rounded-full flex items-center justify-center">
-                                                        <span className="text-sm font-bold text-orange-600">#{i + 1}</span>
+                        {/* Tercera fila: Top Agentes, Viajes Próximos, Top Destinos */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+                                <Card className="p-6 h-full">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                                            <TrendingUp className="w-5 h-5" />
+                                            Top Agentes
+                                        </h3>
+                                    </div>
+                                    {(stats?.top_agents || []).length > 0 ? (
+                                        <div className="space-y-3">
+                                            {(stats?.top_agents || []).map((agent, i) => (
+                                                <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 bg-blue-500/10 rounded-full flex items-center justify-center">
+                                                            <span className="text-sm font-bold text-blue-600">#{i + 1}</span>
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium">{agent.agent_name}</p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {agent.total_clients} cl · {agent.total_bookings} res
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="font-medium">{agent.agent_name}</p>
-                                                        <p className="text-xs text-muted-foreground">
-                                                            {agent.total_clients} clientes · {agent.total_bookings} reservas
-                                                        </p>
-                                                    </div>
+                                                    <span className="font-bold text-green-600 text-sm">{formatCurrency(agent.total_commissions)}</span>
                                                 </div>
-                                                <span className="font-bold text-green-600">{formatCurrency(agent.total_commissions)}</span>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-center py-8 text-muted-foreground">No hay agentes registrados aún</p>
+                                    )}
+                                </Card>
+                            </motion.div>
+
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
+                                <Card className="p-6 h-full">
+                                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                        <Clock className="w-5 h-5" />
+                                        Viajes Próximos
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {[
+                                            { client: 'Carlos Mendoza', destination: 'Cancún', date: '25 Jun', status: 'Confirmada' },
+                                            { client: 'Ana Silva', destination: 'Madrid', date: '02 Jul', status: 'Pendiente' },
+                                            { client: 'Luis Rojas', destination: 'Punta Cana', date: '15 Jul', status: 'Confirmada' }
+                                        ].map((viaje, i) => (
+                                            <div key={i} className="flex flex-col gap-1 p-3 bg-muted/50 rounded-lg">
+                                                <div className="flex justify-between items-center">
+                                                    <p className="font-medium text-sm">{viaje.client}</p>
+                                                    <Badge className={viaje.status === 'Confirmada' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-orange-100 text-orange-700 hover:bg-orange-200'}>
+                                                        {viaje.status}
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex justify-between items-center text-xs text-muted-foreground">
+                                                    <span className="flex items-center gap-1">📍 {viaje.destination}</span>
+                                                    <span>📅 {viaje.date}</span>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
-                                ) : (
-                                    <p className="text-center py-8 text-muted-foreground">No hay agentes registrados aún</p>
-                                )}
-                            </Card>
-                        </motion.div>
+                                    <Button variant="link" className="w-full mt-2 text-xs text-blue-600">Ver todas las reservas</Button>
+                                </Card>
+                            </motion.div>
+
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
+                                <Card className="p-6 h-full">
+                                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                        <BarChart3 className="w-5 h-5" />
+                                        Top de Destinos
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {[
+                                            { name: 'Cancún, Q.R.', percentage: 45, bookings: 12 },
+                                            { name: 'Madrid, España', percentage: 25, bookings: 8 },
+                                            { name: 'Riviera Maya', percentage: 15, bookings: 5 },
+                                            { name: 'Los Cabos', percentage: 10, bookings: 3 }
+                                        ].map((dest, i) => (
+                                            <div key={i} className="space-y-1">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="font-medium">{dest.name}</span>
+                                                    <span className="text-muted-foreground">{dest.bookings} res.</span>
+                                                </div>
+                                                <div className="w-full bg-slate-100 rounded-full h-2">
+                                                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${dest.percentage}%` }}></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Card>
+                            </motion.div>
+                        </div>
                     </>
                 )}
 
@@ -519,74 +585,125 @@ export default function AgencyDashboardPage() {
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
-                            <Button className="bg-gradient-to-r from-orange-500 to-orange-600 text-white gap-2" onClick={() => setShowAgentModal(true)}>
+                            <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2" onClick={() => setShowAgentModal(true)}>
                                 <Plus className="w-4 h-4" />
                                 Nuevo Agente
                             </Button>
                         </div>
 
-                        <div className="grid gap-4">
-                            {agents
-                                .filter(a => !searchQuery || a.agent_name?.toLowerCase().includes(searchQuery.toLowerCase()) || a.agent_email?.toLowerCase().includes(searchQuery.toLowerCase()))
-                                .map(agent => (
-                                    <Card key={agent.id} className="p-5 hover:shadow-md transition-shadow">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                                                    {agent.agent_name?.charAt(0) || '?'}
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-semibold text-lg">{agent.agent_name}</h4>
-                                                    <p className="text-sm text-muted-foreground">{agent.agent_email}</p>
-                                                    <div className="flex gap-2 mt-1">
-                                                        <Badge variant="secondary">{agent.role}</Badge>
-                                                        <Badge className={agent.agent_status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}>
-                                                            {agent.agent_status === 'active' ? 'Activo' : 'Inactivo'}
+                        <Card>
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead className="bg-muted/50 border-b">
+                                        <tr>
+                                            <th className="text-left p-4 text-sm font-medium text-muted-foreground">Agente</th>
+                                            <th className="text-left p-4 text-sm font-medium text-muted-foreground">Contacto</th>
+                                            <th className="text-left p-4 text-sm font-medium text-muted-foreground">Rol</th>
+                                            <th className="text-left p-4 text-sm font-medium text-muted-foreground">Estado</th>
+                                            <th className="text-left p-4 text-sm font-medium text-muted-foreground">Comisión</th>
+                                            <th className="text-right p-4 text-sm font-medium text-muted-foreground">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {agents
+                                            .filter(a => !searchQuery || a.agent_name?.toLowerCase().includes(searchQuery.toLowerCase()) || a.agent_email?.toLowerCase().includes(searchQuery.toLowerCase()))
+                                            .map(agent => (
+                                                <tr key={agent.id} className="hover:bg-muted/30 transition-colors">
+                                                    <td className="p-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                                                {agent.agent_name?.charAt(0) || '?'}
+                                                            </div>
+                                                            <span className="font-medium text-slate-900">{agent.agent_name}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4 text-sm text-muted-foreground">{agent.agent_email}</td>
+                                                    <td className="p-4">
+                                                        <Badge className={
+                                                            agent.role === 'admin' ? 'bg-purple-100 text-purple-700 border-transparent' :
+                                                            agent.role === 'manager' ? 'bg-blue-100 text-blue-700 border-transparent' :
+                                                            'bg-slate-100 text-slate-700 border-transparent'
+                                                        }>
+                                                            {agent.role}
                                                         </Badge>
-                                                        {agent.agent_commission_split > 0 && (
-                                                            <Badge variant="outline">{agent.agent_commission_split}% comisión</Badge>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <Badge className={
+                                                            agent.agent_status === 'active' ? 'bg-green-100 text-green-700 border-transparent' :
+                                                            agent.agent_status === 'pending' ? 'bg-orange-100 text-orange-700 border-transparent' :
+                                                            'bg-gray-100 text-gray-500 border-transparent'
+                                                        }>
+                                                            {agent.agent_status === 'active' ? 'Activo' : agent.agent_status === 'pending' ? 'Pendiente' : 'Inactivo'}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        {agent.agent_commission_split > 0 ? (
+                                                            <Badge variant="outline">{agent.agent_commission_split}%</Badge>
+                                                        ) : (
+                                                            <span className="text-muted-foreground text-sm">—</span>
                                                         )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                {agent.referral_code && (
-                                                    <Button variant="outline" size="sm" onClick={() => copyReferralLink(agent.referral_code!)}>
-                                                        <Copy className="w-4 h-4 mr-1" />
-                                                        {agent.referral_code}
-                                                    </Button>
-                                                )}
-                                                <Button variant="ghost" size="sm" onClick={() => router.push(`/dashboard/agent?agent_id=${agent.id}`)}>
-                                                    <Eye className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                ))}
-
-                            {agents.length === 0 && (
-                                <Card className="p-12 text-center">
-                                    <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-                                    <h3 className="text-xl font-semibold mb-2">No hay agentes registrados</h3>
-                                    <p className="text-muted-foreground mb-4">Crea tu primer agente para comenzar a vender</p>
-                                    <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => setShowAgentModal(true)}>
-                                        <Plus className="w-4 h-4 mr-2" /> Crear primer agente
-                                    </Button>
-                                </Card>
-                            )}
-                        </div>
+                                                    </td>
+                                                    <td className="p-4 text-right">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            {agent.referral_code && (
+                                                                <Button variant="outline" size="sm" onClick={() => copyReferralLink(agent.referral_code!)}>
+                                                                    <Copy className="w-4 h-4 mr-1" /> Copiar Link
+                                                                </Button>
+                                                            )}
+                                                            <Button variant="ghost" size="sm" onClick={() => router.push(`/dashboard/agent?agent_id=${agent.id}`)}>
+                                                                <Eye className="w-4 h-4 text-slate-500" />
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                    </tbody>
+                                </table>
+                                {agents.length === 0 && (
+                                    <div className="p-12 text-center text-muted-foreground">
+                                        <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                                        <h3 className="text-xl font-semibold mb-2">No hay agentes registrados</h3>
+                                        <p className="text-sm mt-1 mb-4">Crea tu primer agente para comenzar a vender</p>
+                                        <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setShowAgentModal(true)}>
+                                            <Plus className="w-4 h-4 mr-2" /> Crear primer agente
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </Card>
                     </motion.div>
                 )}
 
                 {/* ═══ TAB: CLIENTES ═══ */}
                 {activeTab === 'clients' && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+                            <Card className="p-4 border-l-4 border-l-blue-500">
+                                <p className="text-sm text-muted-foreground">Total Clientes</p>
+                                <h3 className="text-2xl font-bold">{clients.length}</h3>
+                            </Card>
+                            <Card className="p-4 border-l-4 border-l-green-500">
+                                <p className="text-sm text-muted-foreground">Clientes Activos</p>
+                                <h3 className="text-2xl font-bold">{clients.filter(c => c.status === 'active').length}</h3>
+                            </Card>
+                            <Card className="p-4 border-l-4 border-l-purple-500">
+                                <p className="text-sm text-muted-foreground">Por Referidos</p>
+                                <h3 className="text-2xl font-bold">{clients.filter(c => c.source === 'referral').length}</h3>
+                            </Card>
+                        </div>
                         <div className="flex justify-between items-center mb-6">
-                            <div className="relative w-72">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                <Input placeholder="Buscar cliente..." className="pl-10" />
+                            <div className="flex gap-4">
+                                <div className="relative w-72">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <Input placeholder="Buscar cliente..." className="pl-10" />
+                                </div>
+                                <Button variant="outline" className="gap-2">
+                                    <Filter className="w-4 h-4" /> Filtros
+                                </Button>
                             </div>
-                            <Badge variant="secondary" className="text-base px-4 py-2">{clients.length} clientes</Badge>
+                            <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                                <Plus className="w-4 h-4" /> Nuevo Cliente
+                            </Button>
                         </div>
 
                         <Card>
@@ -615,8 +732,13 @@ export default function AgencyDashboardPage() {
                                                 <td className="p-4 text-center font-medium">{client.total_bookings}</td>
                                                 <td className="p-4 font-medium text-green-600">{formatCurrency(client.total_revenue)}</td>
                                                 <td className="p-4">
-                                                    <Badge className={client.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}>
-                                                        {client.status === 'active' ? 'Activo' : 'Inactivo'}
+                                                    <Badge className={
+                                                        client.status === 'active' ? 'bg-green-100 text-green-700 border-transparent' :
+                                                        client.status === 'pending' ? 'bg-orange-100 text-orange-700 border-transparent' :
+                                                        client.status === 'cancelled' ? 'bg-red-100 text-red-700 border-transparent' :
+                                                        'bg-gray-100 text-gray-500 border-transparent'
+                                                    }>
+                                                        {client.status === 'active' ? 'Activo' : client.status === 'pending' ? 'Pendiente' : client.status === 'cancelled' ? 'Cancelado' : client.status}
                                                     </Badge>
                                                 </td>
                                             </tr>
@@ -630,6 +752,13 @@ export default function AgencyDashboardPage() {
                                         <p className="text-sm mt-1">Los clientes aparecerán aquí cuando se registren por liga de referido</p>
                                     </div>
                                 )}
+                            </div>
+                            <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-muted-foreground">
+                                <span>Mostrando {clients.length} registros</span>
+                                <div className="flex gap-2">
+                                    <Button variant="outline" size="sm" disabled>Anterior</Button>
+                                    <Button variant="outline" size="sm" disabled>Siguiente</Button>
+                                </div>
                             </div>
                         </Card>
                     </motion.div>
@@ -728,15 +857,18 @@ export default function AgencyDashboardPage() {
                                                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">Tipo</th>
                                                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">Agente</th>
                                                 <th className="text-right p-3 text-sm font-medium text-muted-foreground">Precio Base</th>
-                                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Comisión</th>
-                                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Agente</th>
-                                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Agencia</th>
+                                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Comisión Total</th>
+                                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Pago Agente (Split)</th>
+                                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Ganancia Agencia</th>
                                                 <th className="text-center p-3 text-sm font-medium text-muted-foreground">Estado</th>
                                                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">Fecha</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y">
-                                            {filteredCommissions.map(comm => (
+                                            {filteredCommissions.map(comm => {
+                                                const agentSplitPct = comm.commission_amount > 0 ? Math.round((comm.agent_commission_amount / comm.commission_amount) * 100) : 0;
+                                                const agencySplitPct = 100 - agentSplitPct;
+                                                return (
                                                 <tr key={comm.id} className="hover:bg-muted/30 transition-colors">
                                                     <td className="p-3">
                                                         <Badge variant="outline" className="capitalize">
@@ -746,14 +878,20 @@ export default function AgencyDashboardPage() {
                                                     <td className="p-3 font-medium">{comm.agent_name || '—'}</td>
                                                     <td className="p-3 text-right">{formatCurrency(comm.base_price)}</td>
                                                     <td className="p-3 text-right font-semibold text-green-600">{formatCurrency(comm.commission_amount)}</td>
-                                                    <td className="p-3 text-right text-sm">{formatCurrency(comm.agent_commission_amount)}</td>
-                                                    <td className="p-3 text-right text-sm">{formatCurrency(comm.agency_commission_amount)}</td>
+                                                    <td className="p-3 text-right text-sm">
+                                                        {formatCurrency(comm.agent_commission_amount)}
+                                                        <span className="text-[10px] text-muted-foreground block">{agentSplitPct}%</span>
+                                                    </td>
+                                                    <td className="p-3 text-right text-sm">
+                                                        {formatCurrency(comm.agency_commission_amount)}
+                                                        <span className="text-[10px] text-muted-foreground block">{agencySplitPct}%</span>
+                                                    </td>
                                                     <td className="p-3 text-center">
                                                         <Badge className={
-                                                            comm.status === 'paid' ? 'bg-blue-100 text-blue-700' :
-                                                                comm.status === 'available' ? 'bg-green-100 text-green-700' :
-                                                                    comm.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                                        'bg-gray-100 text-gray-500'
+                                                            comm.status === 'paid' ? 'bg-blue-100 text-blue-700 border-transparent' :
+                                                                comm.status === 'available' ? 'bg-green-100 text-green-700 border-transparent' :
+                                                                    comm.status === 'pending' ? 'bg-orange-100 text-orange-700 border-transparent' :
+                                                                        'bg-gray-100 text-gray-500 border-transparent'
                                                         }>
                                                             {comm.status === 'paid' ? '💰 Pagada' : comm.status === 'available' ? '✅ Disponible' : comm.status === 'pending' ? '⏳ Pendiente' : comm.status}
                                                         </Badge>
@@ -762,7 +900,7 @@ export default function AgencyDashboardPage() {
                                                         {new Date(comm.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                     </td>
                                                 </tr>
-                                            ))}
+                                            )})}
                                         </tbody>
                                     </table>
                                 </div>
@@ -776,7 +914,6 @@ export default function AgencyDashboardPage() {
                         </Card>
                     </motion.div>
                 )}
-            </main>
 
             {/* ═══ MODAL: Dispersar Comisiones ═══ */}
             <Dialog open={showDisburseModal} onOpenChange={setShowDisburseModal}>
@@ -909,12 +1046,21 @@ export default function AgencyDashboardPage() {
 
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setShowAgentModal(false)}>Cancelar</Button>
-                        <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={handleCreateAgent}>
+                        <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleCreateAgent}>
                             Crear Agente
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+            </div>
+        </PortalIntranetLayout>
+    )
+}
+
+export default function AgencyDashboardPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+            <AgencyDashboardContent />
+        </Suspense>
     )
 }

@@ -61,17 +61,7 @@ export default function MobileHelpPage() {
         </div>
 
         <h1 className="text-3xl font-serif font-bold text-gray-900 mb-2">¿Necesitas ayuda?</h1>
-        <p className="text-sm text-gray-600 mb-6 text-center">Selecciona el tema que mejor describe tu situación.</p>
-
-        <div className="relative w-full">
-          <Search className="absolute left-3.5 top-3.5 w-5 h-5 text-gray-400" />
-          <Input 
-            placeholder="Buscar ayuda..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-11 h-12 rounded-xl border-gray-200 focus-visible:ring-black text-base placeholder:text-gray-400 shadow-sm"
-          />
-        </div>
+        <p className="text-sm text-gray-600 mb-2 text-center">Selecciona el tema que mejor describe tu situación.</p>
       </div>
 
       <div className="px-4 mt-6 space-y-6">
@@ -94,13 +84,16 @@ export default function MobileHelpPage() {
             <div className="w-20 h-16 rounded-xl bg-gray-200 overflow-hidden flex-shrink-0 relative">
               <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=150&q=80" className="w-full h-full object-cover" alt="Mapa" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-3 h-3 bg-[#0066FF] rounded-full border-2 border-white shadow-sm" />
+                <div className="w-3 h-3 bg-brand-primary rounded-full border-2 border-white shadow-sm" />
               </div>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
           </div>
 
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all">
+          <div 
+            onClick={() => router.push('/mobile/actividades-sugeridas')}
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all"
+          >
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
               <Signpost className="w-6 h-6 text-gray-700" />
             </div>

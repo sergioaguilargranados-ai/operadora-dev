@@ -51,11 +51,7 @@ export default function InicioLanding() {
   }, [router]);
 
   const handleRegister = (type: string) => {
-    if (type === 'Viajero' || type?.toLowerCase() === 'viajero') {
-      router.push('/registro');
-    } else {
-      router.push(`/registro-leads?type=${encodeURIComponent(type)}`);
-    }
+    router.push(`/registro-leads?type=${encodeURIComponent(type)}`);
   };
 
   if (loading) {
@@ -412,7 +408,7 @@ export default function InicioLanding() {
             <PwaInstallButton />
           </div>
           <div className="mt-12 text-center border-t border-gray-800 pt-6">
-            <span className="text-[10px] text-gray-500">v2.467 | 13 Aug 2026 21:43 CST | AS Operadora viajes y eventos</span>
+            <span className="text-[10px] text-gray-500">v2.468 | 13 Aug 2026 21:54 CST | AS Operadora viajes y eventos</span>
           </div>
         </div>
       </section>

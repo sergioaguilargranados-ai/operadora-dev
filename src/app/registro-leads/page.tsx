@@ -2,8 +2,9 @@
 
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { Playfair_Display, Inter } from 'next/font/google';
-import { Building, Briefcase, Plane, Users, ArrowLeft, Loader2, CheckCircle2, Globe } from 'lucide-react';
+import { Building, Briefcase, Plane, Users, ArrowLeft, Loader2, CheckCircle2, Globe, Lock, Eye, EyeOff, Ticket } from 'lucide-react';
 
 const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '600', '700'] });
 const inter = Inter({ subsets: ['latin'], weight: ['300', '400', '500', '600'] });
@@ -12,13 +13,7 @@ function RegistroForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawType = searchParams.get('type');
-  const initialType = rawType && rawType !== 'Viajero' ? rawType : 'Agencia de Viajes';
-
-  React.useEffect(() => {
-    if (rawType === 'Viajero' || rawType?.toLowerCase() === 'viajero') {
-      router.replace('/registro');
-    }
-  }, [rawType, router]);
+  const initialType = rawType || 'Viajero';
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -26,27 +21,48 @@ function RegistroForm() {
     phone: '',
     company: '',
     providerProduct: '',
+    referralCode: '',
+    password: '',
+    confirmPassword: '',
     type: initialType
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
   const types = [
-    { id: 'Viajero', icon: Plane, isDirectUser: true },
+    { id: 'Viajero', icon: Plane },
     { id: 'Agencia de Viajes', icon: Briefcase },
     { id: 'Agencia de Eventos', icon: Users },
     { id: 'Empresa', icon: Building },
     { id: 'Proveedor', icon: Globe }
   ];
 
-  const [emailStatus, setEmailStatus] = useState<any>(null);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    if (formData.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setError('Debes aceptar los términos y condiciones y la política de privacidad.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const res = await fetch('/api/inicio/register', {
@@ -57,7 +73,6 @@ function RegistroForm() {
       const data = await res.json();
       
       if (data.success) {
-        setEmailStatus(data.emailSent);
         setSuccess(true);
       } else {
         setError(data.error || 'Ocurrió un error al procesar tu solicitud.');
@@ -112,13 +127,7 @@ function RegistroForm() {
                 <button
                   key={t.id}
                   type="button"
-                  onClick={() => {
-                    if (t.id === 'Viajero') {
-                      router.push('/registro');
-                    } else {
-                      setFormData({ ...formData, type: t.id });
-                    }
-                  }}
+                  onClick={() => setFormData({ ...formData, type: t.id })}
                   className={`p-3 border rounded-xl flex flex-col items-center justify-center gap-2 transition-all ${
                     formData.type === t.id 
                       ? 'border-black bg-black text-white shadow-md' 
@@ -194,6 +203,84 @@ function RegistroForm() {
               </div>
             )}
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Código de invitación (opcional)</label>
+              <div className="relative">
+                <input 
+                  type="text" 
+                  value={formData.referralCode}
+                  onChange={e => setFormData({...formData, referralCode: e.target.value.toUpperCase()})}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-black focus:border-black outline-none transition-all uppercase placeholder:normal-case"
+                  placeholder="Ej. AS-12-ABCD"
+                />
+                <Ticket className="w-5 h-5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña *</label>
+              <div className="relative">
+                <input 
+                  required
+                  type={showPassword ? "text" : "password"} 
+                  value={formData.password}
+                  onChange={e => setFormData({...formData, password: e.target.value})}
+                  className="w-full px-4 py-3 pr-11 rounded-xl border border-gray-300 focus:ring-2 focus:ring-black focus:border-black outline-none transition-all"
+                  placeholder="Mínimo 6 caracteres"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar contraseña *</label>
+              <div className="relative">
+                <input 
+                  required
+                  type={showConfirmPassword ? "text" : "password"} 
+                  value={formData.confirmPassword}
+                  onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
+                  className="w-full px-4 py-3 pr-11 rounded-xl border border-gray-300 focus:ring-2 focus:ring-black focus:border-black outline-none transition-all"
+                  placeholder="Repite tu contraseña"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black focus:outline-none"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Checkbox Términos y Condiciones */}
+            <div className="flex items-start gap-2.5 pt-1">
+              <input
+                type="checkbox"
+                id="terms-lead"
+                className="w-4 h-4 mt-1 accent-black cursor-pointer rounded"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                required
+              />
+              <label htmlFor="terms-lead" className="text-xs text-gray-600 cursor-pointer leading-relaxed">
+                Acepto los{" "}
+                <Link href="/legal/terminos" target="_blank" className="text-black font-semibold underline hover:text-gray-700">
+                  términos y condiciones
+                </Link>{" "}
+                y la{" "}
+                <Link href="/legal/privacidad" target="_blank" className="text-black font-semibold underline hover:text-gray-700">
+                  política de privacidad
+                </Link>
+              </label>
+            </div>
+
             {error && (
               <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center">
                 {error}
@@ -211,7 +298,6 @@ function RegistroForm() {
           </form>
         </div>
       </div>
-
     </div>
   );
 }

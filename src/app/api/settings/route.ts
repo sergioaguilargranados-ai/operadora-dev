@@ -1,5 +1,5 @@
 // API para obtener configuraciones del sistema
-// Build: 13 Aug 2026 - v2.467
+// Build: 13 Aug 2026 - v2.468
 
 import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
