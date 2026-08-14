@@ -119,3 +119,56 @@ export async function PUT(req: Request) {
         return NextResponse.json({ success: false, error: 'Database error' }, { status: 500 })
     }
 }
+
+export async function DELETE(req: Request) {
+    try {
+        const { searchParams } = new URL(req.url)
+        const email = searchParams.get('email')
+        const id = searchParams.get('id')
+
+        if (!id && !email) {
+            return NextResponse.json({ success: false, error: 'Se requiere id o email' }, { status: 400 })
+        }
+
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+            let targetUserId = id
+            let targetEmail = email
+
+            if (id && !email) {
+                const uRes = await client.query('SELECT email FROM users WHERE id = $1', [id])
+                targetEmail = uRes.rows[0]?.email
+            } else if (email && !id) {
+                const uRes = await client.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [email.trim()])
+                targetUserId = uRes.rows[0]?.id
+            }
+
+            if (targetUserId) {
+                await client.query('DELETE FROM active_sessions WHERE user_id = $1', [targetUserId])
+                await client.query('DELETE FROM tenant_users WHERE user_id = $1', [targetUserId])
+                await client.query('DELETE FROM users WHERE id = $1', [targetUserId])
+            }
+
+            if (targetEmail) {
+                await client.query('DELETE FROM crm_contacts WHERE LOWER(email) = LOWER($1)', [targetEmail.trim()])
+                await client.query('DELETE FROM expo_leads WHERE LOWER(email) = LOWER($1)', [targetEmail.trim()])
+                await client.query('DELETE FROM users WHERE LOWER(email) = LOWER($1)', [targetEmail.trim()])
+            }
+
+            await client.query('COMMIT')
+            console.log(`🗑️ Usuario eliminado completamente: ID ${targetUserId}, Email ${targetEmail}`)
+
+            return NextResponse.json({ success: true, message: `Usuario ${targetEmail || targetUserId} eliminado correctamente` })
+        } catch (err: any) {
+            await client.query('ROLLBACK')
+            throw err
+        } finally {
+            client.release()
+        }
+    } catch (error: any) {
+        console.error('Error deleting user:', error)
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    }
+}

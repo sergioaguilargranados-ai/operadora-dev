@@ -1,7 +1,7 @@
 # 🎯 AG-Contexto-Proyecto - AS Operadora
 
-**Última actualización:** 13 de Agosto de 2026 - 22:33 CST  
-**Versión actual:** v2.471  
+**Última actualización:** 13 de Agosto de 2026 - 22:38 CST  
+**Versión actual:** v2.472  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity, trabajar de esta manera es para tener un mejor control de los cambios que se hacen en el proyecto y asegurar que todo funcione correctamente. 
 
@@ -26,7 +26,7 @@ Sergio Aguilar Granados
 Resumen ejecutivo y flujo de desarrollo.
 
 ### AL VERSIONAR CONSERVAR FORMATO V0.000 CON FECHA Y HORA DE COMPILACION DEL TIEMPO CDMX EJEMPLO
-- **Versión:** v2.471 2026-08-13 22:33:00 CST — Estatus Inactivo por Defecto al Registrarse y Disparo Automático de Correo Institucional de Aprobación al Activar Usuario en Catálogo Maestro (/dashboard/admin/users)
+- **Versión:** v2.472 2026-08-13 22:38:00 CST — Eliminación Completa de Usuarios de Prueba (users, crm_contacts, expo_leads) vía API DELETE /api/admin/users y Botón en Catálogo Maestro
 
 
 ### ESTADO DEL PROYECTO

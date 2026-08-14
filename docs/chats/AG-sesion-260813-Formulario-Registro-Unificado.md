@@ -1,7 +1,7 @@
-# AG-Sesión: Formulario Unificado de Registro, Aprobación Administrativa y Correo Automático v2.471
+# AG-Sesión: Formulario Unificado de Registro, Aprobación Administrativa y Correo Automático v2.472
 
-> **Fecha:** 2026-08-13 22:33 CST  
-> **Versión alcanzada:** `v2.471`  
+> **Fecha:** 2026-08-13 22:38 CST  
+> **Versión alcanzada:** `v2.472`  
 > **Repositorio:** `operadora-dev` (`origin/dev`)  
 
 ---
@@ -40,20 +40,21 @@
 - Al alternar el estatus de un usuario a **Activo** (`is_active: true`):
   - El backend detecta el cambio de estado (`!prevUser.is_active && is_active === true`).
   - Se invoca la función `sendAccountApprovedEmail` (`src/lib/emailHelper.ts`).
-  - Se envía automáticamente un correo electrónico con plantilla institucional:
-    - **Header:** AS Operadora de Viajes y Eventos.
-    - **Banner:** ¡Cuenta Aprobada y Activada! con ícono de check.
-    - **Cuerpo:** Mensaje personalizado informando que su solicitud ha sido revisada y aprobada exitosamente.
-    - **Cuadrícula de detalles:** Nombre completo, correo de acceso, tipo de perfil y estatus activo.
-    - **Botón CTA:** `[ Iniciar Sesión en el Portal ]` direccionando a `/login`.
-    - **Footer:** Canales de contacto y dirección fiscal corporativa.
+  - Se envía automáticamente un correo electrónico con plantilla institucional.
+
+### 5. Eliminación Completa de Usuarios de Prueba (`DELETE /api/admin/users`)
+- Se implementó el método `DELETE /api/admin/users?email=...` y `?id=...`.
+- Borra en cascada registros asociados en `active_sessions`, `tenant_users`, `crm_contacts`, `expo_leads` y `users`.
+- Se integró el botón de eliminación directa (icono papelera `Trash2`) en la tabla del Catálogo Maestro de Usuarios (`/dashboard/admin/users`).
+- Permite limpiar correos de prueba como `urielaguilarv72@gmail.com` para realizar pruebas de registro desde cero.
 
 ---
 
 ## 📁 Archivos Modificados
+- `src/app/api/admin/users/route.ts`: Endpoint `DELETE` para remoción total de usuarios y leads vinculados.
+- `src/app/dashboard/admin/users/page.tsx`: Botón de papelera y confirmación de eliminación en la tabla.
 - `src/app/api/inicio/register/route.ts`: Creación de usuarios con `is_active: false` por defecto.
 - `src/services/AuthService.ts`: Validación de `is_active === false` durante el inicio de sesión.
 - `src/lib/emailHelper.ts`: Función `sendAccountApprovedEmail` con plantilla corporativa.
-- `src/app/api/admin/users/route.ts`: Disparador automático de email al activar usuarios en `PUT`.
-- `docs/AG-Contexto-Proyecto.md`: Registro de versión `v2.471`.
-- Footers y componentes de marca blanca actualizados a `v2.471`.
+- `docs/AG-Contexto-Proyecto.md`: Registro de versión `v2.472`.
+- Footers y componentes de marca blanca actualizados a `v2.472`.

@@ -1,6 +1,6 @@
 // API Route: /api/features/user
 // GET: Get enabled features for current user
-// Build: 13 Aug 2026 - v2.471
+// Build: 13 Aug 2026 - v2.472
 
 import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';

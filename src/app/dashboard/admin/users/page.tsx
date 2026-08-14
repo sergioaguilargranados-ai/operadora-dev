@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/PageHeader'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Search, Loader2, User, Building2, UserCircle2, Mail, Phone, Calendar } from 'lucide-react'
+import { Search, Loader2, User, Building2, UserCircle2, Mail, Phone, Calendar, Trash2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { format } from 'date-fns'
 
@@ -80,6 +80,26 @@ export default function UsersAdminPage() {
             }
         } catch (err) {
             alert('Error al actualizar el estatus')
+        }
+    }
+
+    const handleDeleteUser = async (userId: number, userEmail: string) => {
+        if (!confirm(`¿Estás seguro de eliminar al usuario ${userEmail}? Esta acción borrará sus sesiones y registros vinculados.`)) {
+            return
+        }
+
+        try {
+            const res = await fetch(`/api/admin/users?id=${userId}&email=${encodeURIComponent(userEmail)}`, {
+                method: 'DELETE'
+            })
+            const data = await res.json()
+            if (data.success) {
+                setUsers(users.filter(u => u.id !== userId))
+            } else {
+                alert(data.error || 'Error al eliminar usuario')
+            }
+        } catch (err) {
+            alert('Error de conexión al eliminar usuario')
         }
     }
 
@@ -227,14 +247,24 @@ export default function UsersAdminPage() {
                                                     </select>
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
-                                                    <button 
-                                                        onClick={() => handleStatusToggle(user.id, user.is_active)}
-                                                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                                                            user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                                        }`}
-                                                    >
-                                                        {user.is_active ? 'Activo' : 'Inactivo'}
-                                                    </button>
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <button 
+                                                            onClick={() => handleStatusToggle(user.id, user.is_active)}
+                                                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
+                                                                user.is_active ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                                                            }`}
+                                                            title={user.is_active ? "Clic para desactivar usuario" : "Clic para aprobar y activar usuario (enviará correo)"}
+                                                        >
+                                                            {user.is_active ? 'Activo' : 'Inactivo'}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteUser(user.id, user.email)}
+                                                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                                                            title="Eliminar usuario del sistema"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
