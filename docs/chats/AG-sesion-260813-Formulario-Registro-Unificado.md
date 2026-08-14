@@ -1,7 +1,7 @@
-# AG-Sesión: Formulario Unificado de Registro (/registro-leads) y Creación en Catálogo Maestro de Usuarios v2.470
+# AG-Sesión: Formulario Unificado de Registro, Aprobación Administrativa y Correo Automático v2.471
 
-> **Fecha:** 2026-08-13 22:15 CST  
-> **Versión alcanzada:** `v2.470`  
+> **Fecha:** 2026-08-13 22:33 CST  
+> **Versión alcanzada:** `v2.471`  
 > **Repositorio:** `operadora-dev` (`origin/dev`)  
 
 ---
@@ -30,25 +30,30 @@
   - Confirmar contraseña * (con validación de coincidencia)
   - Checkbox obligatorio: Acepto los términos y condiciones y la política de privacidad.
 
-### 3. Creación Inmediata de Usuario en la Tabla `users` y Catálogo Maestro (`/api/inicio/register`)
-- **Problema detectado:** El query anterior intentaba insertar columnas no existentes (`status`, `company_name`) en la tabla `users`, lo que provocaba que se guardara en `expo_leads` y CRM pero no en el catálogo maestro de usuarios (`/dashboard/admin/users`).
-- **Solución implementada:**
-  - Se alineó la consulta a la estructura real de PostgreSQL: `(name, email, password_hash, phone, role, is_active, created_at, updated_at)`.
-  - Roles mapeados al estándar del sistema:
-    - **Viajero:** `CLIENT`
-    - **Agencia de Viajes / Eventos:** `AGENCY`
-    - **Empresa:** `CORPORATE`
-    - **Proveedor:** `PROVIDER`
-  - Estatus activo: `is_active = true`.
-  - Enlace bidireccional: Se captura el `user_id` generado y se asocia al nuevo contacto en `crm_contacts`.
-  - Ahora cada registro crea al instante tanto el contacto en el CRM como el usuario en el **Catálogo Maestro de Usuarios** (`/dashboard/admin/users`).
+### 3. Registro con Estatus Inactivo (`is_active: false`)
+- Al registrarse cualquier usuario (Viajero, Agencia, Empresa, Proveedor) en `/registro-leads`:
+  - Se crea la cuenta en la tabla `users` con **`is_active = false`** (Inactivo).
+  - Si el usuario intenta iniciar sesión antes de ser aprobado, el sistema le notifica: *"Tu cuenta está pendiente de aprobación por el administrador"*.
+
+### 4. Aprobación y Disparo Automático de Correo Institucional (`PUT /api/admin/users`)
+- En el **Catálogo Maestro de Usuarios** (`/dashboard/admin/users`), el administrador puede revisar a los usuarios registrados.
+- Al alternar el estatus de un usuario a **Activo** (`is_active: true`):
+  - El backend detecta el cambio de estado (`!prevUser.is_active && is_active === true`).
+  - Se invoca la función `sendAccountApprovedEmail` (`src/lib/emailHelper.ts`).
+  - Se envía automáticamente un correo electrónico con plantilla institucional:
+    - **Header:** AS Operadora de Viajes y Eventos.
+    - **Banner:** ¡Cuenta Aprobada y Activada! con ícono de check.
+    - **Cuerpo:** Mensaje personalizado informando que su solicitud ha sido revisada y aprobada exitosamente.
+    - **Cuadrícula de detalles:** Nombre completo, correo de acceso, tipo de perfil y estatus activo.
+    - **Botón CTA:** `[ Iniciar Sesión en el Portal ]` direccionando a `/login`.
+    - **Footer:** Canales de contacto y dirección fiscal corporativa.
 
 ---
 
 ## 📁 Archivos Modificados
-- `src/app/login/page.tsx`: Deshabilitación del enlace de registro en `/login`.
-- `src/app/page.tsx`: Enrutamiento de todos los botones de registro a `/registro-leads`.
-- `src/app/registro-leads/page.tsx`: Formulario unificado con selector de roles, contraseña, confirmación, código de invitación y términos.
-- `src/app/api/inicio/register/route.ts`: Inserción correcta y segura en `users` con bcrypt y linking a `crm_contacts`.
-- `docs/AG-Contexto-Proyecto.md`: Registro de versión `v2.470`.
-- Footers y componentes de marca blanca actualizados a `v2.470`.
+- `src/app/api/inicio/register/route.ts`: Creación de usuarios con `is_active: false` por defecto.
+- `src/services/AuthService.ts`: Validación de `is_active === false` durante el inicio de sesión.
+- `src/lib/emailHelper.ts`: Función `sendAccountApprovedEmail` con plantilla corporativa.
+- `src/app/api/admin/users/route.ts`: Disparador automático de email al activar usuarios en `PUT`.
+- `docs/AG-Contexto-Proyecto.md`: Registro de versión `v2.471`.
+- Footers y componentes de marca blanca actualizados a `v2.471`.

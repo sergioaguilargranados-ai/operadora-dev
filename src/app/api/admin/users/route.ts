@@ -65,6 +65,10 @@ export async function PUT(req: Request) {
 
         const client = await pool.connect()
         try {
+            // Obtener estado actual antes de actualizar
+            const prevUserRes = await client.query('SELECT name, email, role, is_active FROM users WHERE id = $1', [id])
+            const prevUser = prevUserRes.rows[0]
+
             // Build dynamic update query
             const updates = []
             const values = []
@@ -80,13 +84,33 @@ export async function PUT(req: Request) {
                 values.push(is_active)
             }
 
+            let updatedUser = null
             if (updates.length > 0) {
                 values.push(id)
-                const query = `UPDATE users SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${paramIndex}`
-                await client.query(query, values)
+                const query = `UPDATE users SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${paramIndex} RETURNING id, name, email, role, is_active`
+                const updateRes = await client.query(query, values)
+                updatedUser = updateRes.rows[0]
             }
 
-            return NextResponse.json({ success: true })
+            // Si se activó la cuenta (cambió de inactivo a activo o se estableció en true), enviar correo de aprobación
+            if (is_active === true && (!prevUser || prevUser.is_active === false)) {
+                try {
+                    const { sendAccountApprovedEmail } = await import('@/lib/emailHelper')
+                    const userToSend = updatedUser || prevUser
+                    if (userToSend?.email) {
+                        await sendAccountApprovedEmail({
+                            name: userToSend.name,
+                            email: userToSend.email,
+                            role: userToSend.role
+                        })
+                        console.log(`✉️ Correo de cuenta aprobada enviado con éxito a: ${userToSend.email}`)
+                    }
+                } catch (emailErr) {
+                    console.error('Error al enviar correo de cuenta aprobada:', emailErr)
+                }
+            }
+
+            return NextResponse.json({ success: true, data: updatedUser })
         } finally {
             client.release()
         }

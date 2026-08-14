@@ -243,9 +243,9 @@ export class AuthService {
         await query('UPDATE users SET accepted_terms_at = NOW() WHERE id = $1', [user.id])
       }
 
-      // Verificar status si existe columna
-      if (user.status === 'pending') {
-        throw new Error('Tu cuenta está pendiente de aprobación')
+      // Verificar status y si la cuenta está activa
+      if (user.is_active === false || user.status === 'pending') {
+        throw new Error('Tu cuenta está pendiente de aprobación por el administrador')
       }
 
       if (user.status === 'suspended') {

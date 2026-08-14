@@ -64,10 +64,10 @@ export async function POST(request: Request) {
              phone = EXCLUDED.phone,
              updated_at = NOW()
            RETURNING id, name, email, role, is_active`,
-          [final_name, cleanEmail, passwordHash, final_phone || '', userRole, true]
+          [final_name, cleanEmail, passwordHash, final_phone || '', userRole, false]
         );
         createdUser = userInsert.rows[0];
-        console.log('✅ Usuario registrado/actualizado exitosamente en tabla users:', createdUser);
+        console.log('✅ Usuario registrado exitosamente (Pendiente de aprobación - Inactivo):', userInsert.rows[0]);
       } catch (userErr: any) {
         console.error('❌ Error al crear usuario en tabla users:', userErr.message);
         throw new Error(`Error al crear usuario en el sistema: ${userErr.message}`);

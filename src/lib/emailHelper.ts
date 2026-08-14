@@ -1028,3 +1028,59 @@ export const sendLandingWelcomeEmail = async (data: {
         throw error;
     }
 };
+
+/**
+ * Enviar correo institucional cuando el administrador aprueba/activa una cuenta de usuario
+ */
+export const sendAccountApprovedEmail = async (data: {
+    name: string;
+    email: string;
+    role?: string;
+    loginUrl?: string;
+}) => {
+    try {
+        const { generateInstitutionalEmailHtml } = await import('@/lib/email/EmailTemplates');
+
+        const roleLabels: Record<string, string> = {
+            'CLIENT': 'Viajero / Cliente',
+            'AGENCY': 'Agencia de Viajes / Eventos',
+            'PENDING_AGENCY': 'Agencia de Viajes',
+            'CORPORATE': 'Empresa / Corporativo',
+            'PROVIDER': 'Proveedor Turístico',
+            'EMPLOYEE': 'Personal Operativo',
+            'MANAGER': 'Gerente',
+            'ADMIN': 'Administrador'
+        };
+
+        const roleName = roleLabels[data.role || 'CLIENT'] || (data.role || 'Usuario Registrado');
+        const loginUrl = data.loginUrl || `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.as-ope-viajes.company'}/login`;
+
+        const html = generateInstitutionalEmailHtml({
+            title: '¡Tu cuenta ha sido aprobada y activada! - AS Operadora',
+            bannerText: '¡Cuenta Aprobada y Activada!',
+            content: `
+              <p style="margin-top: 0;">Estimado(a) <strong>${data.name}</strong>,</p>
+              <p>Nos complace informarte que tu solicitud de registro en <strong>AS Operadora de Viajes y Eventos</strong> ha sido revisada y <strong>aprobada exitosamente</strong>.</p>
+              <p>A partir de este momento, tu cuenta se encuentra totalmente activa para ingresar a la plataforma, consultar tarifas preferenciales, gestionar tus reservas y acceder a todos nuestros beneficios exclusivos.</p>
+              <p>Puedes iniciar sesión utilizando tu correo electrónico registrado y la contraseña que creaste durante el proceso de registro.</p>
+            `,
+            detailsGrid: [
+                { label: 'Nombre Completo', value: data.name },
+                { label: 'Correo de Acceso', value: data.email },
+                { label: 'Tipo de Perfil', value: roleName },
+                { label: 'Estatus', value: 'Activo / Aprobado' }
+            ],
+            ctaText: 'Iniciar Sesión en el Portal',
+            ctaUrl: loginUrl
+        });
+
+        return await sendEmail({
+            to: data.email,
+            subject: '¡Tu cuenta ha sido aprobada! - AS Operadora de Viajes y Eventos',
+            html: html
+        });
+    } catch (error: any) {
+        console.error('❌ Error enviando correo de aprobación de cuenta:', error);
+        return { error: error.message };
+    }
+};
