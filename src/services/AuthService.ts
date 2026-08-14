@@ -20,6 +20,7 @@ export interface RegisterData {
   corporate_role?: 'admin' | 'employee'
   agency_role?: 'admin' | 'operator'
   internal_role?: 'director' | 'ventas' | 'operativo' | 'administrativo' | 'it'
+  referral_code?: string
 }
 
 export interface LoginData {
@@ -28,6 +29,7 @@ export interface LoginData {
   device_fingerprint?: string
   ip_address?: string
   user_agent?: string
+  accepted_terms?: boolean
 }
 
 export class AuthService {
@@ -128,6 +130,42 @@ export class AuthService {
 
       console.log('✅ Usuario creado en BD:', { id: user.id, email: user.email })
 
+      // Procesar código de referido si existe
+      if (data.referral_code) {
+        try {
+          const referrerRes = await query(
+            'SELECT id, member_points FROM users WHERE referral_code = $1',
+            [data.referral_code]
+          )
+          
+          if (referrerRes.rows.length > 0) {
+            const referrer = referrerRes.rows[0]
+            
+            // Vincular al usuario
+            await query('UPDATE users SET referred_by = $1 WHERE id = $2', [referrer.id, user.id])
+            
+            // Otorgar 1000 puntos al referidor por registro
+            await query(
+              "INSERT INTO user_referrals (referrer_id, referred_id, status, points_awarded) VALUES ($1, $2, 'registered', 1000)",
+              [referrer.id, user.id]
+            )
+            
+            await query(
+              'UPDATE users SET member_points = member_points + 1000 WHERE id = $1',
+              [referrer.id]
+            )
+            
+            await query(
+              "INSERT INTO reward_transactions (user_id, type, points, amount, description) VALUES ($1, 'referral_signup', 1000, 0, $2)",
+              [referrer.id, `Recompensa por registro de invitado: ${data.name}`]
+            )
+            console.log(`✅ Referido procesado: ${user.id} invitado por ${referrer.id}`)
+          }
+        } catch (refError) {
+          console.error('Error al procesar referido:', refError)
+        }
+      }
+
       // Log de registro (comentado por ahora)
       // await this.logAccess({
       //   user_id: user.id,
@@ -198,6 +236,11 @@ export class AuthService {
           success: false
         })
         throw new Error('Credenciales inválidas')
+      }
+
+      // Guardar que aceptó los términos si viene en el payload
+      if (data.accepted_terms) {
+        await query('UPDATE users SET accepted_terms_at = NOW() WHERE id = $1', [user.id])
       }
 
       // Verificar status si existe columna

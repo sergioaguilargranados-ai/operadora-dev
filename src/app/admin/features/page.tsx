@@ -1,5 +1,5 @@
 // Página de Administración de Funciones
-// Build: 27 Ene 2026 - v2.233 - Sistema de Administración Granular
+// Build: 13 Aug 2026 - v2.466 - Sistema de Administración Granular
 
 'use client';
 

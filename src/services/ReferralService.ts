@@ -32,6 +32,72 @@ export interface ReferralStats {
 export class ReferralService {
 
     /**
+     * Process a purchase for a referred user and award points to the referrer.
+     * This should be called when a booking/purchase is marked as 'paid'.
+     */
+    static async processPurchaseReward(bookingId: number, userId: number, totalAmount: number): Promise<void> {
+        try {
+            console.log(`[ReferralService] Processing purchase reward for booking ${bookingId}, user ${userId}, amount ${totalAmount}`);
+
+            // 1. Check if the user has a referrer
+            const userRes = await queryOne<{ referred_by: number }>(
+                'SELECT referred_by FROM users WHERE id = $1',
+                [userId]
+            );
+
+            if (!userRes || !userRes.referred_by) {
+                // No referrer, nothing to do
+                return;
+            }
+
+            const referrerId = userRes.referred_by;
+
+            // 2. Check if this booking has already been rewarded
+            // We can check reward_transactions to prevent duplicate rewards for the same booking
+            const existingTx = await queryOne(
+                `SELECT id FROM reward_transactions WHERE user_id = $1 AND type = 'referral_purchase' AND description LIKE $2`,
+                [referrerId, `%Reserva #${bookingId}%`]
+            );
+
+            if (existingTx) {
+                console.log(`[ReferralService] Reward already processed for booking ${bookingId}`);
+                return;
+            }
+
+            // 3. Calculate points (1 point per 1 peso spent)
+            const pointsToAward = Math.floor(totalAmount);
+            
+            if (pointsToAward <= 0) return;
+
+            // 4. Update the user_referrals status and points
+            await query(
+                `UPDATE user_referrals 
+                 SET status = 'purchased', points_awarded = points_awarded + $1 
+                 WHERE referrer_id = $2 AND referred_id = $3`,
+                [pointsToAward, referrerId, userId]
+            );
+
+            // 5. Add points to referrer's wallet
+            await query(
+                `UPDATE users SET member_points = member_points + $1 WHERE id = $2`,
+                [pointsToAward, referrerId]
+            );
+
+            // 6. Record the transaction
+            await query(
+                `INSERT INTO reward_transactions (user_id, type, points, amount, description) 
+                 VALUES ($1, 'referral_purchase', $2, 0, $3)`,
+                [referrerId, pointsToAward, `Recompensa por compra de invitado (Reserva #${bookingId})`]
+            );
+
+            console.log(`[ReferralService] Successfully awarded ${pointsToAward} pts to user ${referrerId} for booking ${bookingId}`);
+
+        } catch (error) {
+            console.error('[ReferralService] Error processing purchase reward:', error);
+        }
+    }
+
+    /**
      * Registrar un clic en liga de referido
      */
     async trackClick(data: {

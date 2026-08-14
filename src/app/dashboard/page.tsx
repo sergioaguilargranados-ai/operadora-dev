@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { PortalIntranetLayout } from '@/components/layout/PortalIntranetLayout'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -86,17 +87,17 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-      <PageHeader showBackButton={true} backButtonHref="/">
-        <div>
-          <h1 className="text-xl font-bold">Dashboard Financiero</h1>
-          <p className="text-sm text-muted-foreground">
-            Bienvenido, {user?.name}
-          </p>
+    <PortalIntranetLayout>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4">
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 font-serif flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-slate-700" />
+              Dashboard Ventas & Finanzas
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">Bienvenido, {user?.name}</p>
+          </div>
         </div>
-      </PageHeader>
-
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="mb-6">
           <PushNotificationManager variant="switch" />
         </div>
@@ -263,8 +264,8 @@ function DashboardContent() {
             </div>
           </Card>
         </div>
-      </main>
-    </div>
+      </div>
+    </PortalIntranetLayout>
   )
 }
 

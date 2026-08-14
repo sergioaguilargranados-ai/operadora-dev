@@ -73,7 +73,7 @@ export default function LostTourHelpPage() {
               <AlertTriangle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
               <div>
                 <h4 className="font-bold text-sm text-gray-900 mb-1">Recomendación</h4>
-                <p className="text-xs text-gray-600 leading-relaxed">No te retires muy lejos del punto de reunión original mientras te pones en contacto con nosotros para buscar la mejor solución.</p>
+                <p className="text-xs text-gray-600 leading-relaxed">No te alejes del punto de reunión original mientras te pones en contacto con nosotros para buscar la mejor solución.</p>
               </div>
             </div>
 
