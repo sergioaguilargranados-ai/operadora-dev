@@ -1053,7 +1053,9 @@ export const sendAccountApprovedEmail = async (data: {
         };
 
         const roleName = roleLabels[data.role || 'CLIENT'] || (data.role || 'Usuario Registrado');
-        const loginUrl = data.loginUrl || `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.as-ope-viajes.company'}/login`;
+        const loginUrl = 'https://www.as-ope-viajes.company/login';
+        const senderEmail = (process.env.SMTP_USER || process.env.RESEND_FROM_EMAIL || 'contacto@asoperadora.com').trim();
+        const contactPhone = '+52 720 815 6804';
 
         const html = generateInstitutionalEmailHtml({
             title: '¡Tu cuenta ha sido aprobada y activada! - AS Operadora',
@@ -1071,7 +1073,9 @@ export const sendAccountApprovedEmail = async (data: {
                 { label: 'Estatus', value: 'Activo / Aprobado' }
             ],
             ctaText: 'Iniciar Sesión en el Portal',
-            ctaUrl: loginUrl
+            ctaUrl: loginUrl,
+            contactPhone: contactPhone,
+            contactEmail: senderEmail
         });
 
         return await sendEmail({

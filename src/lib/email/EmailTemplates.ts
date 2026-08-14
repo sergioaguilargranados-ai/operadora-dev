@@ -5,10 +5,20 @@ export interface EmailTemplateProps {
   detailsGrid?: Array<{ label: string; value: string }>;
   ctaText?: string;
   ctaUrl?: string;
+  companyName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  contactSchedule?: string;
+  appUrl?: string;
 }
 
 export function generateInstitutionalEmailHtml(props: EmailTemplateProps): string {
   const { title, bannerText, content, detailsGrid, ctaText, ctaUrl } = props;
+  const companyName = props.companyName || 'AS OPERADORA DE VIAJES Y EVENTOS';
+  const phone = props.contactPhone || '+52 720 815 6804';
+  const email = props.contactEmail || (process.env.SMTP_USER || process.env.RESEND_FROM_EMAIL || 'contacto@asoperadora.com').trim();
+  const schedule = props.contactSchedule || 'Lun a Vie 9:00 a 18:00 h';
+  const appUrl = props.appUrl || 'https://www.as-ope-viajes.company';
   
   const detailsHtml = detailsGrid && detailsGrid.length > 0
     ? `
@@ -63,7 +73,7 @@ export function generateInstitutionalEmailHtml(props: EmailTemplateProps): strin
           <!-- Header (Logo) -->
           <tr>
             <td align="center" style="padding: 30px 20px; background-color: #ffffff; border-bottom: 1px solid #e2e8f0;">
-              <h1 style="margin: 0; color: #0f172a; font-size: 20px; font-weight: 800; letter-spacing: 1px;">AS OPERADORA DE VIAJES Y EVENTOS</h1>
+              <h1 style="margin: 0; color: #0f172a; font-size: 20px; font-weight: 800; letter-spacing: 1px;">${companyName.toUpperCase()}</h1>
             </td>
           </tr>
 
@@ -108,17 +118,17 @@ export function generateInstitutionalEmailHtml(props: EmailTemplateProps): strin
                   <td width="33%" align="center" style="padding: 10px;">
                     <div style="font-size: 20px; margin-bottom: 8px;">📞</div>
                     <div style="font-size: 12px; color: #64748b; font-weight: 600;">TELÉFONO</div>
-                    <div style="font-size: 14px; color: #0f172a; margin-top: 4px;">55 1234 5678</div>
+                    <div style="font-size: 14px; color: #0f172a; margin-top: 4px;"><a href="tel:${phone.replace(/\s+/g, '')}" style="color: #0f172a; text-decoration: none; font-weight: 600;">${phone}</a></div>
                   </td>
                   <td width="33%" align="center" style="padding: 10px;">
                     <div style="font-size: 20px; margin-bottom: 8px;">✉️</div>
                     <div style="font-size: 12px; color: #64748b; font-weight: 600;">EMAIL</div>
-                    <div style="font-size: 14px; color: #0f172a; margin-top: 4px;">reservas@asviajesyeventos.com</div>
+                    <div style="font-size: 13px; color: #0f172a; margin-top: 4px; word-break: break-all;"><a href="mailto:${email}" style="color: #0066cc; text-decoration: none;">${email}</a></div>
                   </td>
                   <td width="33%" align="center" style="padding: 10px;">
                     <div style="font-size: 20px; margin-bottom: 8px;">🕒</div>
                     <div style="font-size: 12px; color: #64748b; font-weight: 600;">HORARIOS</div>
-                    <div style="font-size: 14px; color: #0f172a; margin-top: 4px;">Lun a Vie 9:00 a 18:00 h</div>
+                    <div style="font-size: 14px; color: #0f172a; margin-top: 4px;">${schedule}</div>
                   </td>
                 </tr>
               </table>
@@ -139,7 +149,7 @@ export function generateInstitutionalEmailHtml(props: EmailTemplateProps): strin
                 C.P. 03100, CDMX
               </div>
               <div>
-                <a href="https://www.asviajesyeventos.com" style="color: #38bdf8; text-decoration: none; font-size: 14px; font-weight: 600;">www.asviajesyeventos.com</a>
+                <a href="${appUrl}" style="color: #38bdf8; text-decoration: none; font-size: 14px; font-weight: 600;">${appUrl.replace(/^https?:\/\//, '')}</a>
               </div>
             </td>
           </tr>

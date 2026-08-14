@@ -1,7 +1,7 @@
-# AG-Sesión: Formulario Unificado de Registro, Aprobación Administrativa y Correo Automático v2.472
+# AG-Sesión: Formulario Unificado de Registro, Aprobación Administrativa y Correo Automático v2.473
 
-> **Fecha:** 2026-08-13 22:38 CST  
-> **Versión alcanzada:** `v2.472`  
+> **Fecha:** 2026-08-13 23:27 CST  
+> **Versión alcanzada:** `v2.473`  
 > **Repositorio:** `operadora-dev` (`origin/dev`)  
 
 ---
@@ -13,48 +13,29 @@
 
 ### 2. Formulario Unificado de Registro por Perfiles (`/registro-leads`)
 - El botón "Soy viajero" del header, hero y footer de la página principal direcciona a `/registro-leads?type=Viajero`.
-- Selector interactivo de 5 roles:
-  1. **Viajero** (icono `Plane`)
-  2. **Agencia de Viajes** (icono `Briefcase`)
-  3. **Agencia de Eventos** (icono `Users`)
-  4. **Empresa** (icono `Building`)
-  5. **Proveedor** (icono `Globe`)
-- Campos implementados para todos los perfiles:
-  - Nombre Completo *
-  - Correo Electrónico *
-  - Teléfono (opcional)
-  - Nombre de la Empresa/Agencia * (si el tipo no es Viajero)
-  - ¿Qué producto o servicio provee? * (si el tipo es Proveedor)
-  - Código de invitación (opcional)
-  - Contraseña * (mínimo 6 caracteres con botón toggle para ver/ocultar)
-  - Confirmar contraseña * (con validación de coincidencia)
-  - Checkbox obligatorio: Acepto los términos y condiciones y la política de privacidad.
+- Selector interactivo de 5 roles: Viajero, Agencia de Viajes, Agencia de Eventos, Empresa y Proveedor.
+- Campos implementados: Nombre, Email, Teléfono, Empresa, Contraseña, Confirmación, Código de invitación y Checkbox de Términos y Condiciones.
 
 ### 3. Registro con Estatus Inactivo (`is_active: false`)
-- Al registrarse cualquier usuario (Viajero, Agencia, Empresa, Proveedor) en `/registro-leads`:
-  - Se crea la cuenta en la tabla `users` con **`is_active = false`** (Inactivo).
-  - Si el usuario intenta iniciar sesión antes de ser aprobado, el sistema le notifica: *"Tu cuenta está pendiente de aprobación por el administrador"*.
+- Al registrarse cualquier usuario, la cuenta se crea en la tabla `users` con **`is_active = false`** (Inactivo).
+- Si intenta iniciar sesión antes de ser aprobado, el login indica: *"Tu cuenta está pendiente de aprobación por el administrador"*.
 
 ### 4. Aprobación y Disparo Automático de Correo Institucional (`PUT /api/admin/users`)
-- En el **Catálogo Maestro de Usuarios** (`/dashboard/admin/users`), el administrador puede revisar a los usuarios registrados.
-- Al alternar el estatus de un usuario a **Activo** (`is_active: true`):
-  - El backend detecta el cambio de estado (`!prevUser.is_active && is_active === true`).
-  - Se invoca la función `sendAccountApprovedEmail` (`src/lib/emailHelper.ts`).
-  - Se envía automáticamente un correo electrónico con plantilla institucional.
+- En el **Catálogo Maestro de Usuarios** (`/dashboard/admin/users`), al alternar el estatus a **Activo** (`is_active: true`), se envía automáticamente el correo de confirmación de activación.
 
-### 5. Eliminación Completa de Usuarios de Prueba (`DELETE /api/admin/users`)
-- Se implementó el método `DELETE /api/admin/users?email=...` y `?id=...`.
-- Borra en cascada registros asociados en `active_sessions`, `tenant_users`, `crm_contacts`, `expo_leads` y `users`.
-- Se integró el botón de eliminación directa (icono papelera `Trash2`) en la tabla del Catálogo Maestro de Usuarios (`/dashboard/admin/users`).
-- Permite limpiar correos de prueba como `urielaguilarv72@gmail.com` para realizar pruebas de registro desde cero.
+### 5. Parámetros de Marca Blanca en Correos Institucionales (`src/lib/email/EmailTemplates.ts` y `emailHelper.ts`)
+- **Botón CTA:** Direcciona directamente a la pantalla de acceso [`https://www.as-ope-viajes.company/login`](https://www.as-ope-viajes.company/login).
+- **Teléfono de Contacto:** `+52 720 815 6804` (con enlace `tel:+527208156804`).
+- **Correo de Contacto:** Dirección de envío de mensajes configurada en el sistema (`contacto@asoperadora.com` / emisor SMTP / Resend).
+- **Nombre de Empresa y URL:** Ajustados a los parámetros de Marca Blanca de AS Operadora de Viajes y Eventos.
 
 ---
 
 ## 📁 Archivos Modificados
-- `src/app/api/admin/users/route.ts`: Endpoint `DELETE` para remoción total de usuarios y leads vinculados.
+- `src/lib/email/EmailTemplates.ts`: Parámetros dinámicos de Marca Blanca para teléfono, email, logo y enlaces.
+- `src/lib/emailHelper.ts`: Integración de parámetros de marca blanca en `sendAccountApprovedEmail`.
+- `src/app/api/admin/users/route.ts`: Endpoint `DELETE` y `PUT` con disparador de correos.
 - `src/app/dashboard/admin/users/page.tsx`: Botón de papelera y confirmación de eliminación en la tabla.
 - `src/app/api/inicio/register/route.ts`: Creación de usuarios con `is_active: false` por defecto.
 - `src/services/AuthService.ts`: Validación de `is_active === false` durante el inicio de sesión.
-- `src/lib/emailHelper.ts`: Función `sendAccountApprovedEmail` con plantilla corporativa.
-- `docs/AG-Contexto-Proyecto.md`: Registro de versión `v2.472`.
-- Footers y componentes de marca blanca actualizados a `v2.472`.
+- `docs/AG-Contexto-Proyecto.md`: Registro de versión `v2.473`.
