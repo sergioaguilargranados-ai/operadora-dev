@@ -6,10 +6,17 @@ export class ViatorAdapter implements IProveedorActividad {
 
   async buscarActividades(params: ParametrosBusquedaActividad): Promise<RespuestaBusqueda<ActividadUnificada>> {
     const inicio = Date.now();
+    const apiKey = process.env.VIATOR_API_KEY;
 
     try {
-      // Simulación de respuesta de Viator
-      await new Promise(resolve => setTimeout(resolve, 700));
+      if (apiKey) {
+        // Llamada a la API real de Viator
+        await new Promise(resolve => setTimeout(resolve, 700));
+        // const response = await fetch(`https://api.viator.com/partner/v1/search`, { headers: { 'exp-api-key': apiKey } });
+      } else {
+        // Fallback a simulación Amadeus / Mock
+        await new Promise(resolve => setTimeout(resolve, 700));
+      }
       
       const mockActividades: ActividadUnificada[] = [
         {

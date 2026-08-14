@@ -162,7 +162,7 @@ export default function MobileProductDetail({ params }: { params: { id: string }
           <button className="flex-1 bg-black text-white font-bold py-4 rounded-xl active:scale-95 transition-transform shadow-lg">
             Comprar ahora
           </button>
-          <button className="flex-1 bg-gray-100 text-blue-600 font-bold py-4 rounded-xl active:scale-95 transition-transform border border-gray-200">
+          <button className="flex-1 bg-gray-100 text-brand-primary font-bold py-4 rounded-xl active:scale-95 transition-transform border border-gray-200">
             Agregar al carrito
           </button>
         </div>

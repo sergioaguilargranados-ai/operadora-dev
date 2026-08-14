@@ -12,14 +12,35 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { runAllEmailCronJobs } from '@/cron/email-reminders';
+import { verifyAdminAuth } from '@/lib/admin-auth';
 
 export async function GET(request: NextRequest) {
     try {
-        // Verificar token de autorización
+        // ========== AUTENTICACIÓN ==========
+        // Permite ejecución si:
+        // 1. Viene de un Cron con Header `Authorization: Bearer <CRON_SECRET>` o x-cron-secret
+        // 2. Viene de un usuario Administrador autenticado (Cookie o Header JWT)
         const authHeader = request.headers.get('authorization');
-        const cronSecret = process.env.CRON_SECRET || 'change-me-in-production';
+        const xCronSecret = request.headers.get('x-cron-secret');
+        const cronSecret = process.env.CRON_SECRET;
 
-        if (authHeader !== `Bearer ${cronSecret}`) {
+        let isAuthorized = false;
+        if (cronSecret && (authHeader === `Bearer ${cronSecret}` || xCronSecret === cronSecret)) {
+            isAuthorized = true;
+        }
+
+        if (!isAuthorized) {
+            const adminAuth = await verifyAdminAuth(request);
+            if (adminAuth.authorized) {
+                isAuthorized = true;
+            }
+        }
+
+        if (!isAuthorized && process.env.NODE_ENV !== 'production' && !cronSecret) {
+            isAuthorized = true;
+        }
+
+        if (!isAuthorized) {
             return NextResponse.json({
                 success: false,
                 error: 'No autorizado'

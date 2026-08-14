@@ -42,7 +42,12 @@ export async function GET(
         b.cancelled_at,
         b.cancellation_reason,
         b.payment_status,
-        b.adults
+        b.adults,
+        COALESCE((
+          SELECT SUM(amount) 
+          FROM payment_transactions 
+          WHERE booking_id = b.id AND status = 'completed'
+        ), 0) as paid_amount
       FROM bookings b
       WHERE b.id = $1
     `, [id])
@@ -68,6 +73,8 @@ export async function GET(
       booking_reference: booking.booking_reference,
       status: booking.booking_status,
       total_price: parseFloat(booking.total_price) || 0,
+      paid_amount: parseFloat(booking.paid_amount) || 0,
+      pending_balance: (parseFloat(booking.total_price) || 0) - (parseFloat(booking.paid_amount) || 0),
       currency: booking.currency || 'MXN',
       payment_status: booking.payment_status || 'pending',
       details: details,
@@ -81,6 +88,40 @@ export async function GET(
       confirmed_at: booking.confirmed_at,
       cancelled_at: booking.cancelled_at,
       cancellation_reason: booking.cancellation_reason
+    }
+
+    // Buscar si hay un itinerario de IA asociado
+    try {
+      const itinResult = await queryOne('SELECT * FROM itineraries WHERE booking_id = $1', [id])
+      let days = []
+      
+      if (itinResult) {
+        if (itinResult.days) {
+          days = typeof itinResult.days === 'string' ? JSON.parse(itinResult.days) : itinResult.days
+        }
+
+        formattedBooking.custom_itinerary = {
+          ...itinResult,
+          days: days
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching custom itinerary:', e)
+    }
+
+    // Fetch Payment History
+    try {
+      const { queryMany } = require('@/lib/db')
+      const paymentHistory = await queryMany(`
+        SELECT id, amount, currency, status, payment_method, transaction_id, created_at, metadata
+        FROM payment_transactions
+        WHERE booking_id = $1
+        ORDER BY created_at DESC
+      `, [id])
+      
+      formattedBooking.payment_history = paymentHistory
+    } catch (e) {
+      console.error('Error fetching payment history:', e)
     }
 
     return NextResponse.json({

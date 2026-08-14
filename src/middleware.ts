@@ -21,6 +21,8 @@ interface RouteRule {
 }
 
 const PROTECTED_ROUTES: RouteRule[] = [
+  // Onboarding para nuevas agencias
+  { path: '/dashboard/onboarding', roles: ['SUPER_ADMIN', 'PENDING_AGENCY', 'UNDER_REVIEW_AGENCY'], requireAuth: true },
   // Super Admin
   { path: '/dashboard/admin', roles: ['SUPER_ADMIN'], requireAuth: true },
   // Agency Admin
@@ -145,6 +147,15 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/mobile', request.url))
     }
     
+    // Evitar bucle infinito: Si llegaron aquí porque se les denegó el acceso (rol inválido/corrupto),
+    // borramos la sesión corrupta y los dejamos en la landing page.
+    if (url.searchParams.get('access_denied')) {
+      const response = NextResponse.next()
+      response.cookies.delete('as_token')
+      response.cookies.delete('as_user')
+      return response
+    }
+
     const userPayload = extractUserFromToken(request)
     if (userPayload) {
       return NextResponse.redirect(new URL('/portal', request.url))
@@ -175,6 +186,13 @@ export async function middleware(request: NextRequest) {
     if (userRole === 'CLIENT' && (pathname.startsWith('/dashboard') || pathname.startsWith('/portal'))) {
       const mobileUrl = new URL('/mobile', request.url)
       return NextResponse.redirect(mobileUrl)
+    }
+
+    // Forzar a agencias pendientes a ir únicamente al onboarding
+    if ((userRole === 'PENDING_AGENCY' || userRole === 'UNDER_REVIEW_AGENCY') && 
+        (pathname.startsWith('/dashboard') || pathname.startsWith('/portal')) && 
+        !pathname.startsWith('/dashboard/onboarding')) {
+      return NextResponse.redirect(new URL('/dashboard/onboarding', request.url))
     }
     
     // Omitimos bloquear a los Admins/Agentes de /mobile para que puedan hacer pruebas.

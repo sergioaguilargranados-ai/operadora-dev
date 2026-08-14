@@ -11,7 +11,14 @@ const inter = Inter({ subsets: ['latin'], weight: ['300', '400', '500', '600'] }
 function RegistroForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialType = searchParams.get('type') || 'Viajero';
+  const rawType = searchParams.get('type');
+  const initialType = rawType && rawType !== 'Viajero' ? rawType : 'Agencia de Viajes';
+
+  React.useEffect(() => {
+    if (rawType === 'Viajero' || rawType?.toLowerCase() === 'viajero') {
+      router.replace('/registro');
+    }
+  }, [rawType, router]);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -27,7 +34,7 @@ function RegistroForm() {
   const [error, setError] = useState('');
 
   const types = [
-    { id: 'Viajero', icon: Plane },
+    { id: 'Viajero', icon: Plane, isDirectUser: true },
     { id: 'Agencia de Viajes', icon: Briefcase },
     { id: 'Agencia de Eventos', icon: Users },
     { id: 'Empresa', icon: Building },
@@ -105,7 +112,13 @@ function RegistroForm() {
                 <button
                   key={t.id}
                   type="button"
-                  onClick={() => setFormData({ ...formData, type: t.id })}
+                  onClick={() => {
+                    if (t.id === 'Viajero') {
+                      router.push('/registro');
+                    } else {
+                      setFormData({ ...formData, type: t.id });
+                    }
+                  }}
                   className={`p-3 border rounded-xl flex flex-col items-center justify-center gap-2 transition-all ${
                     formData.type === t.id 
                       ? 'border-black bg-black text-white shadow-md' 

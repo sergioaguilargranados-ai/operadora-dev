@@ -65,7 +65,7 @@ export default function MobileNewPaymentPage() {
       {/* Content */}
       <div className="p-6">
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-          <div className="w-16 h-16 bg-blue-50 text-[#0066FF] rounded-2xl flex items-center justify-center mb-6 mx-auto">
+          <div className="w-16 h-16 bg-blue-50 text-brand-primary rounded-2xl flex items-center justify-center mb-6 mx-auto">
             <Wallet className="w-8 h-8" />
           </div>
           
@@ -83,13 +83,13 @@ export default function MobileNewPaymentPage() {
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
                 step="0.01"
-                className="w-full text-4xl font-bold text-center border-b-2 border-gray-200 py-4 focus:outline-none focus:border-[#0066FF] transition-colors"
+                className="w-full text-4xl font-bold text-center border-b-2 border-gray-200 py-4 focus:outline-none focus:border-brand-primary transition-colors"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-medium text-gray-400">MXN</span>
             </div>
 
             <div className="bg-blue-50 rounded-xl p-4 flex items-start gap-3 mb-8">
-              <ShieldCheck className="w-5 h-5 text-[#0066FF] flex-shrink-0 mt-0.5" />
+              <ShieldCheck className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
               <p className="text-xs text-blue-900 leading-relaxed">
                 Tus pagos están protegidos por encriptación de 256 bits. 
                 Los fondos se acreditarán en tu próximo estado de cuenta en máximo 24 horas hábiles.

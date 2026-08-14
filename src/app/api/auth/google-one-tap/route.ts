@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
                 role: user.role || 'EMPLOYEE'
             },
             process.env.JWT_SECRET!,
-            { expiresIn: '15m' } // 15 minutos para consistencia
+            { expiresIn: '24h' } // 24 horas de vigencia
         );
 
         // Generar refresh token (7 días)

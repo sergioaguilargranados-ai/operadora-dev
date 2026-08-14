@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
     // Buscar al usuario y su tenant_id
     const userQuery = `
-      SELECT u.id, u.tenant_id, t.company_name, t.logo_url as tenant_logo_url,
+      SELECT u.id, u.tenant_id, u.accepted_terms_at, t.company_name, t.logo_url as tenant_logo_url,
              t.logo_mobile_url, t.primary_color, t.secondary_color
       FROM users u
       LEFT JOIN tenants t ON u.tenant_id = t.id
@@ -40,6 +40,7 @@ export async function GET(request: Request) {
         logo_url: userData.logo_mobile_url || userData.tenant_logo_url || '/logo.png',
         primary_color: userData.primary_color || '#1F2937', // default gray-800
         secondary_color: userData.secondary_color || '#3B82F6', // default blue-500
+        has_accepted_terms: !!userData.accepted_terms_at,
       }
     });
 

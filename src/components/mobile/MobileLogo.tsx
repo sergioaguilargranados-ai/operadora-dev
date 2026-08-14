@@ -65,7 +65,7 @@ export function MobileLogo({ variant = "dark", size = "md", logoUrl, className =
 
   return (
     <div
-      className={`flex flex-col items-center leading-none select-none ${className}`}
+      className={`flex flex-col items-center leading-none select-none notranslate ${className}`}
       style={{ color: textColor }}
     >
       <span

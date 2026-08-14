@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
+import { verifyAdminAuth } from '@/lib/admin-auth'
 
 /**
  * API Cron: Alertas de Vencimiento para RRHH y Documentos de Clientes
@@ -23,7 +24,19 @@ export async function GET(request: NextRequest) {
             request.nextUrl.searchParams.get('secret') ||
             request.headers.get('authorization')?.replace('Bearer ', '')
 
-        if (secret !== CRON_SECRET && process.env.NODE_ENV === 'production') {
+        let isAuthorized = secret === CRON_SECRET;
+        if (!isAuthorized) {
+            const adminAuth = await verifyAdminAuth(request);
+            if (adminAuth.authorized) {
+                isAuthorized = true;
+            }
+        }
+
+        if (!isAuthorized && process.env.NODE_ENV !== 'production' && !process.env.CRON_SECRET) {
+            isAuthorized = true;
+        }
+
+        if (!isAuthorized && process.env.NODE_ENV === 'production') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 

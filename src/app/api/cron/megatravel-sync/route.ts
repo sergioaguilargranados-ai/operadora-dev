@@ -15,6 +15,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MegaTravelScrapingService } from '@/services/MegaTravelScrapingService';
 import { pool } from '@/lib/db';
+import { shouldRunCron, startCronLog, finishCronLog } from '@/lib/cronHelper';
+import { verifyAdminAuth } from '@/lib/admin-auth';
 
 export const maxDuration = 300; // 5 minutos max por invocación
 export const dynamic = 'force-dynamic';
@@ -24,19 +26,50 @@ const PAUSE_BETWEEN_TOURS_MS = 2000; // 2 segundos entre tours
 
 export async function GET(request: NextRequest) {
     const startTime = Date.now();
+    let logId: number | null = null;
 
     try {
         // ========== AUTENTICACIÓN ==========
+        // Permite ejecución si:
+        // 1. Viene de un Cron con Header `Authorization: Bearer <CRON_SECRET>` o x-cron-secret
+        // 2. Viene de un usuario Administrador autenticado (Cookie o Header JWT)
         const authHeader = request.headers.get('authorization');
-        const cronSecret = process.env.CRON_SECRET || 'change-me-in-production';
+        const xCronSecret = request.headers.get('x-cron-secret');
+        const cronSecret = process.env.CRON_SECRET;
+        
+        let isAuthorized = false;
 
-        if (authHeader !== `Bearer ${cronSecret}`) {
+        if (cronSecret && (authHeader === `Bearer ${cronSecret}` || xCronSecret === cronSecret)) {
+            isAuthorized = true;
+        }
+
+        if (!isAuthorized) {
+            const adminAuth = await verifyAdminAuth(request);
+            if (adminAuth.authorized) {
+                isAuthorized = true;
+            }
+        }
+
+        // Si no está en producción y no hay CRON_SECRET configurado, permitir para pruebas locales
+        if (!isAuthorized && process.env.NODE_ENV !== 'production' && !cronSecret) {
+            isAuthorized = true;
+        }
+
+        if (!isAuthorized) {
             return NextResponse.json({
                 success: false,
                 error: 'No autorizado'
             }, { status: 401 });
         }
 
+        const searchParams = request.nextUrl?.searchParams || new URL(request.url).searchParams;
+        const force = searchParams.get('force') === 'true';
+
+        if (!(await shouldRunCron('megatravel_sync', force))) {
+            return NextResponse.json({ success: true, message: 'Skipped by schedule' });
+        }
+
+        logId = await startCronLog('megatravel_sync');
         console.log('🌙 [CRON] Iniciando sincronización nocturna de MegaTravel...');
 
         // ========== OBTENER TOURS PENDIENTES ==========
@@ -174,9 +207,12 @@ export async function GET(request: NextRequest) {
         `);
         const remaining = parseInt(remainingResult.rows[0]?.remaining || '0');
 
+        const message = `Sincronización completada: ${successCount}/${tours.length} exitosos. Quedan ${remaining} pendientes.`;
+        await finishCronLog(logId, 'success', message, { processed: tours.length, success: successCount, error: errorCount, remaining });
+
         return NextResponse.json({
             success: true,
-            message: `Sincronización cron completada`,
+            message: message,
             syncId,
             processed: tours.length,
             success_count: successCount,
@@ -187,9 +223,11 @@ export async function GET(request: NextRequest) {
             timestamp: new Date().toISOString()
         });
 
-    } catch (error) {
+    } catch (error: any) {
         const duration = Date.now() - startTime;
         console.error('❌ [CRON] Error fatal en sincronización:', error);
+        
+        await finishCronLog(logId, 'error', error.message || 'Error desconocido');
 
         return NextResponse.json({
             success: false,

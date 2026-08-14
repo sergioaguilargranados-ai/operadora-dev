@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       const orderRes = await client.query(
         `INSERT INTO store_orders (tenant_id, user_id, total_amount, status)
          VALUES ($1, $2, $3, $4) RETURNING id`,
-        [tenant_id, user_id, total_amount, 'paid'] // Simulando que el pago ya se procesó
+        [tenant_id, user_id, total_amount, 'pending']
       )
       
       const order_id = orderRes.rows[0].id
@@ -37,8 +37,59 @@ export async function POST(request: Request) {
         )
       }
 
+      // Proceso de referidos: Otorgar puntos si el usuario fue referido
+      const referralCheck = await client.query(
+        `SELECT referrer_id FROM user_referrals WHERE referred_id = $1`,
+        [user_id]
+      )
+      
+      if (referralCheck.rows.length > 0) {
+        const referrerId = referralCheck.rows[0].referrer_id
+        const pointsToAward = Math.floor(total_amount)
+        const walletToAdd = pointsToAward / 100 // 1000 puntos = 10 pesos
+        
+        await client.query(
+          `UPDATE users 
+           SET member_points = COALESCE(member_points, 0) + $1,
+               wallet_balance = COALESCE(wallet_balance, 0) + $2
+           WHERE id = $3`,
+          [pointsToAward, walletToAdd, referrerId]
+        )
+        
+        await client.query(
+          `UPDATE user_referrals SET points_awarded = COALESCE(points_awarded, 0) + $1 WHERE referred_id = $2`,
+          [pointsToAward, user_id]
+        )
+      }
+
+      // Create Booking to use standard payment gateway
+      const bookingRes = await client.query(
+        `INSERT INTO bookings (
+          tenant_id, 
+          user_id, 
+          booking_type, 
+          destination, 
+          booking_status, 
+          payment_status, 
+          total_price, 
+          currency,
+          special_requests
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+        [
+          tenant_id,
+          user_id,
+          'store_order',
+          'Compra en Tienda PWA',
+          'pending_confirmation',
+          'pending',
+          total_amount,
+          'MXN',
+          JSON.stringify({ store_order_id: order_id })
+        ]
+      )
+
       await client.query('COMMIT')
-      return NextResponse.json({ success: true, order_id })
+      return NextResponse.json({ success: true, order_id, booking_id: bookingRes.rows[0].id })
     } catch (err) {
       await client.query('ROLLBACK')
       throw err

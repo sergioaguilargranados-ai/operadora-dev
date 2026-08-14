@@ -15,8 +15,30 @@ export default function InicioLanding() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const carouselImages = [
+    "/inicio/WhatsApp_Image_2026-06-12_at_11.15.55_AM.jpeg", // Default
+    "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=1600&h=900&fit=crop", // Madrid
+    "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1600&h=900&fit=crop", // Paris
+    "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1600&h=900&fit=crop", // Tokyo
+    "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1600&h=900&fit=crop"  // Rome
+  ];
 
   useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Si la PWA se abre en la raíz, redirigir a /mobile
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      router.replace('/mobile');
+      return;
+    }
+
     fetch('/api/inicio/content')
       .then(res => res.json())
       .then(res => {
@@ -26,10 +48,14 @@ export default function InicioLanding() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [router]);
 
   const handleRegister = (type: string) => {
-    router.push(`/registro-leads?type=${encodeURIComponent(type)}`);
+    if (type === 'Viajero' || type?.toLowerCase() === 'viajero') {
+      router.push('/registro');
+    } else {
+      router.push(`/registro-leads?type=${encodeURIComponent(type)}`);
+    }
   };
 
   if (loading) {
@@ -51,12 +77,23 @@ export default function InicioLanding() {
             >
               Acceso
             </button>
-            <button 
-              onClick={() => handleRegister('Viajero')}
-              className="bg-black text-white px-6 py-2 rounded font-medium hover:bg-gray-800 transition-colors text-sm"
-            >
-              Regístrate
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={() => handleRegister('Viajero')} className="bg-black text-white px-3 py-1 rounded text-xs font-medium hover:bg-gray-800 transition-colors">
+                Soy viajero
+              </button>
+              <button onClick={() => handleRegister('Agencia de Viajes')} className="bg-white text-black border border-gray-300 px-3 py-1 rounded text-xs font-medium hover:bg-gray-50 transition-colors">
+                Soy agencia de viajes
+              </button>
+              <button onClick={() => handleRegister('Agencia de Eventos')} className="bg-white text-black border border-gray-300 px-3 py-1 rounded text-xs font-medium hover:bg-gray-50 transition-colors">
+                Soy agencia de eventos
+              </button>
+              <button onClick={() => handleRegister('Empresa')} className="bg-white text-black border border-gray-300 px-3 py-1 rounded text-xs font-medium hover:bg-gray-50 transition-colors">
+                Soy empresa
+              </button>
+              <button onClick={() => handleRegister('Proveedor')} className="bg-white text-black border border-gray-300 px-3 py-1 rounded text-xs font-medium hover:bg-gray-50 transition-colors">
+                Soy proveedor
+              </button>
+            </div>
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <Menu className="w-6 h-6 text-black" />
             </button>
@@ -67,12 +104,44 @@ export default function InicioLanding() {
       {/* HERO PRINCIPAL (SPLIT LAYOUT) */}
       <section className="relative min-h-[90vh] flex items-center bg-white pt-24 pb-12 lg:pt-0 lg:pb-0 overflow-hidden">
         {/* Imagen a la derecha */}
-        <div className="absolute right-0 top-0 bottom-0 w-full lg:w-[60%] z-0 h-full">
-          <img 
-            src={data?.hero_video_url || "/inicio/WhatsApp_Image_2026-06-12_at_11.15.55_AM.jpeg"} 
-            alt="Hero image" 
-            className="w-full h-full object-cover"
-          />
+        <div className="absolute right-0 top-0 bottom-0 w-full lg:w-[60%] z-0 h-full bg-black">
+          {data?.hero_video_url && (data.hero_video_url.includes('.mp4') || data.hero_video_url.includes('.webm') || data.hero_video_url.includes('youtube') || data.hero_video_url.includes('vimeo')) ? (
+            data.hero_video_url.includes('youtube') || data.hero_video_url.includes('vimeo') ? (
+              <iframe
+                src={(() => {
+                  let embedUrl = data.hero_video_url.replace('watch?v=', 'embed/');
+                  const videoIdMatch = embedUrl.match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/);
+                  const videoId = videoIdMatch ? videoIdMatch[1] : '';
+                  const separator = embedUrl.includes('?') ? '&' : '?';
+                  return `${embedUrl}${separator}autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0`;
+                })()}
+                className="absolute w-full h-full object-cover scale-150"
+                style={{ pointerEvents: 'none' }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                frameBorder="0"
+              />
+            ) : (
+              <video
+                src={data.hero_video_url}
+                className="absolute w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+            )
+          ) : (
+            carouselImages.map((src, idx) => (
+              <img
+                key={src}
+                src={src}
+                alt={`Hero carousel ${idx}`}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                  idx === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
+            ))
+          )}
           {/* Overlay gradiente suave desde la izquierda */}
           <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-transparent lg:w-[60%] hidden lg:block"></div>
           {/* Overlay oscuro móvil */}
@@ -343,7 +412,7 @@ export default function InicioLanding() {
             <PwaInstallButton />
           </div>
           <div className="mt-12 text-center border-t border-gray-800 pt-6">
-            <span className="text-[10px] text-gray-500">v2.368 | 03 Jul 2026 23:27 CST | AS Operadora viajes y eventos</span>
+            <span className="text-[10px] text-gray-500">v2.465 | 13 Aug 2026 21:13 CST | AS Operadora viajes y eventos</span>
           </div>
         </div>
       </section>

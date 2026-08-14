@@ -82,7 +82,34 @@ export default function TourDetailPage() {
         return Object.values(passengers).reduce((a, b) => a + b, 0)
     }
 
-    const handleCheckout = () => {
+    const handleCheckout = async () => {
+        try {
+            const total = calculateTotal()
+            await fetch('/api/bookings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'activity',
+                    service_name: tour.title,
+                    total_price: total,
+                    currency: tour.currency || 'MXN',
+                    status: 'confirmed',
+                    payment_status: 'paid',
+                    details: {
+                        destination: tour.destination,
+                        pasajeros: getTotalPassengers(),
+                        fecha: selectedDate,
+                        contacto: {
+                            nombre: `${formData.firstName} ${formData.lastName}`.trim(),
+                            email: formData.email,
+                            telefono: formData.phone
+                        }
+                    }
+                })
+            })
+        } catch (e) {
+            console.error('Error saving activity booking:', e)
+        }
         setBookingStage('success')
     }
 

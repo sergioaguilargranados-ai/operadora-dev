@@ -72,3 +72,28 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: false, error: 'Database error' }, { status: 500 })
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const { user_id, old_name, new_name } = await request.json()
+
+    if (!user_id || !old_name || !new_name) {
+      return NextResponse.json({ success: false, error: 'Faltan datos requeridos' }, { status: 400 })
+    }
+
+    const client = await pool.connect()
+    try {
+      await client.query(
+        `UPDATE entity_documents SET document_name = $1, updated_at = CURRENT_TIMESTAMP WHERE entity_type = 'user' AND entity_id = $2 AND document_name = $3`,
+        [new_name, user_id, old_name]
+      )
+
+      return NextResponse.json({ success: true })
+    } finally {
+      client.release()
+    }
+  } catch (error) {
+    console.error('Error updating document:', error)
+    return NextResponse.json({ success: false, error: 'Database error' }, { status: 500 })
+  }
+}

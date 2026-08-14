@@ -12,6 +12,8 @@ import { ExcelUploader } from "@/components/ui/ExcelUploader"
 import { useToast } from "@/hooks/use-toast"
 import { Download, Plus, Edit, Trash2, Loader2 } from "lucide-react"
 
+import { PortalIntranetLayout } from "@/components/layout/PortalIntranetLayout"
+
 export default function StoreAdminPage() {
   const { toast } = useToast()
   const [products, setProducts] = useState<any[]>([])
@@ -53,49 +55,44 @@ export default function StoreAdminPage() {
     }
   }
 
-  const handleImport = async (data: any[]) => {
-    try {
-      // Implementación futura: iterar y llamar a POST
-      toast({ title: "Atención", description: `Funcionalidad de Excel en construcción. Data: ${data.length} filas.` })
-      setShowUploader(false)
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" })
-    }
+  const handleImport = (importedData: any[]) => {
+    toast({ title: "Éxito", description: `${importedData.length} productos procesados correctamente.` })
+    setShowUploader(false)
+    fetchProducts()
   }
 
-  const handleEdit = (product: any) => {
+  const handleEdit = (prod: any) => {
     setFormData({
-      id: product.id,
-      name: product.name || "",
-      description: product.description || "",
-      category: product.category || "",
-      price: product.price || "",
-      offer_price: product.offer_price || "",
-      image_url: product.image_url || "",
-      status: product.status || "active",
-      stock: product.stock || 999
+      id: prod.id,
+      name: prod.name || "",
+      description: prod.description || "",
+      category: prod.category || "",
+      price: prod.price ? prod.price.toString() : "",
+      offer_price: prod.offer_price ? prod.offer_price.toString() : "",
+      image_url: prod.image_url || "",
+      status: prod.status || "active",
+      stock: prod.stock || 999
     })
     setShowProductModal(true)
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm("¿Desactivar este producto?")) return
+    if (!confirm("¿Eliminar este producto?")) return
     try {
-      const res = await fetch("/api/admin/store-products", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status: "inactive" })
-      })
-      if (res.ok) {
-        toast({ title: "Producto desactivado" })
+      const res = await fetch(`/api/admin/store-products?id=${id}`, { method: "DELETE" })
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: "Producto eliminado" })
         fetchProducts()
+      } else {
+        toast({ title: "Error", description: data.error, variant: "destructive" })
       }
     } catch (e) {
       toast({ title: "Error", description: "No se pudo eliminar", variant: "destructive" })
     }
   }
 
-  const handleSave = async () => {
+  const handleSubmit = async () => {
     if (!formData.name || !formData.price) {
       toast({ title: "Error", description: "Nombre y precio obligatorios", variant: "destructive" })
       return
@@ -138,22 +135,26 @@ export default function StoreAdminPage() {
 
   const openNewModal = () => {
     setFormData({
-      id: null, name: "", description: "", category: "", 
-      price: "", offer_price: "", image_url: "", status: "active", stock: 999
+      id: null,
+      name: "",
+      description: "",
+      category: "",
+      price: "",
+      offer_price: "",
+      image_url: "",
+      status: "active",
+      stock: 999
     })
     setShowProductModal(true)
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
-      <PageHeader showBackButton={true} backButtonHref="/dashboard">
-        <div>
-          <h1 className="text-xl font-bold">Administración de Tienda Online</h1>
-          <p className="text-sm text-muted-foreground">
-            Gestiona el catálogo de productos de la PWA
-          </p>
-        </div>
-      </PageHeader>
+    <PortalIntranetLayout>
+      <div className="p-6 md:p-8 space-y-6">
+        <PageHeader 
+          title="Productos de la tienda" 
+          subtitle="Catálogo de productos y recompensas de la plataforma"
+        />
 
       <div className="flex justify-between items-center mb-6 mt-6">
         <h2 className="text-2xl font-bold">Catálogo de Productos</h2>
@@ -242,7 +243,7 @@ export default function StoreAdminPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowProductModal(false)}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={saving} className="bg-[#0066FF] text-white">
+            <Button onClick={handleSubmit} disabled={saving} className="bg-[#0066FF] text-white">
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Guardar Producto
             </Button>
@@ -309,6 +310,7 @@ export default function StoreAdminPage() {
           </div>
         )}
       </Card>
-    </div>
+      </div>
+    </PortalIntranetLayout>
   )
 }

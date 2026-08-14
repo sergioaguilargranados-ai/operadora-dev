@@ -2,6 +2,8 @@ import { IProveedorActividad, ParametrosBusquedaActividad, RespuestaBusqueda } f
 import { ActividadUnificada } from '@/types/unified-travel';
 import { CivitatisAdapter } from '../providers/civitatis/CivitatisAdapter';
 import { ViatorAdapter } from '../providers/viator/ViatorAdapter';
+import { BigBusAdapter } from '../providers/bigbus/BigBusAdapter';
+import { GetYourGuideAdapter } from '../providers/getyourguide/GetYourGuideAdapter';
 import { query } from '@/lib/db';
 
 export class ActivityAggregator {
@@ -10,6 +12,8 @@ export class ActivityAggregator {
   constructor() {
     this.proveedores.push(new CivitatisAdapter());
     this.proveedores.push(new ViatorAdapter());
+    this.proveedores.push(new BigBusAdapter());
+    this.proveedores.push(new GetYourGuideAdapter());
   }
 
   async buscarActividades(params: ParametrosBusquedaActividad): Promise<RespuestaBusqueda<ActividadUnificada>> {

@@ -1,18 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
 import WeatherService from '@/services/WeatherService'
+import { shouldRunCron, startCronLog, finishCronLog } from '@/lib/cronHelper'
+import { verifyAdminAuth } from '@/lib/admin-auth'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (
-    process.env.NODE_ENV === 'production' &&
-    process.env.CRON_SECRET &&
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
+  const xCronSecret = request.headers.get('x-cron-secret')
+  const cronSecret = process.env.CRON_SECRET
+
+  let isAuthorized = false
+  if (cronSecret && (authHeader === `Bearer ${cronSecret}` || xCronSecret === cronSecret)) {
+    isAuthorized = true
+  }
+
+  if (!isAuthorized) {
+    const adminAuth = await verifyAdminAuth(request)
+    if (adminAuth.authorized) {
+      isAuthorized = true
+    }
+  }
+
+  if (!isAuthorized && process.env.NODE_ENV !== 'production' && !cronSecret) {
+    isAuthorized = true
+  }
+
+  if (!isAuthorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const searchParams = request.nextUrl?.searchParams || new URL(request.url).searchParams
+  const force = searchParams.get('force') === 'true'
+
+  if (!(await shouldRunCron('update_weather', force))) {
+    return NextResponse.json({ success: true, message: 'Skipped by schedule' })
+  }
+
+  let logId: number | null = null;
   try {
+    logId = await startCronLog('update_weather')
+    
     // Determine unique cities in upcoming itineraries (say, next 15 days)
     // For now, we can just get all unique cities from the database or just a few major ones if we want to save API calls
     // But since this is specific to itineraries, let's grab unique locations from upcoming groups
@@ -20,7 +47,7 @@ export async function GET(request: NextRequest) {
       SELECT distinct destination as region
       FROM itineraries 
       WHERE start_date >= CURRENT_DATE 
-      AND start_date <= CURRENT_DATE + INTERVAL '15 days'
+      AND start_date <= CURRENT_DATE + INTERVAL '30 days'
     `)
     
     // As a fallback, hardcode some common ones if there are no upcoming trips
@@ -41,9 +68,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, message: `Updated weather for ${successCount} cities` })
+    const message = `Updated weather for ${successCount} cities`
+    await finishCronLog(logId, 'success', message)
+    return NextResponse.json({ success: true, message })
   } catch (error: any) {
     console.error('Error in cron update-weather:', error)
+    await finishCronLog(logId, 'error', error.message)
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 }

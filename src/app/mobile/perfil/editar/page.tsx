@@ -202,7 +202,7 @@ export default function MobileProfileEditPage() {
               <button 
                 type="button" 
                 onClick={addEmergencyContact}
-                className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700"
+                className="text-xs font-bold text-brand-primary flex items-center gap-1 hover:text-brand-primary-hover"
               >
                 <Plus className="w-3 h-3" /> Agregar
               </button>

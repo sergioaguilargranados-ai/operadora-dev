@@ -9,7 +9,7 @@ const deviceLimiter = new RateLimiterMemory({ points: 10, duration: 60 }) // 10 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, password, device_fingerprint } = body || {}
+    const { email, password, device_fingerprint, accepted_terms } = body || {}
 
     if (!email || !password) {
       return NextResponse.json(
@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
       device_fingerprint,
       ip_address: ip,
       user_agent: userAgent,
+      accepted_terms,
     })
 
     const responseBody = {

@@ -6,6 +6,8 @@ import Script from "next/script";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FeaturesProvider } from "@/contexts/FeaturesContext";
 import { WhiteLabelProvider } from "@/contexts/WhiteLabelContext";
+import { LanguageCurrencyProvider } from "@/contexts/LanguageCurrencyContext";
+import { LanguageCurrencyModal } from "@/components/LanguageCurrencyModal";
 import { CookieConsent } from "@/components/CookieConsent";
 import { ChatWidget } from "@/components/ChatWidget";
 import { WhatsAppWidget } from "@/components/WhatsAppWidget";
@@ -82,21 +84,40 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning className="antialiased">
+        <Script id="google-translate-init" strategy="afterInteractive">
+          {`
+            function googleTranslateElementInit() {
+              new window.google.translate.TranslateElement({
+                pageLanguage: 'es',
+                includedLanguages: 'es,en,fr,pt,de,it,ja,zh-CN',
+                autoDisplay: false
+              }, 'google_translate_element');
+            }
+          `}
+        </Script>
+        <Script 
+          src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+          strategy="afterInteractive"
+        />
+        <div id="google_translate_element" style={{ display: 'none' }}></div>
         <AuthProvider>
-          <WhiteLabelProvider>
-            <BrandStyles />
-            <BrandMeta />
-            <FeaturesProvider>
-              <ServiceWorkerRegistrar />
-              <OfflineIndicator />
-              <ClientBody>{children}</ClientBody>
-              <CookieConsent />
-              <WhatsAppWidget />
-              <ChatWidget />
-              {/* <GoogleOneTap /> Deshabilitado temporalmente hasta nuevo aviso */}
-              <InstallPrompt />
-            </FeaturesProvider>
-          </WhiteLabelProvider>
+          <LanguageCurrencyProvider>
+            <WhiteLabelProvider>
+              <BrandStyles />
+              <BrandMeta />
+              <FeaturesProvider>
+                <ServiceWorkerRegistrar />
+                <OfflineIndicator />
+                <ClientBody>{children}</ClientBody>
+                <LanguageCurrencyModal />
+                <CookieConsent />
+                <WhatsAppWidget />
+                <ChatWidget />
+                {/* <GoogleOneTap /> Deshabilitado temporalmente hasta nuevo aviso */}
+                <InstallPrompt />
+              </FeaturesProvider>
+            </WhiteLabelProvider>
+          </LanguageCurrencyProvider>
         </AuthProvider>
       </body>
     </html>

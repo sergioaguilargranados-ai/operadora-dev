@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { X, Download, Smartphone } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[]
@@ -12,6 +13,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function InstallPrompt() {
+  const { isAuthenticated } = useAuth()
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [showBanner, setShowBanner] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
@@ -31,15 +33,13 @@ export function InstallPrompt() {
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
     setIsIOS(isIOSDevice)
 
-    // Verificar si el usuario ya descartó el banner (COMENTADO TEMPORALMENTE PARA PRUEBAS)
-    /*
+    // Verificar si el usuario ya descartó el banner para distanciar la invitación
     const dismissed = localStorage.getItem('pwa-install-dismissed')
     if (dismissed) {
       const dismissedDate = new Date(dismissed)
       const daysSinceDismissed = (Date.now() - dismissedDate.getTime()) / (1000 * 60 * 60 * 24)
-      if (daysSinceDismissed < 7) return // No mostrar por 7 días después de descartar
+      if (daysSinceDismissed < 14) return // No mostrar por 14 días después de descartar
     }
-    */
 
     // Para Android/Chrome — capturar el evento de instalación
     const handler = (e: Event) => {
@@ -78,7 +78,7 @@ export function InstallPrompt() {
     localStorage.setItem('pwa-install-dismissed', new Date().toISOString())
   }
 
-  if (isStandalone || !showBanner) return null
+  if (isStandalone || !showBanner || !isAuthenticated) return null
 
   return (
     <AnimatePresence>

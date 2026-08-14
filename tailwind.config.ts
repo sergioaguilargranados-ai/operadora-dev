@@ -10,6 +10,15 @@ export default {
   theme: {
     extend: {
       colors: {
+        brand: {
+          primary: 'var(--brand-primary)',
+          'primary-hover': 'var(--brand-primary-hover)',
+          'primary-light': 'var(--brand-primary-light)',
+          'primary-bg': 'var(--brand-primary-bg)',
+          secondary: 'var(--brand-secondary)',
+          'secondary-hover': 'var(--brand-secondary-hover)',
+          accent: 'var(--brand-accent)'
+        },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {

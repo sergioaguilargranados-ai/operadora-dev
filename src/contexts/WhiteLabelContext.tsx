@@ -1,5 +1,5 @@
 // WhiteLabelContext.tsx - Contexto global para Multi-Empresa y Marca Blanca
-// Build: 11 Feb 2026 - v2.304 - Fase 1 Multi-Empresa
+// Build: 13 Aug 2026 - v2.465 - Fase 1 Multi-Empresa
 
 'use client';
 
@@ -105,9 +105,9 @@ const AS_OPERADORA_DEFAULTS: WhiteLabelState = {
     logoMobileUrl: null,
     logoDarkUrl: null,
     faviconUrl: null,
-    primaryColor: '#FF6B00',
+    primaryColor: '#0066FF',
     secondaryColor: '#0052CC',
-    accentColor: '#0066FF',
+    accentColor: '#FF6B00',
 
     supportEmail: 'contacto@asoperadora.com',
     supportPhone: '+52 720 815 6804',

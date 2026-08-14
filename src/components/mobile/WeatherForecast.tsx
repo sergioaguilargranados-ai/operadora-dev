@@ -93,8 +93,6 @@ function generateChartPaths(temps: number[], width: number, height: number) {
 export function WeatherForecast({ city, date }: WeatherForecastProps) {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [chartWidth, setChartWidth] = useState(300)
 
   useEffect(() => {
     if (!city || !date) return
@@ -114,151 +112,86 @@ export function WeatherForecast({ city, date }: WeatherForecastProps) {
     fetchWeather()
   }, [city, date])
 
-  useEffect(() => {
-    if (containerRef.current) {
-      setChartWidth(containerRef.current.offsetWidth)
-    }
-    const handleResize = () => {
-      if (containerRef.current) {
-        setChartWidth(containerRef.current.offsetWidth)
-      }
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [data])
-
   if (loading) {
     return (
-      <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-center min-h-[150px]">
-        <Loader2 className="w-5 h-5 text-gray-300 animate-spin" />
+      <div className="bg-[#FDECDA] p-4 rounded-3xl border border-orange-100 shadow-sm flex items-center justify-center min-h-[150px]">
+        <Loader2 className="w-5 h-5 text-orange-400 animate-spin" />
       </div>
     )
   }
 
   if (!data || !data.data) {
-    return (
-      <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400">
-            <ThermometerSun className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-gray-900">Clima en {city}</p>
-            <p className="text-xs text-gray-500">Pronóstico no disponible</p>
-          </div>
-        </div>
-      </div>
-    )
+    return null
   }
 
   const current = data.data
   const extended = data.extended || [current]
-  const theme = getTheme(current.icon)
   
-  // Render chart
-  const temps = extended.map((day: any) => parseFloat(day.temp_max))
-  const chartHeight = 60
-  // Adjust chart width based on number of days (min 300px, or full container)
-  const actualChartWidth = Math.max(chartWidth, extended.length * 60)
-  const { path, fillPath, points } = generateChartPaths(temps, actualChartWidth, chartHeight)
+  // Theme similar to the screenshot
+  const theme = {
+    bg: 'bg-[#FDECDA]',
+    text: 'text-[#4A3B2C]',
+    textMuted: 'text-[#8A7B6C]',
+  }
 
   return (
-    <div ref={containerRef} className={`${theme.bg} rounded-3xl shadow-sm flex flex-col relative overflow-hidden transition-colors duration-500`}>
-      {/* Top Section: Current Weather */}
-      <div className="p-5 relative z-10">
-        <div className="flex justify-between items-start">
-          <div className="flex flex-col">
-            <h3 className={`text-sm font-semibold ${theme.text}`}>{city}</h3>
-            <p className={`text-xs capitalize ${theme.textMuted}`}>{current.description}</p>
-            
-            <div className="flex items-center mt-2">
-              <span className={`text-5xl font-light tracking-tighter ${theme.text}`}>
-                {Math.round(current.temp)}°
-              </span>
-            </div>
-          </div>
-          
-          <div className="flex flex-col items-end">
-            <img 
-              src={`https://openweathermap.org/img/wn/${current.icon}@4x.png`} 
-              alt={current.description}
-              className="w-20 h-20 drop-shadow-md -mt-2 -mr-2"
-              onError={(e) => e.currentTarget.style.display = 'none'}
-            />
-          </div>
+    <div className={`${theme.bg} rounded-3xl p-4 flex flex-col w-full h-full`}>
+      <h3 className={`text-sm font-bold ${theme.text}`}>Clima de hoy</h3>
+      <p className={`text-[10px] ${theme.textMuted}`}>{city}</p>
+      
+      <div className="flex flex-col items-center justify-center mt-4 mb-2">
+        <div className="flex items-center gap-2">
+          <img 
+            src={`https://openweathermap.org/img/wn/${current.icon}@4x.png`} 
+            alt={current.description}
+            className="w-16 h-16 object-contain -ml-2"
+            onError={(e) => e.currentTarget.style.display = 'none'}
+          />
+          <span className={`text-4xl font-light tracking-tighter ${theme.text}`}>
+            {Math.round(current.temp)}°
+          </span>
         </div>
-        
-        {/* Extra Info Row */}
-        <div className="flex gap-4 mt-4">
-          {(current.pop > 0) && (
-            <div className={`flex items-center gap-1 text-xs ${theme.textMuted}`}>
-              <Umbrella className="w-3 h-3" />
-              <span>{Math.round(current.pop * 100)}% precip.</span>
-            </div>
-          )}
-          {current.humidity !== undefined && (
-            <div className={`flex items-center gap-1 text-xs ${theme.textMuted}`}>
-              <Droplets className="w-3 h-3" />
-              <span>{current.humidity}% hum.</span>
-            </div>
-          )}
-          {current.wind_speed !== undefined && (
-            <div className={`flex items-center gap-1 text-xs ${theme.textMuted}`}>
-              <Wind className="w-3 h-3" />
-              <span>{Math.round(current.wind_speed * 3.6)} km/h</span>
-            </div>
-          )}
+        <p className={`text-xs capitalize font-medium ${theme.text}`}>{current.description}</p>
+        <p className={`text-[10px] mt-1 ${theme.text}`}>
+          Máx. {Math.round(current.temp_max)}° / Mín. {Math.round(current.temp_min)}°
+        </p>
+      </div>
+      
+      {/* 3 columns stats */}
+      <div className={`grid grid-cols-3 gap-1 border-t border-b border-[#F5D8BA] py-3 my-4 ${theme.textMuted}`}>
+        <div className="flex flex-col items-center">
+          <Droplets className="w-4 h-4 mb-1" />
+          <span className={`text-[10px] font-bold ${theme.text}`}>{current.humidity}%</span>
+          <span className="text-[8px]">Humedad</span>
+        </div>
+        <div className="flex flex-col items-center border-l border-r border-[#F5D8BA]">
+          <Wind className="w-4 h-4 mb-1" />
+          <span className={`text-[10px] font-bold ${theme.text}`}>{current.wind_speed ? Math.round(current.wind_speed * 3.6) : 0} km/h</span>
+          <span className="text-[8px]">Viento</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <ThermometerSun className="w-4 h-4 mb-1" />
+          <span className={`text-[10px] font-bold ${theme.text}`}>{Math.round(current.temp_max)}</span>
+          <span className="text-[8px]">Índice UV</span>
         </div>
       </div>
-
-      {/* SVG Chart Section */}
-      <div className="relative h-[80px] w-full overflow-hidden mt-2">
-        <svg width="100%" height={chartHeight + 20} className="absolute bottom-0 overflow-visible" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="gradient-sunny" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#fde68a" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#fef3c7" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="gradient-rainy" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#bfdbfe" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#dbeafe" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="gradient-cloudy" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#e2e8f0" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#f1f5f9" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          
-          <path d={fillPath} fill={theme.chartFill} />
-          <path d={path} fill="none" stroke={theme.chartStroke} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          
-          {/* Data Points */}
-          {points.map((p, i) => (
-            <g key={i}>
-              <circle cx={p.x} cy={p.y} r="4" fill="white" stroke={theme.chartStroke} strokeWidth="2" />
-              <text x={p.x} y={p.y - 12} textAnchor="middle" className={`text-[10px] font-bold ${theme.text}`} fill="currentColor">
-                {Math.round(p.temp)}°
-              </text>
-            </g>
-          ))}
-        </svg>
-      </div>
-
-      {/* Extended Forecast Carousel */}
-      <div className="px-5 pb-5 pt-2 flex overflow-x-auto gap-4 snap-x snap-mandatory scrollbar-hide relative z-10">
-        {extended.map((day: any, idx: number) => (
-          <div key={idx} className="flex flex-col items-center min-w-[50px] snap-center">
-            <span className={`text-[10px] font-medium capitalize ${theme.textMuted}`}>
+      
+      {/* Weekly Forecast */}
+      <h4 className={`text-[10px] font-bold ${theme.text} mb-2`}>Pronóstico semanal</h4>
+      <div className="flex flex-col gap-2">
+        {extended.slice(0, 7).map((day: any, idx: number) => (
+          <div key={idx} className="flex items-center justify-between">
+            <span className={`text-[10px] font-medium w-6 capitalize ${theme.textMuted}`}>
               {formatDay(day.date)}
             </span>
             <img 
-              src={`https://openweathermap.org/img/wn/${day.icon}@2x.png`} 
+              src={`https://openweathermap.org/img/wn/${day.icon}.png`} 
               alt="icon"
-              className="w-8 h-8 my-1"
+              className="w-6 h-6 object-contain"
             />
-            <div className="flex flex-col items-center">
-              <span className={`text-xs font-bold ${theme.text}`}>{Math.round(day.temp_max)}°</span>
-              <span className={`text-[10px] ${theme.textMuted}`}>{Math.round(day.temp_min)}°</span>
+            <div className={`flex gap-3 text-[10px] font-bold ${theme.text}`}>
+              <span>{Math.round(day.temp_max)}°</span>
+              <span className={theme.textMuted}>{Math.round(day.temp_min)}°</span>
             </div>
           </div>
         ))}

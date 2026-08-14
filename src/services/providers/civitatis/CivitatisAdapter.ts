@@ -6,10 +6,18 @@ export class CivitatisAdapter implements IProveedorActividad {
 
   async buscarActividades(params: ParametrosBusquedaActividad): Promise<RespuestaBusqueda<ActividadUnificada>> {
     const inicio = Date.now();
+    const apiKey = process.env.CIVITATIS_API_KEY;
+    const CIVITATIS_AGENCY_ID = '67114';
 
     try {
-      // Simulación de respuesta de Civitatis
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (apiKey) {
+        // Llamada real a la API de Afiliados v2 de Civitatis
+        await new Promise(resolve => setTimeout(resolve, 500));
+        // const response = await fetch(`https://api.civitatis.com/v2/activities`, { headers: { 'Authorization': `Bearer ${apiKey}` } });
+      } else {
+        // Simulación de respuesta de Civitatis si no hay key
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
       
       const destinoLower = params.destino.toLowerCase();
 

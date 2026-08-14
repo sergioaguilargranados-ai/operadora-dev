@@ -12,6 +12,28 @@ interface VideoUrlEditorProps {
     onSave?: () => void
 }
 
+function formatYouTubeUrl(val: string) {
+    if (!val) return val;
+    try {
+        if (val.includes('youtu.be/')) {
+            const id = val.split('youtu.be/')[1]?.split('?')[0];
+            if (id) return `https://www.youtube.com/embed/${id}`;
+        }
+        if (val.includes('youtube.com/watch')) {
+            const urlObj = new URL(val);
+            const id = urlObj.searchParams.get('v');
+            if (id) return `https://www.youtube.com/embed/${id}`;
+        }
+        if (val.includes('youtube.com/shorts/')) {
+            const id = val.split('youtube.com/shorts/')[1]?.split('?')[0];
+            if (id) return `https://www.youtube.com/embed/${id}`;
+        }
+    } catch (e) {
+        return val;
+    }
+    return val;
+}
+
 export function VideoUrlEditor({ settingKey, label, onSave }: VideoUrlEditorProps) {
     const [url, setUrl] = useState('')
     const [originalUrl, setOriginalUrl] = useState('')
@@ -80,7 +102,7 @@ export function VideoUrlEditor({ settingKey, label, onSave }: VideoUrlEditorProp
             <div className="flex gap-2">
                 <ImageUploadInput
                     value={url}
-                    onChange={(val) => setUrl(val)}
+                    onChange={(val) => setUrl(formatYouTubeUrl(val))}
                     placeholder="https://www.youtube.com/embed/... o subir foto/video"
                     className="flex-1"
                 />
@@ -118,7 +140,7 @@ export function VideoUrlEditor({ settingKey, label, onSave }: VideoUrlEditorProp
                     {isYouTube ? (
                         <div className="aspect-video max-w-md rounded-lg overflow-hidden bg-gray-900">
                             <iframe
-                                src={url.replace('watch?v=', 'embed/')}
+                                src={url}
                                 className="w-full h-full"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowFullScreen

@@ -1,6 +1,6 @@
 "use client"
 
-// Build: 26 Feb 2026 - v2.334 - Reservas: acciones PDF/Pago/Facturar, PDF premium, comprobante de pago
+// Build: 13 Aug 2026 - v2.465 - Reservas: acciones PDF/Pago/Facturar, PDF premium, comprobante de pago
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -49,6 +49,7 @@ export default function Home() {
   const [guests, setGuests] = useState(2)
   const [rooms, setRooms] = useState(1)
   const [tourSearch, setTourSearch] = useState("")
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
 
   // Destinos organizados por país con tipo (playa, ciudad, pueblo mágico)
@@ -432,6 +433,22 @@ export default function Home() {
     fetchHomeSettings()
   }, [])
 
+  // Carousel Images
+  const carouselImages = [
+    featuredHero?.image_url || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&h=900&fit=crop',
+    "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=1600&h=900&fit=crop", // Madrid
+    "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1600&h=900&fit=crop", // Paris
+    "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1600&h=900&fit=crop", // Tokyo
+    "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1600&h=900&fit=crop"  // Rome
+  ]
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length)
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [carouselImages.length])
+
   const handleSearchHotels = async () => {
     if (!destination) {
       alert('Por favor ingresa un destino')
@@ -595,67 +612,69 @@ export default function Home() {
       </header>
 
       {/* Hero Section with Background Image/Video and Filters */}
-      <main className="relative">
-        {/* Background Image/Video Section */}
-        <div className="relative min-h-[600px]">
-          {/* Video o Imagen de fondo */}
-          {homeHeroVideoUrl ? (
-            // Video de fondo configurable
-            <div className="absolute inset-0 overflow-hidden">
-              {homeHeroVideoUrl.includes('youtube') || homeHeroVideoUrl.includes('vimeo') ? (
-                <iframe
-                  src={(() => {
-                    let embedUrl = homeHeroVideoUrl.replace('watch?v=', 'embed/');
-                    const videoIdMatch = embedUrl.match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/);
-                    const videoId = videoIdMatch ? videoIdMatch[1] : '';
-                    const separator = embedUrl.includes('?') ? '&' : '?';
-                    return `${embedUrl}${separator}autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0`;
-                  })()}
-                  className="absolute w-full h-full object-cover scale-150"
-                  style={{ pointerEvents: 'none' }}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  frameBorder="0"
-                />
-              ) : homeHeroVideoUrl.includes('.mp4') || homeHeroVideoUrl.includes('.webm') ? (
-                <video
-                  src={homeHeroVideoUrl}
-                  className="absolute w-full h-full object-cover"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                />
-              ) : (
-                <div
-                  className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                  style={{ backgroundImage: `url(${homeHeroVideoUrl})` }}
-                />
-              )}
-            </div>
-          ) : (
-            // Imagen de fondo por defecto
-            <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-              style={{
-                backgroundImage: featuredHero
-                  ? `url(${featuredHero.image_url})`
-                  : 'url(https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&h=900&fit=crop)'
-              }}
-            />
-          )}
-          {/* Overlay oscuro para mejor contraste */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40" />
+      <main className="relative bg-slate-50/50 pb-16">
+        {/* Background Image Carousel Section */}
+        <div className="relative min-h-[500px] md:min-h-[550px] flex flex-col justify-between overflow-hidden">
+          {/* Carrusel de imágenes rotativas por defecto */}
+          <div className="absolute inset-0 bg-black">
+            {carouselImages.map((src, idx) => (
+              <div
+                key={src}
+                className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ${
+                  idx === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                }`}
+                style={{ backgroundImage: `url(${src})` }}
+              />
+            ))}
+          </div>
 
-          {/* Container con filtros encima */}
-          <div className="relative container mx-auto px-4 py-12 max-w-6xl">
-            {/* Search Section con glassmorphism sobre la imagen */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="backdrop-blur-xl bg-white/85 rounded-3xl shadow-2xl p-8 border border-white/30"
-            >
-              <Tabs defaultValue="groups" className="w-full">
+          {/* Overlay gradiente oscuro para contraste perfecto */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/20" />
+
+          {/* Hero Content (Título + Subtítulo + Botón Explorar) */}
+          <div className="relative container mx-auto px-6 md:px-12 max-w-6xl z-10 pt-16 md:pt-20 pb-12">
+            <div className="max-w-xl text-white space-y-4">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
+                Viaja más allá de lo extraordinario
+              </h1>
+              <p className="text-sm md:text-base text-white/90 font-normal leading-relaxed">
+                Diseñamos experiencias memorables para cada tipo de viajero. Tú imaginas el destino, nosotros lo hacemos realidad.
+              </p>
+              <div className="pt-2">
+                <Button 
+                  onClick={() => router.push('/tours')}
+                  className="bg-black hover:bg-gray-900 text-white rounded-full px-6 py-6 font-semibold text-sm transition-all shadow-xl flex items-center gap-2 border border-white/20"
+                >
+                  Explorar destinos <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Paginación Dots (- - -) */}
+          <div className="relative z-10 flex justify-center items-center gap-2 pb-6">
+            {carouselImages.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentImageIndex(idx)}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  idx === currentImageIndex ? 'w-8 bg-white' : 'w-2 bg-white/50'
+                }`}
+                aria-label={`Slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Floating Search Container (Tarjetas de Servicios y Buscador) */}
+        <div className="relative container mx-auto px-4 -mt-10 md:-mt-14 max-w-6xl z-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 border border-gray-100"
+          >
+            <Tabs defaultValue="stays" className="w-full">
                 {/* Barra de navegación en 2 filas */}
                 <div className="mb-6 bg-white/50 backdrop-blur-md rounded-xl p-2 space-y-1">
                   {/* Fila 1: Hoteles - AS Home - Vuelos - Traslados - Autos - Actividades - Seguros */}
@@ -2052,52 +2071,6 @@ export default function Home() {
                         <ChevronRight className="w-4 h-4 ml-1" />
                       </Button>
                     </div>
-                    {/* Video promocional - usa GROUPS_TAB_VIDEO_URL o TOURS_PROMO_VIDEO_URL como fallback */}
-                    {(() => {
-                      const videoUrl = groupsTabVideoUrl || toursVideoUrl;
-                      if (!videoUrl) return null;  // No mostrar nada si no hay URL configurada
-                      return (
-                        <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden mb-6 bg-gray-900">
-                          {videoUrl.includes('youtube') || videoUrl.includes('vimeo') ? (
-                            <iframe
-                              src={(() => {
-                                let embedUrl = videoUrl.replace('watch?v=', 'embed/');
-                                const videoIdMatch = embedUrl.match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/);
-                                const videoId = videoIdMatch ? videoIdMatch[1] : '';
-                                const separator = embedUrl.includes('?') ? '&' : '?';
-                                return `${embedUrl}${separator}autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0`;
-                              })()}
-                              className="w-full h-full"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                              frameBorder="0"
-                              title="Video promocional de viajes grupales"
-                            />
-                          ) : videoUrl.includes('.mp4') || videoUrl.includes('.webm') ? (
-                            <video
-                              src={videoUrl}
-                              className="w-full h-full object-cover"
-                              autoPlay
-                              muted
-                              loop
-                              playsInline
-                            />
-                          ) : (
-                            <img
-                              src={videoUrl}
-                              alt="Tours y Viajes Grupales"
-                              className="w-full h-full object-cover"
-                            />
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                          <div className="absolute bottom-4 left-4 right-4 text-white">
-                            <h4 className="text-2xl font-bold mb-2">Descubre el Mundo</h4>
-                            <p className="text-sm opacity-90">Tours todo incluido con vuelo, hotel y guía turístico</p>
-                          </div>
-                        </div>
-                      );
-                    })()}
-
                     {/* Buscador de Tours */}
                     <div className="max-w-2xl mx-auto mb-6">
                       <div className="relative">
@@ -2416,7 +2389,6 @@ export default function Home() {
               </div>
             )}
           </div>
-        </div>
 
         {/* Resto del contenido */}
         <div className="container mx-auto px-4 py-8 max-w-6xl">

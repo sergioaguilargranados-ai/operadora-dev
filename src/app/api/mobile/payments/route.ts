@@ -18,10 +18,11 @@ export async function GET(request: Request) {
     const client = await pool.connect()
     try {
       const result = await client.query(
-        `SELECT id, amount, currency, status, payment_method, transaction_id, created_at
-         FROM payment_transactions 
-         WHERE user_id = $1
-         ORDER BY created_at DESC`,
+        `SELECT p.id, p.amount, p.currency, p.status, p.payment_method, p.transaction_id, p.created_at
+         FROM payment_transactions p
+         LEFT JOIN bookings b ON p.booking_id = b.id
+         WHERE p.user_id = $1 OR b.user_id = $1
+         ORDER BY p.created_at DESC`,
         [user_id]
       )
 
