@@ -25,8 +25,7 @@ Sergio Aguilar Granados
 ### Objetivo
 Resumen ejecutivo y flujo de desarrollo.
 
-### AL VERSIONAR CONSERVAR FORMATO V0.000 CON FECHA Y HORA DE COMPILACION DEL TIEMPO CDMX EJEMPLO
-- **Versión:** v2.467 2026-08-13 21:28:00 CST — Estandarización de Registro de Viajeros (Formulario Completo /registro, Contraseña, Código de Invitación y Botón Volver)
+- **Versión:** v2.467 2026-08-13 21:43:00 CST — Sanitización General de Credenciales y Cadenas de Conexión en Documentación y Scripts de Migración
 
 
 ### ESTADO DEL PROYECTO
@@ -139,8 +138,8 @@ Host: ep-bold-hill-afbis0wk-pooler.c-2.us-west-2.aws.neon.tech
 Database: neondb
 Usuario: neondb_owner
 
-DATABASE_URL completa:
-postgresql://neondb_owner:npg_rsdKEkaw1ZS2@ep-bold-hill-afbis0wk-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL completa (ver en .env.local / Vercel):
+postgresql://<NEON_DB_USER>:<NEON_DB_PASSWORD>@<NEON_DB_HOST>/neondb?sslmode=require
 ```
 
 **Importante:**
@@ -150,7 +149,7 @@ postgresql://neondb_owner:npg_rsdKEkaw1ZS2@ep-bold-hill-afbis0wk-pooler.c-2.us-w
 
 ### Usuarios del Sistema
 
-**Contraseña para TODOS:** `Password123!`
+**Contraseña predeterminada para usuarios de prueba:** *(Consultar en .env.local o resetear por usuario)*
 
 | Email | Rol | Uso |
 |-------|-----|-----|
@@ -159,22 +158,20 @@ postgresql://neondb_owner:npg_rsdKEkaw1ZS2@ep-bold-hill-afbis0wk-pooler.c-2.us-w
 | manager@empresa.com | MANAGER | Aprobaciones |
 | empleado@empresa.com | EMPLOYEE | Mis reservas |
 
-**Hash bcrypt:** `$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WFWnQ53k9MkVlz2E6E4Ky`
-
 ### Secrets y Variables
 
 ```bash
 # JWT
-JWT_SECRET=zGYVpk6wYzyRl4hfqgS3hrqP81v0V0nB6g6MeE2SsBg=
+JWT_SECRET=<CONFIGURAR_EN_ENV_LOCAL>
 
 # CRON
-CRON_SECRET_KEY=dev_cron_secret_2025
+CRON_SECRET_KEY=<CONFIGURAR_EN_ENV_LOCAL>
 
 # NODE
 NODE_ENV=development
 ```
 
-**Ver archivo completo:** `operadora-dev/.env.local`
+**Ver archivo completo:** `operadora-dev/.env.local` (este archivo está en .gitignore)
 
 ### GitHub Token (NO documentar en repo)
 

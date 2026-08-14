@@ -413,37 +413,39 @@ export default function CRMDashboardPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div>
-                    <h1 className="text-xl font-bold flex items-center gap-2 text-slate-900">
-                        <Target className="w-5 h-5 text-blue-600" />
-                        CRM — Centro de Relación con Clientes
-                    </h1>
-                    <p className="text-sm text-slate-500">
-                        Pipeline de ventas, contactos y seguimiento omnicanal
-                    </p>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+            <PageHeader showBackButton={true} backButtonHref="/dashboard">
+                <div className="flex items-center justify-between w-full">
+                    <div>
+                        <h1 className="text-xl font-bold flex items-center gap-2">
+                            <Target className="w-5 h-5 text-blue-600" />
+                            CRM
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            Centro de Relación con Clientes
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => fetchDashboard(true)}
+                            disabled={refreshing}
+                            className="text-slate-500"
+                        >
+                            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                        </Button>
+                        <Button
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full gap-1.5"
+                            onClick={() => setShowNewContact(true)}
+                        >
+                            <Plus className="w-4 h-4" />
+                            Nuevo Contacto
+                        </Button>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => fetchDashboard(true)}
-                        disabled={refreshing}
-                        className="text-slate-500"
-                    >
-                        <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-                    </Button>
-                    <Button
-                        size="sm"
-                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg gap-1.5"
-                        onClick={() => setShowNewContact(true)}
-                    >
-                        <Plus className="w-4 h-4" />
-                        Nuevo Contacto
-                    </Button>
-                </div>
-            </div>
+            </PageHeader>
 
             <main className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
 

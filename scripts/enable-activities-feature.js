@@ -1,8 +1,8 @@
-// Script para habilitar feature SEARCH_ACTIVITIES
+require('dotenv').config({ path: '.env.local' });
 const { Client } = require('pg')
 
 const client = new Client({
-    connectionString: 'postgresql://neondb_owner:npg_rsdKEkaw1ZS2@ep-bold-hill-afbis0wk-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require',
+    connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 })
 

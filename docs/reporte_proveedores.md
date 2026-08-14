@@ -22,7 +22,7 @@ Actualmente las pasarelas cobran por transacción (comisión), no tienen costo f
 | Proveedor | Clave (Key/Token) | Costo Mensual | Umbral / Siguiente Nivel |
 | --- | --- | --- | --- |
 | **Vercel** (Hosting) | *Conexión directa vía GitHub* | $0 (Hobby) | **Límite actual:** 100GB ancho de banda/mes. **Siguiente nivel:** Plan Pro ($20 USD/mes por usuario) si se rebasa el ancho de banda o se requiere uso intensivo de Serverless Functions. |
-| **Neon PostgreSQL** | `postgresql://neondb_owner:npg_rsdKEkaw1ZS2@...` | $0 (Free Tier) | **Límite actual:** 500 MB de almacenamiento de datos. **Siguiente nivel:** Plan Launch ($19 USD/mes) que ofrece 10 GB de almacenamiento y 300 horas de cómputo. |
+| **Neon PostgreSQL** | `postgresql://<NEON_DB_USER>:<NEON_DB_PASSWORD>@...` | $0 (Free Tier) | **Límite actual:** 500 MB de almacenamiento de datos. **Siguiente nivel:** Plan Launch ($19 USD/mes) que ofrece 10 GB de almacenamiento y 300 horas de cómputo. |
 | **Vercel Blob** (Archivos) | *Sin configurar actualmente* | $0 | **Límite actual:** 250 MB de almacenamiento y 1 millón de descargas. **Siguiente nivel:** El pago está amarrado al Plan Pro de Vercel. |
 
 ---

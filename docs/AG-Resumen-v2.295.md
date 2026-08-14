@@ -68,7 +68,7 @@ node scripts/run-migration-024.js
 
 **Opción B - Usando psql:**
 ```bash
-psql "postgresql://neondb_owner:npg_rsdKEkaw1ZS2@ep-bold-hill-afbis0wk-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require" -f migrations/024_add_civitatis_config.sql
+psql "$DATABASE_URL" -f migrations/024_add_civitatis_config.sql
 ```
 
 **Opción C - Manualmente en Neon Console:**

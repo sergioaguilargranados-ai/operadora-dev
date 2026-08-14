@@ -1,7 +1,8 @@
 // Script temporal para ejecutar migraciones 032 y 033
 const { Client } = require('pg');
 
-const DATABASE_URL = 'postgresql://neondb_owner:npg_rsdKEkaw1ZS2@ep-bold-hill-afbis0wk-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require';
+require('dotenv').config({ path: '.env.local' });
+const DATABASE_URL = process.env.DATABASE_URL;
 
 async function run() {
     const client = new Client(DATABASE_URL);

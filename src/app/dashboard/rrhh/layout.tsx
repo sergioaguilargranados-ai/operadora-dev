@@ -1,11 +1,12 @@
-import { PortalIntranetLayout } from '@/components/layout/PortalIntranetLayout'
+import { HRSidebar } from '@/components/HRSidebar'
 
 export default function RRHHLayout({ children }: { children: React.ReactNode }) {
     return (
-        <PortalIntranetLayout>
-            <div className="p-6 md:p-8 space-y-6">
+        <div className="flex min-h-screen">
+            <HRSidebar />
+            <div className="flex-1 min-w-0">
                 {children}
             </div>
-        </PortalIntranetLayout>
+        </div>
     )
 }
