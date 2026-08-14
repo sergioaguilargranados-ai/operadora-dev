@@ -75,7 +75,7 @@ export function UserMenu() {
                 <Link href="/login">
                     <button 
                         className="px-4 py-1.5 text-xs font-bold rounded-xl text-white transition-all shadow-xs" 
-                        style={{ backgroundColor: 'var(--brand-primary, #0f172a)' }}
+                        style={{ backgroundColor: 'var(--brand-primary, #000000)' }}
                     >
                         Iniciar sesión
                     </button>
@@ -100,7 +100,7 @@ export function UserMenu() {
                         >
                             <div 
                                 className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold shadow-sm text-xs" 
-                                style={{ backgroundColor: 'var(--brand-primary, #0f172a)' }}
+                                style={{ backgroundColor: 'var(--brand-primary, #000000)' }}
                             >
                                 {initial}
                             </div>

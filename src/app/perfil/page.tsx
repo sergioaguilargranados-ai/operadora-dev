@@ -298,7 +298,7 @@ export default function PerfilPage() {
             <div className="flex items-center gap-4">
               <div 
                 className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-sm"
-                style={{ backgroundColor: 'var(--brand-primary, #0f172a)' }}
+                style={{ backgroundColor: 'var(--brand-primary, #000000)' }}
               >
                 {initials}
               </div>
@@ -381,7 +381,7 @@ export default function PerfilPage() {
 
           {editingInfo && (
             <div className="mt-6 pt-4 border-t flex gap-3">
-              <Button onClick={handleSavePersonalData} disabled={saving} style={{ backgroundColor: 'var(--brand-primary, #0f172a)' }}>
+              <Button onClick={handleSavePersonalData} disabled={saving} style={{ backgroundColor: 'var(--brand-primary, #000000)' }}>
                 {saving ? 'Guardando...' : 'Guardar cambios'}
               </Button>
               <Button variant="outline" onClick={() => setEditingInfo(false)}>
@@ -457,7 +457,7 @@ export default function PerfilPage() {
                 onClick={handleChangePassword} 
                 disabled={changingPassword} 
                 className="mt-2 text-xs" 
-                style={{ backgroundColor: 'var(--brand-primary, #0f172a)' }}
+                style={{ backgroundColor: 'var(--brand-primary, #000000)' }}
               >
                 {changingPassword ? 'Guardando...' : 'Guardar contraseña'}
               </Button>
@@ -559,7 +559,7 @@ export default function PerfilPage() {
                   <Button 
                     onClick={handleAddTraveler} 
                     disabled={addingTraveler}
-                    style={{ backgroundColor: 'var(--brand-primary, #0f172a)' }}
+                    style={{ backgroundColor: 'var(--brand-primary, #000000)' }}
                     className="gap-2 text-xs"
                   >
                     <Send className="w-3.5 h-3.5" />

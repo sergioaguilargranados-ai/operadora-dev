@@ -31,7 +31,7 @@ export function generateInstitutionalEmailHtml(props: EmailTemplateProps): strin
                 acc += `
                   <td width="50%" style="padding: 10px 0; vertical-align: top;">
                     <div style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">${curr.label}</div>
-                    <div style="font-size: 15px; color: #0f172a; font-weight: 600; margin-top: 4px;">${curr.value}</div>
+                    <div style="font-size: 15px; color: #000000; font-weight: 600; margin-top: 4px;">${curr.value}</div>
                   </td>
                 `;
                 if (index % 2 !== 0 || index === detailsGrid.length - 1) {
@@ -50,7 +50,7 @@ export function generateInstitutionalEmailHtml(props: EmailTemplateProps): strin
   const ctaHtml = ctaText && ctaUrl
     ? `
       <div style="text-align: center; margin-top: 30px;">
-        <a href="${ctaUrl}" style="display: inline-block; background-color: #0f172a; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; width: 100%; box-sizing: border-box; text-align: center;">${ctaText}</a>
+        <a href="${ctaUrl}" style="display: inline-block; background-color: #000000; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; width: 100%; box-sizing: border-box; text-align: center;">${ctaText}</a>
       </div>
     `
     : '';
@@ -73,18 +73,18 @@ export function generateInstitutionalEmailHtml(props: EmailTemplateProps): strin
           <!-- Header (Logo) -->
           <tr>
             <td align="center" style="padding: 30px 20px; background-color: #ffffff; border-bottom: 1px solid #e2e8f0;">
-              <h1 style="margin: 0; color: #0f172a; font-size: 20px; font-weight: 800; letter-spacing: 1px;">${companyName.toUpperCase()}</h1>
+              <h1 style="margin: 0; color: #000000; font-size: 20px; font-weight: 800; letter-spacing: 1px;">${companyName.toUpperCase()}</h1>
             </td>
           </tr>
 
           <!-- Banner -->
           <tr>
-            <td align="center" style="background-color: #0f172a; padding: 30px 20px;">
+            <td align="center" style="background-color: #000000; padding: 30px 20px;">
               <table cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" style="padding-bottom: 15px;">
                     <div style="background-color: #ffffff; width: 48px; height: 48px; border-radius: 50%; display: inline-block; text-align: center; line-height: 48px;">
-                      <span style="color: #0f172a; font-size: 24px;">✓</span>
+                      <span style="color: #000000; font-size: 24px;">✓</span>
                     </div>
                   </td>
                 </tr>
@@ -118,17 +118,17 @@ export function generateInstitutionalEmailHtml(props: EmailTemplateProps): strin
                   <td width="33%" align="center" style="padding: 10px;">
                     <div style="font-size: 20px; margin-bottom: 8px;">📞</div>
                     <div style="font-size: 12px; color: #64748b; font-weight: 600;">TELÉFONO</div>
-                    <div style="font-size: 14px; color: #0f172a; margin-top: 4px;"><a href="tel:${phone.replace(/\s+/g, '')}" style="color: #0f172a; text-decoration: none; font-weight: 600;">${phone}</a></div>
+                    <div style="font-size: 14px; color: #000000; margin-top: 4px;"><a href="tel:${phone.replace(/\s+/g, '')}" style="color: #000000; text-decoration: none; font-weight: 600;">${phone}</a></div>
                   </td>
                   <td width="33%" align="center" style="padding: 10px;">
                     <div style="font-size: 20px; margin-bottom: 8px;">✉️</div>
                     <div style="font-size: 12px; color: #64748b; font-weight: 600;">EMAIL</div>
-                    <div style="font-size: 13px; color: #0f172a; margin-top: 4px; word-break: break-all;"><a href="mailto:${email}" style="color: #0066cc; text-decoration: none;">${email}</a></div>
+                    <div style="font-size: 13px; color: #000000; margin-top: 4px; word-break: break-all;"><a href="mailto:${email}" style="color: #0066cc; text-decoration: none;">${email}</a></div>
                   </td>
                   <td width="33%" align="center" style="padding: 10px;">
                     <div style="font-size: 20px; margin-bottom: 8px;">🕒</div>
                     <div style="font-size: 12px; color: #64748b; font-weight: 600;">HORARIOS</div>
-                    <div style="font-size: 14px; color: #0f172a; margin-top: 4px;">${schedule}</div>
+                    <div style="font-size: 14px; color: #000000; margin-top: 4px;">${schedule}</div>
                   </td>
                 </tr>
               </table>
@@ -137,7 +137,7 @@ export function generateInstitutionalEmailHtml(props: EmailTemplateProps): strin
 
           <!-- Footer -->
           <tr>
-            <td align="center" style="background-color: #0f172a; padding: 30px 20px; color: #94a3b8;">
+            <td align="center" style="background-color: #000000; padding: 30px 20px; color: #94a3b8;">
               <div style="margin-bottom: 15px;">
                 <a href="#" style="color: #ffffff; text-decoration: none; margin: 0 10px;">LinkedIn</a> | 
                 <a href="#" style="color: #ffffff; text-decoration: none; margin: 0 10px;">Facebook</a> | 

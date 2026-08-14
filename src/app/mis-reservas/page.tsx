@@ -196,7 +196,7 @@ export default function MisReservasPage() {
                 <button 
                   onClick={() => router.push('/admin/features')}
                   className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-white rounded-xl shadow-xs transition-colors"
-                  style={{ backgroundColor: 'var(--brand-primary, #0f172a)' }}
+                  style={{ backgroundColor: 'var(--brand-primary, #000000)' }}
                 >
                   <Settings className="w-4.5 h-4.5 text-white" />
                   Ajustes / Configuración
