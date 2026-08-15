@@ -8,8 +8,6 @@ import {
     Building2, ArrowUpRight, RefreshCw,
     ChevronRight, UserCheck, UserX
 } from 'lucide-react'
-import { PageHeader } from '@/components/PageHeader'
-
 interface DashboardStats {
     total_employees: number
     active_employees: number
@@ -107,9 +105,7 @@ export default function RRHHDashboard() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-gray-50">
-            <PageHeader backButtonText="Dashboard" backButtonHref="/dashboard">
-                <span className="text-lg font-bold text-gray-800">Recursos Humanos</span>
-            </PageHeader>
+            
 
             {/* Sub-Header */}
             <div className="bg-white/60 backdrop-blur-sm border-b border-gray-100">

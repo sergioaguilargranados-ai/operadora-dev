@@ -7,8 +7,6 @@ import {
     Building2, Mail, Phone, MapPin,
     Briefcase, ChevronDown, X
 } from 'lucide-react'
-import { PageHeader } from '@/components/PageHeader'
-
 interface Employee {
     id: number
     employee_number: string
@@ -143,9 +141,7 @@ export default function EmployeesPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-gray-50">
-            <PageHeader backButtonText="RRHH" backButtonHref="/dashboard/rrhh">
-                <span className="text-lg font-bold text-gray-800">Empleados Internos</span>
-            </PageHeader>
+            
 
             {/* Sub-Header */}
             <div className="bg-white/60 backdrop-blur-sm border-b border-gray-100">

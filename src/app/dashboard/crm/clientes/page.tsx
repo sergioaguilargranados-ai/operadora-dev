@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { PageHeader } from '@/components/PageHeader'
 import { Download } from 'lucide-react'
 
 // ═══════════════════════════════════════════
@@ -238,9 +237,9 @@ export default function CatalogoClientesPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <PageHeader backButtonText="Dashboard" backButtonHref="/dashboard">
+            <div className="border-b border-gray-200/80 pb-4 mb-6">
                 <span className="text-lg font-bold text-gray-800">Catálogo de Clientes</span>
-            </PageHeader>
+            </div>
 
             <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
 

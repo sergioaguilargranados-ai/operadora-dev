@@ -1,7 +1,6 @@
 'use client'
 
 import React, { Suspense, useState } from 'react'
-import { PortalIntranetLayout } from '@/components/layout/PortalIntranetLayout'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -898,7 +897,7 @@ function CorporateDashboardContent() {
   }, [])
 
   return (
-    <PortalIntranetLayout>
+    <div className="space-y-6">
       <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-10">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Panel de Empresas</h1>
@@ -929,7 +928,7 @@ function CorporateDashboardContent() {
           </div>
         </Tabs>
       </div>
-    </PortalIntranetLayout>
+    </div>
   )
 }
 

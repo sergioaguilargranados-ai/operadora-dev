@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { PageHeader } from '@/components/PageHeader'
 import {
   Download,
   CheckCircle,
@@ -146,7 +145,7 @@ export default function FacturacionStepperPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/60 pb-16">
-      <PageHeader showBackButton={true} backButtonHref="/facturacion" />
+      
 
       <main className="container mx-auto px-4 py-6 max-w-2xl space-y-6">
 

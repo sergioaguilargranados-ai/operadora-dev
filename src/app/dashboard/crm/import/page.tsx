@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { PageHeader } from '@/components/PageHeader'
 import { useToast } from '@/hooks/use-toast'
 import {
     Upload, FileSpreadsheet, Loader2, CheckCircle, XCircle,
@@ -218,7 +217,7 @@ export default function ImportPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-            <PageHeader showBackButton={true} backButtonHref="/dashboard/crm">
+            <div className="border-b border-gray-200/80 pb-4 mb-6">
                 <div className="flex items-center justify-between w-full">
                     <div>
                         <h1 className="text-lg font-bold flex items-center gap-2">
@@ -235,7 +234,7 @@ export default function ImportPage() {
                         </Button>
                     )}
                 </div>
-            </PageHeader>
+            </div>
 
             <main className="container mx-auto px-4 py-5 max-w-4xl">
                 {/* Stepper */}

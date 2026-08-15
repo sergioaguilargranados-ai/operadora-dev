@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { PageHeader } from '@/components/PageHeader'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Settings, Building2, Phone, Mail, UploadCloud, PaintBucket, Loader2, Save, FileText, CheckCircle2 } from 'lucide-react'
@@ -127,12 +126,12 @@ export default function AgencySettingsPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
-            <PageHeader backButtonText="Dashboard" backButtonHref="/dashboard">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4 mb-6">
                 <div className="flex items-center gap-2">
                     <Settings className="w-6 h-6 text-indigo-600" />
                     <span className="text-lg font-bold text-gray-800">Configuración de la Agencia</span>
                 </div>
-            </PageHeader>
+            </div>
 
             <div className="max-w-6xl mx-auto px-4 py-6">
                 

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { PageHeader } from '@/components/PageHeader'
 import {
     Search, Upload, Filter, FileText, Eye, CheckCircle,
     XCircle, AlertTriangle, Clock, ChevronDown,
@@ -170,12 +169,12 @@ export default function ClientDocumentsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-gray-50">
-            <PageHeader showBackButton={true} backButtonHref="/dashboard/crm">
+            <div className="border-b border-gray-200/80 pb-4 mb-6">
                 <div>
                     <h1 className="text-lg font-bold text-gray-900">Documentos de Clientes</h1>
                     <p className="text-xs text-gray-500">Gestión y verificación de expedientes</p>
                 </div>
-            </PageHeader>
+            </div>
 
             <main className="max-w-7xl mx-auto px-6 py-6 space-y-6">
 

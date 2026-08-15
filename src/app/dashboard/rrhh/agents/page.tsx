@@ -7,8 +7,6 @@ import {
     MapPin, Award, Mail, Phone, X,
     Star, ChevronRight
 } from 'lucide-react'
-import { PageHeader } from '@/components/PageHeader'
-
 interface Agent {
     id: number
     employee_number: string
@@ -122,9 +120,7 @@ export default function AgentsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/20 to-gray-50">
-            <PageHeader backButtonText="RRHH" backButtonHref="/dashboard/rrhh">
-                <span className="text-lg font-bold text-gray-800">Agentes de Ventas</span>
-            </PageHeader>
+            
 
             {/* Sub-Header */}
             <div className="bg-white/60 backdrop-blur-sm border-b border-gray-100">

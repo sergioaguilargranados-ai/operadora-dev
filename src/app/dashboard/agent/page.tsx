@@ -6,7 +6,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { PageHeader } from '@/components/PageHeader'
 import {
     Wallet, DollarSign, TrendingUp, Link2, Users, Briefcase,
     Loader2, Copy, ExternalLink, MousePointerClick, UserCheck,
@@ -231,7 +230,7 @@ function AgentDashboardContent() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/20">
-            <PageHeader showBackButton={true} backButtonHref="/dashboard/agency">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4 mb-6">
                 <div className="flex-1">
                     <h1 className="text-xl font-bold flex items-center gap-2">
                         <Wallet className="w-5 h-5" />
@@ -296,7 +295,7 @@ function AgentDashboardContent() {
                         </div>
                     )}
                 </div>
-            </PageHeader>
+            </div>
 
             <main className="container mx-auto px-4 py-6 max-w-7xl">
 

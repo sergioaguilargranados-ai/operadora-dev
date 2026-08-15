@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { PortalIntranetLayout } from '@/components/layout/PortalIntranetLayout'
 import {
   TrendingUp, CheckCircle, Clock, CreditCard, Download, Filter
 } from 'lucide-react'
@@ -32,7 +31,7 @@ export default function AgencyVentasPage() {
   ]
 
   return (
-    <PortalIntranetLayout>
+    <div className="space-y-6">
       <div className="p-6 max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -201,6 +200,6 @@ export default function AgencyVentasPage() {
           </div>
         )}
       </div>
-    </PortalIntranetLayout>
+    </div>
   )
 }

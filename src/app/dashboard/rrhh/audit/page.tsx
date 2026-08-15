@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Shield, Filter, Clock, User, FileText } from 'lucide-react'
-import { PageHeader } from '@/components/PageHeader'
-
 export default function AuditPage() {
     const [logs, setLogs] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -30,9 +28,7 @@ export default function AuditPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100/30 to-gray-50">
-            <PageHeader backButtonText="RRHH" backButtonHref="/dashboard/rrhh">
-                <span className="text-lg font-bold text-gray-800">Log de Auditoría RRHH</span>
-            </PageHeader>
+            
 
             <div className="bg-white/60 backdrop-blur-sm border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-6 py-4">

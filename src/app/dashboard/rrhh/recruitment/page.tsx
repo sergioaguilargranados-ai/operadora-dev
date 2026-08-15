@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { UserPlus, Plus, X, ChevronRight, ArrowRight } from 'lucide-react'
-import { PageHeader } from '@/components/PageHeader'
-
 const STAGES = [
     { key: 'applied', label: 'Postulado', color: 'bg-gray-100 text-gray-700', icon: '📩' },
     { key: 'screening', label: 'Revisión', color: 'bg-blue-50 text-blue-700', icon: '🔍' },
@@ -64,9 +62,7 @@ export default function RecruitmentPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-teal-50/20 to-gray-50">
-            <PageHeader backButtonText="RRHH" backButtonHref="/dashboard/rrhh">
-                <span className="text-lg font-bold text-gray-800">Pipeline de Reclutamiento</span>
-            </PageHeader>
+            
 
             <div className="bg-white/60 backdrop-blur-sm border-b border-gray-100">
                 <div className="max-w-full mx-auto px-6 py-4 flex items-center justify-between">

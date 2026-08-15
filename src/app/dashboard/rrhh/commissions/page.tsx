@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { TrendingUp, DollarSign, Target, Calendar } from 'lucide-react'
-import { PageHeader } from '@/components/PageHeader'
-
 export default function CommissionsPage() {
     const [commissions, setCommissions] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -15,9 +13,7 @@ export default function CommissionsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/20 to-gray-50">
-            <PageHeader backButtonText="RRHH" backButtonHref="/dashboard/rrhh">
-                <span className="text-lg font-bold text-gray-800">Comisiones de Agentes</span>
-            </PageHeader>
+            
 
             <div className="bg-white/60 backdrop-blur-sm border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-6 py-4">

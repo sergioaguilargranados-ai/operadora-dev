@@ -1,5 +1,5 @@
 // BrandFooter.tsx - Footer dinámico con branding del tenant actual
-// Build: 13 Aug 2026 - v2.479 - Epic 3: Notifications & Keywords
+// Build: 15 Aug 2026 - v2.480 - Epic 3: Notifications & Keywords
 
 'use client';
 
@@ -98,7 +98,7 @@ export function BrandFooter() {
                         </Link>
                         <p className="text-xs opacity-50">|</p>
                         <p className="text-xs opacity-50">
-                            v2.479 | 13 Aug 2026 23:42 CST
+                            v2.480 | 15 Aug 2026 01:42 CST
                         </p>
                         <PwaInstallButton />
                     </div>

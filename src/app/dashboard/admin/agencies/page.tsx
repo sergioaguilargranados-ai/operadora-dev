@@ -6,7 +6,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { PageHeader } from '@/components/PageHeader'
 import {
     Building2, Users, DollarSign, TrendingUp, Briefcase,
     Loader2, Eye, Shield, Globe, ArrowUpRight, BarChart3
@@ -112,7 +111,7 @@ export default function AdminAgenciesPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 text-white">
-            <PageHeader showBackButton={true} backButtonHref="/dashboard">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4 mb-6">
                 <div>
                     <h1 className="text-xl font-bold flex items-center gap-2">
                         <Shield className="w-5 h-5 text-indigo-400" />
@@ -120,7 +119,7 @@ export default function AdminAgenciesPage() {
                     </h1>
                     <p className="text-sm text-slate-400">Vista global de todas las agencias</p>
                 </div>
-            </PageHeader>
+            </div>
 
             <main className="container mx-auto px-4 py-6 max-w-7xl">
 

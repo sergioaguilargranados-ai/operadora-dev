@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { PageHeader } from "@/components/PageHeader"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -70,14 +69,14 @@ export default function StoreOrdersPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
-      <PageHeader showBackButton={true} backButtonHref="/dashboard">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4 mb-6">
         <div>
           <h1 className="text-xl font-bold">Gestión de Pedidos (Tienda Online)</h1>
           <p className="text-sm text-muted-foreground">
             Administra las órdenes de compra realizadas en la App Móvil
           </p>
         </div>
-      </PageHeader>
+      </div>
 
       <Card className="mt-6 border-none shadow-sm bg-white overflow-hidden">
         {loading ? (

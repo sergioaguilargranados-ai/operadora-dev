@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { PageHeader } from '@/components/PageHeader'
 import {
     Mail, Send, Eye, Users, Loader2, ChevronRight,
     CheckCircle, XCircle, RefreshCw, Zap, ArrowLeft,
@@ -161,7 +160,7 @@ export default function CampaignsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50/30">
-            <PageHeader showBackButton={true} backButtonHref="/dashboard/crm">
+            <div className="border-b border-gray-200/80 pb-4 mb-6">
                 <div className="flex items-center justify-between w-full">
                     <div>
                         <h1 className="text-lg font-bold flex items-center gap-2">
@@ -171,7 +170,7 @@ export default function CampaignsPage() {
                         <p className="text-xs text-gray-500">Envía campañas masivas con templates profesionales</p>
                     </div>
                 </div>
-            </PageHeader>
+            </div>
 
             <main className="container mx-auto px-4 py-5 max-w-5xl">
 

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { PageHeader } from "@/components/PageHeader"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -11,8 +10,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { ExcelUploader } from "@/components/ui/ExcelUploader"
 import { useToast } from "@/hooks/use-toast"
 import { Download, Plus, Edit, Trash2, Loader2 } from "lucide-react"
-
-import { PortalIntranetLayout } from "@/components/layout/PortalIntranetLayout"
 
 export default function StoreAdminPage() {
   const { toast } = useToast()
@@ -149,12 +146,9 @@ export default function StoreAdminPage() {
   }
 
   return (
-    <PortalIntranetLayout>
+    <div className="space-y-6">
       <div className="p-6 md:p-8 space-y-6">
-        <PageHeader 
-          title="Productos de la tienda" 
-          subtitle="Catálogo de productos y recompensas de la plataforma"
-        />
+        
 
       <div className="flex justify-between items-center mb-6 mt-6">
         <h2 className="text-2xl font-bold">Catálogo de Productos</h2>
@@ -311,6 +305,6 @@ export default function StoreAdminPage() {
         )}
       </Card>
       </div>
-    </PortalIntranetLayout>
+    </div>
   )
 }

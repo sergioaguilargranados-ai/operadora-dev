@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Building2, Plus, Users, X } from 'lucide-react'
-import { PageHeader } from '@/components/PageHeader'
-
 export default function DepartmentsPage() {
     const [departments, setDepartments] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -37,9 +35,7 @@ export default function DepartmentsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-cyan-50/20 to-gray-50">
-            <PageHeader backButtonText="RRHH" backButtonHref="/dashboard/rrhh">
-                <span className="text-lg font-bold text-gray-800">Departamentos</span>
-            </PageHeader>
+            
 
             <div className="bg-white/60 backdrop-blur-sm border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">

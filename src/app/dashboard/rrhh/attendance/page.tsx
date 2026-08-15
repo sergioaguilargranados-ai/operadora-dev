@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Clock, LogIn, LogOut, CalendarDays, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
-import { PageHeader } from '@/components/PageHeader'
-
 export default function AttendancePage() {
     const [records, setRecords] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -59,9 +57,7 @@ export default function AttendancePage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/20 to-gray-50">
-            <PageHeader backButtonText="RRHH" backButtonHref="/dashboard/rrhh">
-                <span className="text-lg font-bold text-gray-800">Control de Asistencia</span>
-            </PageHeader>
+            
 
             <div className="bg-white/60 backdrop-blur-sm border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-6 py-4">

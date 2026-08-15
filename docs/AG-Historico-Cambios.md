@@ -1,7 +1,7 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 13 de Agosto de 2026 - 23:31 CST  
-**Versión actual:** v2.473  
+**Última actualización:** 15 de Agosto de 2026 - 01:45 CST  
+**Versión actual:** v2.480  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
@@ -9,7 +9,22 @@
 
 ## 📅 HISTORIAL DE CAMBIOS
 
-### v2.473 - 13 de Agosto de 2026 - 23:31 CST
+### v2.480 - 15 de Agosto de 2026 - 01:45 CST
+**Estandarización de Layouts Intranet, Eliminación de Cenefas Duplicadas y Restauración de Menú Vertical**
+- **Unificación de Layouts Maestros (`src/app/dashboard/layout.tsx` & `src/app/admin/layout.tsx`):**
+  - Implementación de layouts maestros que envuelven todas las rutas de `/dashboard` y `/admin` con `PortalIntranetLayout`.
+  - Todas las vistas que antes perdían el menú vertical (como `/dashboard/admin/agencies`, `/dashboard/payments`, `/dashboard/quotes`, `/dashboard/corporate/*`, `/dashboard/admin/*`, etc.) ahora conservan de forma consistente el menú lateral vertical institucional (`PortalSidebar`) y el encabezado superior único.
+- **Eliminación de Cenefas Duplicadas (`PageHeader` redundante):**
+  - Eliminación del componente `<PageHeader>` interno redundante en más de 40 pantallas internas de CRM (`clientes`, `analytics`, `automation`, `calendar`, `campaigns`, `pipeline`, `tasks`, `whatsapp`, etc.), RRHH (`employees`, `agents`, `attendance`, `audit`, `commissions`, `contracts`, `payroll`, `recruitment`, etc.) y Tienda (`store`).
+  - Reemplazo por encabezados internos de página que se integran limpiamente en el área de trabajo sin duplicar la barra de navegación superior.
+- **Simplificación de Sub-layouts:**
+  - Limpieza de `dashboard/crm/layout.tsx`, `dashboard/rrhh/layout.tsx` y `dashboard/agency/layout.tsx` para heredar fluidamente sin recargar la jerarquía del DOM.
+
+**Re-calculo Acelerado del Plan de Trabajo Gantt (Duraciones a 1/4 & Fase 3 App Nativa en Paralelo)**
+- **Re-cálculo del Cronograma Acelerado (`docs/AG-Plan-De-Trabajo-Gantt-Entregas-2026.xlsx` & `.md`):**
+  - **Reducción de Tiempos a 1/4 (25%):** Las actividades de desarrollo, ajuste de portales, integración de productos y pase a producción se escalaron a 1/4 de su duración original (171 HH totales, 17 días laborables).
+  - **Fase 3 (App Nativa iOS/Android) en Paralelo:** Se preservó la duración de 8 días para la migración nativa, corriendo de forma concurrente con las Fases 1 y 2 desde el día 14/08/2026 al 25/08/2026.
+  - **Fecha de Liberación Final a Producción:** Adelantada del 24/Nov/2026 al **04 de Septiembre de 2026**.
 **Generación del Plan de Trabajo Oficial Gantt & Matriz de Liberación por Fases a Producción**
 - **Generación de Archivo Excel Profesional (`docs/AG-Plan-De-Trabajo-Gantt-Entregas-2026.xlsx`):**
   - **Hoja 1 (Resumen Macro Actividades):** Resumen de las 9 Macro Actividades con cálculo de effort en Horas-Hombre (HH: 485 HH totales), duración en días laborables (67 días), fechas de inicio/fin y fase de entrega asignada.

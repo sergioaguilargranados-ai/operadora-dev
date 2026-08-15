@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { PageHeader } from '@/components/PageHeader'
 import { Send, Smartphone, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
@@ -53,12 +52,12 @@ export default function PushMarketingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <PageHeader showBackButton backButtonHref="/dashboard">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4 mb-6">
         <div>
           <h1 className="text-xl font-bold">Marketing Push</h1>
           <p className="text-sm text-muted-foreground">Envía notificaciones push a todos los dispositivos registrados (PWA)</p>
         </div>
-      </PageHeader>
+      </div>
 
       <main className="container mx-auto px-4 py-8 max-w-2xl">
         <Card className="p-6">

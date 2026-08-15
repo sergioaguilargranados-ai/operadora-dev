@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { PortalIntranetLayout } from '@/components/layout/PortalIntranetLayout'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -315,7 +314,7 @@ function AgencyDashboardContent() {
     // ═══════════════════════════════════════
 
     return (
-        <PortalIntranetLayout>
+        <div className="space-y-6">
             <div className="space-y-6">
                 {/* Header de la Agencia */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4">
@@ -1053,7 +1052,7 @@ function AgencyDashboardContent() {
                 </DialogContent>
             </Dialog>
             </div>
-        </PortalIntranetLayout>
+        </div>
     )
 }
 

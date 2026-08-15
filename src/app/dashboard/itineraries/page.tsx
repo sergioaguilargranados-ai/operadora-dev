@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { PageHeader } from '@/components/PageHeader'
 import { Logo } from '@/components/Logo'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -613,7 +612,7 @@ export default function ItinerariesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PageHeader showBackButton={true} backButtonHref="/dashboard" />
+      
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <Tabs value={activeTab} onValueChange={setActiveTab}>

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { PortalIntranetLayout } from '@/components/layout/PortalIntranetLayout'
 import {
   Settings, User, Bot, Palette, CreditCard, ShieldCheck, MapPin, Plus, Upload, Save
 } from 'lucide-react'
@@ -19,7 +18,7 @@ export default function AgencyConfiguracionPage() {
   ] as const
 
   return (
-    <PortalIntranetLayout>
+    <div className="space-y-6">
       <div className="p-6 max-w-7xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900">Configuración de Agencia</h1>
@@ -319,6 +318,6 @@ export default function AgencyConfiguracionPage() {
           </div>
         </div>
       </div>
-    </PortalIntranetLayout>
+    </div>
   )
 }

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PageHeader } from "@/components/PageHeader"
 import { Logo } from "@/components/Logo"
 import { useAuth } from "@/contexts/AuthContext"
 import { ContentModal } from "@/components/admin/ContentModal"
@@ -542,7 +541,7 @@ export default function AdminContentPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PageHeader showBackButton={true} backButtonHref="/dashboard" />
+      
 
       {/* Toast */}
       {toast && (

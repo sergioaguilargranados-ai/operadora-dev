@@ -6,7 +6,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { PageHeader } from '@/components/PageHeader'
 import { useToast } from '@/hooks/use-toast'
 import {
     User, Mail, Phone, MessageSquare, MapPin, Calendar, Clock,
@@ -305,7 +304,7 @@ export default function ContactDetailPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-            <PageHeader showBackButton={true} backButtonHref="/dashboard/crm/contacts">
+            <div className="border-b border-gray-200/80 pb-4 mb-6">
                 <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold text-white ${contact.is_hot_lead ? 'bg-gradient-to-r from-orange-400 to-red-500' : 'bg-gradient-to-r from-blue-500 to-blue-600'
@@ -324,7 +323,7 @@ export default function ContactDetailPage() {
                         <RefreshCw className="w-3.5 h-3.5" /> Actualizar
                     </Button>
                 </div>
-            </PageHeader>
+            </div>
 
             <main className="container mx-auto px-4 py-5 max-w-7xl">
                 {/* Pipeline Steps */}
