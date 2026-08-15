@@ -1,5 +1,5 @@
 // Página de detalle de Tour - VERSIÓN COMPLETA
-// Build: 15 Aug 2026 - v2.482 - UI completa con todos los campos MegaTravel
+// Build: 15 Aug 2026 - v2.483 - UI completa con todos los campos MegaTravel
 
 'use client'
 

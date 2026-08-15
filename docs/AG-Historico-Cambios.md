@@ -1,13 +1,25 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 15 de Agosto de 2026 - 03:17 CST  
-**Versión actual:** v2.482  
+**Última actualización:** 15 de Agosto de 2026 - 03:48 CST  
+**Versión actual:** v2.483  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.483 - 15 de Agosto de 2026 - 03:48 CST
+**Reconocimiento de Marcas Blancas en Super Admin y Reversión de Rama Main a v2.374**
+- **Panel Super Admin (`/dashboard/admin/agencies` & `/api/admin/agencies`):**
+  - Corrección de la consulta SQL en el endpoint de agencias (remoción de referencia a columna inexistente `slug` y adición de `tenant_type`, `custom_domain`, `subscription_plan`, `logo_url`, `primary_color`, `is_active`).
+  - Reconocimiento y despliegue automático de todas las agencias y marcas blancas registradas (como *M&M Travel Agency* en `mmta.app.asoperadora.com`).
+  - Integración de badge distintivo **Marca Blanca** y enlace a sus dominios en las tarjetas de agencia.
+- **Auditoría de Integridad Multi-Tenant y Marca Blanca:**
+  - Verificación en base de datos PostgreSQL de la correcta vinculación por `tenant_id` y `agency_id` en agentes (`tenant_users`), clientes (`agency_clients`), comisiones (`agency_commissions`), reservas (`bookings`), productos de tienda (`store_products`) y CRM.
+- **Gestión de Ramas Git:**
+  - Rama `main` restablecida a la versión estable `v2.374` (`ea427c368478d226c405831278fbd367d9d76492`).
+  - Todos los despliegues de desarrollo y pruebas configurados exclusivamente a la rama `dev`.
 
 ### v2.482 - 15 de Agosto de 2026 - 03:17 CST
 **Submenú Desplegable Completo para Gestión de Contenido y Sincronización de Pestañas**
