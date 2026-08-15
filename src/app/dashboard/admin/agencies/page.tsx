@@ -23,7 +23,11 @@ import { motion } from 'framer-motion'
 interface Agency {
     id: number
     company_name: string
+    tenant_type?: 'agency' | 'corporate'
+    custom_domain?: string
     slug: string
+    subscription_plan?: string
+    logo_url?: string | null
     is_active: boolean
     created_at: string
     total_agents: number
@@ -237,10 +241,18 @@ export default function AdminAgenciesPage() {
                                         {agency.company_name.charAt(0)}
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">
-                                            {agency.company_name}
-                                        </h4>
-                                        <p className="text-xs text-slate-400">{agency.slug || '—'}</p>
+                                        <div className="flex items-center gap-2">
+                                            <h4 className="font-bold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">
+                                                {agency.company_name}
+                                            </h4>
+                                            {agency.custom_domain && (
+                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
+                                                    <Sparkles className="w-2.5 h-2.5" />
+                                                    Marca Blanca
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-slate-400 font-mono">{agency.custom_domain || agency.slug || '—'}</p>
                                         <div className="flex gap-2 mt-1">
                                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                                 agency.is_active 
@@ -252,6 +264,11 @@ export default function AdminAgenciesPage() {
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
                                                 {parseInt(String(agency.total_agents))} agentes
                                             </span>
+                                            {agency.subscription_plan && (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200 uppercase">
+                                                    Plan {agency.subscription_plan}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

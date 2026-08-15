@@ -10,12 +10,17 @@ export const runtime = 'nodejs'
  */
 export async function GET(request: NextRequest) {
     try {
-        // Listar todas las agencias (tenants) con métricas
+        // Listar todas las agencias y marcas blancas (tenants) con métricas
         const result = await query(`
       SELECT 
         t.id,
         t.company_name,
-        t.slug,
+        t.tenant_type,
+        COALESCE(t.custom_domain, '') AS custom_domain,
+        COALESCE(t.custom_domain, t.company_name) AS slug,
+        t.subscription_plan,
+        t.logo_url,
+        t.primary_color,
         t.is_active,
         t.created_at,
         -- Agentes

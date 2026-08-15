@@ -4,7 +4,7 @@ import { pool } from '@/lib/db'
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url)
-        const tenantId = searchParams.get('tenant_id') || 1 
+        const tenantId = searchParams.get('tenant_id') || searchParams.get('agency_id') || 1 
 
         const client = await pool.connect()
         try {
