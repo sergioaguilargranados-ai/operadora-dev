@@ -104,34 +104,52 @@ export default function AdminRolesPage() {
     const loadData = async () => {
         try {
             setLoading(true)
-            const token = localStorage.getItem('as_token')
-            const headers = { 'Authorization': `Bearer ${token}` }
+            const token = typeof window !== 'undefined' ? localStorage.getItem('as_token') : null
+            const headers: HeadersInit = {}
+            if (token) headers['Authorization'] = `Bearer ${token}`
 
-            const [rolesRes, permsRes, tenantsRes] = await Promise.all([
-                fetch('/api/admin/roles', { headers }),
-                fetch('/api/admin/permissions', { headers }),
-                fetch('/api/admin/tenants', { headers })
-            ])
-
-            const rolesData = await rolesRes.json()
-            const permsData = await permsRes.json()
-            const tenantsData = await tenantsRes.json()
-
-            if (rolesData.success) {
-                setRoles(rolesData.data)
-                if (!selectedRoleForMatrix && rolesData.data.length > 0) {
-                    setSelectedRoleForMatrix(rolesData.data[0])
-                    setMatrixPermissions(rolesData.data[0].permissions || [])
+            // 1. Carga de roles
+            try {
+                const rolesRes = await fetch('/api/admin/roles', { headers })
+                if (rolesRes.ok) {
+                    const rolesData = await rolesRes.json()
+                    if (rolesData.success && Array.isArray(rolesData.data)) {
+                        setRoles(rolesData.data)
+                        if (rolesData.data.length > 0) {
+                            setSelectedRoleForMatrix(prev => prev || rolesData.data[0])
+                            setMatrixPermissions(prev => prev.length > 0 ? prev : (rolesData.data[0].permissions || []))
+                        }
+                    }
                 }
+            } catch (err) {
+                console.error('Error fetching roles:', err)
             }
 
-            if (permsData.success) {
-                setPermissions(permsData.data.permissions)
-                setGroupedPermissions(permsData.data.grouped)
+            // 2. Carga de catálogo de permisos
+            try {
+                const permsRes = await fetch('/api/admin/permissions', { headers })
+                if (permsRes.ok) {
+                    const permsData = await permsRes.json()
+                    if (permsData.success) {
+                        setPermissions(permsData.data.permissions || [])
+                        setGroupedPermissions(permsData.data.grouped || {})
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching permissions:', err)
             }
 
-            if (tenantsData.success && Array.isArray(tenantsData.data)) {
-                setTenants(tenantsData.data)
+            // 3. Carga de tenants / marcas blancas
+            try {
+                const tenantsRes = await fetch('/api/admin/tenants', { headers })
+                if (tenantsRes.ok) {
+                    const tenantsData = await tenantsRes.json()
+                    if (tenantsData.success && Array.isArray(tenantsData.data)) {
+                        setTenants(tenantsData.data)
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching tenants:', err)
             }
         } catch (error) {
             console.error('Error cargando roles y permisos:', error)
@@ -370,8 +388,20 @@ export default function AdminRolesPage() {
                     </div>
 
                     {/* Grid de Roles */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredRoles.map(role => (
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-16 text-slate-500 gap-3 bg-white rounded-2xl border border-slate-200 shadow-2xs">
+                            <RefreshCw className="w-8 h-8 animate-spin text-slate-600" />
+                            <p className="text-sm font-semibold text-slate-700">Cargando catálogo de roles y permisos...</p>
+                        </div>
+                    ) : filteredRoles.length === 0 ? (
+                        <Card className="p-12 text-center border-dashed border-slate-300 bg-white rounded-2xl">
+                            <Shield className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                            <h3 className="text-base font-bold text-slate-700">No se encontraron roles</h3>
+                            <p className="text-xs text-slate-400 mt-1">No hay roles registrados para el filtro seleccionado</p>
+                        </Card>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filteredRoles.map(role => (
                             <Card 
                                 key={role.id} 
                                 className="p-5 border-gray-200/80 shadow-2xs rounded-2xl bg-white hover:border-slate-400 hover:shadow-xs transition-all flex flex-col justify-between group"
@@ -448,6 +478,7 @@ export default function AdminRolesPage() {
                             </Card>
                         ))}
                     </div>
+                    )}
                 </TabsContent>
 
                 {/* ═══════════════════════════════════════════════════════════
