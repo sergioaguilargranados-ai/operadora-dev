@@ -312,29 +312,7 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
         </div>
       </div>
 
-      {/* Botones rápidos al fondo */}
-      {!collapsed && isStaff && (
-        <div className="px-4 mb-4 space-y-2 mt-auto pt-4">
-          <button
-            onClick={() => router.push('/operacion')}
-            className="w-full text-xs font-bold text-slate-800 bg-white border border-emerald-500 rounded-xl px-3 py-2 flex items-center justify-center gap-2 hover:bg-emerald-50 transition-colors"
-          >
-            <span>👤</span> Catálogo Clientes
-          </button>
-          <button
-            onClick={() => router.push('/dashboard/rrhh')}
-            className="w-full text-xs font-bold text-slate-800 bg-white border border-purple-500 rounded-xl px-3 py-2 flex items-center justify-center gap-2 hover:bg-purple-50 transition-colors"
-          >
-            <span>👥</span> Ir a RRHH
-          </button>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="w-full text-xs font-bold text-slate-800 bg-white border border-blue-500 rounded-xl px-3 py-2 flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors"
-          >
-            <span>←</span> Dashboard Principal
-          </button>
-        </div>
-      )}
+
 
       {/* Footer Branding en Sidebar */}
       {!collapsed && (

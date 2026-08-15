@@ -98,7 +98,7 @@ export function BrandFooter() {
                         </Link>
                         <p className="text-xs opacity-50">|</p>
                         <p className="text-xs opacity-50">
-                            v2.480 | 15 Aug 2026 02:08 CST
+                            v2.480 | 15 Aug 2026 02:13 CST
                         </p>
                         <PwaInstallButton />
                     </div>
