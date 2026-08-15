@@ -144,7 +144,20 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
           ]
         },
         { label: 'Productos de la tienda', icon: ShoppingBag, route: '/dashboard/store' },
-        { label: 'Panel de Empresas', icon: Building, route: '/dashboard/corporate' },
+        { 
+          label: 'Panel de Empresas', 
+          icon: Building, 
+          route: '/dashboard/corporate',
+          subItems: [
+            { label: 'Resumen General', route: '/dashboard/corporate' },
+            { label: 'Empleados Corporativos', route: '/dashboard/corporate?tab=empleados' },
+            { label: 'Gastos & Presupuestos', route: '/dashboard/corporate?tab=gastos' },
+            { label: 'Métricas & CO2', route: '/dashboard/corporate?tab=metricas' },
+            { label: 'Aprobaciones de Viaje', route: '/dashboard/corporate?tab=aprobaciones' },
+            { label: 'Políticas de Viaje', route: '/dashboard/corporate?tab=politicas' },
+            { label: 'Métodos de Pago', route: '/dashboard/corporate?tab=pagos' }
+          ]
+        },
         { 
           label: 'Panel Agencias', 
           icon: Building2, 

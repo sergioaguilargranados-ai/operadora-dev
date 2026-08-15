@@ -108,7 +108,7 @@ function AgencyDashboardContent() {
         if (tab === 'agentes') setActiveTab('agents')
         else if (tab === 'clientes') setActiveTab('clients')
         else if (tab === 'comisiones') setActiveTab('commissions')
-        else if (tab === 'resumen') setActiveTab('overview')
+        else setActiveTab('overview')
     }, [searchParams])
     const [searchQuery, setSearchQuery] = useState('')
 
@@ -338,7 +338,16 @@ function AgencyDashboardContent() {
                             key={tab.id}
                             variant={activeTab === tab.id ? 'default' : 'outline'}
                             className={`gap-2 whitespace-nowrap ${activeTab === tab.id ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
-                            onClick={() => setActiveTab(tab.id as any)}
+                            onClick={() => {
+                                const tabMap: Record<string, string> = {
+                                    overview: '/dashboard/agency',
+                                    agents: '/dashboard/agency?tab=agentes',
+                                    clients: '/dashboard/agency?tab=clientes',
+                                    commissions: '/dashboard/agency?tab=comisiones'
+                                }
+                                router.push(tabMap[tab.id] || '/dashboard/agency')
+                                setActiveTab(tab.id as any)
+                            }}
                         >
                             <tab.icon className="w-4 h-4" />
                             {tab.label}

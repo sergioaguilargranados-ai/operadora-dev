@@ -1,6 +1,7 @@
-'use client'
+"use client"
 
-import React, { Suspense, useState } from 'react'
+import React, { Suspense, useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -868,11 +869,31 @@ function TabMetodosPago() {
 }
 
 function CorporateDashboardContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState('resumen')
   const [dbData, setDbData] = useState<any>(null)
   const [dbLoading, setDbLoading] = useState(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab && ['resumen', 'empleados', 'gastos', 'metricas', 'aprobaciones', 'politicas', 'pagos'].includes(tab)) {
+      setActiveTab(tab)
+    } else {
+      setActiveTab('resumen')
+    }
+  }, [searchParams])
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab)
+    if (newTab === 'resumen') {
+      router.push('/dashboard/corporate')
+    } else {
+      router.push(`/dashboard/corporate?tab=${newTab}`)
+    }
+  }
+
+  useEffect(() => {
     async function loadCorporateData() {
       try {
         setDbLoading(true)
@@ -904,7 +925,7 @@ function CorporateDashboardContent() {
           <p className="text-slate-500">Administración general de viajes corporativos y gestión empresarial.</p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <div className="overflow-x-auto pb-2">
             <TabsList className="w-full justify-start inline-flex min-w-max">
               <TabsTrigger value="resumen" className="flex items-center gap-2"><BarChart3 className="w-4 h-4" /> Resumen</TabsTrigger>

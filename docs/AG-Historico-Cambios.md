@@ -1,13 +1,31 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 15 de Agosto de 2026 - 01:45 CST  
-**Versión actual:** v2.480  
+**Última actualización:** 15 de Agosto de 2026 - 02:31 CST  
+**Versión actual:** v2.481  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.481 - 15 de Agosto de 2026 - 02:31 CST
+**Sincronización de Pestañas en Agencias, Submenú de Panel de Empresas y Limpieza de Atajos en Sidebar**
+- **Sincronización de Pestaña 'Resumen' en Panel de Agencias (`/dashboard/agency`):**
+  - Corrección de sincronización de `activeTab` con los parámetros de la URL (`searchParams`). Al hacer clic en "Resumen General", se restablece correctamente la pestaña a `overview` (anteriormente persistía en la pestaña anterior al recibir parámetro `null`).
+  - Sincronización bidireccional entre los botones de pestañas en la vista y la barra de navegación lateral.
+- **Submenú Desplegable en Panel de Empresas (`PortalSidebar.tsx` & `/dashboard/corporate`):**
+  - Incorporación de sub-opciones jerárquicas en el menú vertical para *Panel de Empresas*:
+    1. *Resumen General* (`/dashboard/corporate`)
+    2. *Empleados Corporativos* (`/dashboard/corporate?tab=empleados`)
+    3. *Gastos & Presupuestos* (`/dashboard/corporate?tab=gastos`)
+    4. *Métricas & CO2* (`/dashboard/corporate?tab=metricas`)
+    5. *Aprobaciones de Viaje* (`/dashboard/corporate?tab=aprobaciones`)
+    6. *Políticas de Viaje* (`/dashboard/corporate?tab=politicas`)
+    7. *Métodos de Pago* (`/dashboard/corporate?tab=pagos`)
+  - Sincronización automática de `Tabs` con `searchParams.get('tab')` y navegación reactiva mediante `useRouter`.
+- **Eliminación de Botones Atajo Redundantes:**
+  - Remoción de los botones de atajo al fondo del menú vertical (*Catálogo Clientes*, *Ir a RRHH* y *Dashboard Principal*) para mantener la barra lateral limpia y ordenada.
 
 ### v2.480 - 15 de Agosto de 2026 - 01:45 CST
 **Estandarización de Layouts Intranet, Eliminación de Cenefas Duplicadas y Restauración de Menú Vertical**
