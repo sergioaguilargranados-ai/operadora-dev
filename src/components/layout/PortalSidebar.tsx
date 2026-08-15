@@ -55,6 +55,26 @@ interface PortalSidebarProps {
   onToggleCollapse?: () => void
 }
 
+const ICON_MAP: Record<string, any> = {
+  Users,
+  LayoutDashboard,
+  FileText,
+  Briefcase,
+  ShoppingBag,
+  Building,
+  Building2,
+  Package,
+  CreditCard,
+  Receipt,
+  Globe,
+  ShieldCheck,
+  Eye,
+  MessageCircle,
+  UserIcon,
+  HelpCircle,
+  Compass
+}
+
 export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }: PortalSidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -63,6 +83,52 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
   const { hasPermission, isSuperAdmin } = usePermissions()
   const [internalCollapsed, setInternalCollapsed] = useState(false)
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
+  const [dynamicStaffMenu, setDynamicStaffMenu] = useState<MenuSection[] | null>(null)
+
+  const fetchDynamicMenu = async () => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('as_token') : null
+      const headers: HeadersInit = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
+      const res = await fetch('/api/admin/menu', { headers })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success && Array.isArray(data.data?.sections)) {
+          const sections: MenuSection[] = data.data.sections.map((sec: any) => ({
+            title: sec.title,
+            items: sec.items.filter((item: any) => item.is_active !== false).map((item: any) => ({
+              label: item.label,
+              icon: (item.icon_name && ICON_MAP[item.icon_name]) ? ICON_MAP[item.icon_name] : ShieldCheck,
+              route: item.route,
+              badge: item.badge,
+              permission: item.permission_code,
+              subItems: item.subItems ? item.subItems.filter((s: any) => s.is_active !== false).map((s: any) => ({
+                label: s.label,
+                route: s.route,
+                permission: s.permission_code
+              })) : undefined
+            }))
+          }))
+          setDynamicStaffMenu(sections)
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching dynamic menu in sidebar:', err)
+    }
+  }
+
+  useEffect(() => {
+    fetchDynamicMenu()
+
+    const handleMenuUpdate = () => {
+      fetchDynamicMenu()
+    }
+    window.addEventListener('menuStructureUpdated', handleMenuUpdate)
+    return () => {
+      window.removeEventListener('menuStructureUpdated', handleMenuUpdate)
+    }
+  }, [])
 
   const collapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed
   const toggle = onToggleCollapse || (() => setInternalCollapsed(!internalCollapsed))
@@ -250,7 +316,9 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
     return hasPermission(item.permission)
   }
 
-  const filteredStaffMenu = staffMenu.map(section => ({
+  const effectiveStaffMenu = dynamicStaffMenu && dynamicStaffMenu.length > 0 ? dynamicStaffMenu : staffMenu
+
+  const filteredStaffMenu = effectiveStaffMenu.map(section => ({
     ...section,
     items: section.items.filter(isItemPermitted)
   })).filter(section => section.items.length > 0)

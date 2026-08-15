@@ -1,13 +1,25 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 15 de Agosto de 2026 - 04:29 CST  
-**Versión actual:** v2.484  
+**Última actualización:** 15 de Agosto de 2026 - 05:18 CST  
+**Versión actual:** v2.486  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.486 - 15 de Agosto de 2026 - 05:18 CST
+**Organizador Dinámico de Menú de Intranet y Reordenamiento Interactivo de Secciones**
+- **Base de Datos Persistente (`navigation_menu_items`):**
+  - Creación de tabla y semillado inicial con 70 elementos (secciones, ítems principales y sub-ítems jerárquicos) en `scripts/seed-navigation-menu.js`.
+- **API de Gestión del Menú ([`/api/admin/menu`](file:///c:/operadora-dev/src/app/api/admin/menu/route.ts)):**
+  - `GET /api/admin/menu`: Devuelve la estructura jerárquica por secciones y orden.
+  - `PUT /api/admin/menu`: Permite reordenar ítems, mover elementos entre secciones, ordenar sub-ítems y activar/desactivar opciones en lote.
+- **Pestaña "Organizador de Menú" en [`/admin/roles`](file:///c:/operadora-dev/src/app/admin/roles/page.tsx):**
+  - Nueva 3ª pestaña interactiva con botones ▲ / ▼ de reordenamiento, selector rápido para mover ítems entre secciones (`INTRANET & OPERACIÓN`, `GESTIÓN DE RESERVAS`, `ADMINISTRACIÓN Y AJUSTES`, `CUENTA PERSONAL`), acordeón para reordenar sub-opciones internas y switches de visibilidad.
+- **Menú Lateral Reactivo ([`PortalSidebar.tsx`](file:///c:/operadora-dev/src/components/layout/PortalSidebar.tsx)):**
+  - Consume la estructura configurada en tiempo real con recarga automática por eventos de ventana (`menuStructureUpdated`) y fallback robusto sin parpadeos.
 
 ### v2.484 - 15 de Agosto de 2026 - 04:29 CST
 **Sistema Integral de Roles, Permisos Granulares y Matriz de Acceso Multi-Tenant**

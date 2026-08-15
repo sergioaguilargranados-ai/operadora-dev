@@ -23,7 +23,17 @@ import {
     Check,
     X,
     Filter,
-    Layers
+    Layers,
+    ArrowUp,
+    ArrowDown,
+    Eye,
+    EyeOff,
+    FolderTree,
+    RotateCcw,
+    GripVertical,
+    ChevronDown,
+    ChevronRight,
+    MoveRight
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -52,6 +62,31 @@ interface PermissionItem {
     description: string
 }
 
+interface MenuItemData {
+    id: number
+    section_key: string
+    section_title: string
+    section_order: number
+    item_key: string
+    label: string
+    icon_name: string | null
+    route: string
+    badge: string | null
+    permission_code: string | null
+    parent_item_key: string | null
+    sort_order: number
+    is_active: boolean
+    tenant_id: number | null
+    subItems?: MenuItemData[]
+}
+
+interface MenuSectionData {
+    key: string
+    title: string
+    order: number
+    items: MenuItemData[]
+}
+
 const MODULE_LABELS: Record<string, string> = {
     crm: 'CRM & Clientes',
     quotes: 'Cotizaciones',
@@ -68,17 +103,29 @@ const MODULE_LABELS: Record<string, string> = {
     public: 'Público / Landing'
 }
 
+const SECTION_OPTIONS = [
+    { key: 'operation', title: 'INTRANET & OPERACIÓN' },
+    { key: 'bookings', title: 'GESTIÓN DE RESERVAS' },
+    { key: 'admin', title: 'ADMINISTRACIÓN Y AJUSTES' },
+    { key: 'account', title: 'CUENTA PERSONAL' }
+]
+
 export default function AdminRolesPage() {
     const router = useRouter()
     const { user, isAuthenticated, loading: authLoading } = useAuth()
     const { refreshPermissions } = usePermissions()
 
-    const [activeTab, setActiveTab] = useState<'roles' | 'matrix'>('roles')
+    const [activeTab, setActiveTab] = useState<'roles' | 'matrix' | 'menu'>('roles')
     const [roles, setRoles] = useState<RoleItem[]>([])
     const [permissions, setPermissions] = useState<PermissionItem[]>([])
     const [groupedPermissions, setGroupedPermissions] = useState<Record<string, PermissionItem[]>>({})
     const [tenants, setTenants] = useState<{ id: number; company_name: string }[]>([])
     const [selectedTenant, setSelectedTenant] = useState<string>('all')
+
+    // Menú Dinámico
+    const [menuSections, setMenuSections] = useState<MenuSectionData[]>([])
+    const [expandedSubmenus, setExpandedSubmenus] = useState<Record<string, boolean>>({})
+    const [hasMenuChanges, setHasMenuChanges] = useState(false)
 
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -151,8 +198,22 @@ export default function AdminRolesPage() {
             } catch (err) {
                 console.error('Error fetching tenants:', err)
             }
+
+            // 4. Carga de estructura de menú
+            try {
+                const tenantQuery = selectedTenant !== 'all' && selectedTenant !== 'global' ? `?tenant_id=${selectedTenant}` : ''
+                const menuRes = await fetch(`/api/admin/menu${tenantQuery}`, { headers })
+                if (menuRes.ok) {
+                    const menuData = await menuRes.json()
+                    if (menuData.success && menuData.data?.sections) {
+                        setMenuSections(menuData.data.sections)
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching menu structure:', err)
+            }
         } catch (error) {
-            console.error('Error cargando roles y permisos:', error)
+            console.error('Error cargando datos:', error)
             showToast('Error al cargar datos', 'error')
         } finally {
             setLoading(false)
@@ -161,7 +222,7 @@ export default function AdminRolesPage() {
 
     useEffect(() => {
         loadData()
-    }, [])
+    }, [selectedTenant])
 
     const handleSelectRoleForMatrix = (role: RoleItem) => {
         setSelectedRoleForMatrix(role)
@@ -179,10 +240,8 @@ export default function AdminRolesPage() {
         const allSelected = moduleCodes.every(code => matrixPermissions.includes(code))
 
         if (allSelected) {
-            // Desmarcar todos del módulo
             setMatrixPermissions(prev => prev.filter(code => !moduleCodes.includes(code)))
         } else {
-            // Marcar todos del módulo
             const toAdd = moduleCodes.filter(code => !matrixPermissions.includes(code))
             setMatrixPermissions(prev => [...prev, ...toAdd])
         }
@@ -304,6 +363,174 @@ export default function AdminRolesPage() {
         }
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // MÉTODOS DEL ORGANIZADOR DEL MENÚ
+    // ═══════════════════════════════════════════════════════════
+
+    const toggleSubmenuExpand = (itemKey: string) => {
+        setExpandedSubmenus(prev => ({ ...prev, [itemKey]: !prev[itemKey] }))
+    }
+
+    const moveItemInDirection = (sectionKey: string, index: number, direction: 'up' | 'down') => {
+        setMenuSections(prev => {
+            const next = JSON.parse(JSON.stringify(prev)) as MenuSectionData[]
+            const section = next.find(s => s.key === sectionKey)
+            if (!section) return prev
+
+            const targetIndex = direction === 'up' ? index - 1 : index + 1
+            if (targetIndex < 0 || targetIndex >= section.items.length) return prev
+
+            // Intercambiar
+            const temp = section.items[index]
+            section.items[index] = section.items[targetIndex]
+            section.items[targetIndex] = temp
+
+            // Reasignar sort_order
+            section.items.forEach((item, idx) => {
+                item.sort_order = idx + 1
+            })
+
+            return next
+        })
+        setHasMenuChanges(true)
+    }
+
+    const moveSubItemInDirection = (sectionKey: string, parentKey: string, subIndex: number, direction: 'up' | 'down') => {
+        setMenuSections(prev => {
+            const next = JSON.parse(JSON.stringify(prev)) as MenuSectionData[]
+            const section = next.find(s => s.key === sectionKey)
+            if (!section) return prev
+            const parent = section.items.find(i => i.item_key === parentKey)
+            if (!parent || !parent.subItems) return prev
+
+            const targetIndex = direction === 'up' ? subIndex - 1 : subIndex + 1
+            if (targetIndex < 0 || targetIndex >= parent.subItems.length) return prev
+
+            // Intercambiar
+            const temp = parent.subItems[subIndex]
+            parent.subItems[subIndex] = parent.subItems[targetIndex]
+            parent.subItems[targetIndex] = temp
+
+            // Reasignar sort_order
+            parent.subItems.forEach((sub, idx) => {
+                sub.sort_order = idx + 1
+            })
+
+            return next
+        })
+        setHasMenuChanges(true)
+    }
+
+    const changeItemSection = (itemKey: string, fromSectionKey: string, toSectionKey: string) => {
+        if (fromSectionKey === toSectionKey) return
+
+        setMenuSections(prev => {
+            const next = JSON.parse(JSON.stringify(prev)) as MenuSectionData[]
+            const fromSec = next.find(s => s.key === fromSectionKey)
+            const toSec = next.find(s => s.key === toSectionKey)
+            if (!fromSec || !toSec) return prev
+
+            const itemIndex = fromSec.items.findIndex(i => i.item_key === itemKey)
+            if (itemIndex === -1) return prev
+
+            const [movedItem] = fromSec.items.splice(itemIndex, 1)
+            movedItem.section_key = toSec.key
+            movedItem.section_title = toSec.title
+            movedItem.section_order = toSec.order
+            movedItem.sort_order = toSec.items.length + 1
+
+            toSec.items.push(movedItem)
+
+            // Reordenar sección origen
+            fromSec.items.forEach((item, idx) => {
+                item.sort_order = idx + 1
+            })
+
+            return next
+        })
+        setHasMenuChanges(true)
+    }
+
+    const toggleItemActive = (itemKey: string, sectionKey: string) => {
+        setMenuSections(prev => {
+            const next = JSON.parse(JSON.stringify(prev)) as MenuSectionData[]
+            const section = next.find(s => s.key === sectionKey)
+            if (!section) return prev
+            const item = section.items.find(i => i.item_key === itemKey)
+            if (item) {
+                item.is_active = !item.is_active
+            }
+            return next
+        })
+        setHasMenuChanges(true)
+    }
+
+    const handleSaveMenuStructure = async () => {
+        try {
+            setSaving(true)
+            const token = localStorage.getItem('as_token')
+
+            // Aplanar todos los items y sub-items
+            const flattenedItems: any[] = []
+            menuSections.forEach(sec => {
+                sec.items.forEach(item => {
+                    flattenedItems.push({
+                        item_key: item.item_key,
+                        section_key: sec.key,
+                        section_title: sec.title,
+                        section_order: sec.order,
+                        sort_order: item.sort_order,
+                        is_active: item.is_active
+                    })
+
+                    if (Array.isArray(item.subItems)) {
+                        item.subItems.forEach(sub => {
+                            flattenedItems.push({
+                                item_key: sub.item_key,
+                                section_key: sec.key,
+                                section_title: sec.title,
+                                section_order: sec.order,
+                                sort_order: sub.sort_order,
+                                is_active: item.is_active
+                            })
+                        })
+                    }
+                })
+            })
+
+            const tenantId = selectedTenant !== 'all' && selectedTenant !== 'global' ? parseInt(selectedTenant) : null
+
+            const res = await fetch('/api/admin/menu', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    items: flattenedItems,
+                    tenant_id: tenantId
+                })
+            })
+
+            const data = await res.json()
+            if (data.success) {
+                showToast('Estructura del menú guardada exitosamente', 'success')
+                setHasMenuChanges(false)
+                // Disparar evento para actualizar sidebar en vivo si está abierto
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new Event('menuStructureUpdated'))
+                }
+            } else {
+                showToast(data.error || 'Error al guardar estructura', 'error')
+            }
+        } catch (error) {
+            console.error('Error guardando menú:', error)
+            showToast('Error de conexión al guardar menú', 'error')
+        } finally {
+            setSaving(false)
+        }
+    }
+
     const filteredRoles = roles.filter(r => {
         if (selectedTenant === 'all') return true
         if (selectedTenant === 'global') return !r.tenant_id
@@ -336,7 +563,7 @@ export default function AdminRolesPage() {
                         Gestión de Roles & Matriz de Permisos
                     </h1>
                     <p className="text-sm text-slate-500 mt-0.5">
-                        Administra el catálogo de roles, marcas blancas y permisos granulares de todo el sistema
+                        Administra el catálogo de roles, marcas blancas, permisos granulares y la estructura del menú
                     </p>
                 </div>
 
@@ -353,14 +580,18 @@ export default function AdminRolesPage() {
 
             {/* ═══ PESTAÑAS PRINCIPALES ═══ */}
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 max-w-md bg-slate-100 p-1 rounded-xl">
-                    <TabsTrigger value="roles" className="flex items-center gap-2 font-bold data-[state=active]:bg-white data-[state=active]:text-slate-900">
+                <TabsList className="grid w-full grid-cols-3 max-w-xl bg-slate-100 p-1 rounded-xl">
+                    <TabsTrigger value="roles" className="flex items-center gap-2 font-bold data-[state=active]:bg-white data-[state=active]:text-slate-900 text-xs sm:text-sm">
                         <Users className="w-4 h-4" />
                         Catálogo de Roles ({roles.length})
                     </TabsTrigger>
-                    <TabsTrigger value="matrix" className="flex items-center gap-2 font-bold data-[state=active]:bg-white data-[state=active]:text-slate-900">
+                    <TabsTrigger value="matrix" className="flex items-center gap-2 font-bold data-[state=active]:bg-white data-[state=active]:text-slate-900 text-xs sm:text-sm">
                         <Layers className="w-4 h-4" />
                         Matriz de Permisos
+                    </TabsTrigger>
+                    <TabsTrigger value="menu" className="flex items-center gap-2 font-bold data-[state=active]:bg-white data-[state=active]:text-slate-900 text-xs sm:text-sm">
+                        <FolderTree className="w-4 h-4" />
+                        Organizador de Menú
                     </TabsTrigger>
                 </TabsList>
 
@@ -402,82 +633,82 @@ export default function AdminRolesPage() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {filteredRoles.map(role => (
-                            <Card 
-                                key={role.id} 
-                                className="p-5 border-gray-200/80 shadow-2xs rounded-2xl bg-white hover:border-slate-400 hover:shadow-xs transition-all flex flex-col justify-between group"
-                            >
-                                <div className="space-y-3">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <h3 className="font-bold text-base text-slate-900 group-hover:text-blue-600 transition-colors">
-                                                    {role.display_name || role.name}
-                                                </h3>
-                                                {role.is_system ? (
-                                                    <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300 text-[10px] font-bold">
-                                                        Sistema
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-bold">
-                                                        Personalizado
-                                                    </Badge>
-                                                )}
+                                <Card 
+                                    key={role.id} 
+                                    className="p-5 border-gray-200/80 shadow-2xs rounded-2xl bg-white hover:border-slate-400 hover:shadow-xs transition-all flex flex-col justify-between group"
+                                >
+                                    <div className="space-y-3">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="font-bold text-base text-slate-900 group-hover:text-blue-600 transition-colors">
+                                                        {role.display_name || role.name}
+                                                    </h3>
+                                                    {role.is_system ? (
+                                                        <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300 text-[10px] font-bold">
+                                                            Sistema
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-bold">
+                                                            Personalizado
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs font-mono text-slate-400 mt-0.5">{role.name}</p>
                                             </div>
-                                            <p className="text-xs font-mono text-slate-400 mt-0.5">{role.name}</p>
+
+                                            <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-sm">
+                                                {role.total_users}
+                                            </div>
                                         </div>
 
-                                        <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-sm">
-                                            {role.total_users}
+                                        <p className="text-xs text-slate-600 line-clamp-2 min-h-[32px]">
+                                            {role.description || 'Sin descripción asignada'}
+                                        </p>
+
+                                        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">
+                                                <Shield className="w-3 h-3 text-slate-500" />
+                                                {role.name === 'SUPER_ADMIN' ? 'Todos los permisos' : `${role.permissions?.length || 0} permisos`}
+                                            </span>
+                                            {role.tenant_name && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                                    <Building2 className="w-3 h-3" />
+                                                    {role.tenant_name}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
 
-                                    <p className="text-xs text-slate-600 line-clamp-2 min-h-[32px]">
-                                        {role.description || 'Sin descripción asignada'}
-                                    </p>
+                                    <div className="flex items-center justify-between pt-4 mt-3 border-t border-slate-100 gap-2">
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            onClick={() => {
+                                                handleSelectRoleForMatrix(role)
+                                                setActiveTab('matrix')
+                                            }}
+                                            className="text-xs font-semibold text-slate-800 hover:bg-slate-100 gap-1.5 flex-1"
+                                        >
+                                            <Layers className="w-3.5 h-3.5" />
+                                            Editar Permisos
+                                        </Button>
 
-                                    <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">
-                                            <Shield className="w-3 h-3 text-slate-500" />
-                                            {role.name === 'SUPER_ADMIN' ? 'Todos los permisos' : `${role.permissions?.length || 0} permisos`}
-                                        </span>
-                                        {role.tenant_name && (
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                                                <Building2 className="w-3 h-3" />
-                                                {role.tenant_name}
-                                            </span>
+                                        {!role.is_system && role.total_users === 0 && (
+                                            <Button 
+                                                variant="ghost" 
+                                                size="sm" 
+                                                onClick={() => handleDeleteRole(role)}
+                                                className="text-red-600 hover:bg-red-50 hover:text-red-700 p-2"
+                                                title="Eliminar Rol"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
                                         )}
                                     </div>
-                                </div>
-
-                                <div className="flex items-center justify-between pt-4 mt-3 border-t border-slate-100 gap-2">
-                                    <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        onClick={() => {
-                                            handleSelectRoleForMatrix(role)
-                                            setActiveTab('matrix')
-                                        }}
-                                        className="text-xs font-semibold text-slate-800 hover:bg-slate-100 gap-1.5 flex-1"
-                                    >
-                                        <Layers className="w-3.5 h-3.5" />
-                                        Editar Permisos
-                                    </Button>
-
-                                    {!role.is_system && role.total_users === 0 && (
-                                        <Button 
-                                            variant="ghost" 
-                                            size="sm" 
-                                            onClick={() => handleDeleteRole(role)}
-                                            className="text-red-600 hover:bg-red-50 hover:text-red-700 p-2"
-                                            title="Eliminar Rol"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    )}
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
+                                </Card>
+                            ))}
+                        </div>
                     )}
                 </TabsContent>
 
@@ -540,7 +771,6 @@ export default function AdminRolesPage() {
                         {filteredModules.map(([moduleKey, modulePerms]) => {
                             const moduleCodes = modulePerms.map(p => p.code)
                             const allSelected = moduleCodes.every(c => matrixPermissions.includes(c))
-                            const someSelected = moduleCodes.some(c => matrixPermissions.includes(c))
 
                             return (
                                 <Card key={moduleKey} className="border-gray-200/80 shadow-2xs rounded-2xl bg-white overflow-hidden">
@@ -608,6 +838,204 @@ export default function AdminRolesPage() {
                                 </Card>
                             )
                         })}
+                    </div>
+                </TabsContent>
+
+                {/* ═══════════════════════════════════════════════════════════
+                    PESTAÑA 3: ORGANIZADOR DE MENÚ INTERACTIVO
+                ═══════════════════════════════════════════════════════════ */}
+                <TabsContent value="menu" className="space-y-6 pt-4">
+                    {/* Barra de Control del Menú */}
+                    <Card className="p-4 border-gray-200/80 shadow-2xs rounded-2xl bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                                <FolderTree className="w-5 h-5 text-slate-800" />
+                                Organizador de Menú y Secciones
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                                Cambia el orden con ▲/▼, mueve opciones entre secciones o desactiva las que no requieras
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <Button 
+                                onClick={handleSaveMenuStructure}
+                                disabled={saving || !hasMenuChanges}
+                                className="bg-slate-900 hover:bg-slate-800 text-white font-bold gap-2 shadow-2xs"
+                            >
+                                <Save className="w-4 h-4" />
+                                {saving ? 'Guardando...' : hasMenuChanges ? 'Guardar Cambios' : 'Estructura Guardada'}
+                            </Button>
+                        </div>
+                    </Card>
+
+                    {/* Lista de Secciones y sus Ítems */}
+                    <div className="space-y-6">
+                        {menuSections.map(section => (
+                            <Card key={section.key} className="border-gray-200/80 shadow-2xs rounded-2xl bg-white overflow-hidden">
+                                {/* Cabecera de la Sección */}
+                                <div className="bg-slate-100/80 px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+                                    <div className="flex items-center gap-2.5">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-slate-900" />
+                                        <h4 className="font-extrabold text-xs text-slate-800 tracking-wider uppercase">
+                                            {section.title}
+                                        </h4>
+                                        <Badge variant="outline" className="bg-white text-slate-600 text-[10px] font-semibold">
+                                            {section.items.length} opciones
+                                        </Badge>
+                                    </div>
+                                </div>
+
+                                {/* Lista de Ítems dentro de la Sección */}
+                                <div className="p-4 divide-y divide-slate-100">
+                                    {section.items.map((item, itemIdx) => {
+                                        const hasSub = Array.isArray(item.subItems) && item.subItems.length > 0
+                                        const isExpanded = expandedSubmenus[item.item_key]
+
+                                        return (
+                                            <div key={item.item_key} className="py-3 first:pt-0 last:pb-0 space-y-2">
+                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-xl bg-slate-50/60 hover:bg-slate-50 border border-slate-200/70 transition-all">
+                                                    {/* Nombre e Información del Ítem */}
+                                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                        <div className="w-7 h-7 rounded-lg bg-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs">
+                                                            {item.sort_order}
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`font-bold text-sm ${item.is_active ? 'text-slate-900' : 'text-slate-400 line-through'}`}>
+                                                                    {item.label}
+                                                                </span>
+                                                                {item.badge && (
+                                                                    <Badge className="bg-slate-200 text-slate-800 text-[10px] font-bold">
+                                                                        {item.badge}
+                                                                    </Badge>
+                                                                )}
+                                                                {item.permission_code && (
+                                                                    <span className="text-[10px] font-mono text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                                                                        {item.permission_code}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-xs text-slate-400 font-mono truncate">{item.route}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Controles de Reubicación */}
+                                                    <div className="flex items-center gap-2 self-end md:self-auto">
+                                                        {/* Mover a otra Sección */}
+                                                        <div className="flex items-center gap-1.5 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-2xs text-xs">
+                                                            <MoveRight className="w-3.5 h-3.5 text-slate-400" />
+                                                            <select 
+                                                                value={section.key}
+                                                                onChange={(e) => changeItemSection(item.item_key, section.key, e.target.value)}
+                                                                className="bg-transparent font-medium text-slate-700 text-xs focus:outline-none cursor-pointer"
+                                                            >
+                                                                {SECTION_OPTIONS.map(opt => (
+                                                                    <option key={opt.key} value={opt.key}>{opt.title}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+
+                                                        {/* Subir */}
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            disabled={itemIdx === 0}
+                                                            onClick={() => moveItemInDirection(section.key, itemIdx, 'up')}
+                                                            className="h-8 w-8 p-0 text-slate-700 hover:bg-slate-200"
+                                                            title="Subir posición"
+                                                        >
+                                                            <ArrowUp className="w-3.5 h-3.5" />
+                                                        </Button>
+
+                                                        {/* Bajar */}
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            disabled={itemIdx === section.items.length - 1}
+                                                            onClick={() => moveItemInDirection(section.key, itemIdx, 'down')}
+                                                            className="h-8 w-8 p-0 text-slate-700 hover:bg-slate-200"
+                                                            title="Bajar posición"
+                                                        >
+                                                            <ArrowDown className="w-3.5 h-3.5" />
+                                                        </Button>
+
+                                                        {/* Activar / Desactivar */}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => toggleItemActive(item.item_key, section.key)}
+                                                            className={`h-8 w-8 p-0 ${item.is_active ? 'text-slate-600 hover:text-slate-900' : 'text-amber-600 hover:text-amber-700'}`}
+                                                            title={item.is_active ? "Ocultar del menú" : "Mostrar en el menú"}
+                                                        >
+                                                            {item.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                                                        </Button>
+
+                                                        {/* Desplegable de Submenús */}
+                                                        {hasSub && (
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => toggleSubmenuExpand(item.item_key)}
+                                                                className="h-8 px-2 text-xs font-semibold text-slate-800 gap-1 bg-white"
+                                                            >
+                                                                <span>{item.subItems!.length} sub-opciones</span>
+                                                                {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Sub-ítems anidados */}
+                                                {hasSub && isExpanded && (
+                                                    <div className="ml-8 pl-4 border-l-2 border-slate-200 space-y-2 py-2 animate-in slide-in-from-top-2 duration-150">
+                                                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                                            Sub-opciones de {item.label}:
+                                                        </p>
+                                                        <div className="space-y-1.5">
+                                                            {item.subItems!.map((sub, subIdx) => (
+                                                                <div key={sub.item_key} className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200/80 shadow-2xs">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="w-5 h-5 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] flex items-center justify-center">
+                                                                            {sub.sort_order}
+                                                                        </span>
+                                                                        <span className="font-semibold text-xs text-slate-800">{sub.label}</span>
+                                                                        <span className="text-[10px] font-mono text-slate-400">{sub.route}</span>
+                                                                    </div>
+
+                                                                    <div className="flex items-center gap-1">
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            disabled={subIdx === 0}
+                                                                            onClick={() => moveSubItemInDirection(section.key, item.item_key, subIdx, 'up')}
+                                                                            className="h-7 w-7 p-0 text-slate-600 hover:bg-slate-100"
+                                                                            title="Subir sub-opción"
+                                                                        >
+                                                                            <ArrowUp className="w-3 h-3" />
+                                                                        </Button>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            disabled={subIdx === item.subItems!.length - 1}
+                                                                            onClick={() => moveSubItemInDirection(section.key, item.item_key, subIdx, 'down')}
+                                                                            className="h-7 w-7 p-0 text-slate-600 hover:bg-slate-100"
+                                                                            title="Bajar sub-opción"
+                                                                        >
+                                                                            <ArrowDown className="w-3 h-3" />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </Card>
+                        ))}
                     </div>
                 </TabsContent>
             </Tabs>
