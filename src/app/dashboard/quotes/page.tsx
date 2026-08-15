@@ -565,50 +565,37 @@ export default function QuotesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+    <div className="space-y-6">
       <ConfirmModal />
       <BookingModal />
-      {/* ===== HEADER ESTÁNDAR (cenefa blanco translúcido) ===== */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50 shadow-soft">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Izquierda: Volver + Logo */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span className="hidden sm:inline text-sm font-medium">Volver</span>
-              </button>
-              <Link href="/" className="flex items-center">
-                <Logo className="py-2" />
-              </Link>
-            </div>
 
-            {/* Centro: Título */}
-            <div className="hidden md:block text-center">
-              <h1 className="text-lg font-bold">Gestión de Cotizaciones</h1>
-              <p className="text-xs text-muted-foreground">Sistema de cotizaciones personalizadas</p>
-            </div>
-
-            {/* Derecha: Notificaciones + Ayuda + UserMenu */}
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" className="relative text-gray-600 hover:text-blue-600">
-                <Bell className="w-5 h-5" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => router.push('/ayuda')} className="text-gray-600 hover:text-blue-600">
-                <HelpCircle className="w-5 h-5" />
-                <span className="hidden md:inline ml-1">Ayuda</span>
-              </Button>
-              <UserMenu />
-            </div>
-          </div>
+      {/* Header de la vista */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 font-serif">Gestión de Cotizaciones</h1>
+          <p className="text-xs text-slate-500 mt-1">Sistema de cotizaciones personalizadas y tours</p>
         </div>
-      </header>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => { resetForm(); setActiveTab('form') }}
+            className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl px-4 py-2 gap-2 shadow-xs"
+          >
+            <Plus className="w-4 h-4" />
+            Nueva Cotización
+          </Button>
+          <Button
+            onClick={handleExportToExcel}
+            variant="outline"
+            className="text-xs font-semibold gap-1.5 border-gray-300 rounded-xl"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            Exportar Excel
+          </Button>
+        </div>
+      </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6 bg-blue-600">
             <TabsTrigger

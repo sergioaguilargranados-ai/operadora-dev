@@ -20,13 +20,26 @@
 - Se simplificaron los sub-layouts (`crm/layout.tsx`, `rrhh/layout.tsx`, `agency/layout.tsx`) para heredar limpiamente sin sobrecargas.
 - Las vistas que antes perdían el menú vertical (como `/dashboard/admin/agencies`, `/dashboard/payments`, `/dashboard/corporate/*`, `/dashboard/quotes`, `/dashboard/admin/*`) ahora conservan de manera consistente el menú vertical lateral y el encabezado unificado.
 
+### 3. Ajustes Específicos Adicionales
+- **Cotizaciones (`/dashboard/quotes`):** Se eliminó la cabecera repetida interna con logo y menú de usuario, reemplazándola por el banner estándar con botón "Nueva Cotización" y "Exportar Excel".
+- **Tenants & Marca Blanca (`/admin/tenants`):** Eliminación de cenefa manual y unificación de acciones "+ Nuevo Tenant" y "Actualizar" al banner superior.
+- **Administración de Funciones (`/admin/features`):** Eliminación de cabecera manual y adaptación limpia al grid de Intranet.
+- **Panel MegaTravel (`/admin/megatravel`):** Eliminación de cabecera manual con logo y unificación al layout.
+- **Panel de Super Admin (`/dashboard/admin/agencies`):** Rediseño completo a la estética institucional estándar en blanco/gris (`bg-white`, bordes sutiles, KPI cards limpios, badges de estado, gráfica Recharts en tema claro), alineándolo visualmente con Operación, CRM y Dashboard.
+
 ---
 
 ## 📁 Archivos Principales Modificados
 - `src/app/dashboard/layout.tsx` [NEW]: Layout maestro para todo el dashboard.
 - `src/app/admin/layout.tsx` [NEW]: Layout maestro para todo el módulo admin.
 - `src/app/dashboard/crm/layout.tsx`, `src/app/dashboard/rrhh/layout.tsx`, `src/app/dashboard/agency/layout.tsx`: Simplificación de layouts hijos.
-- `src/app/dashboard/page.tsx`, `src/app/dashboard/payments/page.tsx`, `src/app/dashboard/admin/agencies/page.tsx`, `src/app/dashboard/store/page.tsx`: Eliminación de cenefas repetidas y adaptación a `PortalIntranetLayout`.
+- `src/app/dashboard/quotes/page.tsx`: Eliminación de cenefa manual y adición de banner estándar.
+- `src/app/admin/tenants/page.tsx`: Eliminación de cenefa manual.
+- `src/app/admin/features/page.tsx`: Eliminación de cenefa manual.
+- `src/app/admin/megatravel/page.tsx`: Eliminación de cenefa manual.
+- `src/app/dashboard/admin/agencies/page.tsx`: Rediseño al estilo institucional estándar en blanco/gris.
+- `src/app/dashboard/page.tsx`, `src/app/dashboard/payments/page.tsx`, `src/app/dashboard/store/page.tsx`: Eliminación de cenefas repetidas y adaptación a `PortalIntranetLayout`.
 - Todas las rutas en `src/app/dashboard/crm/*` y `src/app/dashboard/rrhh/*`.
 - `DOCS/AG-Historico-Cambios.md`: Registro de versión `v2.480`.
 - `DOCS/AG-Contexto-Proyecto.md`: Actualización de estado y versión.
+

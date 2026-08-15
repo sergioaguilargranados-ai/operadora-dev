@@ -228,46 +228,33 @@ export default function AdminFeaturesPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b shadow-sm">
-                <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => router.back()}
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </Button>
-                        <Logo className="py-1" />
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={fetchData}
-                            disabled={loading}
-                        >
-                            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                            Actualizar
-                        </Button>
-                        <UserMenu />
-                    </div>
-                </div>
-            </header>
-
-            <main className="container mx-auto px-4 py-8 max-w-6xl">
-                {/* Título */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold flex items-center gap-3">
-                        <Settings className="w-8 h-8 text-blue-600" />
+        <div className="space-y-6">
+            {/* Header de la vista */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4">
+                <div>
+                    <h1 className="text-2xl font-black text-slate-900 font-serif flex items-center gap-3">
+                        <Settings className="w-7 h-7 text-blue-600" />
                         Administración de Funciones
                     </h1>
-                    <p className="text-gray-600 mt-2">
-                        Controla qué funciones están disponibles en la aplicación web y móvil
+                    <p className="text-xs text-slate-500 mt-1">
+                        Controla qué funciones están disponibles en la plataforma web y app móvil
                     </p>
                 </div>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={fetchData}
+                        disabled={loading}
+                        className="rounded-xl text-xs"
+                    >
+                        <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+                        Actualizar
+                    </Button>
+                </div>
+            </div>
+
+            <main className="max-w-6xl">
 
                 {/* Error */}
                 {error && (

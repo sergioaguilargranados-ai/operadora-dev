@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
     Building2, Users, DollarSign, TrendingUp, Briefcase,
-    Loader2, Eye, Shield, Globe, ArrowUpRight, BarChart3
+    Loader2, Eye, ShieldCheck, Globe, ArrowUpRight, BarChart3,
+    Plus, Sparkles
 } from 'lucide-react'
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -49,7 +50,7 @@ interface GlobalStats {
 }
 
 // ═══════════════════════════════════════
-// Componente
+// Componente Principal
 // ═══════════════════════════════════════
 
 export default function AdminAgenciesPage() {
@@ -74,8 +75,8 @@ export default function AdminAgenciesPage() {
             const res = await fetch('/api/admin/agencies')
             const data = await res.json()
             if (data.success) {
-                setAgencies(data.data.agencies)
-                setGlobal(data.data.global)
+                setAgencies(data.data.agencies || [])
+                setGlobal(data.data.global || null)
             }
         } catch (error) {
             console.error('Error fetching admin data:', error)
@@ -93,8 +94,8 @@ export default function AdminAgenciesPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="min-h-[60vh] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
             </div>
         )
     }
@@ -110,184 +111,184 @@ export default function AdminAgenciesPage() {
         }))
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 text-white">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4 mb-6">
+        <div className="space-y-6">
+            {/* Header Institucional de la Vista */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4">
                 <div>
-                    <h1 className="text-xl font-bold flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-indigo-400" />
+                    <h1 className="text-2xl font-black text-slate-900 font-serif flex items-center gap-2.5">
+                        <ShieldCheck className="w-7 h-7 text-slate-900" />
                         Panel de Super Admin
                     </h1>
-                    <p className="text-sm text-slate-400">Vista global de todas las agencias</p>
+                    <p className="text-xs text-slate-500 mt-1">Vista global, métricas consolidadas y gestión de agencias afiliadas</p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <Button 
+                        onClick={() => router.push('/registro-agencias')}
+                        className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl px-4 py-2 gap-2 shadow-xs"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Nueva Agencia
+                    </Button>
                 </div>
             </div>
 
-            <main className="container mx-auto px-4 py-6 max-w-7xl">
+            {/* ═══ STATS GLOBALES (KPI CARDS) ═══ */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="p-4 border-gray-200/80 shadow-2xs rounded-2xl bg-white border-l-4 border-l-blue-600">
+                    <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-slate-400">Total Agencias</p>
+                        <Building2 className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="flex items-baseline gap-2 mt-1">
+                        <span className="text-2xl font-black text-slate-900">{global?.total_agencies || 0}</span>
+                        <span className="text-xs text-blue-600 font-bold">registradas</span>
+                    </div>
+                </Card>
 
-                {/* ═══ STATS GLOBALES ═══ */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                        <Card className="p-5 bg-white/10 backdrop-blur-sm border-white/10 text-white">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Building2 className="w-4 h-4 text-indigo-300" />
-                                <span className="text-xs text-slate-300">Agencias</span>
-                            </div>
-                            <h3 className="text-3xl font-bold">{global?.total_agencies || 0}</h3>
-                        </Card>
-                    </motion.div>
+                <Card className="p-4 border-gray-200/80 shadow-2xs rounded-2xl bg-white border-l-4 border-l-emerald-500">
+                    <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-slate-400">Agentes Totales</p>
+                        <Users className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <div className="flex items-baseline gap-2 mt-1">
+                        <span className="text-2xl font-black text-slate-900">{global?.total_agents || 0}</span>
+                        <span className="text-xs text-slate-400 font-medium">({global?.total_clients || 0} clientes)</span>
+                    </div>
+                </Card>
 
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                        <Card className="p-5 bg-white/10 backdrop-blur-sm border-white/10 text-white">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Users className="w-4 h-4 text-blue-300" />
-                                <span className="text-xs text-slate-300">Agentes</span>
-                            </div>
-                            <h3 className="text-3xl font-bold">{global?.total_agents || 0}</h3>
-                            <p className="text-xs text-slate-400 mt-1">{global?.total_clients || 0} clientes</p>
-                        </Card>
-                    </motion.div>
+                <Card className="p-4 border-gray-200/80 shadow-2xs rounded-2xl bg-white border-l-4 border-l-amber-500">
+                    <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-slate-400">Reservas Globales</p>
+                        <Briefcase className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div className="flex items-baseline gap-2 mt-1">
+                        <span className="text-2xl font-black text-slate-900">{global?.total_bookings || 0}</span>
+                        <span className="text-xs text-emerald-600 font-bold">{formatCurrency(global?.total_revenue || 0)}</span>
+                    </div>
+                </Card>
 
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                        <Card className="p-5 bg-white/10 backdrop-blur-sm border-white/10 text-white">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Briefcase className="w-4 h-4 text-green-300" />
-                                <span className="text-xs text-slate-300">Reservas</span>
-                            </div>
-                            <h3 className="text-3xl font-bold">{global?.total_bookings || 0}</h3>
-                            <p className="text-xs text-green-300 mt-1">{formatCurrency(global?.total_revenue || 0)}</p>
-                        </Card>
-                    </motion.div>
+                <Card className="p-4 border-gray-200/80 shadow-2xs rounded-2xl bg-white border-l-4 border-l-purple-600">
+                    <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-slate-400">Comisiones Totales</p>
+                        <DollarSign className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div className="flex items-baseline gap-2 mt-1">
+                        <span className="text-2xl font-black text-slate-900">{formatCurrency(global?.total_commissions || 0)}</span>
+                    </div>
+                    <div className="flex gap-2 text-[10px] mt-1 text-slate-500">
+                        <span className="text-amber-600 font-bold">⏳ {formatCurrency(global?.pending_commissions || 0)}</span>
+                        <span>•</span>
+                        <span className="text-emerald-600 font-bold">✅ {formatCurrency(global?.available_commissions || 0)}</span>
+                    </div>
+                </Card>
+            </div>
 
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-                        <Card className="p-5 bg-white/10 backdrop-blur-sm border-white/10 text-white">
-                            <div className="flex items-center gap-2 mb-2">
-                                <DollarSign className="w-4 h-4 text-yellow-300" />
-                                <span className="text-xs text-slate-300">Comisiones</span>
-                            </div>
-                            <h3 className="text-3xl font-bold">{formatCurrency(global?.total_commissions || 0)}</h3>
-                            <div className="flex gap-2 text-xs mt-1">
-                                <span className="text-yellow-300">⏳ {formatCurrency(global?.pending_commissions || 0)}</span>
-                                <span className="text-green-300">✅ {formatCurrency(global?.available_commissions || 0)}</span>
-                            </div>
-                        </Card>
-                    </motion.div>
+            {/* ═══ GRÁFICA COMPARATIVA ═══ */}
+            {chartData.length > 0 && (
+                <Card className="p-6 border-gray-200/80 shadow-2xs rounded-2xl bg-white">
+                    <h3 className="text-base font-bold mb-4 flex items-center gap-2 text-slate-900">
+                        <BarChart3 className="w-4 h-4 text-blue-600" />
+                        Rendimiento Comparativo de Agencias
+                    </h3>
+                    <ResponsiveContainer width="100%" height={260}>
+                        <BarChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                            <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} />
+                            <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: '#ffffff',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: '12px',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                                    color: '#0f172a'
+                                }}
+                            />
+                            <Bar dataKey="reservas" fill="#000000" radius={[6, 6, 0, 0]} name="Reservas" />
+                            <Bar dataKey="agentes" fill="#3b82f6" radius={[6, 6, 0, 0]} name="Agentes" />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </Card>
+            )}
+
+            {/* ═══ LISTA DE AGENCIAS REGISTRADAS ═══ */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-base font-bold flex items-center gap-2 text-slate-900">
+                        <Globe className="w-4 h-4 text-slate-700" />
+                        Agencias Registradas
+                    </h3>
+                    <Badge variant="outline" className="text-xs font-bold text-slate-700 bg-slate-100">
+                        {agencies.length} agencias
+                    </Badge>
                 </div>
 
-                {/* ═══ GRÁFICA COMPARATIVA ═══ */}
-                {chartData.length > 0 && (
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                        <Card className="p-6 mb-8 bg-white/5 backdrop-blur-sm border-white/10">
-                            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-white">
-                                <BarChart3 className="w-5 h-5 text-indigo-300" />
-                                Comparativa de Agencias
-                            </h3>
-                            <ResponsiveContainer width="100%" height={280}>
-                                <BarChart data={chartData}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                                    <XAxis dataKey="name" tick={{ fill: '#94A3B8', fontSize: 12 }} />
-                                    <YAxis tick={{ fill: '#94A3B8', fontSize: 12 }} />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#1E293B',
-                                            border: '1px solid #334155',
-                                            borderRadius: '8px',
-                                            color: '#F1F5F9'
-                                        }}
-                                    />
-                                    <Bar dataKey="reservas" fill="#818CF8" radius={[4, 4, 0, 0]} name="Reservas" />
-                                    <Bar dataKey="agentes" fill="#38BDF8" radius={[4, 4, 0, 0]} name="Agentes" />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </Card>
-                    </motion.div>
-                )}
-
-                {/* ═══ LISTA DE AGENCIAS ═══ */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                            <Globe className="w-5 h-5 text-indigo-300" />
-                            Agencias Registradas
-                        </h3>
-                        <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30">
-                            {agencies.length} agencias
-                        </Badge>
-                    </div>
-
-                    <div className="space-y-4">
-                        {agencies.map((agency, i) => (
-                            <motion.div
-                                key={agency.id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.5 + i * 0.1 }}
-                            >
-                                <Card className="p-5 bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all cursor-pointer group"
-                                    onClick={() => router.push(`/dashboard/agency?id=${agency.id}`)}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                                                {agency.company_name.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <h4 className="font-semibold text-lg text-white group-hover:text-indigo-300 transition">
-                                                    {agency.company_name}
-                                                </h4>
-                                                <p className="text-sm text-slate-400">{agency.slug || '—'}</p>
-                                                <div className="flex gap-2 mt-1.5">
-                                                    <Badge className={agency.is_active ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-red-500/20 text-red-300 border-red-500/30'}>
-                                                        {agency.is_active ? '● Activa' : '○ Inactiva'}
-                                                    </Badge>
-                                                    <Badge className="bg-white/10 text-slate-300 border-white/10">
-                                                        {parseInt(String(agency.total_agents))} agentes
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-8 items-center">
-                                            <div className="text-right hidden md:block">
-                                                <p className="text-xs text-slate-400">Clientes</p>
-                                                <p className="text-lg font-bold text-white">{parseInt(String(agency.total_clients))}</p>
-                                            </div>
-                                            <div className="text-right hidden md:block">
-                                                <p className="text-xs text-slate-400">Reservas</p>
-                                                <p className="text-lg font-bold text-white">{parseInt(String(agency.total_bookings))}</p>
-                                            </div>
-                                            <div className="text-right hidden lg:block">
-                                                <p className="text-xs text-slate-400">Revenue</p>
-                                                <p className="text-lg font-bold text-green-300">{formatCurrency(parseFloat(String(agency.total_revenue)))}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-xs text-slate-400">Comisiones</p>
-                                                <p className="text-lg font-bold text-yellow-300">{formatCurrency(parseFloat(String(agency.total_commissions)))}</p>
-                                                <div className="flex gap-1 text-xs mt-0.5">
-                                                    {parseFloat(String(agency.pending_commissions)) > 0 && (
-                                                        <span className="text-yellow-400">⏳{formatCurrency(parseFloat(String(agency.pending_commissions)))}</span>
-                                                    )}
-                                                    {parseFloat(String(agency.available_commissions)) > 0 && (
-                                                        <span className="text-green-400">✅{formatCurrency(parseFloat(String(agency.available_commissions)))}</span>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            <ArrowUpRight className="w-5 h-5 text-slate-500 group-hover:text-indigo-400 transition" />
+                <div className="space-y-3">
+                    {agencies.map((agency, i) => (
+                        <Card 
+                            key={agency.id}
+                            className="p-4 border-gray-200/80 shadow-2xs rounded-2xl bg-white hover:border-slate-400 hover:shadow-xs transition-all cursor-pointer group"
+                            onClick={() => router.push(`/dashboard/agency?id=${agency.id}`)}
+                        >
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="flex items-center gap-3.5">
+                                    <div className="w-12 h-12 bg-slate-900 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-2xs flex-shrink-0">
+                                        {agency.company_name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">
+                                            {agency.company_name}
+                                        </h4>
+                                        <p className="text-xs text-slate-400">{agency.slug || '—'}</p>
+                                        <div className="flex gap-2 mt-1">
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                                agency.is_active 
+                                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                                                    : 'bg-red-50 text-red-700 border border-red-200'
+                                            }`}>
+                                                {agency.is_active ? '● Activa' : '○ Inactiva'}
+                                            </span>
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
+                                                {parseInt(String(agency.total_agents))} agentes
+                                            </span>
                                         </div>
                                     </div>
-                                </Card>
-                            </motion.div>
-                        ))}
+                                </div>
 
-                        {agencies.length === 0 && (
-                            <Card className="p-12 text-center bg-white/5 border-white/10">
-                                <Building2 className="w-16 h-16 mx-auto mb-4 text-slate-600" />
-                                <h3 className="text-xl font-semibold mb-2 text-white">No hay agencias registradas</h3>
-                                <p className="text-slate-400">Las agencias aparecerán aquí cuando se registren</p>
-                            </Card>
-                        )}
-                    </div>
-                </motion.div>
-            </main>
+                                <div className="flex items-center justify-between md:justify-end gap-6 pt-2 md:pt-0 border-t md:border-t-0 border-gray-100">
+                                    <div className="text-right">
+                                        <p className="text-[10px] text-slate-400 font-semibold uppercase">Clientes</p>
+                                        <p className="text-sm font-bold text-slate-900">{parseInt(String(agency.total_clients))}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] text-slate-400 font-semibold uppercase">Reservas</p>
+                                        <p className="text-sm font-bold text-slate-900">{parseInt(String(agency.total_bookings))}</p>
+                                    </div>
+                                    <div className="text-right hidden sm:block">
+                                        <p className="text-[10px] text-slate-400 font-semibold uppercase">Revenue</p>
+                                        <p className="text-sm font-bold text-emerald-600">{formatCurrency(parseFloat(String(agency.total_revenue)))}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] text-slate-400 font-semibold uppercase">Comisiones</p>
+                                        <p className="text-sm font-bold text-slate-900">{formatCurrency(parseFloat(String(agency.total_commissions)))}</p>
+                                    </div>
+
+                                    <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-slate-900 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
+
+                    {agencies.length === 0 && (
+                        <Card className="p-12 text-center border-gray-200/80 shadow-2xs rounded-2xl bg-white">
+                            <Building2 className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                            <h3 className="text-base font-bold text-slate-900 mb-1">No hay agencias registradas</h3>
+                            <p className="text-xs text-slate-500">Las agencias aparecerán aquí cuando completen su registro</p>
+                        </Card>
+                    )}
+                </div>
+            </div>
         </div>
     )
 }

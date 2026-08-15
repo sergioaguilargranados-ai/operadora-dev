@@ -125,23 +125,16 @@ export default function MegaTravelAdminPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-            {/* Header */}
-            <header className="bg-white border-b border-gray-200 shadow-sm">
-                <div className="container mx-auto px-4 py-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Panel MegaTravel</h1>
-                            <p className="text-gray-600 mt-1">Sincronización y gestión de paquetes</p>
-                        </div>
-                        <Button onClick={() => router.push('/')} variant="outline">
-                            Volver al inicio
-                        </Button>
-                    </div>
+        <div className="space-y-6">
+            {/* Header de la vista */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4">
+                <div>
+                    <h1 className="text-2xl font-black text-slate-900 font-serif">Panel MegaTravel</h1>
+                    <p className="text-xs text-slate-500 mt-1">Sincronización y gestión de paquetes</p>
                 </div>
-            </header>
+            </div>
 
-            <div className="container mx-auto px-4 py-8">
+            <div>
                 {/* Estadísticas */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <Card className="p-6">
@@ -331,7 +324,7 @@ export default function MegaTravelAdminPage() {
             <footer className="bg-white border-t border-gray-200 mt-12 py-6">
                 <div className="container mx-auto px-4 text-center text-sm text-gray-600">
                     <p>© 2026 AS Operadora - Panel de Administración MegaTravel</p>
-                    <p className="text-xs mt-1 opacity-50">v2.480 | 15 Aug 2026 01:42</p>
+                    <p className="text-xs mt-1 opacity-50">v2.480 | 15 Aug 2026 02:08</p>
                 </div>
             </footer>
         </div>
