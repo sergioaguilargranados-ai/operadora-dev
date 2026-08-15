@@ -8,6 +8,25 @@
 ## 📌 REGLAS DE COMUNICACIÓN (IMPORTANTE)
 - **Idioma:** Toda comunicación hacia el usuario y entre agentes **DEBE SER EXCLUSIVAMENTE EN ESPAÑOL**. No utilizar inglés en las respuestas, resúmenes ni en los mensajes entre subagentes.
 
+## 🌟 PROTOCOLO OBLIGATORIO AL CREAR NUEVAS FUNCIONES O MÓDULOS (CHECKLIST DE 5 PASOS)
+Siempre que un agente agregue una nueva pantalla, módulo, sub-opción o herramienta al sistema, **DEBE COMPLETAR OBLIGATORIAMENTE ESTE FLUJO DE 5 PASOS**:
+
+1. **1. Catálogo de Funciones / Feature Flags (`features` & `FeatureService.ts`):**
+   - Registrar la nueva función en el catálogo de `/admin/features` para permitir su activación/desactivación por switch global o por Marca Blanca (Tenant).
+2. **2. Catálogo de Permisos Granulares (`permissions` & `role_permissions`):**
+   - Registrar el código o códigos granulares en la tabla `permissions` (ej. `modulo:view`, `modulo:create`, `modulo:edit`, `modulo:delete`, `modulo:export`).
+   - Asignar los permisos iniciales a los roles correspondientes en `role_permissions` para que aparezca configurable en `/admin/roles` (Pestaña 2: Matriz de Permisos).
+3. **3. Árbol de Navegación Dinámico (`navigation_menu_items`):**
+   - Registrar la opción en `navigation_menu_items` especificando `section_key`, `section_title`, `item_key`, `label`, `icon_name`, `route`, `permission_code` y `parent_item_key` (si es submenú).
+   - Esto garantiza que aparezca automáticamente en el menú lateral de Intranet y en `/admin/roles` (Pestaña 3: Organizador de Menú).
+4. **4. Protección en Frontend y Backend:**
+   - En vistas y botones, usar `<PermissionGate permission="modulo:accion">` y el hook `usePermissions()`.
+   - En las rutas de API (`/api/...`), validar los permisos del usuario a partir del token JWT.
+5. **5. Versionado y Despliegue Obligatorio:**
+   - Incrementar versión con `node scripts/update-version.js vX.XXX`.
+   - Compilar con `npm run build` para asegurar 0 errores.
+   - Documentar en `DOCS/AG-Historico-Cambios.md`, `DOCS/AG-Contexto-Proyecto.md` y commit/push **exclusivamente a la rama `dev`**.
+
 ## 📌 INFORMACIÓN DEL PROYECTO
 
 ### Nombre del Proyecto
@@ -26,11 +45,10 @@ Sergio Aguilar Granados
 Resumen ejecutivo y flujo de desarrollo.
 
 ### AL VERSIONAR CONSERVAR FORMATO V0.000 CON FECHA Y HORA DE COMPILACION DEL TIEMPO CDMX EJEMPLO
-- **Versión:** v2.479 2026-08-13 23:42:00 CST — Estandarización Universal de Correos a Tema Negro Institucional (#000000) y Parámetros de Marca Blanca (Teléfono +52 720 815 6804, Email Emisor Real, Enlace /login)
-
+- **Versión:** v2.486 2026-08-15 05:18:00 CST — Organizador Dinámico de Menú de Intranet y Reordenamiento Interactivo en /admin/roles
 
 ### ESTADO DEL PROYECTO
-- **Progreso:** 99% completo (White-Label: ~96%)
+- **Progreso:** 99% completo (White-Label: ~97%)
 - **Ambiente:** Desarrollo activo con usuarios en UAT
 - **Deploy:** Automático vía Git → Vercel
 
