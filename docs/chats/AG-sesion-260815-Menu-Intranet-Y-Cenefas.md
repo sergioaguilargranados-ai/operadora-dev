@@ -1,7 +1,7 @@
-# AG-Sesión: Estandarización de Layouts Intranet, Eliminación de Cenefas Duplicadas y Restauración de Menú Vertical v2.483
+# AG-Sesión: Estandarización de Layouts Intranet, Eliminación de Cenefas Duplicadas, Restauración de Menú Vertical y Roles Granulares v2.484
 
-> **Fecha:** 2026-08-15 03:48 CST  
-> **Versión alcanzada:** `v2.483`  
+> **Fecha:** 2026-08-15 04:29 CST  
+> **Versión alcanzada:** `v2.484`  
 > **Repositorio:** `operadora-dev` (`origin/dev`)  
 
 ---
@@ -38,23 +38,28 @@
   - Sincronización bidireccional mediante `searchParams` y carga bajo demanda de datos (`loadHotels`, `loadAirlines`, `loadTourImages`).
   - Auto-expansión del menú lateral al ingresar a rutas de administración y gestión de contenido.
 
+### 6. Sistema Integral de Roles y Permisos Granulares (`v2.484`)
+- **Base de Datos:** Semillado de 44 permisos granulares clasificados por módulo y asignación de 189 relaciones en `role_permissions`.
+- **Nuevas APIs:** `GET /api/auth/permissions`, CRUD `api/admin/roles` y `GET /api/admin/permissions`.
+- **Frontend:** Contexto `PermissionsProvider`, hook `usePermissions()` y componente `<PermissionGate>`.
+- **UI:** Pantalla de *Gestión de Roles & Matriz de Permisos* (`/admin/roles`).
+- **Menú y Páginas:** Menú lateral dinámico y vistas protegidas según permisos del rol en tiempo real.
+
 ---
 
 ## 📁 Archivos Principales Modificados
-- `src/app/dashboard/layout.tsx` [NEW]: Layout maestro para todo el dashboard.
-- `src/app/admin/layout.tsx` [NEW]: Layout maestro para todo el módulo admin.
-- `src/app/dashboard/crm/layout.tsx`, `src/app/dashboard/rrhh/layout.tsx`, `src/app/dashboard/agency/layout.tsx`: Simplificación de layouts hijos.
-- `src/app/admin/content/page.tsx`: Sincronización de pestañas de contenido con `searchParams` y carga reactiva.
-- `src/components/layout/PortalSidebar.tsx`: Submenú jerárquico de *Gestión de Contenido* y *Panel de Empresas*, auto-expansión de acordeones.
-- `src/app/dashboard/agency/page.tsx`: Sincronización de pestaña `overview` y sincronización router-tabs.
-- `src/app/dashboard/corporate/page.tsx`: Sincronización dinámica de `Tabs` con `searchParams.get('tab')`.
-- `src/app/dashboard/quotes/page.tsx`: Eliminación de cenefa manual y adición de banner estándar.
-- `src/app/admin/tenants/page.tsx`, `src/app/admin/features/page.tsx`, `src/app/admin/megatravel/page.tsx`: Eliminación de cenefa manual.
-- `src/app/dashboard/admin/agencies/page.tsx`: Rediseño al estilo institucional estándar en blanco/gris.
-- `src/app/dashboard/page.tsx`, `src/app/dashboard/payments/page.tsx`, `src/app/dashboard/store/page.tsx`: Eliminación de cenefas repetidas y adaptación a `PortalIntranetLayout`.
-- Todas las rutas en `src/app/dashboard/crm/*` y `src/app/dashboard/rrhh/*`.
-- `DOCS/AG-Historico-Cambios.md`: Registro de versión `v2.482`.
-- `DOCS/AG-Contexto-Proyecto.md`: Actualización de estado y versión `v2.482`.
+- `src/app/admin/roles/page.tsx` [NEW]: Pantalla de administración de roles y matriz de permisos granulares.
+- `src/app/api/admin/roles/route.ts` [NEW]: API CRUD y asignación de matriz de roles.
+- `src/app/api/admin/permissions/route.ts` [NEW]: Catálogo de permisos por módulo.
+- `src/app/api/auth/permissions/route.ts` [NEW]: Endpoint de permisos efectivos de usuario.
+- `src/contexts/PermissionsContext.tsx` [NEW]: Contexto y hook `usePermissions()`.
+- `src/components/auth/PermissionGate.tsx` [NEW]: Componente para protección granular de UI.
+- `scripts/seed-permissions.js` [NEW]: Script de migración y seeding.
+- `src/components/layout/PortalSidebar.tsx`: Menú lateral dinámico gobernado por permisos.
+- `src/app/dashboard/crm/contacts/page.tsx`: Adaptación a permisos granulares con `<PermissionGate>`.
+- `src/app/layout.tsx`: Integración de `PermissionsProvider`.
+- `DOCS/AG-Historico-Cambios.md`: Registro de versión `v2.484`.
+- `DOCS/AG-Contexto-Proyecto.md`: Actualización de estado y versión `v2.484`.
 
 
 

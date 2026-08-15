@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePermissions } from '@/contexts/PermissionsContext'
 import {
   LayoutDashboard,
   Package,
@@ -32,6 +33,7 @@ import {
 interface SubMenuItem {
   label: string
   route: string
+  permission?: string
 }
 
 interface MenuItem {
@@ -39,6 +41,7 @@ interface MenuItem {
   icon: any
   route: string
   badge?: string
+  permission?: string
   subItems?: SubMenuItem[]
 }
 
@@ -57,6 +60,7 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { user } = useAuth()
+  const { hasPermission, isSuperAdmin } = usePermissions()
   const [internalCollapsed, setInternalCollapsed] = useState(false)
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
 
@@ -108,6 +112,7 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
           icon: Users, 
           route: '/operacion', 
           badge: 'CRM',
+          permission: 'crm:view',
           subItems: [
             { label: 'Catálogo Clientes', route: '/operacion' },
             { label: 'CRM Dashboard', route: '/dashboard/crm' },
@@ -127,13 +132,15 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
         { 
           label: 'Dashboard Ventas', 
           icon: LayoutDashboard, 
-          route: '/dashboard'
+          route: '/dashboard',
+          permission: 'crm:view'
         },
-        { label: 'Cotizaciones', icon: FileText, route: '/dashboard/quotes' },
+        { label: 'Cotizaciones', icon: FileText, route: '/dashboard/quotes', permission: 'quotes:view' },
         { 
           label: 'RRHH / Personal', 
           icon: Briefcase, 
           route: '/dashboard/rrhh',
+          permission: 'rrhh:view',
           subItems: [
             { label: 'Panel RRHH General', route: '/dashboard/rrhh' },
             { label: 'Directorio & Empleados', route: '/dashboard/rrhh/employees' },
@@ -147,11 +154,12 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
             { label: 'Auditoría & Logs RRHH', route: '/dashboard/rrhh/audit' }
           ]
         },
-        { label: 'Productos de la tienda', icon: ShoppingBag, route: '/dashboard/store' },
+        { label: 'Productos de la tienda', icon: ShoppingBag, route: '/dashboard/store', permission: 'store:view' },
         { 
           label: 'Panel de Empresas', 
           icon: Building, 
           route: '/dashboard/corporate',
+          permission: 'crm:view',
           subItems: [
             { label: 'Resumen General', route: '/dashboard/corporate' },
             { label: 'Empleados Corporativos', route: '/dashboard/corporate?tab=empleados' },
@@ -165,7 +173,8 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
         { 
           label: 'Panel Agencias', 
           icon: Building2, 
-          route: '/dashboard/agency', 
+          route: '/dashboard/agency',
+          permission: 'crm:view',
           subItems: [
             { label: 'Resumen General', route: '/dashboard/agency' },
             { label: 'Gestión Agentes', route: '/dashboard/agency?tab=agentes' },
@@ -178,9 +187,9 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
     {
       title: 'GESTIÓN DE RESERVAS',
       items: [
-        { label: 'Todas las Reservas', icon: Package, route: '/mis-reservas' },
-        { label: 'Pagos & Cuentas', icon: CreditCard, route: '/dashboard/payments' },
-        { label: 'Facturación SAT CFDI', icon: Receipt, route: '/facturacion', badge: 'SAT' }
+        { label: 'Todas las Reservas', icon: Package, route: '/mis-reservas', permission: 'bookings:view' },
+        { label: 'Pagos & Cuentas', icon: CreditCard, route: '/dashboard/payments', permission: 'bookings:payments' },
+        { label: 'Facturación SAT CFDI', icon: Receipt, route: '/facturacion', badge: 'SAT', permission: 'invoices:view' }
       ]
     },
     {
@@ -190,6 +199,7 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
           label: 'Gestión de Contenido',
           icon: Globe,
           route: '/admin/content',
+          permission: 'content:view',
           subItems: [
             { label: 'Banner Principal', route: '/admin/content' },
             { label: 'Promociones', route: '/admin/content?tab=promotions' },
@@ -210,29 +220,42 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
           label: 'Administración & Sistema',
           icon: ShieldCheck,
           route: '/admin/features',
+          permission: 'admin:users:view',
           subItems: [
             { label: 'Administración de Funciones', route: '/admin/features' },
             { label: 'Tenants & Marca Blanca', route: '/admin/tenants' },
             { label: 'Panel MegaTravel', route: '/admin/megatravel' },
             { label: 'Imágenes de Tours', route: '/admin/tour-images' },
             { label: 'MegaTravel Scraping', route: '/admin/megatravel-scraping' },
-            { label: 'Usuarios & Roles', route: '/dashboard/admin/users' }
+            { label: 'Usuarios & Asignaciones', route: '/dashboard/admin/users' },
+            { label: 'Roles & Permisos', route: '/admin/roles' }
           ]
         },
-        ...(user?.role === 'SUPER_ADMIN' ? [{ label: 'Panel Super Admin', icon: ShieldCheck, route: '/dashboard/admin/agencies' } as MenuItem] : []),
-        { label: 'Moderación', icon: Eye, route: '/dashboard/moderacion' },
-        { label: 'WhatsApp & Mensajes', icon: MessageCircle, route: '/comunicacion' }
+        { label: 'Panel Super Admin', icon: ShieldCheck, route: '/dashboard/admin/agencies', permission: 'admin:agencies:view' },
+        { label: 'Moderación', icon: Eye, route: '/dashboard/moderacion', permission: 'admin:users:view' },
+        { label: 'WhatsApp & Mensajes', icon: MessageCircle, route: '/comunicacion', permission: 'crm:whatsapp:use' }
       ]
     },
     {
       title: 'CUENTA PERSONAL',
       items: [
-        { label: 'Mi Perfil', icon: UserIcon, route: '/perfil' }
+        { label: 'Mi Perfil', icon: UserIcon, route: '/perfil', permission: 'profile:view' }
       ]
     }
   ]
 
-  const menuToRender = isStaff ? staffMenu : clientMenu
+  const isItemPermitted = (item: MenuItem) => {
+    if (isSuperAdmin || user?.role === 'SUPER_ADMIN') return true
+    if (!item.permission) return true
+    return hasPermission(item.permission)
+  }
+
+  const filteredStaffMenu = staffMenu.map(section => ({
+    ...section,
+    items: section.items.filter(isItemPermitted)
+  })).filter(section => section.items.length > 0)
+
+  const menuToRender = isStaff ? filteredStaffMenu : clientMenu
 
   return (
     <aside className={`bg-white border-r border-slate-200 min-h-[calc(100vh-65px)] transition-all duration-200 flex flex-col justify-between select-none ${collapsed ? 'w-16' : 'w-64'}`}>

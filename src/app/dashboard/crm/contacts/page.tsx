@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
+import { usePermissions } from '@/contexts/PermissionsContext'
+import { PermissionGate } from '@/components/auth/PermissionGate'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import {
     Users, UserPlus, Search, Filter, ChevronRight, ChevronLeft,
@@ -237,7 +239,10 @@ function ContactRow({ contact, onClick, onDelete, isAdmin }: { contact: Contact;
 export default function ContactsPage() {
     const router = useRouter()
     const { user, isAuthenticated } = useAuth()
-    const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN'
+    const { can, isSuperAdmin } = usePermissions()
+    const canDelete = isSuperAdmin || can('crm:contacts:delete')
+    const canCreate = isSuperAdmin || can('crm:contacts:create')
+    const isAdmin = canDelete
     const { toast } = useToast()
 
     const [loading, setLoading] = useState(true)
@@ -382,13 +387,15 @@ export default function ContactsPage() {
                         </h1>
                         <p className="text-sm text-muted-foreground">{total} contacto{total !== 1 ? 's' : ''}</p>
                     </div>
-                    <Button
-                        size="sm"
-                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-full gap-1.5"
-                        onClick={() => setShowNew(true)}
-                    >
-                        <UserPlus className="w-4 h-4" /> Nuevo
-                    </Button>
+                    <PermissionGate permission="crm:contacts:create">
+                        <Button
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full gap-1.5"
+                            onClick={() => setShowNew(true)}
+                        >
+                            <UserPlus className="w-4 h-4" /> Nuevo
+                        </Button>
+                    </PermissionGate>
                 </div>
             </div>
 

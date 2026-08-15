@@ -1,5 +1,5 @@
 // FeatureService.ts - Servicio para gestión de features y permisos
-// Build: 15 Aug 2026 - v2.483 - Sistema de Administración Granular
+// Build: 15 Aug 2026 - v2.484 - Sistema de Administración Granular
 
 import { pool } from '@/lib/db';
 

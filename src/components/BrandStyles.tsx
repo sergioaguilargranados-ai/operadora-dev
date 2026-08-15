@@ -1,5 +1,5 @@
 // BrandStyles.tsx - Inyecta CSS variables dinámicas del tenant actual
-// Build: 15 Aug 2026 - v2.483 - Fase 1 Multi-Empresa
+// Build: 15 Aug 2026 - v2.484 - Fase 1 Multi-Empresa
 
 'use client';
 

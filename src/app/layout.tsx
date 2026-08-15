@@ -4,6 +4,7 @@ import "./globals.css";
 import ClientBody from "./ClientBody";
 import Script from "next/script";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { PermissionsProvider } from "@/contexts/PermissionsContext";
 import { FeaturesProvider } from "@/contexts/FeaturesContext";
 import { WhiteLabelProvider } from "@/contexts/WhiteLabelContext";
 import { LanguageCurrencyProvider } from "@/contexts/LanguageCurrencyContext";
@@ -101,23 +102,25 @@ export default function RootLayout({
         />
         <div id="google_translate_element" style={{ display: 'none' }}></div>
         <AuthProvider>
-          <LanguageCurrencyProvider>
-            <WhiteLabelProvider>
-              <BrandStyles />
-              <BrandMeta />
-              <FeaturesProvider>
-                <ServiceWorkerRegistrar />
-                <OfflineIndicator />
-                <ClientBody>{children}</ClientBody>
-                <LanguageCurrencyModal />
-                <CookieConsent />
-                <WhatsAppWidget />
-                <ChatWidget />
-                {/* <GoogleOneTap /> Deshabilitado temporalmente hasta nuevo aviso */}
-                <InstallPrompt />
-              </FeaturesProvider>
-            </WhiteLabelProvider>
-          </LanguageCurrencyProvider>
+          <PermissionsProvider>
+            <LanguageCurrencyProvider>
+              <WhiteLabelProvider>
+                <BrandStyles />
+                <BrandMeta />
+                <FeaturesProvider>
+                  <ServiceWorkerRegistrar />
+                  <OfflineIndicator />
+                  <ClientBody>{children}</ClientBody>
+                  <LanguageCurrencyModal />
+                  <CookieConsent />
+                  <WhatsAppWidget />
+                  <ChatWidget />
+                  {/* <GoogleOneTap /> Deshabilitado temporalmente hasta nuevo aviso */}
+                  <InstallPrompt />
+                </FeaturesProvider>
+              </WhiteLabelProvider>
+            </LanguageCurrencyProvider>
+          </PermissionsProvider>
         </AuthProvider>
       </body>
     </html>

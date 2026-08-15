@@ -1,13 +1,33 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 15 de Agosto de 2026 - 03:48 CST  
-**Versión actual:** v2.483  
+**Última actualización:** 15 de Agosto de 2026 - 04:29 CST  
+**Versión actual:** v2.484  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.484 - 15 de Agosto de 2026 - 04:29 CST
+**Sistema Integral de Roles, Permisos Granulares y Matriz de Acceso Multi-Tenant**
+- **Base de Datos y Catálogo de Permisos (`scripts/seed-permissions.js`):**
+  - Incorporación de columnas `display_name`, `tenant_id` e `is_system` en la tabla `roles`.
+  - Creación del catálogo maestro de 44 permisos granulares clasificados por módulo (`crm`, `quotes`, `bookings`, `rrhh`, `content`, `store`, `invoices`, `admin`, `profile`, `public`).
+  - Asignación de 189 relaciones en `role_permissions` para todos los roles base (`SUPER_ADMIN`, `ADMIN`, `MANAGER`, `AGENCY_ADMIN`, `AGENT`, `HR_MANAGER`, `CLIENT`, `USER`, `GUEST`).
+- **Arquitectura de APIs REST:**
+  - `GET /api/auth/permissions`: Endpoint centralizado para obtener permisos efectivos de sesión (consumible por Web, PWA y App Nativa).
+  - `GET`, `POST`, `PUT`, `DELETE` en `/api/admin/roles`: CRUD completo de roles con soporte de creación personalizada y actualización en lote de la matriz de permisos.
+  - `GET /api/admin/permissions`: Catálogo completo de permisos agrupados por módulo.
+- **Frontend y Control de Acceso Granular:**
+  - Contexto global `PermissionsProvider` y hook `usePermissions()` (`can`, `hasPermission`, `hasAnyPermission`, `isSuperAdmin`).
+  - Componente contenedor `<PermissionGate>` para renderizado condicional de acciones y botones.
+- **Pantalla Administrativa de Roles y Permisos (`/admin/roles`):**
+  - Vista institucional en blanco/gris con pestañas de *Catálogo de Roles* (+ Nuevo Rol modal) y *Matriz de Permisos Granulares* (tabla interactiva con checkboxes y guardado en tiempo real).
+  - Selector de ámbito (Global vs. Marca Blanca / Tenant).
+- **Menús Dinámicos y Vistas Protegidas:**
+  - Menú lateral institucional (`PortalSidebar.tsx`) dinámico gobernado por permisos individuales.
+  - Vistas de CRM Contactos adaptadas con `<PermissionGate permission="crm:contacts:create">` y protección de borrado.
 
 ### v2.483 - 15 de Agosto de 2026 - 03:48 CST
 **Reconocimiento de Marcas Blancas en Super Admin y Reversión de Rama Main a v2.374**
