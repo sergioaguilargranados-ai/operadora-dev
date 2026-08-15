@@ -1,13 +1,33 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 15 de Agosto de 2026 - 02:31 CST  
-**Versión actual:** v2.481  
+**Última actualización:** 15 de Agosto de 2026 - 03:17 CST  
+**Versión actual:** v2.482  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.482 - 15 de Agosto de 2026 - 03:17 CST
+**Submenú Desplegable Completo para Gestión de Contenido y Sincronización de Pestañas**
+- **Submenú Desplegable en Gestión de Contenido (`PortalSidebar.tsx` & `/admin/content`):**
+  - Incorporación de submenú jerárquico desplegable en la barra lateral institucional para *Gestión de Contenido*:
+    1. *Banner Principal* (`/admin/content`)
+    2. *Promociones* (`/admin/content?tab=promotions`)
+    3. *Vuelos Destacados* (`/admin/content?tab=flights`)
+    4. *Paquetes Turísticos* (`/admin/content?tab=packages`)
+    5. *Catálogo Hoteles* (`/admin/content?tab=hotels-catalog`)
+    6. *Catálogo Aerolíneas* (`/admin/content?tab=airlines`)
+    7. *Videos & URLs* (`/admin/content?tab=videos`)
+    8. *Imágenes Tours* (`/admin/content?tab=tour-images`)
+    9. *Ejecución de Procesos* (`/admin/content?tab=processes`)
+    10. *Landing Principal* (`/admin/content?tab=expo`)
+    11. *App Móvil PWA* (`/admin/content?tab=mobile-app`)
+    12. *Tienda (Productos)* (`/admin/content?tab=store-products`)
+    13. *Destinos (IA)* (`/admin/content?tab=destinations`)
+  - Sincronización bidireccional y carga bajo demanda de catálogos (`loadHotels`, `loadAirlines`, `loadTourImages`) al navegar por parámetros `?tab=...` o interactuar directamente en las pestañas.
+  - Apertura automática del acordeón al ingresar a las diferentes secciones (`/admin/content`, `/dashboard/corporate`, `/dashboard/rrhh`, etc.).
 
 ### v2.481 - 15 de Agosto de 2026 - 02:31 CST
 **Sincronización de Pestañas en Agencias, Submenú de Panel de Empresas y Limpieza de Atajos en Sidebar**

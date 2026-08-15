@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -22,8 +22,9 @@ import {
 } from "lucide-react"
 import { CronProcessRunner } from "@/components/admin/CronProcessRunner"
 
-export default function AdminContentPage() {
+function AdminContentPageInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, isAuthenticated } = useAuth()
 
   const [heroData, setHeroData] = useState<any>(null)
@@ -188,6 +189,35 @@ export default function AdminContentPage() {
     } finally {
       setAirlinesLoading(false)
     }
+  }
+
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    const validTabs = [
+      'hero', 'promotions', 'flights', 'packages', 'hotels-catalog',
+      'airlines', 'videos', 'tour-images', 'processes', 'expo',
+      'mobile-app', 'store-products', 'destinations'
+    ]
+    if (tab && validTabs.includes(tab)) {
+      setActiveTab(tab)
+      if (tab === 'hotels-catalog' && hotelsList.length === 0) loadHotels()
+      if (tab === 'airlines' && airlinesList.length === 0) loadAirlines()
+      if (tab === 'tour-images' && tourImagesList.length === 0) loadTourImages()
+    } else {
+      setActiveTab('hero')
+    }
+  }, [searchParams])
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab)
+    if (newTab === 'hero') {
+      router.push('/admin/content')
+    } else {
+      router.push(`/admin/content?tab=${newTab}`)
+    }
+    if (newTab === 'hotels-catalog' && hotelsList.length === 0) loadHotels()
+    if (newTab === 'airlines' && airlinesList.length === 0) loadAirlines()
+    if (newTab === 'tour-images' && tourImagesList.length === 0) loadTourImages()
   }
 
   const saveAirlineLogo = async (iata: string, name: string, url: string) => {
@@ -593,7 +623,7 @@ export default function AdminContentPage() {
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="flex flex-wrap h-auto p-1.5 bg-muted rounded-xl w-full mb-8 gap-1.5">
             <TabsTrigger value="hero" className="flex items-center gap-2">
               <Home className="w-4 h-4" />
@@ -1625,3 +1655,12 @@ export default function AdminContentPage() {
     </div>
   )
 }
+
+export default function AdminContentPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" /><p className="mt-2 text-slate-500">Cargando contenido...</p></div>}>
+      <AdminContentPageInner />
+    </Suspense>
+  )
+}
+

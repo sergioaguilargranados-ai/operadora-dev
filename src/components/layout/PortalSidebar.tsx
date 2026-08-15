@@ -25,7 +25,8 @@ import {
   Building,
   CreditCard,
   Eye,
-  ArrowLeft
+  ArrowLeft,
+  Globe
 } from 'lucide-react'
 
 interface SubMenuItem {
@@ -66,8 +67,11 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
 
   useEffect(() => {
     if (pathname.includes('/dashboard/agency')) setOpenSubmenu('Panel Agencias')
+    else if (pathname.includes('/dashboard/corporate')) setOpenSubmenu('Panel de Empresas')
+    else if (pathname.includes('/admin/content')) setOpenSubmenu('Gestión de Contenido')
     else if (pathname.includes('/admin')) setOpenSubmenu('Administración & Sistema')
     else if (pathname.includes('/dashboard/crm') || pathname === '/operacion') setOpenSubmenu('Catálogo Clientes & CRM')
+    else if (pathname.includes('/dashboard/rrhh')) setOpenSubmenu('RRHH / Personal')
   }, [pathname])
 
   const toggleSubmenu = (label: string) => {
@@ -183,12 +187,31 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
       title: 'ADMINISTRACIÓN Y AJUSTES',
       items: [
         {
+          label: 'Gestión de Contenido',
+          icon: Globe,
+          route: '/admin/content',
+          subItems: [
+            { label: 'Banner Principal', route: '/admin/content' },
+            { label: 'Promociones', route: '/admin/content?tab=promotions' },
+            { label: 'Vuelos Destacados', route: '/admin/content?tab=flights' },
+            { label: 'Paquetes Turísticos', route: '/admin/content?tab=packages' },
+            { label: 'Catálogo Hoteles', route: '/admin/content?tab=hotels-catalog' },
+            { label: 'Catálogo Aerolíneas', route: '/admin/content?tab=airlines' },
+            { label: 'Videos & URLs', route: '/admin/content?tab=videos' },
+            { label: 'Imágenes Tours', route: '/admin/content?tab=tour-images' },
+            { label: 'Ejecución de Procesos', route: '/admin/content?tab=processes' },
+            { label: 'Landing Principal', route: '/admin/content?tab=expo' },
+            { label: 'App Móvil PWA', route: '/admin/content?tab=mobile-app' },
+            { label: 'Tienda (Productos)', route: '/admin/content?tab=store-products' },
+            { label: 'Destinos (IA)', route: '/admin/content?tab=destinations' }
+          ]
+        },
+        {
           label: 'Administración & Sistema',
           icon: ShieldCheck,
           route: '/admin/features',
           subItems: [
             { label: 'Administración de Funciones', route: '/admin/features' },
-            { label: 'Gestión de Contenido', route: '/admin/content' },
             { label: 'Tenants & Marca Blanca', route: '/admin/tenants' },
             { label: 'Panel MegaTravel', route: '/admin/megatravel' },
             { label: 'Imágenes de Tours', route: '/admin/tour-images' },
