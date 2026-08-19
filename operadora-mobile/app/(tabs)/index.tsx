@@ -1,198 +1,315 @@
-import { View, StyleSheet, ScrollView } from 'react-native'
-import { Text, Card, Button, Searchbar } from 'react-native-paper'
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ImageBackground,
+  ScrollView,
+  StyleSheet,
+  Dimensions,
+} from 'react-native'
+import { Ionicons, Feather } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
 import { useAuthStore } from '../../store/auth.store'
-import { Colors, Spacing, FontSizes } from '../../constants/theme'
-import { Ionicons } from '@expo/vector-icons'
+import { useTenantStore } from '../../store/tenant.store'
+import MobileLogo from '../../components/features/MobileLogo'
+import NotificationBell from '../../components/features/NotificationBell'
+import DrawerMenu from '../../components/layout/DrawerMenu'
+import api from '../../services/api'
 
-export default function HomeScreen() {
-    const [searchQuery, setSearchQuery] = useState('')
-    const user = useAuthStore((state) => state.user)
+const { width } = Dimensions.get('window')
 
-    return (
-        <ScrollView style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.greeting}>Hola, {user?.name || 'Usuario'} 👋</Text>
-                <Text style={styles.subtitle}>¿A dónde quieres viajar hoy?</Text>
+export default function MobileHomeScreen() {
+  const router = useRouter()
+  const { user } = useAuthStore()
+  const { bannerUrl, welcomePhrase, loadTenant } = useTenantStore()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (user?.tenant_id) {
+      loadTenant(user.tenant_id)
+    }
+  }, [user?.tenant_id])
+
+  // Prefetching silencioso para cache offline (itinerarios y reservas)
+  useEffect(() => {
+    if (!user?.id) return
+    const prefetch = async () => {
+      try {
+        const res = await api.get(`/bookings?userId=${user.id}`)
+        const bookings = res.data?.data || []
+        bookings.forEach((b: any) => {
+          try {
+            const details = typeof b.special_requests === 'string' ? JSON.parse(b.special_requests) : (b.special_requests || {})
+            const tripId = details.tour_id || b.id.toString()
+            if (tripId) {
+              api.get(`/itineraries/${tripId}`).catch(() => {})
+            }
+          } catch (e) {}
+        })
+      } catch (e) {
+        // silent
+      }
+    }
+    prefetch()
+  }, [user?.id])
+
+  const name = user?.name ? user.name.split(' ')[0] : 'Viajero'
+
+  const menuItems = [
+    {
+      title: 'Perfil',
+      desc: 'Consulta el detalle de tu viaje, vuelos, hospedaje y actividades.',
+      icon: 'person-outline',
+      route: '/perfil',
+    },
+    {
+      title: 'Itinerario',
+      desc: 'Revisa tus itinerarios, vuelos y detalles de tu viaje.',
+      icon: 'briefcase-outline',
+      route: '/itinerario/active',
+    },
+    {
+      title: 'Pagos',
+      desc: 'Revisa tus pagos, saldos y métodos de pago.',
+      icon: 'card-outline',
+      route: '/pagos',
+    },
+    {
+      title: 'Crea tu grupo',
+      desc: 'Invita amigos, acumula beneficios y gana descuentos para tus próximos viajes.',
+      icon: 'people-outline',
+      route: '/viajes-grupales',
+    },
+    {
+      title: 'Tienda',
+      desc: 'Descubre productos y servicios para tu viaje.',
+      icon: 'bag-handle-outline',
+      route: '/tienda',
+    },
+  ]
+
+  return (
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+        {/* Banner Hero */}
+        <ImageBackground
+          source={{
+            uri: bannerUrl || 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80',
+          }}
+          style={styles.heroBanner}
+          resizeMode="cover"
+        >
+          <View style={styles.heroOverlay} />
+
+          {/* Top Bar: Hamburguesa | Logo | Campana */}
+          <View style={styles.topBar}>
+            <TouchableOpacity
+              onPress={() => setMenuOpen(true)}
+              style={styles.menuBtn}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="menu" size={28} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <View style={styles.logoContainer}>
+              <MobileLogo variant="light" size="md" />
             </View>
 
-            <View style={styles.searchContainer}>
-                <Searchbar
-                    placeholder="Buscar destinos, hoteles, vuelos..."
-                    onChangeText={setSearchQuery}
-                    value={searchQuery}
-                    style={styles.searchBar}
-                />
+            <NotificationBell isWhite size={24} />
+          </View>
+
+          {/* Hero Text */}
+          <View style={styles.heroTextContainer}>
+            <View style={styles.greetingRow}>
+              <Text style={styles.greetingLight}>Hola, </Text>
+              <Text style={styles.greetingBold}>{name}</Text>
+              <Ionicons name="airplane-outline" size={24} color="#FFFFFF" style={{ marginLeft: 6 }} />
             </View>
+            <Text style={styles.welcomePhrase}>{welcomePhrase}</Text>
+          </View>
+        </ImageBackground>
 
-            <View style={styles.quickActions}>
-                <Text style={styles.sectionTitle}>Búsqueda Rápida</Text>
-                <View style={styles.actionsGrid}>
-                    <Card style={styles.actionCard}>
-                        <Card.Content style={styles.actionContent}>
-                            <Ionicons name="bed" size={32} color={Colors.primary} />
-                            <Text style={styles.actionText}>Hoteles</Text>
-                        </Card.Content>
-                    </Card>
+        {/* Main Menu Container */}
+        <View style={styles.menuContainer}>
+          {/* Items Principales */}
+          {menuItems.map((item, idx) => (
+            <TouchableOpacity
+              key={idx}
+              style={[styles.menuRow, idx > 0 && styles.menuRowBorder]}
+              onPress={() => router.push(item.route as any)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.iconTile}>
+                <Ionicons name={item.icon as any} size={24} color="#FFFFFF" />
+              </View>
+              <View style={styles.menuTextContainer}>
+                <Text style={styles.menuTitle}>{item.title}</Text>
+                <Text style={styles.menuDesc} numberOfLines={2}>
+                  {item.desc}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          ))}
 
-                    <Card style={styles.actionCard}>
-                        <Card.Content style={styles.actionContent}>
-                            <Ionicons name="airplane" size={32} color={Colors.primary} />
-                            <Text style={styles.actionText}>Vuelos</Text>
-                        </Card.Content>
-                    </Card>
-
-                    <Card style={styles.actionCard}>
-                        <Card.Content style={styles.actionContent}>
-                            <Ionicons name="car" size={32} color={Colors.primary} />
-                            <Text style={styles.actionText}>Autos</Text>
-                        </Card.Content>
-                    </Card>
-
-                    <Card style={styles.actionCard}>
-                        <Card.Content style={styles.actionContent}>
-                            <Ionicons name="briefcase" size={32} color={Colors.primary} />
-                            <Text style={styles.actionText}>Paquetes</Text>
-                        </Card.Content>
-                    </Card>
-                </View>
+          {/* AS Retos */}
+          <TouchableOpacity
+            style={[styles.menuRow, styles.menuRowBorder]}
+            onPress={() => router.push('/(tabs)/rewards' as any)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.iconTile}>
+              <Ionicons name="trophy" size={22} color="#FBBF24" />
             </View>
-
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Destinos Populares</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <Card style={styles.destinationCard}>
-                        <Card.Cover source={{ uri: 'https://source.unsplash.com/400x300/?cancun,beach' }} />
-                        <Card.Content>
-                            <Text style={styles.destinationName}>Cancún</Text>
-                            <Text style={styles.destinationPrice}>Desde $5,999</Text>
-                        </Card.Content>
-                    </Card>
-
-                    <Card style={styles.destinationCard}>
-                        <Card.Cover source={{ uri: 'https://source.unsplash.com/400x300/?paris,eiffel' }} />
-                        <Card.Content>
-                            <Text style={styles.destinationName}>París</Text>
-                            <Text style={styles.destinationPrice}>Desde $15,999</Text>
-                        </Card.Content>
-                    </Card>
-
-                    <Card style={styles.destinationCard}>
-                        <Card.Cover source={{ uri: 'https://source.unsplash.com/400x300/?tokyo,japan' }} />
-                        <Card.Content>
-                            <Text style={styles.destinationName}>Tokio</Text>
-                            <Text style={styles.destinationPrice}>Desde $22,999</Text>
-                        </Card.Content>
-                    </Card>
-                </ScrollView>
+            <View style={styles.menuTextContainer}>
+              <Text style={styles.menuTitle}>AS Retos</Text>
+              <Text style={styles.menuDesc} numberOfLines={2}>
+                ¡Vive los retos, ten una mejor experiencia en tu viaje y gana premios!
+              </Text>
             </View>
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Ofertas Especiales</Text>
-                <Card style={styles.offerCard}>
-                    <Card.Content>
-                        <Text style={styles.offerTitle}>🎉 Descuento del 20%</Text>
-                        <Text style={styles.offerDescription}>
-                            En tu primera reserva de hotel. Usa el código: BIENVENIDO20
-                        </Text>
-                        <Button mode="contained" style={styles.offerButton}>
-                            Ver Ofertas
-                        </Button>
-                    </Card.Content>
-                </Card>
+          {/* ¿Necesitas ayuda? */}
+          <TouchableOpacity
+            style={[styles.menuRow, styles.menuRowBorder]}
+            onPress={() => router.push('/ayuda' as any)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.helpIconTile}>
+              <Feather name="headphones" size={22} color="#374151" />
             </View>
-        </ScrollView>
-    )
+            <View style={styles.menuTextContainer}>
+              <Text style={styles.menuTitle}>¿Necesitas ayuda?</Text>
+              <Text style={styles.menuDesc} numberOfLines={2}>
+                Nuestro equipo está listo para asesorarte en todo momento.
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+
+          {/* Espacio inferior de scroll */}
+          <View style={{ height: 32 }} />
+        </View>
+      </ScrollView>
+
+      {/* Drawer Lateral */}
+      <DrawerMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+    </View>
+  )
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-    header: {
-        padding: Spacing.lg,
-        paddingTop: Spacing.xxl,
-        backgroundColor: Colors.primary,
-    },
-    greeting: {
-        fontSize: FontSizes.xxl,
-        fontWeight: 'bold',
-        color: Colors.white,
-        marginBottom: Spacing.xs,
-    },
-    subtitle: {
-        fontSize: FontSizes.md,
-        color: Colors.white,
-        opacity: 0.9,
-    },
-    searchContainer: {
-        padding: Spacing.md,
-        marginTop: -Spacing.lg,
-    },
-    searchBar: {
-        elevation: 4,
-    },
-    quickActions: {
-        padding: Spacing.md,
-    },
-    sectionTitle: {
-        fontSize: FontSizes.lg,
-        fontWeight: 'bold',
-        color: Colors.text,
-        marginBottom: Spacing.md,
-    },
-    actionsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-    },
-    actionCard: {
-        width: '48%',
-        marginBottom: Spacing.md,
-    },
-    actionContent: {
-        alignItems: 'center',
-        paddingVertical: Spacing.lg,
-    },
-    actionText: {
-        marginTop: Spacing.sm,
-        fontSize: FontSizes.md,
-        fontWeight: '500',
-        color: Colors.text,
-    },
-    section: {
-        padding: Spacing.md,
-    },
-    destinationCard: {
-        width: 200,
-        marginRight: Spacing.md,
-    },
-    destinationName: {
-        fontSize: FontSizes.md,
-        fontWeight: 'bold',
-        marginTop: Spacing.sm,
-    },
-    destinationPrice: {
-        fontSize: FontSizes.sm,
-        color: Colors.primary,
-        fontWeight: '600',
-    },
-    offerCard: {
-        backgroundColor: Colors.primaryLight,
-    },
-    offerTitle: {
-        fontSize: FontSizes.lg,
-        fontWeight: 'bold',
-        color: Colors.white,
-        marginBottom: Spacing.sm,
-    },
-    offerDescription: {
-        fontSize: FontSizes.md,
-        color: Colors.white,
-        marginBottom: Spacing.md,
-    },
-    offerButton: {
-        backgroundColor: Colors.white,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+  },
+  heroBanner: {
+    height: 280,
+    width: '100%',
+    position: 'relative',
+    justifyContent: 'space-between',
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+  },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 48,
+    zIndex: 10,
+  },
+  menuBtn: {
+    padding: 6,
+  },
+  logoContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroTextContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 36,
+    zIndex: 10,
+  },
+  greetingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  greetingLight: {
+    fontSize: 28,
+    fontWeight: '300',
+    color: '#FFFFFF',
+  },
+  greetingBold: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  welcomePhrase: {
+    fontSize: 14,
+    color: '#E5E7EB',
+    marginTop: 2,
+  },
+  menuContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    marginTop: -24,
+    paddingTop: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    gap: 16,
+  },
+  menuRowBorder: {
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  iconTile: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  helpIconTile: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuTextContainer: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  menuTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  menuDesc: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+    lineHeight: 16,
+  },
 })

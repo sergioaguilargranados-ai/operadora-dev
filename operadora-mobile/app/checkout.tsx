@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useState, useEffect } from 'react'
 import BookingsService from '../services/bookings.service'
 import PaymentsService from '../services/payments.service'
-import { useStripe } from '@stripe/stripe-react-native'
+import { useStripe } from '../services/stripe'
 import * as ExpoLinking from 'expo-linking'
 
 export default function CheckoutScreen() {
@@ -102,7 +102,7 @@ export default function CheckoutScreen() {
                 } else {
                     // Success
                     Alert.alert('¡Pago Exitoso!', 'Tu reserva con tarjeta ha sido confirmada.', [
-                        { text: 'Ver Mis Viajes', onPress: () => router.replace('/(tabs)/bookings') }
+                        { text: 'Ver Mis Viajes', onPress: () => router.replace('/(tabs)/itinerario') }
                     ])
                 }
 
@@ -125,7 +125,7 @@ export default function CheckoutScreen() {
                     await Linking.openURL(orderResponse.approvalUrl)
                     // After returning, user typically checks status manually or we poll
                     Alert.alert('Procesando PayPal', 'Si completaste el pago, tu reserva se confirmará en breve.', [
-                        { text: 'Ir a Mis Viajes', onPress: () => router.replace('/(tabs)/bookings') }
+                        { text: 'Ir a Mis Viajes', onPress: () => router.replace('/(tabs)/itinerario') }
                     ])
                 }
 
@@ -150,7 +150,7 @@ export default function CheckoutScreen() {
                 if (link) {
                     await Linking.openURL(link)
                     Alert.alert('Procesando Mercado Pago', 'Si completaste el pago, tu reserva se confirmará en breve.', [
-                        { text: 'Ir a Mis Viajes', onPress: () => router.replace('/(tabs)/bookings') }
+                        { text: 'Ir a Mis Viajes', onPress: () => router.replace('/(tabs)/itinerario') }
                     ])
                 }
             }

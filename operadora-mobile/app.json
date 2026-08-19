@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1E40AF"
+      "backgroundColor": "#000000"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -20,17 +20,19 @@
       "bundleIdentifier": "com.asoperadora.app",
       "infoPlist": {
         "NSFaceIDUsageDescription": "Usamos Face ID para que puedas iniciar sesión de forma rápida y segura.",
-        "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrarte hoteles y servicios cercanos.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrarte hoteles y servicios cercanos."
+        "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrarte hoteles, actividades y servicios cercanos.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrarte hoteles, actividades y servicios cercanos.",
+        "NSCameraUsageDescription": "Necesitamos acceso a la cámara para tomar fotos de perfil y documentos de viaje.",
+        "NSPhotoLibraryUsageDescription": "Necesitamos acceso a tus fotos para subir documentos y comprobantes de viaje."
       },
       "config": {
-        "googleMapsApiKey": "YOUR_IOS_GOOGLE_MAPS_API_KEY"
+        "googleMapsApiKey": "AIzaSyC-eV8KIUZCyX0uvXUs4V2biXct-7h8SsY"
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1E40AF"
+        "backgroundColor": "#000000"
       },
       "package": "com.asoperadora.app",
       "permissions": [
@@ -38,11 +40,14 @@
         "USE_BIOMETRIC",
         "USE_FINGERPRINT",
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
       ],
       "config": {
         "googleMaps": {
-          "apiKey": "YOUR_ANDROID_GOOGLE_MAPS_API_KEY"
+          "apiKey": "AIzaSyC-eV8KIUZCyX0uvXUs4V2biXct-7h8SsY"
         }
       }
     },
@@ -58,13 +63,13 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#1E40AF"
+          "color": "#1D4ED8"
         }
       ],
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Permitir que $(PRODUCT_NAME) use tu ubicación para mostrarte servicios cercanos."
+          "locationAlwaysAndWhenInUsePermission": "Permitir que AS Operadora use tu ubicación para mostrarte servicios cercanos y trazar rutas."
         }
       ],
       [

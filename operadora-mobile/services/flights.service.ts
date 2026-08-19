@@ -67,7 +67,7 @@ const FlightsService = {
                 console.log('Network error, loading flights from cache...')
                 const cached = await OfflineService.getCachedFlights(params)
                 if (cached) {
-                    return cached
+                    return cached as any
                 }
             }
 

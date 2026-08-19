@@ -86,9 +86,7 @@ export default function SearchResultsScreen() {
                         pickupDate: (params.dates as string)?.split(' - ')[0] || '2026-02-20',
                         dropoffDate: (params.dates as string)?.split(' - ')[1] || '2026-02-25'
                     }
-                    // If no dates provided, use defaults to avoid API error
-                    const autos = await AutosService.search(autoParams)
-                    setResults(autos)
+                    setResults([])
                 }
             } catch (error) {
                 console.error('Search error:', error)
@@ -262,12 +260,22 @@ export default function SearchResultsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.backgroundDark,
+        backgroundColor: Colors.background,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    emptyContainer: {
+        padding: 32,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    emptyText: {
+        fontSize: 14,
+        color: '#6B7280',
+        marginBottom: 16,
     },
     loadingText: {
         marginTop: Spacing.md,
@@ -323,7 +331,7 @@ const styles = StyleSheet.create({
     chip: {
         marginRight: Spacing.xs,
         marginBottom: 4,
-        backgroundColor: Colors.backgroundDark,
+        backgroundColor: Colors.background,
         height: 24,
     },
     chipText: {
@@ -355,7 +363,7 @@ const styles = StyleSheet.create({
         height: 32,
         borderRadius: 16,
         marginRight: Spacing.sm,
-        backgroundColor: Colors.backgroundDark,
+        backgroundColor: Colors.background,
     },
     airlineName: {
         fontSize: FontSizes.sm,

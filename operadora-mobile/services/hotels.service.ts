@@ -70,7 +70,7 @@ const HotelsService = {
                 console.log('Network error, loading hotels from cache...')
                 const cached = await OfflineService.getCachedHotels(params)
                 if (cached) {
-                    return cached
+                    return cached as any
                 }
             }
 

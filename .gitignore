@@ -59,6 +59,8 @@ logs
 # Temporary files
 tmp/
 temp/
+scratch/
+~$*
 
 # Uploads (user generated)
 uploads/
