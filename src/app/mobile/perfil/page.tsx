@@ -282,118 +282,114 @@ export default function MobileProfilePage() {
       {/* Main Content Area (Overlapping Cards) */}
       <div className="px-4 -mt-12 relative z-10 space-y-4">
         
-        {/* Info List Card */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
-          
-          {/* Idioma Selector */}
-          <div className="flex items-center p-4">
-            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
-              <Globe className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Idioma</h3>
-              <p className="text-xs text-gray-500">Traducción automática</p>
-            </div>
-            <select 
-              onChange={(e) => handleLanguageChange(e.target.value)}
-              className="bg-gray-100 border-none text-sm font-medium rounded-lg p-2 text-gray-700 outline-none focus:ring-2 focus:ring-black cursor-pointer"
-              defaultValue="es"
-            >
-              <option value="es">Español</option>
-              <option value="en">English</option>
-              <option value="fr">Français</option>
-              <option value="pt">Português</option>
-              <option value="de">Deutsch</option>
-              <option value="it">Italiano</option>
-            </select>
+        {/* Idioma Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 flex items-center">
+          <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
+            <Globe className="w-5 h-5" />
           </div>
-
-          {/* Item */}
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
-            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
-              <User className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Nombre</h3>
-              <p className="text-xs text-gray-500 notranslate">{profileData?.name || 'No registrado'}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
+          <div className="flex-1">
+            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Idioma</h3>
+            <p className="text-xs text-gray-500">Traducción automática</p>
           </div>
-
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
-            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Fecha de Nacimiento</h3>
-              <p className="text-xs text-gray-500">{profileData?.date_of_birth ? new Date(profileData.date_of_birth).toLocaleDateString() : 'No registrado'}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </div>
-
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
-            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
-              <Mail className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Correo</h3>
-              <p className="text-xs text-gray-500">{profileData?.email || 'No registrado'}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </div>
-
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
-            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
-              <Phone className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Teléfono</h3>
-              <p className="text-xs text-gray-500">{profileData?.phone || 'No registrado'}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </div>
-
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
-            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
-              <Shield className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Seguro de Viajero</h3>
-              <p className="text-xs text-gray-500">{profileData?.wants_travel_insurance ? '✅ Solicitado' : 'No solicitado'}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </div>
-
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={handleEdit}>
-            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
-              <Users className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Contactos de Emergencia</h3>
-              <p className="text-xs text-gray-500">
-                {profileData?.emergency_contacts && profileData.emergency_contacts.length > 0 
-                  ? `${profileData.emergency_contacts.length} contacto(s) registrado(s)` 
-                  : 'No registrado'}
-              </p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </div>
-
-          <div className="flex items-center p-4 active:bg-gray-50 cursor-pointer" onClick={() => router.push('/mobile/perfil/password')}>
-            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
-              <Lock className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Cambiar contraseña</h3>
-              <p className="text-xs text-gray-500">Actualiza tu clave de acceso</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </div>
-
+          <select 
+            onChange={(e) => handleLanguageChange(e.target.value)}
+            className="bg-gray-100 border-none text-sm font-medium rounded-lg p-2 text-gray-700 outline-none focus:ring-2 focus:ring-black cursor-pointer"
+            defaultValue="es"
+          >
+            <option value="es">Español</option>
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+            <option value="pt">Português</option>
+            <option value="de">Deutsch</option>
+            <option value="it">Italiano</option>
+          </select>
         </div>
 
-        {/* Documentation Card */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+        {/* 1. Datos Personales Unificados Card */}
+        <div 
+          onClick={handleEdit}
+          className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 cursor-pointer active:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center">
+                <User className="w-4 h-4" />
+              </div>
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Datos Personales</h3>
+            </div>
+            <div className="flex items-center gap-1 text-xs font-semibold text-gray-400">
+              <span>Editar</span>
+              <ChevronRight className="w-4 h-4" />
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-semibold text-gray-500 uppercase tracking-wide">Nombre:</span>
+              <span className="font-bold text-gray-900 text-right notranslate">{profileData?.name || 'No registrado'}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-semibold text-gray-500 uppercase tracking-wide">Correo:</span>
+              <span className="font-medium text-gray-800 text-right truncate max-w-[200px]">{profileData?.email || 'No registrado'}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-semibold text-gray-500 uppercase tracking-wide">F. Nacimiento:</span>
+              <span className="font-medium text-gray-800 text-right">
+                {profileData?.date_of_birth ? new Date(profileData.date_of_birth).toLocaleDateString() : 'No registrado'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-semibold text-gray-500 uppercase tracking-wide">Teléfono:</span>
+              <span className="font-medium text-gray-800 text-right">{profileData?.phone || 'No registrado'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Contactos de Emergencia Card (Arriba del Seguro) */}
+        <div 
+          onClick={handleEdit}
+          className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 cursor-pointer active:bg-gray-50 transition-colors flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Contactos de Emergencia</h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {profileData?.emergency_contacts && profileData.emergency_contacts.length > 0 
+                  ? `${profileData.emergency_contacts.length} contacto(s) registrado(s)` 
+                  : 'Sin contactos registrados'}
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+        </div>
+
+        {/* 3. Seguro de Viajero Card (Con botón Solicitar) */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0">
+              <Shield className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Seguro de Viajero</h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {profileData?.wants_travel_insurance ? '✅ Solicitud activa' : 'Protección médica y de viaje'}
+              </p>
+            </div>
+          </div>
+          <Button 
+            onClick={() => window.open('/seguros', '_blank')}
+            size="sm"
+            className="bg-black hover:bg-gray-800 text-white rounded-xl font-bold text-xs px-4 h-9 shadow-sm"
+          >
+            Solicitar
+          </Button>
+        </div>
+
+        {/* 4. Documentation Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-5 pb-3 flex justify-between items-start">
             <div>
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-1">Documentación</h3>
@@ -448,8 +444,8 @@ export default function MobileProfilePage() {
                     >
                       <Upload className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={() => handleDeleteDocument(doc.name)}
+                    <button 
+                      onClick={() => handleDeleteDocument(doc.name)} 
                       className="p-1.5 text-red-500 hover:text-red-700"
                       title="Eliminar archivo"
                     >
@@ -462,15 +458,32 @@ export default function MobileProfilePage() {
           </div>
         </div>
 
-        {/* Logout Button */}
-        <div className="pb-8">
+        {/* 5. Cambiar Contraseña Card (Justo encima de Cerrar sesión) */}
+        <div 
+          onClick={() => router.push('/mobile/perfil/password')}
+          className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 flex items-center justify-between cursor-pointer active:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Cambiar contraseña</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Actualiza tu clave de acceso</p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+        </div>
+
+        {/* 6. Logout Button */}
+        <div className="pb-8 pt-2">
           <Button 
             onClick={() => {
               logout()
               router.push("/mobile/login")
             }}
             variant="outline"
-            className="w-full h-14 bg-white border border-gray-200 text-red-500 font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-red-50 hover:text-red-600 transition-colors"
+            className="w-full h-14 bg-white border border-gray-200 text-red-500 font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-red-50 hover:text-red-600 transition-colors shadow-sm"
           >
             <LogOut className="w-5 h-5" />
             Cerrar sesión

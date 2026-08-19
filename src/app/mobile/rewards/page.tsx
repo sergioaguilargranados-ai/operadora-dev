@@ -340,7 +340,7 @@ export default function MobileRewardsPage() {
                 {/* Progress Section */}
                 <div>
                   <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Tu progreso</h2>
-                  <div className="flex items-center gap-6 mb-4">
+                  <div className="flex items-center gap-6 mb-2">
                     <div className="relative w-20 h-20 flex-shrink-0">
                       <svg className="w-full h-full transform -rotate-90">
                         <circle cx="40" cy="40" r="36" className="stroke-gray-100" strokeWidth="8" fill="transparent" />
@@ -356,70 +356,12 @@ export default function MobileRewardsPage() {
                         <span className="text-sm font-medium text-gray-500">/ {MAX_STEPS.toLocaleString()} pasos</span>
                       </div>
                       <p className="text-xs font-bold text-gray-900 mt-1 mb-1">{Math.floor(percentage)}% completado</p>
-                      <p className="text-[10px] text-gray-500 leading-tight">Sigue caminando para desbloquear nuevas recompensas.</p>
+                      <p className="text-[10px] text-gray-500 leading-tight">Sigue explorando y caminando en tu viaje para desbloquear logros.</p>
                     </div>
                   </div>
-                  <Button className="w-full bg-black text-white font-bold rounded-xl h-12 shadow-sm hover:bg-gray-800">
-                    Ver recompensas
-                  </Button>
                 </div>
 
                 <hr className="border-gray-100" />
-
-                {/* Camina y gana (CMS Rewards) */}
-                <div>
-                  <h2 className="text-lg font-serif font-bold text-gray-900 mb-1">Camina y gana</h2>
-                  <p className="text-xs text-gray-500 mb-4 leading-tight">Beneficios configurados desde el CMS.</p>
-                  
-                  {loading ? (
-                    <p className="text-sm text-gray-400 py-4">Cargando recompensas...</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {(() => {
-                        const filteredSteps = rewardsSteps.filter(step => {
-                          const title = step.title?.toLowerCase() || '';
-                          const desc = step.description?.toLowerCase() || '';
-                          return !title.includes('registra') && !desc.includes('registra') &&
-                                 !title.includes('regístra') && !desc.includes('regístra');
-                        });
-                        return filteredSteps.length === 0 ? (
-                          <p className="text-sm text-gray-400 py-2">No hay recompensas configuradas.</p>
-                        ) : (
-                          filteredSteps.map((step, idx) => {
-                            const reqSteps = getStepThreshold(idx)
-                            const isActive = progress >= reqSteps
-                            return (
-                              <div key={idx} className="space-y-2">
-                                <RewardItem 
-                                  steps={`${reqSteps.toLocaleString()} pasos`} 
-                                  reward={step.title} 
-                                  desc={step.description}
-                                  active={isActive} 
-                                />
-                                {/* Media Assets from CMS */}
-                                {(step.image_url || step.video_url) && (
-                                  <div className="ml-11 flex gap-2 overflow-x-auto pb-1">
-                                    {step.image_url && (
-                                      <div className="h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden border">
-                                        <img src={step.image_url} alt="Premio" className="w-full h-full object-cover" />
-                                      </div>
-                                    )}
-                                    {step.video_url && (
-                                      <div className="h-16 w-24 flex-shrink-0 bg-gray-900 rounded-lg flex flex-col justify-center items-center relative overflow-hidden">
-                                        <Play className="w-5 h-5 text-white/80 z-10" fill="white" />
-                                        <video src={step.video_url} className="absolute inset-0 w-full h-full object-cover opacity-50" />
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })
-                        );
-                      })()}
-                    </div>
-                  )}
-                </div>
 
                 {/* Estadísticas del viaje */}
                 <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm mt-6">
@@ -460,21 +402,13 @@ export default function MobileRewardsPage() {
                         ))}
                       </div>
                     ) : (
-                      challenges.map((challenge, idx) => {
-                        const isPlanned = plannedChallenges.includes(challenge.id)
-                        const isCompleted = completedChallenges.includes(challenge.id)
-                        return (
-                          <PlaceItem 
-                            key={challenge.id || idx}
-                            ch={challenge}
-                            planned={isPlanned}
-                            completed={isCompleted}
-                            checking={checkingGPS === challenge.id}
-                            onPlan={() => handlePlanChallenge(challenge)}
-                            onCheckIn={() => handleCheckIn(challenge)}
-                          />
-                        )
-                      })
+                      challenges.map((challenge, idx) => (
+                        <PlaceItem 
+                          key={challenge.id || idx}
+                          ch={challenge}
+                          onOpenMap={() => setIsRouteMapOpen(true)}
+                        />
+                      ))
                     )}
                   </div>
                   <Button 
@@ -576,153 +510,128 @@ export default function MobileRewardsPage() {
           )}
 
           {activeTab === 'invita' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in zoom-in duration-300">
+            <div className="space-y-6 max-w-2xl mx-auto animate-in fade-in zoom-in duration-300">
               
-              {/* LEFT COLUMN */}
-              <div className="space-y-6">
+              {/* 1. Tu progreso de invitaciones */}
+              <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                <h3 className="text-xl font-serif font-bold text-gray-900 mb-4">1. Tu progreso de invitaciones</h3>
                 
-                {/* Tu progreso de invitaciones */}
-                <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-                  <h3 className="text-xl font-serif font-bold text-gray-900 mb-4">Tu progreso de invitaciones</h3>
-                  
-                  {/* Progress Bar (Visual) */}
-                  <div className="h-4 bg-gray-100 rounded-full overflow-hidden mb-4">
-                    <div 
-                      className="h-full bg-black rounded-full transition-all duration-1000"
-                      style={{ width: `${Math.min(((referralData?.referrals_count || 0) / 30) * 100, 100)}%` }}
-                    />
-                  </div>
-                  
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <p className="text-2xl font-bold text-black leading-none">
-                      {referralData?.referrals_count || 0} / 30
-                    </p>
-                    <p className="text-sm font-bold text-gray-700">viajeros invitados</p>
-                  </div>
-                  
-                  <p className="text-xs text-gray-600 mt-2">Invita más viajeros y acerca tu próximo viaje a ser gratis.</p>
+                {/* Progress Bar (Visual) */}
+                <div className="h-4 bg-gray-100 rounded-full overflow-hidden mb-4">
+                  <div 
+                    className="h-full bg-black rounded-full transition-all duration-1000"
+                    style={{ width: `${Math.min(((referralData?.referrals_count || 0) / 30) * 100, 100)}%` }}
+                  />
                 </div>
-
-                {/* Tus beneficios */}
-                <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-                  <h3 className="text-xl font-serif font-bold text-gray-900 mb-6">Tus beneficios</h3>
-                  <div className="space-y-6">
-                    <BenefitTier icon="🥉" title="Explorador AS" req="5 viajeros invitados" desc="Bono de $1,000 MXN para tu próximo viaje." />
-                    <BenefitTier icon="🥈" title="Embajador AS" req="10 viajeros invitados" desc="Bono de $2,500 MXN para tu próximo viaje." />
-                    <BenefitTier icon="🥇" title="Viajero Elite" req="15 viajeros invitados" desc="50% de descuento en tu siguiente viaje." />
-                    <BenefitTier icon="💎" title="Leyenda AS" req="30 viajeros invitados" desc="Viaje gratuito.*" note="*Aplican términos y condiciones." />
-                  </div>
+                
+                <div className="flex items-baseline gap-2 mb-2">
+                  <p className="text-2xl font-bold text-black leading-none">
+                    {referralData?.referrals_count || 0} / 30
+                  </p>
+                  <p className="text-sm font-bold text-gray-700">viajeros invitados</p>
                 </div>
-
-                {/* Invita más viajeros */}
-                <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-                  <h3 className="text-xl font-serif font-bold text-gray-900 mb-4">Invita más viajeros</h3>
-                  
-                  <div className="border border-gray-200 rounded-xl p-3 mb-4 text-center bg-gray-50/50">
-                    <p className="text-[10px] text-gray-400 mb-1 font-semibold uppercase tracking-wider">Tu código de invitación</p>
-                    <p className="font-mono font-bold text-xl tracking-wider text-black">
-                      {referralData?.referral_code || 'CARGANDO...'}
-                    </p>
-                  </div>
-                  
-                  <Button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(referralData?.referral_code || '');
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 2000);
-                    }}
-                    className="w-full bg-black text-white hover:bg-gray-800 rounded-xl font-bold h-12 shadow-sm mb-6"
-                  >
-                    {copied ? '¡Código copiado!' : 'Compartir invitación'}
-                  </Button>
-
-                  <div className="flex justify-around items-center">
-                    <SocialButton color="bg-green-500" name="WhatsApp" icon={<WhatsAppIcon />} onClick={() => {
-                      const text = `¡Te invito a viajar con AS Operadora! Usa mi código de invitación ${referralData?.referral_code || ''} al registrarte y obtén beneficios. Regístrate aquí: https://www.as-ope-viajes.company/registro?ref=${referralData?.referral_code || ''}`;
-                      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                    }} />
-                    <SocialButton color="bg-brand-primary" name="Facebook" icon={<FacebookIcon />} onClick={() => {
-                      const url = `https://www.as-ope-viajes.company/registro?ref=${referralData?.referral_code || ''}`;
-                      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
-                    }} />
-                    <SocialButton color="bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600" name="Instagram" icon={<InstagramIcon />} onClick={() => {
-                      navigator.clipboard.writeText(`¡Te invito a viajar con AS Operadora! Usa mi código ${referralData?.referral_code || ''} al registrarte.`);
-                      toast({ title: 'Texto copiado', description: '¡Pégalo en tu historia o perfil de Instagram!' });
-                    }} />
-                    <SocialButton color="bg-gray-500" name="Copiar enlace" icon={<LinkIcon className="w-5 h-5 text-white" />} onClick={() => {
-                      navigator.clipboard.writeText(`https://www.as-ope-viajes.company/registro?ref=${referralData?.referral_code || ''}`);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 2000);
-                      toast({ title: 'Enlace copiado', description: 'Enlace de invitación copiado al portapapeles.' });
-                    }} />
-                  </div>
-                </div>
-
-                {/* Beneficios que puedes obtener */}
-                <div className="bg-white rounded-3xl p-2 pt-6 mb-6">
-                  <h3 className="text-xl font-serif font-bold text-gray-900 mb-6 text-center">Beneficios que puedes obtener</h3>
-                  <div className="grid grid-cols-3 gap-y-6 gap-x-2 text-center">
-                    <MiniBenefit icon={<Gift className="w-6 h-6 text-green-600" />} color="bg-green-50" text="Descuentos en viajes" />
-                    <MiniBenefit icon={<Briefcase className="w-6 h-6 text-brand-primary" />} color="bg-blue-50" text="Tours gratuitos" />
-                    <MiniBenefit icon={<Footprints className="w-6 h-6 text-purple-600" />} color="bg-purple-50" text="Créditos para futuras reservas" />
-                    <MiniBenefit icon={<Sun className="w-6 h-6 text-yellow-600" />} color="bg-yellow-50" text="Upgrade de habitación" />
-                    <MiniBenefit icon={<Compass className="w-6 h-6 text-indigo-600" />} color="bg-indigo-50" text="Viajes gratuitos" />
-                    <MiniBenefit icon={<Trophy className="w-6 h-6 text-orange-600" />} color="bg-orange-50" text="Beneficios exclusivos AS" />
-                  </div>
-                </div>
-
+                
+                <p className="text-xs text-gray-600 mt-2">Invita más viajeros y acerca tu próximo viaje a ser gratis.</p>
               </div>
 
-              {/* RIGHT COLUMN */}
-              <div className="space-y-6">
+              {/* 2. Invita más viajeros */}
+              <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                <h3 className="text-xl font-serif font-bold text-gray-900 mb-4">2. Invita más viajeros</h3>
                 
-                {/* Invitados confirmados */}
-                <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-                  <h3 className="text-xl font-serif font-bold text-gray-900 mb-6">Invitados confirmados</h3>
-                  
-                  <div className="space-y-4 mb-6">
-                    {loadingReferrals ? (
-                      <p className="text-sm text-gray-500">Cargando invitados...</p>
-                    ) : (!referralData?.referrals || referralData.referrals.length === 0) ? (
-                      <p className="text-sm text-gray-500">Aún no tienes invitados confirmados.</p>
-                    ) : (
-                      referralData.referrals.slice(0, 8).map((ref: any, idx: number) => (
-                        <div key={idx} className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3">
-                            <CheckCircle2 className={`w-5 h-5 ${ref.status === 'purchased' ? 'text-amber-500' : 'text-green-500'}`} />
-                            <span className="text-sm font-semibold text-black">{ref.referred_name || 'Usuario'}</span>
-                          </div>
-                          <span className="text-xs font-bold text-gray-500">+{ref.points_awarded} pts</span>
+                <div className="border border-gray-200 rounded-xl p-3 mb-4 text-center bg-gray-50/50">
+                  <p className="text-[10px] text-gray-400 mb-1 font-semibold uppercase tracking-wider">Tu código de invitación</p>
+                  <p className="font-mono font-bold text-xl tracking-wider text-black">
+                    {referralData?.referral_code || 'CARGANDO...'}
+                  </p>
+                </div>
+                
+                <Button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(referralData?.referral_code || '');
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="w-full bg-black text-white hover:bg-gray-800 rounded-xl font-bold h-12 shadow-sm mb-6"
+                >
+                  {copied ? '¡Código copiado!' : 'Compartir invitación'}
+                </Button>
+
+                <div className="flex justify-around items-center">
+                  <SocialButton color="bg-green-500" name="WhatsApp" icon={<WhatsAppIcon />} onClick={() => {
+                    const text = `¡Te invito a viajar con AS Operadora! Usa mi código de invitación ${referralData?.referral_code || ''} al registrarte y obtén beneficios. Regístrate aquí: https://www.as-ope-viajes.company/registro?ref=${referralData?.referral_code || ''}`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                  }} />
+                  <SocialButton color="bg-brand-primary" name="Facebook" icon={<FacebookIcon />} onClick={() => {
+                    const url = `https://www.as-ope-viajes.company/registro?ref=${referralData?.referral_code || ''}`;
+                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+                  }} />
+                  <SocialButton color="bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600" name="Instagram" icon={<InstagramIcon />} onClick={() => {
+                    navigator.clipboard.writeText(`¡Te invito a viajar con AS Operadora! Usa mi código ${referralData?.referral_code || ''} al registrarte.`);
+                    toast({ title: 'Texto copiado', description: '¡Pégalo en tu historia o perfil de Instagram!' });
+                  }} />
+                  <SocialButton color="bg-gray-500" name="Copiar enlace" icon={<LinkIcon className="w-5 h-5 text-white" />} onClick={() => {
+                    navigator.clipboard.writeText(`https://www.as-ope-viajes.company/registro?ref=${referralData?.referral_code || ''}`);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                    toast({ title: 'Enlace copiado', description: 'Enlace de invitación copiado al portapapeles.' });
+                  }} />
+                </div>
+              </div>
+
+              {/* 3. Invitados confirmados */}
+              <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                <h3 className="text-xl font-serif font-bold text-gray-900 mb-6">3. Invitados confirmados</h3>
+                
+                <div className="space-y-4 mb-6">
+                  {loadingReferrals ? (
+                    <p className="text-sm text-gray-500">Cargando invitados...</p>
+                  ) : (!referralData?.referrals || referralData.referrals.length === 0) ? (
+                    <p className="text-sm text-gray-500">Aún no tienes invitados confirmados.</p>
+                  ) : (
+                    referralData.referrals.slice(0, 8).map((ref: any, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle2 className={`w-5 h-5 ${ref.status === 'purchased' ? 'text-amber-500' : 'text-green-500'}`} />
+                          <span className="text-sm font-semibold text-black">{ref.referred_name || 'Usuario'}</span>
                         </div>
-                      ))
-                    )}
-                  </div>
-                  
-                  <Button 
-                    onClick={() => router.push('/mobile/rewards/invitados')}
-                    className="w-full bg-black text-white hover:bg-gray-800 rounded-xl font-bold h-12"
-                  >
-                    Ver todos
-                  </Button>
+                        <span className="text-xs font-bold text-gray-500">+{ref.points_awarded} pts</span>
+                      </div>
+                    ))
+                  )}
                 </div>
                 
-                {/* Banner Promo */}
-                <div className="rounded-3xl overflow-hidden relative h-48 shadow-md">
-                  <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80" alt="Viaje gratis" className="absolute inset-0 w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-                  <div className="absolute inset-0 p-6 flex flex-col justify-center">
-                    <h3 className="text-xl font-serif font-bold text-white mb-2 max-w-[200px] leading-tight">Tu próximo viaje podría ser gratis</h3>
-                    <p className="text-[10px] text-gray-200 mb-4 max-w-[220px]">Invita viajeros, acumula beneficios y alcanza el nivel Leyenda AS para obtener un viaje sin costo.</p>
-                    <Button 
-                      onClick={() => router.push('/mobile/viajes-grupales')}
-                      className="bg-white text-black hover:bg-gray-100 rounded-xl font-bold text-xs h-10 px-6 w-fit"
-                    >
-                      Invitar amigos
-                    </Button>
-                  </div>
-                </div>
-
+                <Button 
+                  onClick={() => router.push('/mobile/rewards/invitados')}
+                  className="w-full bg-black text-white hover:bg-gray-800 rounded-xl font-bold h-12"
+                >
+                  Ver todos
+                </Button>
               </div>
+
+              {/* 4. Tus beneficios */}
+              <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                <h3 className="text-xl font-serif font-bold text-gray-900 mb-6">4. Tus beneficios</h3>
+                <div className="space-y-6">
+                  <BenefitTier icon="🥉" title="Explorador AS" req="5 viajeros invitados" desc="Bono de $1,000 MXN para tu próximo viaje." />
+                  <BenefitTier icon="🥈" title="Embajador AS" req="10 viajeros invitados" desc="Bono de $2,500 MXN para tu próximo viaje." />
+                  <BenefitTier icon="🥇" title="Viajero Elite" req="15 viajeros invitados" desc="50% de descuento en tu siguiente viaje." />
+                  <BenefitTier icon="💎" title="Leyenda AS" req="30 viajeros invitados" desc="Viaje gratuito.*" note="*Aplican términos y condiciones." />
+                </div>
+              </div>
+
+              {/* 5. Beneficios que puedes obtener */}
+              <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm mb-6">
+                <h3 className="text-xl font-serif font-bold text-gray-900 mb-6 text-center">5. Beneficios que puedes obtener</h3>
+                <div className="grid grid-cols-3 gap-y-6 gap-x-2 text-center">
+                  <MiniBenefit icon={<Gift className="w-6 h-6 text-green-600" />} color="bg-green-50" text="Descuentos en viajes" />
+                  <MiniBenefit icon={<Briefcase className="w-6 h-6 text-brand-primary" />} color="bg-blue-50" text="Tours gratuitos" />
+                  <MiniBenefit icon={<Footprints className="w-6 h-6 text-purple-600" />} color="bg-purple-50" text="Créditos para futuras reservas" />
+                  <MiniBenefit icon={<Sun className="w-6 h-6 text-yellow-600" />} color="bg-yellow-50" text="Upgrade de habitación" />
+                  <MiniBenefit icon={<Compass className="w-6 h-6 text-indigo-600" />} color="bg-indigo-50" text="Viajes gratuitos" />
+                  <MiniBenefit icon={<Trophy className="w-6 h-6 text-orange-600" />} color="bg-orange-50" text="Beneficios exclusivos AS" />
+                </div>
+              </div>
+
             </div>
           )}
         </div>
@@ -820,34 +729,28 @@ function RewardItem({ steps, reward, desc, active }: { steps: string, reward: st
   )
 }
 
-function PlaceItem({ ch, planned, completed, checking, onPlan, onCheckIn }: any) {
+function PlaceItem({ ch, onOpenMap }: any) {
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${completed ? 'bg-green-50/50 border-green-200' : planned ? 'bg-blue-50/30 border-blue-100' : 'bg-gray-50 border-gray-100'}`}>
+    <div className="flex items-center gap-3 p-3 rounded-2xl border bg-gray-50 border-gray-100 transition-all hover:bg-gray-100/60">
       <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gray-200 shadow-sm">
         <img src={ch.img} alt={ch.name} className="w-full h-full object-cover" />
       </div>
-      <div className="flex-1">
-        <h4 className="font-bold text-gray-900 text-sm leading-tight mb-1">{ch.name}</h4>
+      <div className="flex-1 min-w-0">
+        <h4 className="font-bold text-gray-900 text-sm leading-tight mb-1 truncate">{ch.name}</h4>
         <div className="flex items-center gap-1 mb-1">
           <MapPin className="w-3 h-3 text-gray-400" />
           <span className="text-[10px] text-gray-500 font-medium">A {Math.floor(Math.random()*5 + 1)} km</span>
         </div>
         <p className="text-[10px] font-bold text-green-600">+{ch.points} pasos estimados</p>
       </div>
-      <div className="flex flex-col gap-2 justify-center">
-        {completed ? (
-          <div className="flex flex-col items-center justify-center text-green-600 h-9 px-3 rounded-xl text-[10px] font-bold border border-green-200 bg-green-50 shadow-sm">
-            <CheckCircle2 className="w-4 h-4 mb-0.5" /> Logrado
-          </div>
-        ) : planned ? (
-          <Button size="sm" disabled={checking} onClick={onCheckIn} className="bg-black hover:bg-gray-800 text-white h-9 rounded-xl px-3 text-xs font-bold shadow-sm flex items-center justify-center gap-1 active:scale-95 transition-transform">
-            {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : <><MapPin className="w-3 h-3" /> Check-in</>}
-          </Button>
-        ) : (
-          <Button size="sm" onClick={onPlan} className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-xl px-4 text-xs font-bold shadow-sm active:scale-95 transition-transform">
-            Planear
-          </Button>
-        )}
+      <div className="flex flex-col justify-center">
+        <Button 
+          size="sm" 
+          onClick={onOpenMap} 
+          className="bg-black hover:bg-gray-800 text-white h-9 rounded-xl px-3 text-xs font-bold shadow-sm flex items-center justify-center gap-1 active:scale-95 transition-transform"
+        >
+          <MapPin className="w-3.5 h-3.5" /> Ver en mapa
+        </Button>
       </div>
     </div>
   )

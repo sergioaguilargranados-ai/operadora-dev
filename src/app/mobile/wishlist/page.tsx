@@ -171,7 +171,7 @@ export default function WishlistPage() {
       
       {/* Header */}
       <div className="px-4 pt-6 pb-2 flex items-center justify-between sticky top-0 bg-[#FDFDFD] z-30">
-        <button onClick={() => router.back()} className="text-black hover:text-gray-600 p-2 -ml-2">
+        <button onClick={() => router.push('/mobile')} className="text-black hover:text-gray-600 p-2 -ml-2">
           <ChevronLeft className="w-7 h-7" />
         </button>
         <MobileLogo

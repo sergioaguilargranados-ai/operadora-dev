@@ -343,30 +343,6 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
         </button>
       </div>
 
-      {/* Selector de Viajes */}
-      <div className="px-4 mb-4">
-        <div className="bg-gray-50 rounded-2xl p-2 border border-gray-100 flex items-center justify-between">
-          <span className="text-xs font-semibold text-gray-500 pl-2">Seleccionando viaje:</span>
-          <Select 
-            value={params.id} 
-            onValueChange={(val) => {
-              if (val !== params.id) router.push(`/mobile/itinerario/${val}`)
-            }}
-          >
-            <SelectTrigger className="w-[180px] border-0 h-8 focus:ring-0 shadow-none bg-transparent font-bold text-xs text-gray-900 justify-end gap-1">
-              <SelectValue placeholder="Selecciona viaje" />
-            </SelectTrigger>
-            <SelectContent>
-              {tours.map((tour, idx) => (
-                <SelectItem key={idx} value={tour.tour_id} className="text-xs">
-                  {tour.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
       {/* Hero Card Image */}
       <div className="px-4 mb-4">
         <div className="relative rounded-3xl overflow-hidden shadow-lg h-56">
@@ -457,10 +433,10 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
               </div>
             </div>
 
-            {/* Próximos pasos Timeline */}
+            {/* Recuerda: Timeline */}
             <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="font-serif font-bold text-lg text-gray-900">Próximos pasos</h3>
+                <h3 className="font-serif font-bold text-lg text-gray-900">Recuerda:</h3>
                 {isTripPast && (
                   <span className="text-[10px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
                     Completado
@@ -469,55 +445,67 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
               </div>
               
               <div className="space-y-4 relative pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[2px] before:bg-gray-100">
-                {/* Paso 1: Pago */}
-                <div className="relative">
-                  <span className={`absolute -left-6 top-0.5 w-4.5 h-4.5 rounded-full flex items-center justify-center border bg-white ${
-                    isTripPast || activeBooking?.booking_reference ? 'border-green-500 text-green-600' : 'border-gray-300'
-                  }`}>
-                    <CheckCircle2 className="w-3.5 h-3.5 fill-current text-white" />
+                {/* 1. Realizar tus pagos */}
+                <div 
+                  className="relative cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => router.push('/mobile/pagos')}
+                >
+                  <span className="absolute -left-6 top-0.5 w-4 h-4 rounded-full flex items-center justify-center border bg-white border-black text-black">
+                    <CheckCircle2 className="w-3.5 h-3.5 fill-current text-black" />
                   </span>
-                  <h4 className="text-xs font-bold text-gray-900">Pago confirmado</h4>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
-                    {activeBooking?.dateStr ? `Confirmado el ${activeBooking.dateStr.split(',')[0]}` : "Confirmado"}
+                  <h4 className="text-xs font-bold text-gray-900">1. Realizar tus pagos</h4>
+                  <p className="text-[10px] text-gray-500 mt-0.5">
+                    Mantén al día tus mensualidades o saldo pendiente de tu reserva.
                   </p>
                 </div>
 
-                {/* Paso 2: Documentos */}
-                <div className="relative">
-                  <span className={`absolute -left-6 top-0.5 w-4.5 h-4.5 rounded-full flex items-center justify-center border bg-white ${
-                    isTripPast ? 'border-green-500 text-green-600' : 'border-gray-300'
-                  }`}>
-                    <CheckCircle2 className="w-3.5 h-3.5 fill-current text-white" />
+                {/* 2. Subir tus documentos de viaje */}
+                <div 
+                  className="relative cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => handleTabSelect('documentos')}
+                >
+                  <span className="absolute -left-6 top-0.5 w-4 h-4 rounded-full flex items-center justify-center border bg-white border-black text-black">
+                    <CheckCircle2 className="w-3.5 h-3.5 fill-current text-black" />
                   </span>
-                  <h4 className="text-xs font-bold text-gray-900">Documentos de viaje</h4>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
-                    {isTripPast ? "Entregados" : "Disponibles 7 días antes de tu viaje"}
+                  <h4 className="text-xs font-bold text-gray-900">2. Subir tus documentos de viaje</h4>
+                  <p className="text-[10px] text-gray-500 mt-0.5">
+                    Pasaportes, visas y certificados requeridos para tu destino.
                   </p>
                 </div>
 
-                {/* Paso 3: Check-in */}
-                <div className="relative">
-                  <span className={`absolute -left-6 top-0.5 w-4.5 h-4.5 rounded-full flex items-center justify-center border bg-white ${
-                    isTripPast ? 'border-green-500 text-green-600' : 'border-gray-300'
-                  }`}>
-                    <CheckCircle2 className="w-3.5 h-3.5 fill-current text-white" />
+                {/* 3. Contratar actividades extra */}
+                <div 
+                  className="relative cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => router.push('/mobile/actividades-sugeridas')}
+                >
+                  <span className="absolute -left-6 top-0.5 w-4 h-4 rounded-full flex items-center justify-center border bg-white border-black text-black">
+                    <CheckCircle2 className="w-3.5 h-3.5 fill-current text-black" />
                   </span>
-                  <h4 className="text-xs font-bold text-gray-900">Check-in de vuelos</h4>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
-                    {isTripPast ? "Completado" : "Disponible 24 horas antes del vuelo"}
+                  <h4 className="text-xs font-bold text-gray-900">3. Contratar actividades extra</h4>
+                  <p className="text-[10px] text-gray-500 mt-0.5">
+                    Descubre tours imperdibles, museos y experiencias exclusivas.
                   </p>
                 </div>
 
-                {/* Paso 4: Viaje */}
+                {/* 4. Realizar check-in del vuelo */}
                 <div className="relative">
-                  <span className={`absolute -left-6 top-0.5 w-4.5 h-4.5 rounded-full flex items-center justify-center border bg-white ${
-                    isTripPast ? 'border-green-500 text-green-600' : 'border-gray-300'
-                  }`}>
-                    <CheckCircle2 className="w-3.5 h-3.5 fill-current text-white" />
+                  <span className="absolute -left-6 top-0.5 w-4 h-4 rounded-full flex items-center justify-center border bg-white border-gray-300 text-gray-400">
+                    <CheckCircle2 className="w-3.5 h-3.5 fill-current text-gray-300" />
                   </span>
-                  <h4 className="text-xs font-bold text-gray-900">{isTripPast ? "Viaje completado" : "Recordatorio de viaje"}</h4>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
-                    {isTripPast ? "Esperamos que hayas disfrutado tu viaje." : "Te avisaremos antes de tu viaje"}
+                  <h4 className="text-xs font-bold text-gray-900">4. Realizar check-in del vuelo</h4>
+                  <p className="text-[10px] text-gray-500 mt-0.5">
+                    Disponible 24 a 48 horas antes de la salida de tu vuelo.
+                  </p>
+                </div>
+
+                {/* 5. Disfruta tu viaje, sube una foto y etiquétanos */}
+                <div className="relative">
+                  <span className="absolute -left-6 top-0.5 w-4 h-4 rounded-full flex items-center justify-center border bg-white border-gray-300 text-gray-400">
+                    <CheckCircle2 className="w-3.5 h-3.5 fill-current text-gray-300" />
+                  </span>
+                  <h4 className="text-xs font-bold text-gray-900">5. Disfruta tu viaje, sube una foto y etiquétanos</h4>
+                  <p className="text-[10px] text-gray-500 mt-0.5">
+                    Comparte tus mejores momentos en redes sociales con @ASOperadora.
                   </p>
                 </div>
               </div>

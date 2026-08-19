@@ -1,5 +1,5 @@
 // Catálogo de Tours y Viajes Grupales
-// Build: 15 Aug 2026 - v2.486 - Fix filtro regiones dinámicas desde DB
+// Build: 18 Aug 2026 - v2.487 - Fix filtro regiones dinámicas desde DB
 
 'use client'
 
@@ -115,14 +115,31 @@ function ToursContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
 
-    const [packages, setPackages] = useState<TourPackage[]>([])
+    const [activeTab, setActiveTab] = useState<'individual' | 'grupal' | 'eventos' | 'bloqueos'>('grupal')
     const [allPackages, setAllPackages] = useState<TourPackage[]>([])
+    const [filteredPackages, setFilteredPackages] = useState<TourPackage[]>([])
     const [regions, setRegions] = useState<string[]>([])
     const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState(searchParams?.get('search') || '')
     const [selectedCategory, setSelectedCategory] = useState(searchParams?.get('cat') || 'ofertas')
-    const [videoUrl, setVideoUrl] = useState('https://images.unsplash.com/photo-1499856871958-5b9337606a3e?w=1600')
+    
+    // Carrusel de imágenes rotativas de destinos
+    const DESTINATION_HERO_IMAGES = [
+        "https://images.unsplash.com/photo-1499856871958-5b9337606a3e?auto=format&fit=crop&w=1600&q=80", // Paris
+        "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1600&q=80", // Santorini
+        "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1600&q=80", // Tokyo
+        "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1600&q=80", // Dubai
+        "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1600&q=80", // Greece
+    ]
+    const [currentHeroIdx, setCurrentHeroIdx] = useState(0)
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentHeroIdx(prev => (prev + 1) % DESTINATION_HERO_IMAGES.length)
+        }, 6000)
+        return () => clearInterval(interval)
+    }, [])
 
     // Nuevos filtros avanzados
     const [selectedCountry, setSelectedCountry] = useState<string | null>(null)
@@ -400,7 +417,7 @@ function ToursContent() {
                             <Button
                                 size="sm"
                                 onClick={() => router.push('/viajes-grupales')}
-                                className="bg-[#0066FF] hover:bg-[#0052CC] text-white border-0 rounded-full"
+                                className="bg-black hover:bg-gray-800 text-white border-0 rounded-full"
                             >
                                 <Users className="w-4 h-4 mr-2" />
                                 <span className="hidden sm:inline">Cotizar Grupo</span>
@@ -429,36 +446,16 @@ function ToursContent() {
                 </div>
             </header>
 
-            {/* Hero Section con video/imagen de fondo */}
+            {/* Hero Section con carrusel fotográfico de destinos */}
             <section className="relative py-12 md:py-16 overflow-hidden">
-                {/* Fondo - video o imagen parametrizable */}
+                {/* Fondo - carrusel de imágenes rotativas */}
                 <div className="absolute inset-0">
-                    {videoUrl.includes('youtube') || videoUrl.includes('vimeo') ? (
-                        <iframe
-                            src={(() => {
-                                // Convertir URL de watch a embed si es necesario
-                                let embedUrl = videoUrl.replace('watch?v=', 'embed/');
-                                // Extraer video ID para playlist (necesario para loop)
-                                const videoIdMatch = embedUrl.match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/);
-                                const videoId = videoIdMatch ? videoIdMatch[1] : '';
-                                // Agregar parámetros de autoplay, mute y loop
-                                const separator = embedUrl.includes('?') ? '&' : '?';
-                                return `${embedUrl}${separator}autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0`;
-                            })()}
-                            className="absolute w-full h-full object-cover scale-150"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            frameBorder="0"
-                            allowFullScreen
-                            style={{ pointerEvents: 'none' }}
-                        />
-                    ) : (
-                        <div
-                            className="absolute inset-0 bg-cover bg-center"
-                            style={{ backgroundImage: `url(${videoUrl})` }}
-                        />
-                    )}
-                    {/* Overlay blanco para mejor legibilidad del texto negro */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/35 via-white/25 to-white/50" />
+                    <div
+                        className="absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-in-out scale-105"
+                        style={{ backgroundImage: `url(${DESTINATION_HERO_IMAGES[currentHeroIdx]})` }}
+                    />
+                    {/* Overlay elegante para legibilidad */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/25 to-black/60" />
                 </div>
 
                 <div className="container mx-auto px-4 relative z-10">
@@ -492,7 +489,7 @@ function ToursContent() {
                                 </div>
                                 <Button
                                     type="submit"
-                                    className="h-12 px-6 bg-[#0066FF] text-white hover:bg-[#0052CC] rounded-full"
+                                    className="h-12 px-6 bg-black text-white hover:bg-gray-800 rounded-full"
                                 >
                                     Buscar
                                 </Button>
@@ -505,7 +502,7 @@ function ToursContent() {
             {/* Botón móvil de filtros */}
             <button
                 onClick={() => setShowMobileFilters(true)}
-                className="lg:hidden fixed bottom-6 right-6 z-40 bg-[#0066FF] text-white rounded-full p-4 shadow-2xl hover:bg-[#0052CC] transition-colors"
+                className="lg:hidden fixed bottom-6 right-6 z-40 bg-black text-white rounded-full p-4 shadow-2xl hover:bg-gray-800 transition-colors"
             >
                 <Filter className="w-6 h-6" />
             </button>

@@ -8,23 +8,55 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Texto requerido' }, { status: 400 })
     }
 
-    // Map common language names to codes if needed
+    // Map common language and country names to ISO codes
     const langMap: Record<string, string> = {
       'inglés': 'en',
       'ingles': 'en',
       'inglés (reino unido)': 'en',
+      'reino unido': 'en',
+      'londres': 'en',
+      'estados unidos': 'en',
       'francés': 'fr',
       'frances': 'fr',
+      'francia': 'fr',
+      'parís': 'fr',
+      'paris': 'fr',
       'italiano': 'it',
+      'italia': 'it',
+      'roma': 'it',
       'alemán': 'de',
       'aleman': 'de',
+      'alemania': 'de',
+      'berlín': 'de',
+      'berlin': 'de',
       'portugués': 'pt',
       'portugues': 'pt',
+      'portugal': 'pt',
+      'brasil': 'pt',
+      'lisboa': 'pt',
       'japonés': 'ja',
       'japones': 'ja',
+      'japón': 'ja',
+      'japon': 'ja',
+      'tokio': 'ja',
       'chino': 'zh-CN',
+      'china': 'zh-CN',
       'holandés': 'nl',
+      'holandes': 'nl',
+      'países bajos': 'nl',
+      'amsterdam': 'nl',
       'griego': 'el',
+      'grecia': 'el',
+      'atenas': 'el',
+      'santorini': 'el',
+      'turco': 'tr',
+      'turquía': 'tr',
+      'turquia': 'tr',
+      'estambul': 'tr',
+      'árabe': 'ar',
+      'arabe': 'ar',
+      'dubai': 'ar',
+      'egipto': 'ar',
       'catalán': 'ca',
       'euskera': 'eu',
       'gallego': 'gl',
@@ -34,7 +66,19 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizedTarget = targetLang.toLowerCase().trim()
-    const finalTargetLang = langMap[normalizedTarget] || (normalizedTarget.length === 2 ? normalizedTarget : 'en')
+    let finalTargetLang = langMap[normalizedTarget]
+    if (!finalTargetLang) {
+      // Buscar coincidencias parciales
+      for (const [key, code] of Object.entries(langMap)) {
+        if (normalizedTarget.includes(key)) {
+          finalTargetLang = code
+          break
+        }
+      }
+    }
+    if (!finalTargetLang) {
+      finalTargetLang = normalizedTarget.length === 2 ? normalizedTarget : 'en'
+    }
 
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${finalTargetLang}&dt=t&q=${encodeURIComponent(text)}`
     

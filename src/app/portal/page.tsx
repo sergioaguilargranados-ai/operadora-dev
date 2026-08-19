@@ -1,6 +1,6 @@
 "use client"
 
-// Build: 15 Aug 2026 - v2.486 - Reservas: acciones PDF/Pago/Facturar, PDF premium, comprobante de pago
+// Build: 18 Aug 2026 - v2.487 - Reservas: acciones PDF/Pago/Facturar, PDF premium, comprobante de pago
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"

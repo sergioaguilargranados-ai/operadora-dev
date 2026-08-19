@@ -68,25 +68,16 @@ export default function MobileSuggestedActivitiesPage() {
             ¿No sabes qué actividad hacer?
           </h1>
           <p className="text-xs text-gray-500">
-            Te recomendamos actividades según tu destino, fechas de viaje y tus intereses.
+            Recomendaciones personalizadas basadas en tu destino, el clima de hoy y experiencias exclusivas.
           </p>
-        </div>
-
-        {/* Search */}
-        <div className="relative">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Buscar actividad..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-10 pr-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-black transition-all"
-          />
         </div>
 
         {/* Actividades sugeridas */}
         <div>
-          <h2 className="text-base font-bold text-gray-900 mb-3">Actividades sugeridas</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-gray-900">Actividades recomendadas</h2>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Destino activo</span>
+          </div>
           <div className="space-y-4">
             {filteredActivities.map((act) => (
               <div

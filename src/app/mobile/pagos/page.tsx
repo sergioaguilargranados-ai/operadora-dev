@@ -159,29 +159,41 @@ export default function MobilePaymentsPage() {
                 No se encontraron pagos
               </div>
             ) : filteredPayments.map((payment) => (
-              <div key={payment.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex items-start gap-4 transition-colors cursor-default">
-                <div className="w-12 h-12 rounded-xl border border-blue-100 bg-blue-50/50 flex items-center justify-center flex-shrink-0 text-[#003366]">
-                  <CreditCard className="w-6 h-6" strokeWidth={1.5} />
-                </div>
-                
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold text-gray-900 leading-tight">Pago #{payment.id}</h3>
-                    <span className="text-sm font-semibold text-gray-900">${payment.amount} {payment.currency}</span>
+              <div key={payment.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col gap-3 transition-colors">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-center flex-shrink-0 text-gray-900">
+                    <CreditCard className="w-6 h-6" strokeWidth={1.5} />
                   </div>
-                  <p className="text-xs text-gray-500 mb-2 line-clamp-1">{payment.transaction_id || 'Transferencia'}</p>
                   
-                  <div className="flex justify-between items-center mt-2">
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-1.5 h-1.5 rounded-full ${payment.status === 'completed' ? 'bg-emerald-500' : 'bg-orange-500'}`}></div>
-                      <span className={`text-[11px] font-medium ${payment.status === 'completed' ? 'text-emerald-700' : 'text-orange-700'}`}>
-                        {payment.status === 'completed' ? 'Pagado' : 'Pendiente'}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="font-bold text-gray-900 leading-tight">Pago #{payment.id}</h3>
+                      <span className="text-sm font-bold text-gray-900">${payment.amount} {payment.currency}</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-1 line-clamp-1">{payment.transaction_id || 'Transferencia'}</p>
+                    
+                    <div className="flex justify-between items-center mt-1">
+                      <div className="flex items-center gap-1.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${payment.status === 'completed' ? 'bg-emerald-500' : 'bg-orange-500'}`}></div>
+                        <span className={`text-[11px] font-semibold ${payment.status === 'completed' ? 'text-emerald-700' : 'text-orange-700'}`}>
+                          {payment.status === 'completed' ? 'Pagado' : 'Pendiente'}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-gray-400 font-medium tracking-wide">
+                        {new Date(payment.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <span className="text-[11px] text-gray-400 font-medium tracking-wide">
-                      {new Date(payment.created_at).toLocaleDateString()}
-                    </span>
                   </div>
+                </div>
+
+                {/* Botón Facturación */}
+                <div className="pt-2 border-t border-gray-50 flex justify-end">
+                  <button
+                    onClick={() => router.push(`/facturacion?payment_id=${payment.id}`)}
+                    className="text-xs font-bold text-gray-900 hover:text-black bg-gray-100 hover:bg-gray-200 px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+                  >
+                    🧾 Facturación
+                  </button>
                 </div>
               </div>
             ))}
@@ -198,11 +210,11 @@ export default function MobilePaymentsPage() {
             </div>
           ) : pendingPayments.map((p) => (
             <div key={p.booking_id} className="bg-white rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col gap-4 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-orange-400"></div>
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-black"></div>
               
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest bg-orange-50 px-2 py-0.5 rounded-full inline-block mb-2">
+                  <p className="text-[10px] font-bold text-gray-900 uppercase tracking-widest bg-gray-100 px-2.5 py-0.5 rounded-full inline-block mb-2">
                     Saldo Pendiente
                   </p>
                   <h3 className="font-serif font-bold text-gray-900 text-lg leading-tight mb-1">{p.destination}</h3>
@@ -225,19 +237,27 @@ export default function MobilePaymentsPage() {
                 <div className="h-px w-full bg-gray-200 mb-3"></div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-bold text-gray-900">Monto restante</span>
-                  <span className="text-lg font-bold text-orange-600">${p.pending_amount.toFixed(2)} {p.currency}</span>
+                  <span className="text-lg font-bold text-black">${p.pending_amount.toFixed(2)} {p.currency}</span>
                 </div>
               </div>
               
-              <div className="mt-2 text-center">
+              <div className="grid grid-cols-2 gap-3 mt-1">
                 <button
                   onClick={() => {
                     const token = localStorage.getItem('as_token') || localStorage.getItem('token') || '';
                     window.open(`/checkout/${p.booking_id}?token=${encodeURIComponent(token)}`, '_blank');
                   }}
-                  className="w-full bg-black text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:bg-gray-900 transition-colors"
+                  className="w-full bg-black text-white font-bold py-3 px-3 rounded-xl shadow hover:bg-gray-800 transition-colors text-xs text-center"
                 >
                   Pagar ahora
+                </button>
+                <button
+                  onClick={() => {
+                    window.open(`/mobile/perfil`, '_self');
+                  }}
+                  className="w-full bg-white border border-gray-300 text-gray-900 font-bold py-3 px-3 rounded-xl hover:bg-gray-50 transition-colors text-xs text-center flex items-center justify-center gap-1"
+                >
+                  Subir comprobante
                 </button>
               </div>
             </div>

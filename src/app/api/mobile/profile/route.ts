@@ -50,7 +50,7 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, name, phone, wants_travel_insurance, date_of_birth, emergency_contacts, image } = body
+    const { id, name, email, phone, wants_travel_insurance, date_of_birth, emergency_contacts, image } = body
 
     if (!id) {
       return NextResponse.json({ success: false, error: 'User ID required' }, { status: 400 })
@@ -64,6 +64,7 @@ export async function PUT(request: Request) {
       let paramCount = 2
 
       if (name !== undefined) { updates.push(`name = $${paramCount++}`); values.push(name) }
+      if (email !== undefined) { updates.push(`email = $${paramCount++}`); values.push(email) }
       if (phone !== undefined) { updates.push(`phone = $${paramCount++}`); values.push(phone) }
       if (wants_travel_insurance !== undefined) { updates.push(`wants_travel_insurance = $${paramCount++}`); values.push(wants_travel_insurance) }
       if (date_of_birth !== undefined) { updates.push(`date_of_birth = $${paramCount++}`); values.push(date_of_birth || null) }

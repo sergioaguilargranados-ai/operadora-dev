@@ -1,13 +1,52 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 15 de Agosto de 2026 - 05:18 CST  
-**Versión actual:** v2.486  
+**Última actualización:** 18 de Agosto de 2026 - 22:33 CST  
+**Versión actual:** v2.487  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.487 - 18 de Agosto de 2026 - 22:33 CST
+**Implementación Integral de Cambios de Validación y Ajustes de Andy (REV-CAMBIOS11808)**
+- **Documento Maestro de Requerimientos:**
+  - Creación de [`docs/AG-Analisis-Validacion-Videos-Andy-18Ago2026.md`](file:///c:/operadora-dev/docs/AG-Analisis-Validacion-Videos-Andy-18Ago2026.md) con la transcripción exhaustiva de los 16 vídeos de pantalla y la matriz comparativa detallada para Sitio Web y App Móvil.
+- **Perfil Móvil ([`/mobile/perfil`](file:///c:/operadora-dev/src/app/mobile/perfil/page.tsx) y [`/editar`](file:///c:/operadora-dev/src/app/mobile/perfil/editar/page.tsx)):**
+  - Unificación de datos personales (Nombre, Fecha de nacimiento, Correo y Teléfono) en una sola tarjeta interactiva con una única flecha de acceso a edición.
+  - Inclusión del campo editable de Correo Electrónico (`email`) en la vista de edición y soporte de actualización en `PUT /api/mobile/profile`.
+  - Reordenamiento de tarjetas: `Contactos de Emergencia` colocado justo arriba de `Seguro de Viajero`.
+  - Seguro de Viajero renovado: reemplazo del switch toggle por un botón formal "Solicitar" enlazado a la sección de seguros.
+  - Botón interactivo "Cambiar contraseña" integrado directamente en la pantalla de perfil encima de "Cerrar sesión".
+- **Itinerario y Traducción ([`/mobile/itinerario/[id]`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/page.tsx)):**
+  - Remoción del banner/dropdown superior "Seleccionando viaje: Europa ∨" para una interfaz más limpia.
+  - Reemplazo de "Próximos pasos" en la Pestaña Resumen por la sección oficial **"Recuerda:"** con los 5 recordatorios clave de viaje:
+    1. *Realizar tus pagos*
+    2. *Subir tus documentos de viaje*
+    3. *Contratar actividades extra*
+    4. *Realizar check-in del vuelo*
+    5. *Disfruta tu viaje, sube una foto y etiquétanos*
+  - Retorno optimizado: al presionar Atrás desde el detalle del día ([`dia/[dayIndex]`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/dia/[dayIndex]/page.tsx)), el sistema redirige a la pestaña de Itinerario (`?tab=itinerario`) en lugar del resumen.
+  - Corrección de Traducción en Vivo ([`/api/translate`](file:///c:/operadora-dev/src/app/api/translate/route.ts)): detección automática del idioma del país destino (francés, italiano, alemán, japonés, griego, portugués, etc.) evitando el fallback a inglés.
+- **Pagos Móviles ([`/mobile/pagos`](file:///c:/operadora-dev/src/app/mobile/pagos/page.tsx)):**
+  - Botón **"Facturación"** en cada tarjeta de pago realizado con redirección directa a emisión de CFDI.
+  - Botón **"Subir comprobante"** en pagos pendientes para pagos por transferencia o ventanilla bancaria.
+- **AS Retos & AS Rewards ([`/mobile/rewards`](file:///c:/operadora-dev/src/app/mobile/rewards/page.tsx)):**
+  - Eliminación de botón "Ver recompensas" y ocultación de "Camina y gana".
+  - Retos actualizados: sustitución de botones "Planear"/"Check-in" por el botón individual **"Ver en mapa"** en cada punto de interés.
+  - Reordenamiento exacto de los 5 bloques en AS Rewards:
+    1. *Tu progreso de invitaciones*
+    2. *Invitar más viajeros*
+    3. *Invitados confirmados*
+    4. *Tus beneficios*
+    5. *Beneficios que puedes obtener*
+- **Ayuda & Wishlist ([`/mobile/actividades-sugeridas`](file:///c:/operadora-dev/src/app/mobile/actividades-sugeridas/page.tsx) y [`/wishlist`](file:///c:/operadora-dev/src/app/mobile/wishlist/page.tsx)):**
+  - Remoción de la barra de búsqueda de texto en actividades sugeridas para sugerencias directas del destino.
+  - Navegación fluida al Inicio (`/mobile`) al presionar Atrás desde la Wishlist.
+- **Portal Web & Viajes Grupales ([`/tours`](file:///c:/operadora-dev/src/app/tours/page.tsx)):**
+  - Reemplazo del video de YouTube por un carrusel fotográfico de destinos de alta resolución.
+  - Estandarización de botones de acento a negro institucional (`bg-black` / `#111827`).
 
 ### v2.486 - 15 de Agosto de 2026 - 05:18 CST
 **Organizador Dinámico de Menú de Intranet y Reordenamiento Interactivo de Secciones**

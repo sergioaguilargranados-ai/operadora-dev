@@ -23,6 +23,7 @@ export default function MobileProfileEditPage() {
 
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     phone: '',
     date_of_birth: '',
     wants_travel_insurance: false,
@@ -51,6 +52,7 @@ export default function MobileProfileEditPage() {
         
         setFormData({
           name: p.name || '',
+          email: p.email || user?.email || '',
           phone: p.phone || '',
           date_of_birth: dob,
           wants_travel_insurance: p.wants_travel_insurance || false,
@@ -150,6 +152,18 @@ export default function MobileProfileEditPage() {
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
                   className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
                   placeholder="Tu nombre"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Correo Electrónico</label>
+                <input 
+                  type="email" 
+                  value={formData.email} 
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
+                  placeholder="ejemplo@correo.com"
                   required
                 />
               </div>

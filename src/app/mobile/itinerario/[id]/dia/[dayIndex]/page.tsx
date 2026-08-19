@@ -60,8 +60,23 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
     return 'USD'; // default fallback
   }
 
-  // Determinar idioma del destino para TTS (ej. en-US, fr-FR)
-  const localLanguage = dayData?.practical_info?.language?.name || 'Idioma local'
+  // Determinar idioma del destino para TTS y traducción según ciudad o país
+  const getDestinationLanguage = () => {
+    const declared = dayData?.practical_info?.language?.name
+    if (declared && declared.toLowerCase() !== 'idioma local') return declared
+
+    const context = `${dayData?.title || ''} ${dayData?.places?.[0]?.name || ''} ${itinerary?.destination || ''} ${itinerary?.title || ''}`.toLowerCase()
+    if (context.includes('paris') || context.includes('parís') || context.includes('francia') || context.includes('nice') || context.includes('marsella')) return 'francés'
+    if (context.includes('roma') || context.includes('italia') || context.includes('venecia') || context.includes('florencia') || context.includes('milan')) return 'italiano'
+    if (context.includes('alemania') || context.includes('berlin') || context.includes('berlín') || context.includes('munich') || context.includes('frankfurt')) return 'alemán'
+    if (context.includes('tokio') || context.includes('tokyo') || context.includes('japon') || context.includes('japón') || context.includes('kyoto') || context.includes('osaka')) return 'japonés'
+    if (context.includes('grecia') || context.includes('atenas') || context.includes('santorini') || context.includes('mikonos')) return 'griego'
+    if (context.includes('londres') || context.includes('london') || context.includes('uk') || context.includes('inglaterra') || context.includes('reinounido') || context.includes('estados unidos') || context.includes('nueva york')) return 'inglés'
+    if (context.includes('portugal') || context.includes('lisboa') || context.includes('porto') || context.includes('brasil')) return 'portugués'
+    return 'inglés'
+  }
+
+  const localLanguage = getDestinationLanguage()
   const langMapTTS: Record<string, string> = {
     'inglés': 'en-US',
     'ingles': 'en-US',
@@ -74,6 +89,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
     'portugues': 'pt-PT',
     'japonés': 'ja-JP',
     'japones': 'ja-JP',
+    'griego': 'el-GR',
     'español': 'es-ES',
     'espanol': 'es-ES',
     'español (castellano)': 'es-ES'
@@ -310,7 +326,10 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
       
       {/* Absolute top navbar over the image */}
       <div className="absolute top-0 w-full px-4 pt-8 flex items-center justify-between z-30">
-        <button onClick={() => router.back()} className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors border border-white/30">
+        <button 
+          onClick={() => router.push(`/mobile/itinerario/${params.id}?tab=itinerario`)} 
+          className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors border border-white/30"
+        >
           <ChevronLeft className="w-6 h-6" />
         </button>
       </div>
