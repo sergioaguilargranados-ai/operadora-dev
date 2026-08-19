@@ -514,7 +514,7 @@ export default function MobileRewardsPage() {
               
               {/* 1. Tu progreso de invitaciones */}
               <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-                <h3 className="text-xl font-serif font-bold text-gray-900 mb-4">1. Tu progreso de invitaciones</h3>
+                <h3 className="text-xl font-serif font-bold text-gray-900 mb-4">Tu progreso de invitaciones</h3>
                 
                 {/* Progress Bar (Visual) */}
                 <div className="h-4 bg-gray-100 rounded-full overflow-hidden mb-4">
@@ -536,7 +536,7 @@ export default function MobileRewardsPage() {
 
               {/* 2. Invita más viajeros */}
               <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-                <h3 className="text-xl font-serif font-bold text-gray-900 mb-4">2. Invita más viajeros</h3>
+                <h3 className="text-xl font-serif font-bold text-gray-900 mb-4">Invita más viajeros</h3>
                 
                 <div className="border border-gray-200 rounded-xl p-3 mb-4 text-center bg-gray-50/50">
                   <p className="text-[10px] text-gray-400 mb-1 font-semibold uppercase tracking-wider">Tu código de invitación</p>
@@ -580,7 +580,7 @@ export default function MobileRewardsPage() {
 
               {/* 3. Invitados confirmados */}
               <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-                <h3 className="text-xl font-serif font-bold text-gray-900 mb-6">3. Invitados confirmados</h3>
+                <h3 className="text-xl font-serif font-bold text-gray-900 mb-6">Invitados confirmados</h3>
                 
                 <div className="space-y-4 mb-6">
                   {loadingReferrals ? (
@@ -610,7 +610,7 @@ export default function MobileRewardsPage() {
 
               {/* 4. Tus beneficios */}
               <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-                <h3 className="text-xl font-serif font-bold text-gray-900 mb-6">4. Tus beneficios</h3>
+                <h3 className="text-xl font-serif font-bold text-gray-900 mb-6">Tus beneficios</h3>
                 <div className="space-y-6">
                   <BenefitTier icon="🥉" title="Explorador AS" req="5 viajeros invitados" desc="Bono de $1,000 MXN para tu próximo viaje." />
                   <BenefitTier icon="🥈" title="Embajador AS" req="10 viajeros invitados" desc="Bono de $2,500 MXN para tu próximo viaje." />
@@ -621,7 +621,7 @@ export default function MobileRewardsPage() {
 
               {/* 5. Beneficios que puedes obtener */}
               <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm mb-6">
-                <h3 className="text-xl font-serif font-bold text-gray-900 mb-6 text-center">5. Beneficios que puedes obtener</h3>
+                <h3 className="text-xl font-serif font-bold text-gray-900 mb-6 text-center">Beneficios que puedes obtener</h3>
                 <div className="grid grid-cols-3 gap-y-6 gap-x-2 text-center">
                   <MiniBenefit icon={<Gift className="w-6 h-6 text-green-600" />} color="bg-green-50" text="Descuentos en viajes" />
                   <MiniBenefit icon={<Briefcase className="w-6 h-6 text-brand-primary" />} color="bg-blue-50" text="Tours gratuitos" />
