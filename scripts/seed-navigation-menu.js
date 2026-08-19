@@ -134,13 +134,22 @@ const DEFAULT_MENU_STRUCTURE = [
         sort_order: 1
       },
       {
+        item_key: 'travel_insurance',
+        label: 'Seguros de Viajero',
+        icon_name: 'ShieldCheck',
+        route: '/seguros',
+        badge: '24/7',
+        permission_code: 'insurance:view',
+        sort_order: 2
+      },
+      {
         item_key: 'payments_accounts',
         label: 'Pagos & Cuentas',
         icon_name: 'CreditCard',
         route: '/dashboard/payments',
         badge: null,
         permission_code: 'bookings:payments',
-        sort_order: 2
+        sort_order: 3
       },
       {
         item_key: 'sat_invoices',
@@ -149,7 +158,7 @@ const DEFAULT_MENU_STRUCTURE = [
         route: '/facturacion',
         badge: 'SAT',
         permission_code: 'invoices:view',
-        sort_order: 3
+        sort_order: 4
       }
     ]
   },

@@ -1,13 +1,34 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 18 de Agosto de 2026 - 22:33 CST  
-**Versión actual:** v2.487  
+**Última actualización:** 19 de Agosto de 2026 - 10:19 CST  
+**Versión actual:** v2.488  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.488 - 19 de Agosto de 2026 - 10:19 CST
+**Módulo Integral de Contratación y Gestión de Seguros de Viajero (`/seguros`)**
+- **Pantalla Institucional de Seguros ([`/seguros`](file:///c:/operadora-dev/src/app/seguros/page.tsx)):**
+  - Desarrollo de plataforma completa de asistencia al viajero y seguros internacionales sobre `PortalIntranetLayout`.
+  - **Pestaña 1 (Cotizar & Contratar):** Flujo guiado en 4 pasos (Destino & Fechas con selector de reservas existentes para auto-completar datos en 1 clic $\rightarrow$ Selección de plan médico $\rightarrow$ Datos oficiales de asegurados y contacto de emergencia $\rightarrow$ Emisión y resumen con certificado).
+  - **Catálogo de Planes Insurtech:**
+    - *Plan Escapadas / Básico:* Cobertura médica $30,000 USD, COVID-19 y pérdida de equipaje.
+    - *Plan Internacional Plus (Schengen ⭐ - Recomendado):* Cumplimiento estricto del Tratado Schengen (30,000 EUR sin deducible/copago), gastos médicos hospitalarios $60,000 USD, repatriación médica ilimitada, cancelación de viaje y compensación de vuelo.
+    - *Plan Mundial Platinum & Cruceros:* Cobertura integral $150,000 USD para EE.UU., cruceros, deportes recreativos y preexistencias agudas hasta $10,000 USD.
+  - **Pestaña 2 (Mis Pólizas):** Listado de pólizas emitidas con número de folio internacional (`AS-POL-2026-XXXX`), estatus de vigencia (Vigente / Próximo Viaje / Concluida), asegurados, descarga de certificado/voucher PDF y botón de asistencia directa 24/7.
+  - **Pestaña 3 (Guía & Asistencia 24/7):** Teléfonos internacionales de Central de Emergencias, enlace de WhatsApp directo y protocolo de actuación médica en el extranjero.
+- **Backend & APIs REST:**
+  - `POST /api/insurance/quote`: Cotizador dinámico en tiempo real según destino, días de estancia y edades de los pasajeros.
+  - `GET & POST /api/insurance/policies`: Consulta de pólizas por usuario/staff y emisión con generación de folio único.
+- **Base de Datos, Permisos y Navegación:**
+  - Tabla persistente `travel_insurance_policies` en PostgreSQL.
+  - Feature flag `travel_insurance` registrado en la tabla `features`.
+  - Permisos granulares `insurance:view`, `insurance:create`, `insurance:manage` en `permissions` y asignados a roles de cliente y staff.
+  - Menú lateral actualizado con `Seguros de Viajero` (`ShieldCheck`, badge `24/7`) en `GESTIÓN DE RESERVAS` y `MI CUENTA & VIAJES`.
+  - Integración completada con el botón "Solicitar" del perfil móvil (`/mobile/perfil`).
 
 ### v2.487 - 18 de Agosto de 2026 - 22:33 CST
 **Implementación Integral de Cambios de Validación y Ajustes de Andy (REV-CAMBIOS11808)**

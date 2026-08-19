@@ -1,5 +1,5 @@
 // WhiteLabelContext.tsx - Contexto global para Multi-Empresa y Marca Blanca
-// Build: 18 Aug 2026 - v2.487 - Fase 1 Multi-Empresa
+// Build: 19 Aug 2026 - v2.488 - Fase 1 Multi-Empresa
 
 'use client';
 

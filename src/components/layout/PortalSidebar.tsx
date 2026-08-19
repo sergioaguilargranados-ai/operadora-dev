@@ -155,6 +155,7 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
       title: 'MI CUENTA & VIAJES',
       items: [
         { label: 'Tus Reservas', icon: Package, route: '/mis-reservas' },
+        { label: 'Seguros de Viajero', icon: ShieldCheck, route: '/seguros', badge: '24/7' },
         { label: 'Mi Perfil', icon: UserIcon, route: '/perfil' },
         { label: 'Mis Facturas', icon: Receipt, route: '/facturacion' }
       ]
@@ -254,6 +255,7 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
       title: 'GESTIÓN DE RESERVAS',
       items: [
         { label: 'Todas las Reservas', icon: Package, route: '/mis-reservas', permission: 'bookings:view' },
+        { label: 'Seguros de Viajero', icon: ShieldCheck, route: '/seguros', badge: '24/7', permission: 'insurance:view' },
         { label: 'Pagos & Cuentas', icon: CreditCard, route: '/dashboard/payments', permission: 'bookings:payments' },
         { label: 'Facturación SAT CFDI', icon: Receipt, route: '/facturacion', badge: 'SAT', permission: 'invoices:view' }
       ]

@@ -1,5 +1,5 @@
 // Catálogo de Tours y Viajes Grupales
-// Build: 18 Aug 2026 - v2.487 - Fix filtro regiones dinámicas desde DB
+// Build: 19 Aug 2026 - v2.488 - Fix filtro regiones dinámicas desde DB
 
 'use client'
 
@@ -116,8 +116,10 @@ function ToursContent() {
     const searchParams = useSearchParams()
 
     const [activeTab, setActiveTab] = useState<'individual' | 'grupal' | 'eventos' | 'bloqueos'>('grupal')
+    const [packages, setPackages] = useState<TourPackage[]>([])
     const [allPackages, setAllPackages] = useState<TourPackage[]>([])
     const [filteredPackages, setFilteredPackages] = useState<TourPackage[]>([])
+    const [videoUrl, setVideoUrl] = useState('https://images.unsplash.com/photo-1499856871958-5b9337606a3e?w=1600')
     const [regions, setRegions] = useState<string[]>([])
     const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
