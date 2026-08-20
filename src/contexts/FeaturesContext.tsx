@@ -1,5 +1,5 @@
 // FeaturesContext.tsx - Contexto global para gestión de features
-// Build: 19 Aug 2026 - v2.488 - Sistema de Administración Granular
+// Build: 19 Aug 2026 - v2.489 - Sistema de Administración Granular
 
 'use client';
 

@@ -78,8 +78,12 @@ export default function MobileProfilePage() {
     }
   }
 
-  const handleEdit = () => {
-    router.push('/mobile/perfil/editar')
+  const handleEdit = (section?: string) => {
+    if (section) {
+      router.push(`/mobile/perfil/editar?section=${section}`)
+    } else {
+      router.push('/mobile/perfil/editar')
+    }
   }
 
   const handleLanguageChange = (langCode: string) => {
@@ -307,7 +311,7 @@ export default function MobileProfilePage() {
 
         {/* 1. Datos Personales Unificados Card */}
         <div 
-          onClick={handleEdit}
+          onClick={() => handleEdit('datos')}
           className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 cursor-pointer active:bg-gray-50 transition-colors"
         >
           <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2">
@@ -347,7 +351,7 @@ export default function MobileProfilePage() {
 
         {/* 2. Contactos de Emergencia Card (Arriba del Seguro) */}
         <div 
-          onClick={handleEdit}
+          onClick={() => handleEdit('contactos')}
           className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 cursor-pointer active:bg-gray-50 transition-colors flex items-center justify-between"
         >
           <div className="flex items-center gap-3">

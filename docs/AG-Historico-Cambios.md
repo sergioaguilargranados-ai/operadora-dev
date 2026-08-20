@@ -1,13 +1,24 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 19 de Agosto de 2026 - 10:19 CST  
-**Versión actual:** v2.488  
+**Última actualización:** 19 de Agosto de 2026 - 16:55 CST  
+**Versión actual:** v2.489  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.489 - 19 de Agosto de 2026 - 16:55 CST
+**Navegación Focalizada y Pestañas en Edición de Perfil Móvil (`/mobile/perfil/editar`)**
+- **Navegación Directa a Contactos de Emergencia:**
+  - Al presionar la tarjeta de **Contactos de Emergencia** en [`/mobile/perfil`](file:///c:/operadora-dev/src/app/mobile/perfil/page.tsx), la aplicación redirige a `/mobile/perfil/editar?section=contactos`, mostrando de inmediato la sección de Contactos de Emergencia al frente.
+  - Al presionar **Datos Personales**, redirige a `/mobile/perfil/editar?section=datos`.
+- **Selector de Pestañas Rápidas en Edición de Perfil ([`/mobile/perfil/editar`](file:///c:/operadora-dev/src/app/mobile/perfil/editar/page.tsx)):**
+  - Implementado control segmentado superior con 4 vistas (*Datos*, *Contactos*, *Seguro*, *Todos*) permitiendo al usuario enfocarse en la sección deseada o editar todo de forma integral.
+  - Formulario de Contactos de Emergencia con gestión dinámica (agregar, editar nombre, parentesco y teléfono con WhatsApp, eliminar con confirmación).
+  - Enlace al cotizador de Seguro de Viajero institucional (`/seguros`).
+  - Envuelto en `<Suspense>` para compilación y renderizado seguro.
 
 ### v2.488 - 19 de Agosto de 2026 - 10:19 CST
 **Módulo Integral de Contratación y Gestión de Seguros de Viajero (`/seguros`)**
