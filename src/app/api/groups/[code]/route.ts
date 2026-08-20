@@ -1,5 +1,5 @@
 // API de Viajes Grupales - Detalle de paquete individual
-// Build: 20 Aug 2026 - v2.494 - Todos los campos MegaTravel completos
+// Build: 20 Aug 2026 - v2.495 - Todos los campos MegaTravel completos
 
 import { NextRequest, NextResponse } from 'next/server';
 import { MegaTravelSyncService } from '@/services/MegaTravelSyncService';

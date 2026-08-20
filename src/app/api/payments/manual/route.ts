@@ -22,10 +22,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { bookingId, amount, method, reference, notes } = body
 
-    if (!bookingId || !amount || !method) {
+    const numericAmount = parseFloat(String(amount || 0))
+
+    if (!bookingId || !numericAmount || numericAmount <= 0 || !method) {
       return NextResponse.json({
         success: false,
-        error: 'Faltan campos obligatorios'
+        error: 'Faltan campos obligatorios o el monto es inválido'
       }, { status: 400 })
     }
 
@@ -36,6 +38,10 @@ export async function POST(request: NextRequest) {
         error: 'Reserva no encontrada'
       }, { status: 404 })
     }
+
+    let totalPaid = 0
+    let totalPrice = parseFloat(booking.total_price || '0')
+    let newPaymentStatus = 'partial'
 
     // Insertar el pago y actualizar la reserva en una transacción
     await transaction(async (client) => {
@@ -50,7 +56,7 @@ export async function POST(request: NextRequest) {
         bookingId,
         userId,
         booking.tenant_id || 1,
-        amount,
+        numericAmount,
         booking.currency || 'MXN',
         method,
         reference || null,
@@ -64,14 +70,14 @@ export async function POST(request: NextRequest) {
         WHERE booking_id = $1 AND status = 'completed'
       `, [bookingId])
       
-      const totalPaid = parseFloat(payments.rows[0]?.total_paid || '0')
-      const totalPrice = parseFloat(booking.total_price || '0')
+      totalPaid = parseFloat(payments.rows[0]?.total_paid || '0')
       
-      let newPaymentStatus = 'partial'
-      if (totalPaid >= totalPrice) {
+      if (totalPaid >= totalPrice - 0.01) {
         newPaymentStatus = 'paid'
       } else if (totalPaid <= 0) {
         newPaymentStatus = 'pending'
+      } else {
+        newPaymentStatus = 'partial'
       }
 
       // 3. Actualizar la reserva
@@ -98,12 +104,11 @@ export async function POST(request: NextRequest) {
     })
 
     // 4. Lanzar notificación automática al cliente de forma asíncrona (fire and forget)
-    // El dueño de la reserva es booking.user_id
     if (booking.user_id) {
       notificationService.notifyUser({
         userId: booking.user_id,
         title: `Pago Registrado - Reserva #${bookingId}`,
-        body: `Hemos registrado un pago de ${amount} ${booking.currency || 'MXN'} a tu reserva para ${booking.destination || 'tu viaje'}. Método: ${method}.`,
+        body: `Hemos registrado un pago de ${numericAmount} ${booking.currency || 'MXN'} a tu reserva para ${booking.destination || 'tu viaje'}. Método: ${method}.`,
         type: 'notification',
         referenceType: 'booking',
         referenceId: bookingId,
@@ -113,7 +118,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Pago manual registrado exitosamente'
+      message: 'Pago manual registrado exitosamente',
+      data: {
+        bookingId,
+        amount: numericAmount,
+        totalPaid,
+        remainingBalance: Math.max(0, totalPrice - totalPaid),
+        paymentStatus: newPaymentStatus
+      }
     })
 
   } catch (error) {

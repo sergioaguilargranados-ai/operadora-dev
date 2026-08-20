@@ -1,6 +1,6 @@
 // src/app/admin/megatravel-scraping/page.tsx
 // Panel unificado: Sincronización + Scraping MegaTravel
-// Build: 20 Aug 2026 - v2.494 - Fix Token MegaTravel Scraping + Auth Resilience
+// Build: 20 Aug 2026 - v2.495 - Fix Token MegaTravel Scraping + Auth Resilience
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -880,7 +880,7 @@ export default function MegaTravelScrapingPage() {
 
                 {/* Footer */}
                 <div className="text-center text-xs text-gray-400 mt-6 py-4">
-                    v2.494 | 20 Aug 2026 11:09 CST | AS Operadora — Panel MegaTravel
+                    v2.495 | 20 Aug 2026 11:22 CST | AS Operadora — Panel MegaTravel
                 </div>
             </div>
         </div>

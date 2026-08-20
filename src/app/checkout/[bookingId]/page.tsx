@@ -12,7 +12,7 @@ import { PageHeader } from '@/components/PageHeader'
 import { useToast } from '@/hooks/use-toast'
 import StripeCheckoutForm from '@/components/StripeCheckoutForm'
 import { useAuth } from '@/contexts/AuthContext'
-import { Shield, CheckCircle2, WalletCards, Receipt, DollarSign, ArrowRight, Building, Banknote, CreditCard, Sparkles } from 'lucide-react'
+import { Shield, CheckCircle2, WalletCards, Receipt, DollarSign, ArrowRight, Building, Banknote, CreditCard, Sparkles, Loader2 } from 'lucide-react'
 
 // Inicializar Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '')
@@ -28,6 +28,11 @@ interface Booking {
   status: string
   payment_status: string
   details: any
+}
+
+// Función auxiliar de redondeo limpio a 2 decimales
+const round2 = (val: number): number => {
+  return Math.round((Number(val) + Number.EPSILON) * 100) / 100
 }
 
 export default function CheckoutPage({
@@ -71,6 +76,7 @@ export default function CheckoutPage({
   const [clientSecret, setClientSecret] = useState('')
   const [paypalOrderId, setPaypalOrderId] = useState('')
   const [processing, setProcessing] = useState(false)
+  const [successRedirecting, setSuccessRedirecting] = useState(false)
 
   // Manual payment state
   const [manualAmount, setManualAmount] = useState<string>('')
@@ -103,19 +109,22 @@ export default function CheckoutPage({
       const b = data.booking
       setBooking(b)
 
-      const balance = (b.pending_balance !== undefined && b.pending_balance !== null) 
-        ? b.pending_balance 
-        : (b.total_price - (b.paid_amount || 0))
+      const tot = parseFloat(String(b.total_price || 0))
+      const pd = parseFloat(String(b.paid_amount || 0))
+      const bal = (b.pending_balance !== undefined && b.pending_balance !== null) 
+        ? parseFloat(String(b.pending_balance)) 
+        : Math.max(0, tot - pd)
 
-      setManualAmount(balance > 0 ? balance.toString() : b.total_price.toString())
+      const cleanBal = round2(bal)
+      setManualAmount(cleanBal > 0 ? cleanBal.toFixed(2) : round2(tot).toFixed(2))
 
-      // Verificar si ya está pagada
-      if (b.payment_status === 'paid' && balance <= 0) {
+      // Si ya está pagada en su totalidad
+      if (b.payment_status === 'paid' && cleanBal <= 0) {
         toast({
           title: 'Reserva ya pagada',
           description: 'Esta reserva ya ha sido pagada en su totalidad'
         })
-        router.push(`/reserva/${bookingId}`)
+        window.location.href = `/reserva/${bookingId}`
         return
       }
 
@@ -225,16 +234,16 @@ export default function CheckoutPage({
   }
 
   const handleManualPayment = async () => {
-    if (!booking) return
-    const amountNum = parseFloat(manualAmount)
-    const maxBalance = booking.pending_balance ?? (booking.total_price - (booking.paid_amount || 0))
+    if (!booking || processing || successRedirecting) return
+    const amountNum = round2(parseFloat(manualAmount))
+    const maxBalance = round2(booking.pending_balance ?? (booking.total_price - (booking.paid_amount || 0)))
 
-    if (!amountNum || amountNum <= 0) {
+    if (!amountNum || amountNum <= 0 || isNaN(amountNum)) {
       toast({ title: 'Atención', description: 'Ingresa un monto válido mayor a 0', variant: 'destructive' })
       return
     }
 
-    if (amountNum > maxBalance + 0.01) {
+    if (amountNum > maxBalance + 0.05) {
       toast({ 
         title: 'Monto excede el saldo', 
         description: `El saldo pendiente máximo es $${maxBalance.toLocaleString()} ${booking.currency}`, 
@@ -262,22 +271,25 @@ export default function CheckoutPage({
 
       const data = await res.json()
       if (data.success) {
+        setSuccessRedirecting(true)
         toast({
-          title: '✅ Pago registrado',
-          description: data.message || 'El pago manual ha sido procesado exitosamente.'
+          title: '✅ ¡Pago Registrado Exitosamente!',
+          description: `Se abonaron $${amountNum.toFixed(2)} ${booking.currency}. Redirigiendo a tu reserva...`
         })
-        router.push(`/reserva/${booking.id}`)
-        router.refresh()
+        
+        // Redirección directa y garantizada a los detalles de la reserva
+        setTimeout(() => {
+          window.location.href = `/reserva/${booking.id}`
+        }, 700)
       } else {
         throw new Error(data.error || data.message || 'Error al registrar el pago manual')
       }
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: 'Error al registrar pago',
         description: error.message,
         variant: 'destructive'
       })
-    } finally {
       setProcessing(false)
     }
   }
@@ -307,14 +319,14 @@ export default function CheckoutPage({
     )
   }
 
-  const totalPrice = parseFloat(String(booking.total_price || 0))
-  const paidAmount = parseFloat(String(booking.paid_amount || 0))
+  const totalPrice = round2(parseFloat(String(booking.total_price || 0)))
+  const paidAmount = round2(parseFloat(String(booking.paid_amount || 0)))
   const pendingBalance = (booking.pending_balance !== undefined && booking.pending_balance !== null)
-    ? parseFloat(String(booking.pending_balance))
-    : Math.max(0, totalPrice - paidAmount)
+    ? round2(parseFloat(String(booking.pending_balance)))
+    : Math.max(0, round2(totalPrice - paidAmount))
 
-  const currentManualInput = parseFloat(manualAmount) || 0
-  const remainingAfterPayment = Math.max(0, pendingBalance - currentManualInput)
+  const currentManualInput = round2(parseFloat(manualAmount) || 0)
+  const remainingAfterPayment = Math.max(0, round2(pendingBalance - currentManualInput))
 
   const options = {
     clientSecret,
@@ -383,19 +395,19 @@ export default function CheckoutPage({
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between text-slate-600">
                     <span>Precio total:</span>
-                    <span className="font-semibold">${totalPrice.toLocaleString()} {booking.currency}</span>
+                    <span className="font-semibold">${totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</span>
                   </div>
 
                   {paidAmount > 0 && (
                     <div className="flex justify-between text-emerald-600 font-medium">
                       <span>Pagado acumulado:</span>
-                      <span>-${paidAmount.toLocaleString()} {booking.currency}</span>
+                      <span>-${paidAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</span>
                     </div>
                   )}
 
                   <div className="flex justify-between text-sm font-black text-slate-900 pt-2 border-t border-gray-100">
                     <span>Saldo pendiente:</span>
-                    <span className="text-slate-900 font-serif text-base">${pendingBalance.toLocaleString()} {booking.currency}</span>
+                    <span className="text-slate-900 font-serif text-base">${pendingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</span>
                   </div>
                 </div>
               </Card>
@@ -416,6 +428,17 @@ export default function CheckoutPage({
               <Card className="p-6 rounded-2xl border-gray-200/80 shadow-sm bg-white">
                 <h3 className="font-bold text-slate-900 mb-4 text-base">Selecciona el método de pago</h3>
 
+                {/* Banner de Éxito en Redirección */}
+                {successRedirecting && (
+                  <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 animate-in fade-in duration-300">
+                    <Loader2 className="w-5 h-5 animate-spin text-emerald-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-bold text-sm">¡Cobro registrado exitosamente!</p>
+                      <p className="text-xs text-emerald-700">Actualizando saldo y redirigiendo a los detalles de la reserva...</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Selector de Métodos */}
                 <div className={`grid gap-3 mb-6 ${isStaff ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
                   
@@ -423,6 +446,7 @@ export default function CheckoutPage({
                   <Button
                     variant={paymentMethod === 'stripe' ? 'default' : 'outline'}
                     onClick={() => setPaymentMethod('stripe')}
+                    disabled={processing || successRedirecting}
                     className={`flex flex-col items-center py-4 h-auto rounded-xl transition-all ${
                       paymentMethod === 'stripe' ? 'bg-slate-900 text-white shadow-sm' : 'border-gray-200 hover:bg-slate-50 text-slate-700'
                     }`}
@@ -435,6 +459,7 @@ export default function CheckoutPage({
                   <Button
                     variant={paymentMethod === 'paypal' ? 'default' : 'outline'}
                     onClick={() => setPaymentMethod('paypal')}
+                    disabled={processing || successRedirecting}
                     className={`flex flex-col items-center py-4 h-auto rounded-xl transition-all ${
                       paymentMethod === 'paypal' ? 'bg-slate-900 text-white shadow-sm' : 'border-gray-200 hover:bg-slate-50 text-slate-700'
                     }`}
@@ -451,6 +476,7 @@ export default function CheckoutPage({
                   <Button
                     variant={paymentMethod === 'mercadopago' ? 'default' : 'outline'}
                     onClick={() => setPaymentMethod('mercadopago')}
+                    disabled={processing || successRedirecting}
                     className={`flex flex-col items-center py-4 h-auto rounded-xl transition-all ${
                       paymentMethod === 'mercadopago' ? 'bg-slate-900 text-white shadow-sm' : 'border-gray-200 hover:bg-slate-50 text-slate-700'
                     }`}
@@ -464,6 +490,7 @@ export default function CheckoutPage({
                     <Button
                       variant={paymentMethod === 'manual' ? 'default' : 'outline'}
                       onClick={() => setPaymentMethod('manual')}
+                      disabled={processing || successRedirecting}
                       className={`flex flex-col items-center py-4 h-auto rounded-xl transition-all relative ${
                         paymentMethod === 'manual' 
                           ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-md shadow-amber-200' 
@@ -485,11 +512,11 @@ export default function CheckoutPage({
                     {!clientSecret ? (
                       <div className="text-center py-8">
                         <p className="text-slate-600 mb-4 text-sm">
-                          Paga el total pendiente de <strong>${pendingBalance.toLocaleString()} {booking.currency}</strong> con tarjeta de crédito o débito.
+                          Paga el total pendiente de <strong>${pendingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</strong> con tarjeta de crédito o débito.
                         </p>
                         <Button
                           onClick={handleStripePayment}
-                          disabled={processing}
+                          disabled={processing || successRedirecting}
                           size="lg"
                           className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold"
                         >
@@ -523,11 +550,11 @@ export default function CheckoutPage({
                   <div>
                     <div className="text-center py-8">
                       <p className="text-slate-600 mb-4 text-sm">
-                        Serás redirigido a PayPal para pagar <strong>${pendingBalance.toLocaleString()} {booking.currency}</strong> con tu cuenta o tarjeta asociada.
+                        Serás redirigido a PayPal para pagar <strong>${pendingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</strong> con tu cuenta o tarjeta asociada.
                       </p>
                       <Button
                         onClick={handlePayPalPayment}
-                        disabled={processing}
+                        disabled={processing || successRedirecting}
                         size="lg"
                         className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold"
                       >
@@ -548,11 +575,11 @@ export default function CheckoutPage({
                   <div>
                     <div className="text-center py-8">
                       <p className="text-slate-600 mb-4 text-sm">
-                        Paga <strong>${pendingBalance.toLocaleString()} {booking.currency}</strong> con Mercado Pago, tarjetas de crédito, débito o efectivo en tiendas OXXO.
+                        Paga <strong>${pendingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</strong> con Mercado Pago, tarjetas de crédito, débito o efectivo en tiendas OXXO.
                       </p>
                       <Button
                         onClick={handleMercadoPagoPayment}
-                        disabled={processing}
+                        disabled={processing || successRedirecting}
                         size="lg"
                         className="bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold"
                       >
@@ -594,28 +621,31 @@ export default function CheckoutPage({
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => setManualAmount(pendingBalance.toString())}
+                          disabled={processing || successRedirecting}
+                          onClick={() => setManualAmount(pendingBalance.toFixed(2))}
                           className="text-xs font-semibold rounded-xl border-gray-300 hover:bg-amber-50 hover:border-amber-300"
                         >
-                          100% Saldo ($ {pendingBalance.toLocaleString()})
+                          100% Saldo (${pendingBalance.toFixed(2)})
                         </Button>
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => setManualAmount((pendingBalance * 0.5).toFixed(2))}
+                          disabled={processing || successRedirecting}
+                          onClick={() => setManualAmount(round2(pendingBalance * 0.5).toFixed(2))}
                           className="text-xs font-semibold rounded-xl border-gray-300 hover:bg-amber-50 hover:border-amber-300"
                         >
-                          50% Anticipo ($ {(pendingBalance * 0.5).toLocaleString()})
+                          50% Anticipo (${round2(pendingBalance * 0.5).toFixed(2)})
                         </Button>
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => setManualAmount((pendingBalance * 0.3).toFixed(2))}
+                          disabled={processing || successRedirecting}
+                          onClick={() => setManualAmount(round2(pendingBalance * 0.3).toFixed(2))}
                           className="text-xs font-semibold rounded-xl border-gray-300 hover:bg-amber-50 hover:border-amber-300"
                         >
-                          30% Anticipo ($ {(pendingBalance * 0.3).toLocaleString()})
+                          30% Anticipo (${round2(pendingBalance * 0.3).toFixed(2)})
                         </Button>
                       </div>
                     </div>
@@ -635,6 +665,7 @@ export default function CheckoutPage({
                             max={pendingBalance}
                             step="0.01"
                             placeholder="0.00"
+                            disabled={processing || successRedirecting}
                             required
                           />
                         </div>
@@ -646,6 +677,7 @@ export default function CheckoutPage({
                           className="w-full px-3 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900 outline-none"
                           value={manualMethod}
                           onChange={(e) => setManualMethod(e.target.value as any)}
+                          disabled={processing || successRedirecting}
                         >
                           <option value="transfer">🏦 Transferencia Bancaria (SPEI)</option>
                           <option value="deposit">🏢 Depósito en Ventanilla / Practicaja</option>
@@ -660,7 +692,7 @@ export default function CheckoutPage({
                     <div className="p-3 bg-slate-100 rounded-xl flex items-center justify-between text-xs font-medium text-slate-700">
                       <span>Saldo tras este abono:</span>
                       <span className="font-bold text-slate-900 text-sm">
-                        ${remainingAfterPayment.toLocaleString()} {booking.currency} {remainingAfterPayment === 0 ? '🎉 (Liquidado)' : '(Parcial)'}
+                        ${remainingAfterPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency} {remainingAfterPayment <= 0.01 ? '🎉 (Liquidado)' : '(Parcial)'}
                       </span>
                     </div>
 
@@ -672,6 +704,7 @@ export default function CheckoutPage({
                         placeholder="Ej. SPEI 872361928, Recibo #405, Autorización #8841"
                         value={manualReference}
                         onChange={(e) => setManualReference(e.target.value)}
+                        disabled={processing || successRedirecting}
                       />
                     </div>
                     
@@ -683,15 +716,23 @@ export default function CheckoutPage({
                         value={manualNotes}
                         onChange={(e) => setManualNotes(e.target.value)}
                         rows={2}
+                        disabled={processing || successRedirecting}
                       />
                     </div>
 
                     <Button
                       onClick={handleManualPayment}
-                      disabled={processing || !parseFloat(manualAmount)}
-                      className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-md shadow-slate-300"
+                      disabled={processing || successRedirecting || !parseFloat(manualAmount) || parseFloat(manualAmount) <= 0}
+                      className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-md shadow-slate-300 flex items-center justify-center gap-2"
                     >
-                      {processing ? 'Registrando cobro...' : `Registrar Cobro de $${currentManualInput.toLocaleString()} ${booking.currency}`}
+                      {processing || successRedirecting ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>{successRedirecting ? '¡Cobro exitoso! Redirigiendo...' : 'Procesando pago...'}</span>
+                        </>
+                      ) : (
+                        <span>Registrar Cobro de ${currentManualInput.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</span>
+                      )}
                     </Button>
                   </div>
                 )}

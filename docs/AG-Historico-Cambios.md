@@ -1,13 +1,19 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 11:09 CST  
-**Versión actual:** v2.494  
+**Última actualización:** 20 de Agosto de 2026 - 11:22 CST  
+**Versión actual:** v2.495  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.495 - 20 de Agosto de 2026 - 11:22 CST
+**Corrección de Redondeo de Precisión Numérica y Redirección Garantizada tras Pago ([`/checkout/[bookingId]`](file:///c:/operadora-dev/src/app/checkout/[bookingId]/page.tsx) y [`/reserva/[id]`](file:///c:/operadora-dev/src/app/reserva/[id]/page.tsx))**
+- **Redondeo Numérico Limpio:** Se eliminaron los residuos de coma flotante de JavaScript (ej. `367.720000000000025`) aplicando redondeo seguro estricto a 2 decimales (`round2`) en montos, saldo pendiente, abonos parciales y previsualizaciones de liquidación.
+- **Feedback y Redirección Instantánea:** Al completarse exitosamente un cobro manual o parcial, se muestra un banner/toast de confirmación inmediato y se efectúa la redirección directa a la página de detalles de la reserva (`/reserva/[bookingId]`), asegurando la recarga fresca de saldos y transacciones.
+- **Acceso Directo a Pagos en Detalle de Reserva:** Se agregó un botón destacado *"Pagar Saldo / Abonar"* en la tarjeta de gestión de la reserva para reservas con saldo pendiente.
 
 ### v2.494 - 20 de Agosto de 2026 - 11:09 CST
 **Rediseño de UX/UI en Menú Lateral: Acordeón Exclusivo por Sección y Buscador de Módulos ([`PortalSidebar.tsx`](file:///c:/operadora-dev/src/components/layout/PortalSidebar.tsx))**

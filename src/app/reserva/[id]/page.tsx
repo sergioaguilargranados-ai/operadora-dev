@@ -71,7 +71,7 @@ export default function BookingDetailsPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setBooking(data.data)
+        setBooking(data.data || data.booking)
       } else {
         toast({ title: 'Reserva no encontrada', variant: 'destructive' })
         router.push('/mis-reservas')
@@ -304,6 +304,22 @@ export default function BookingDetailsPage() {
 
               <div className="space-y-1 pt-1">
                 
+                {/* Pagar Saldo Pendiente */}
+                {booking.payment_status !== 'paid' && (
+                  <button 
+                    onClick={() => router.push(`/checkout/${booking.id}`)}
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold transition-all shadow-xs mb-2"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <CreditCard className="w-4 h-4 text-amber-400" />
+                      Pagar Saldo / Abonar
+                    </span>
+                    <span className="text-[10px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded-md font-extrabold">
+                      PENDIENTE
+                    </span>
+                  </button>
+                )}
+
                 {/* Descargar itinerario */}
                 <button 
                   onClick={handleDownloadVoucher}
