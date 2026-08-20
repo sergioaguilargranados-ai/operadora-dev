@@ -1,13 +1,18 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 11:50 CST  
-**Versión actual:** v2.498  
+**Última actualización:** 20 de Agosto de 2026 - 11:56 CST  
+**Versión actual:** v2.499  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.499 - 20 de Agosto de 2026 - 11:56 CST
+**Protección de Marca en Traducción (Logo) y Disponibilidad Garantizada de Itinerarios en BD ([`Logo.tsx`](file:///c:/operadora-dev/src/components/Logo.tsx) y [`navigation_menu_items`](file:///c:/operadora-dev/src/components/layout/PortalSidebar.tsx))**
+- **Excepción de Traducción en Logo (`notranslate`):** Se blindó el logotipo institucional (`AS OPERADORA DE VIAJES Y EVENTOS`) y logotipos de marca blanca con la clase `notranslate` y atributo `translate="no"`, garantizando que el motor de Google Translate nunca altere el nombre comercial al cambiar de idioma.
+- **Sincronización en BD de Menú Dinámico:** Se insertó y actualizó el registro permanente `itineraries_generator` en la tabla `navigation_menu_items` de la base de datos con `permission_code = NULL`, asegurando que la opción *"Generador Itinerarios"* aparezca de inmediato en la sección *GESTIÓN DE RESERVAS* para cualquier usuario de staff o administración sin importar la caché del navegador.
 
 ### v2.498 - 20 de Agosto de 2026 - 11:50 CST
 **Automatización Total de Generación y Enriquecimiento de Itinerarios con IA para Todo Tipo de Reserva ([`TripWorkflowService.ts`](file:///c:/operadora-dev/src/services/TripWorkflowService.ts), [`CustomItineraryService.ts`](file:///c:/operadora-dev/src/services/CustomItineraryService.ts) y [`bookings/[id]/route.ts`](file:///c:/operadora-dev/src/app/api/bookings/[id]/route.ts))**

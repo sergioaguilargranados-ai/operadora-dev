@@ -23,7 +23,7 @@ export function Logo({ className = "", forceDefault = false, size = 'md' }: Logo
   // Si tenemos logo URL de white-label Y no es forzado default
   if (!forceDefault && isWhiteLabel && logoUrl && !isLoading) {
     return (
-      <div className={`flex items-center gap-3 ${className}`}>
+      <div className={`flex items-center gap-3 notranslate ${className}`} translate="no">
         <Image
           src={logoUrl}
           alt={companyName}
@@ -34,7 +34,8 @@ export function Logo({ className = "", forceDefault = false, size = 'md' }: Logo
         />
         <div className="flex flex-col">
           <span
-            className="font-bold tracking-tight leading-none"
+            className="font-bold tracking-tight leading-none notranslate"
+            translate="no"
             style={{
               fontFamily: 'Georgia, serif',
               color: 'var(--brand-primary, #0066FF)',
@@ -51,10 +52,11 @@ export function Logo({ className = "", forceDefault = false, size = 'md' }: Logo
   // Si es white-label pero SIN logo URL, mostrar nombre con colores del tenant
   if (!forceDefault && isWhiteLabel && !isLoading) {
     return (
-      <div className={`flex flex-col ${className}`}>
+      <div className={`flex flex-col notranslate ${className}`} translate="no">
         <div className="flex items-baseline gap-1">
           <span
-            className={`${s.text} font-bold tracking-tighter leading-none`}
+            className={`${s.text} font-bold tracking-tighter leading-none notranslate`}
+            translate="no"
             style={{
               fontFamily: 'Georgia, serif',
               color: 'var(--brand-primary, #0066FF)'
@@ -64,7 +66,8 @@ export function Logo({ className = "", forceDefault = false, size = 'md' }: Logo
           </span>
         </div>
         <div
-          className={`${s.sub} tracking-[0.15em] font-medium leading-tight mt-0.5 uppercase`}
+          className={`${s.sub} tracking-[0.15em] font-medium leading-tight mt-0.5 uppercase notranslate`}
+          translate="no"
           style={{
             fontFamily: 'Georgia, serif',
             color: 'var(--brand-primary, #0066FF)'
@@ -78,18 +81,18 @@ export function Logo({ className = "", forceDefault = false, size = 'md' }: Logo
 
   // Default: Logo AS Operadora (diseño según mockup)
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <span className="text-5xl md:text-6xl font-normal tracking-tighter leading-none text-black" style={{ fontFamily: 'Georgia, serif' }}>
+    <div className={`flex items-center gap-3 notranslate ${className}`} translate="no">
+      <span className="text-5xl md:text-6xl font-normal tracking-tighter leading-none text-black notranslate" translate="no" style={{ fontFamily: 'Georgia, serif' }}>
         A<span className="text-5xl md:text-6xl">S</span>
       </span>
       
       <div className="h-10 w-[2px] bg-gray-300"></div>
       
-      <div className="flex flex-col justify-center">
-        <span className="text-[10px] md:text-[11px] tracking-[0.2em] font-bold leading-tight text-black">
+      <div className="flex flex-col justify-center notranslate" translate="no">
+        <span className="text-[10px] md:text-[11px] tracking-[0.2em] font-bold leading-tight text-black notranslate" translate="no">
           OPERADORA DE
         </span>
-        <span className="text-[10px] md:text-[11px] tracking-[0.2em] font-bold leading-tight text-black">
+        <span className="text-[10px] md:text-[11px] tracking-[0.2em] font-bold leading-tight text-black notranslate" translate="no">
           VIAJES Y EVENTOS
         </span>
       </div>

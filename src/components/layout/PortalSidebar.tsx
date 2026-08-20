@@ -227,7 +227,7 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
       icon: Package,
       items: [
         { label: 'Todas las Reservas', icon: Package, route: '/mis-reservas', permission: 'bookings:view' },
-        { label: 'Generador Itinerarios', icon: MapPin, route: '/dashboard/itineraries', badge: 'IA', permission: 'itineraries:view' },
+        { label: 'Generador Itinerarios', icon: MapPin, route: '/dashboard/itineraries', badge: 'IA' },
         { label: 'Seguros de Viajero', icon: ShieldCheck, route: '/seguros', badge: '24/7', permission: 'insurance:view' },
         { label: 'Pagos & Cuentas', icon: CreditCard, route: '/dashboard/payments', permission: 'bookings:payments' },
         { label: 'Facturación SAT CFDI', icon: Receipt, route: '/facturacion', badge: 'SAT', permission: 'invoices:view' }
