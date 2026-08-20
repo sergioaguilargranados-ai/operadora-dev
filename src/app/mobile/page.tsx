@@ -43,7 +43,7 @@ export default function MobileHomePage() {
     if (!user?.id) return
     const prefetchData = async () => {
       try {
-        const token = localStorage.getItem('token') || ''
+        const token = localStorage.getItem('as_token') || localStorage.getItem('token') || ''
         const res = await fetch(`/api/bookings?userId=${user.id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })

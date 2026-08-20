@@ -19,7 +19,7 @@ export default function MobileActiveItineraryRedirect() {
 
     const fetchAndRedirect = async () => {
       try {
-        const token = localStorage.getItem('token') || ''
+        const token = localStorage.getItem('as_token') || localStorage.getItem('token') || ''
         const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(user?.role || '')
         const url = isAdmin ? '/api/bookings?userId=all' : `/api/bookings?userId=${user.id}`
         
@@ -38,7 +38,7 @@ export default function MobileActiveItineraryRedirect() {
           bookingsList.forEach((b: any) => {
             try {
               const details = typeof b.special_requests === 'string' ? JSON.parse(b.special_requests) : (b.special_requests || {})
-              const tripId = details.tour_id || b.id.toString()
+              const tripId = b.id.toString()
               const tripDate = new Date(b.travel_date || details.fecha_inicio || b.created_at).getTime()
               
               if (tripDate >= now) {

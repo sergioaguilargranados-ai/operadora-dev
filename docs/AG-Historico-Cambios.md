@@ -1,13 +1,24 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 11:56 CST  
-**Versión actual:** v2.499  
+**Última actualización:** 20 de Agosto de 2026 - 12:17 CST  
+**Versión actual:** v2.500  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.500 - 20 de Agosto de 2026 - 12:17 CST
+**Auditoría y Corrección QA: Carga y Sincronización de Itinerarios Enriquecidos con IA en PWA ([`itinerario/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/page.tsx), [`itinerario/[id]/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/page.tsx), [`itinerario/active/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/active/page.tsx))**
+- **Autenticación en PWA:** Se corrigió la lectura del token de autenticación (`as_token || token`) en todas las vistas de la PWA móvil para garantizar peticiones autorizadas a `/api/bookings`.
+- **Identificación Única de Reservas:** Se ajustó la generación de tarjetas de viaje para utilizar el identificador único `b.id`, evitando que múltiples reservas con el mismo destino se agrupen o sobreescriban erróneamente.
+- **Itinerario Enriquecido con IA Asociado a Reserva 126:** Se generó, normalizó y vinculó el itinerario completo de 19 días para la reserva #126 (Salida: 1 de Noviembre de 2026) con todas sus secciones enriquecidas activas:
+  - 🍽️ Gastronomía típica por ciudad con imágenes y descripciones.
+  - 🏛️ Atracciones icónicas con guía de visita, ubicación y transporte.
+  - 🎁 Souvenirs recomendados con recomendaciones de compra.
+  - 🗣️ Frases útiles con pronunciación y Text-To-Speech.
+  - ⛅ Clima, voltaje, moneda y calculadora de divisas.
 
 ### v2.499 - 20 de Agosto de 2026 - 11:56 CST
 **Protección de Marca en Traducción (Logo) y Disponibilidad Garantizada de Itinerarios en BD ([`Logo.tsx`](file:///c:/operadora-dev/src/components/Logo.tsx) y [`navigation_menu_items`](file:///c:/operadora-dev/src/components/layout/PortalSidebar.tsx))**

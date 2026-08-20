@@ -216,7 +216,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
 
         // 2. Obtener todas las reservas del usuario para el selector y datos activos
         if (user?.id) {
-          const token = localStorage.getItem('token') || ''
+          const token = localStorage.getItem('as_token') || localStorage.getItem('token') || ''
           
           // Obtener documentos de perfil del usuario
           try {
@@ -242,24 +242,25 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
             bookingsList.forEach((b: any) => {
               try {
                 const details = typeof b.special_requests === 'string' ? JSON.parse(b.special_requests) : (b.special_requests || {})
-                const tripId = details.tour_id || b.id.toString()
+                const tripId = b.id.toString()
                 
                 const dateObj = new Date(b.travel_date || details.fecha_inicio || b.created_at)
                 const bookingData = {
                   tour_id: tripId,
+                  booking_id: b.id,
                   name: b.service_name || details.tour_name || details.destination || 'Viaje',
                   dateStr: dateObj.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }),
                   dateObj: dateObj,
                   pax: b.pax || details.pax || details.pasajeros || b.adults || 2,
                   booking_reference: b.booking_reference || `AS-${b.id || '987654'}`,
-                  image: details.image_url || dbItinerary?.hero_image || "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80"
+                  image: details.image_url || dbItinerary?.hero_image || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80"
                 }
 
                 if (!userToursMap.has(tripId)) {
                   userToursMap.set(tripId, bookingData)
                 }
 
-                if (tripId === params.id) {
+                if (tripId === params.id || (details.tour_id && details.tour_id === params.id)) {
                   matchedBooking = bookingData
                 }
               } catch(e) {}

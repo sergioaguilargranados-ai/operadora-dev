@@ -29,7 +29,7 @@ export default function MobileTripsListPage() {
     const fetchTours = async () => {
       try {
         setLoading(true)
-        const token = localStorage.getItem('token') || ''
+        const token = localStorage.getItem('as_token') || localStorage.getItem('token') || ''
         const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(user?.role || '')
         const url = isAdmin ? '/api/bookings?userId=all' : `/api/bookings?userId=${user.id}`
         
@@ -44,11 +44,10 @@ export default function MobileTripsListPage() {
           bookingsList.forEach((b: any) => {
             try {
               const details = typeof b.special_requests === 'string' ? JSON.parse(b.special_requests) : (b.special_requests || {})
-              const tripName = b.service_name || details.tour_name || details.destination
-              const tripId = details.tour_id || tripName || b.id.toString()
+              const tripName = b.service_name || details.tour_name || details.destination || 'Viaje'
+              const tripId = b.id.toString()
               
               if (!userToursMap.has(tripId)) {
-                
                 const hasExplicitDate = Boolean(b.travel_date || details.fecha_inicio)
                 const tripDate = hasExplicitDate ? new Date(b.travel_date || details.fecha_inicio) : new Date(b.created_at)
                 const now = new Date()
@@ -57,12 +56,14 @@ export default function MobileTripsListPage() {
                 
                 userToursMap.set(tripId, {
                   tour_id: tripId,
-                  name: b.service_name || details.tour_name || details.destination || 'Viaje',
+                  booking_id: b.id,
+                  booking_reference: b.booking_reference,
+                  name: tripName,
                   dateStr: hasExplicitDate ? tripDate.toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Próximamente',
                   dateObj: tripDate,
                   pax: b.pax || details.pax || details.pasajeros || b.adults || 2,
                   isPast: isPast,
-                  image: details.image_url || "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=400&q=80"
+                  image: details.image_url || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80"
                 })
               }
             } catch(e) {}
