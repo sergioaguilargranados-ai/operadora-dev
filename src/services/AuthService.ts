@@ -197,9 +197,10 @@ export class AuthService {
   static async login(data: LoginData) {
     try {
       // Buscar usuario (sin dependencias a companies/agencies)
+      const cleanEmail = (data.email || '').trim().toLowerCase()
       const result = await query(
-        `SELECT * FROM users WHERE email = $1`,
-        [data.email]
+        `SELECT * FROM users WHERE LOWER(TRIM(email)) = $1`,
+        [cleanEmail]
       )
 
       if (result.rows.length === 0) {

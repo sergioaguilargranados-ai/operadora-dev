@@ -50,22 +50,41 @@ export default function MobileLoginPage() {
 
   const handleNextStep = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email) return
+    const cleanEmail = email.trim().toLowerCase()
+    if (!cleanEmail) return
     setError("")
     setLoading(true)
 
     try {
-      const res = await fetch(`/api/mobile/tenant-lookup?email=${encodeURIComponent(email)}`)
+      const res = await fetch(`/api/mobile/tenant-lookup?email=${encodeURIComponent(cleanEmail)}`)
       const data = await res.json()
       
       if (data.success && data.data) {
         setTenantConfig(data.data)
         setStep(2)
       } else {
-        setError("El correo no está registrado o no está activo.")
+        // Fallback elegante a tenant principal para no bloquear el inicio de sesión
+        setTenantConfig({
+          tenant_id: 1,
+          company_name: 'AS Operadora',
+          logo_url: '/logo.png',
+          primary_color: '#1F2937',
+          secondary_color: '#3B82F6',
+          has_accepted_terms: true,
+        })
+        setStep(2)
       }
     } catch (err) {
-      setError("Ocurrió un error al buscar tu cuenta.")
+      // Si falla la red o lookup, permitir de todas formas continuar al paso de contraseña
+      setTenantConfig({
+        tenant_id: 1,
+        company_name: 'AS Operadora',
+        logo_url: '/logo.png',
+        primary_color: '#1F2937',
+        secondary_color: '#3B82F6',
+        has_accepted_terms: true,
+      })
+      setStep(2)
     } finally {
       setLoading(false)
     }
@@ -84,14 +103,15 @@ export default function MobileLoginPage() {
     setLoading(true)
 
     try {
-      const res = await login(email, password, acceptedTerms)
+      const cleanEmail = email.trim().toLowerCase()
+      const res = await login(cleanEmail, password, acceptedTerms)
       if (res && res.success) {
         router.push("/mobile")
       } else {
-        setError("Contraseña incorrecta")
+        setError(res?.error || "Contraseña incorrecta o usuario no activo")
       }
-    } catch (err) {
-      setError("Ocurrió un error. Intenta nuevamente.")
+    } catch (err: any) {
+      setError(err?.message || "Ocurrió un error. Intenta nuevamente.")
     } finally {
       setLoading(false)
     }

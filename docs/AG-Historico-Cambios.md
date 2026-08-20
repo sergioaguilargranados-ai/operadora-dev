@@ -1,13 +1,19 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 16:35 CST  
-**Versión actual:** v2.502  
+**Última actualización:** 20 de Agosto de 2026 - 17:32 CST  
+**Versión actual:** v2.503  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.503 - 20 de Agosto de 2026 - 17:32 CST
+**Robustez y Sanitización de Autenticación Móvil ([`tenant-lookup/route.ts`](file:///c:/operadora-dev/src/app/api/mobile/tenant-lookup/route.ts), [`AuthService.ts`](file:///c:/operadora-dev/src/services/AuthService.ts), [`mobile/login/page.tsx`](file:///c:/operadora-dev/src/app/mobile/login/page.tsx))**
+- **Sanitización de Email:** Se agregó `.trim().toLowerCase()` en la validación de correos en `tenant-lookup`, `AuthService.login` y la pantalla de login móvil para evitar que espacios adicionales de teclados móviles o mayúsculas bloqueen el acceso.
+- **Conexión de Base de Datos Compartida:** Se reemplazó la inicialización aislada de `pg.Pool` en `tenant-lookup` por la instancia optimizada de `@/lib/db`.
+- **Fallback Resiliente de Tenant:** Si la consulta de tenant de un usuario no encuentra configuración personalizada o experimenta latencia, se habilita de inmediato el paso a contraseña con el tenant maestro, impidiendo bloqueos al usuario.
 
 ### v2.502 - 20 de Agosto de 2026 - 16:35 CST
 **Corrección Crítica de Parámetros Asíncronos Next.js 15 en Itinerarios PWA ([`/api/itineraries/[id]`](file:///c:/operadora-dev/src/app/api/itineraries/[id]/route.ts), [`itinerario/[id]`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/page.tsx), [`itinerario/[id]/dia/[dayIndex]`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/dia/[dayIndex]/page.tsx), [`mobile/page.tsx`](file:///c:/operadora-dev/src/app/mobile/page.tsx), [`mobile/perfil/page.tsx`](file:///c:/operadora-dev/src/app/mobile/perfil/page.tsx))**

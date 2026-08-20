@@ -1,5 +1,5 @@
 // Página de Administración de Tenants (Multi-Empresa / Marca Blanca)
-// Build: 20 Aug 2026 - v2.502 - Fase 1 Multi-Empresa
+// Build: 20 Aug 2026 - v2.503 - Fase 1 Multi-Empresa
 
 'use client';
 
