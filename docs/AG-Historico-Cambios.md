@@ -1,13 +1,22 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 10:29 CST  
-**Versión actual:** v2.492  
+**Última actualización:** 20 de Agosto de 2026 - 10:54 CST  
+**Versión actual:** v2.493  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.493 - 20 de Agosto de 2026 - 10:54 CST
+**Habilitación de Pago Manual y Abonos Parciales para Staff y Administradores ([`/checkout/[bookingId]`](file:///c:/operadora-dev/src/app/checkout/[bookingId]/page.tsx))**
+- **Normalización Integral de Roles:** Se amplió la validación de roles en la pasarela de checkout (`SUPER_ADMIN`, `ADMIN`, `MANAGER`, `AGENT`, `AGENCY_ADMIN`, `STAFF`, etc.) con soporte para formatos en mayúsculas, minúsculas, con o sin guiones y respaldo en almacenamiento local (`localStorage`).
+- **Módulo de Pago Manual y Parcial en Checkout:**
+  - Se habilitó la opción **"Manual / Parcial"** con badge distintivo para Staff/Admin.
+  - Se agregaron accesos rápidos para abonos parciales (100% Saldo, 50% Anticipo, 30% Anticipo o Monto Libre).
+  - Selector de método recibido (Transferencia SPEI, Depósito en ventanilla, Efectivo en oficina, Terminal POS).
+  - Cálculo en vivo del saldo restante y actualización automática de estado (`partial` o `paid`).
 
 ### v2.492 - 20 de Agosto de 2026 - 10:29 CST
 **Corrección en Conversión de Cotizaciones a Reservas y Estabilidad de Inputs de Fecha**

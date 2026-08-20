@@ -1,7 +1,7 @@
 'use client'
 
 // Panel de Gestión de Imágenes de Tours
-// Build: 20 Aug 2026 - v2.492
+// Build: 20 Aug 2026 - v2.493
 // Permite ver tours sin imagen, con imagen genérica, y actualizar imágenes manualmente
 
 import { useState, useEffect } from 'react'

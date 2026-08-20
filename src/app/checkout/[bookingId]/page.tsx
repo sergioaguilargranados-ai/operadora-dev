@@ -12,6 +12,7 @@ import { PageHeader } from '@/components/PageHeader'
 import { useToast } from '@/hooks/use-toast'
 import StripeCheckoutForm from '@/components/StripeCheckoutForm'
 import { useAuth } from '@/contexts/AuthContext'
+import { Shield, CheckCircle2, WalletCards, Receipt, DollarSign, ArrowRight, Building, Banknote, CreditCard, Sparkles } from 'lucide-react'
 
 // Inicializar Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '')
@@ -40,7 +41,29 @@ export default function CheckoutPage({
   const { toast } = useToast()
   const { user } = useAuth()
   
-  const isAgentOrHigher = user?.role && ['agente', 'admin', 'superadmin', 'agency_admin', 'master', 'agencia'].includes(user.role.toLowerCase())
+  // Normalizar rol del usuario actual o desde storage para determinar si es Staff/Admin
+  const normalizedRole = (user?.role || '').toUpperCase().replace(/[\s_-]/g, '')
+  
+  let storedRole = ''
+  if (typeof window !== 'undefined') {
+    try {
+      const storedUser = localStorage.getItem('as_user')
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser)
+        storedRole = (parsed?.role || '').toUpperCase().replace(/[\s_-]/g, '')
+      }
+    } catch (e) {}
+  }
+
+  const isStaff = [
+    'SUPERADMIN', 'ADMIN', 'ADMINISTRATOR', 'MANAGER', 
+    'AGENCYADMIN', 'AGENT', 'AGENTE', 'STAFF', 'MASTER', 
+    'AGENCIA', 'VENTAS'
+  ].includes(normalizedRole) || [
+    'SUPERADMIN', 'ADMIN', 'ADMINISTRATOR', 'MANAGER', 
+    'AGENCYADMIN', 'AGENT', 'AGENTE', 'STAFF', 'MASTER', 
+    'AGENCIA', 'VENTAS'
+  ].includes(storedRole)
 
   const [booking, setBooking] = useState<Booking | null>(null)
   const [loading, setLoading] = useState(true)
@@ -51,7 +74,7 @@ export default function CheckoutPage({
 
   // Manual payment state
   const [manualAmount, setManualAmount] = useState<string>('')
-  const [manualMethod, setManualMethod] = useState<'transfer' | 'cash'>('transfer')
+  const [manualMethod, setManualMethod] = useState<'transfer' | 'cash' | 'deposit' | 'pos'>('transfer')
   const [manualReference, setManualReference] = useState('')
   const [manualNotes, setManualNotes] = useState('')
 
@@ -77,15 +100,17 @@ export default function CheckoutPage({
       if (!res.ok) throw new Error('Error al cargar reserva')
 
       const data = await res.json()
-      setBooking(data.booking)
-      if (data.booking.pending_balance) {
-        setManualAmount(data.booking.pending_balance.toString())
-      } else {
-        setManualAmount(data.booking.total_price.toString())
-      }
+      const b = data.booking
+      setBooking(b)
+
+      const balance = (b.pending_balance !== undefined && b.pending_balance !== null) 
+        ? b.pending_balance 
+        : (b.total_price - (b.paid_amount || 0))
+
+      setManualAmount(balance > 0 ? balance.toString() : b.total_price.toString())
 
       // Verificar si ya está pagada
-      if (data.booking.payment_status === 'paid') {
+      if (b.payment_status === 'paid' && balance <= 0) {
         toast({
           title: 'Reserva ya pagada',
           description: 'Esta reserva ya ha sido pagada en su totalidad'
@@ -109,30 +134,23 @@ export default function CheckoutPage({
     if (!booking) return
 
     setProcessing(true)
-
     try {
-      // Crear Payment Intent
-      const res = await fetch('/api/payments/stripe/create-payment-intent', {
+      const res = await fetch('/api/payments/stripe/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bookingId: booking.id,
-          userId: 1, // TODO: Get from auth context
-          tenantId: 1, // TODO: Get from auth context
-          amount: Math.round(booking.total_price * 100), // Convertir a centavos
-          currency: booking.currency,
-          description: `Reserva #${booking.id} - ${booking.service_name}`
+          amount: booking.pending_balance || booking.total_price,
+          currency: booking.currency || 'mxn'
         })
       })
 
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Error al crear pago')
-      }
-
       const data = await res.json()
-      setClientSecret(data.clientSecret)
-
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret)
+      } else {
+        throw new Error(data.error || 'Error al iniciar pago')
+      }
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -148,49 +166,29 @@ export default function CheckoutPage({
     if (!booking) return
 
     setProcessing(true)
-
     try {
-      // URL base para retornos
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
-      const checkoutUrl = `${baseUrl}/checkout/${booking.id}`
-
-      // Crear orden de PayPal
       const res = await fetch('/api/payments/paypal/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bookingId: booking.id,
-          userId: 1, // TODO: Get from auth context
-          tenantId: 1, // TODO: Get from auth context
-          amount: booking.total_price.toFixed(2),
-          currency: booking.currency,
-          description: `Reserva #${booking.id} - ${booking.service_name}`,
-          // URLs de retorno - cancelar regresa al checkout
-          returnUrl: `${baseUrl}/payment/success?source=paypal&bookingId=${booking.id}`,
-          cancelUrl: checkoutUrl
+          amount: booking.pending_balance || booking.total_price,
+          currency: booking.currency || 'MXN'
         })
       })
 
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Error al crear orden')
-      }
-
       const data = await res.json()
-      setPaypalOrderId(data.orderId)
-
-      // Redirigir a PayPal
       if (data.approvalUrl) {
         window.location.href = data.approvalUrl
+      } else {
+        throw new Error(data.error || 'Error al crear orden de PayPal')
       }
-
     } catch (error: any) {
       toast({
         title: 'Error',
         description: error.message,
         variant: 'destructive'
       })
-    } finally {
       setProcessing(false)
     }
   }
@@ -199,40 +197,23 @@ export default function CheckoutPage({
     if (!booking) return
 
     setProcessing(true)
-
     try {
-      // Crear preferencia de Mercado Pago
       const res = await fetch('/api/payments/mercadopago/create-preference', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bookingId: booking.id,
-          userId: 1, // TODO: Get from auth context
-          tenantId: 1, // TODO: Get from auth context
-          amount: booking.total_price,
-          currency: booking.currency,
-          title: booking.service_name,
-          description: `Reserva #${booking.id} - ${booking.service_name}`
+          amount: booking.pending_balance || booking.total_price,
+          currency: booking.currency || 'MXN'
         })
       })
 
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Error al crear preferencia')
-      }
-
       const data = await res.json()
-
-      // Usar sandboxInitPoint si está disponible (desarrollo), sino initPoint (producción)
-      const redirectUrl = data.sandboxInitPoint || data.initPoint
-
-      // Redirigir a Mercado Pago
-      if (redirectUrl) {
-        window.location.href = redirectUrl
+      if (data.init_point) {
+        window.location.href = data.init_point
       } else {
-        throw new Error('No se recibió URL de redirección de Mercado Pago')
+        throw new Error(data.error || 'Error al conectar con Mercado Pago')
       }
-
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -246,8 +227,19 @@ export default function CheckoutPage({
   const handleManualPayment = async () => {
     if (!booking) return
     const amountNum = parseFloat(manualAmount)
-    if (isNaN(amountNum) || amountNum <= 0) {
-      toast({ title: 'Error', description: 'Monto inválido', variant: 'destructive' })
+    const maxBalance = booking.pending_balance ?? (booking.total_price - (booking.paid_amount || 0))
+
+    if (!amountNum || amountNum <= 0) {
+      toast({ title: 'Atención', description: 'Ingresa un monto válido mayor a 0', variant: 'destructive' })
+      return
+    }
+
+    if (amountNum > maxBalance + 0.01) {
+      toast({ 
+        title: 'Monto excede el saldo', 
+        description: `El saldo pendiente máximo es $${maxBalance.toLocaleString()} ${booking.currency}`, 
+        variant: 'destructive' 
+      })
       return
     }
 
@@ -255,7 +247,10 @@ export default function CheckoutPage({
     try {
       const res = await fetch('/api/payments/manual', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('as_token') || ''}`
+        },
         body: JSON.stringify({
           bookingId: booking.id,
           amount: amountNum,
@@ -265,52 +260,46 @@ export default function CheckoutPage({
         })
       })
 
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || 'Error registrando pago')
+      const data = await res.json()
+      if (data.success) {
+        toast({
+          title: '✅ Pago registrado',
+          description: data.message || 'El pago manual ha sido procesado exitosamente.'
+        })
+        router.push(`/reserva/${booking.id}`)
+        router.refresh()
+      } else {
+        throw new Error(data.error || data.message || 'Error al registrar el pago manual')
       }
-
-      toast({
-        title: 'Pago registrado',
-        description: 'El pago parcial/total ha sido registrado con éxito'
-      })
-      
-      // Redirigir de regreso a la vista de reserva
-      router.push(`/reserva/${booking.id}`)
-      
     } catch (error: any) {
       toast({
         title: 'Error',
         description: error.message,
         variant: 'destructive'
       })
+    } finally {
       setProcessing(false)
     }
   }
 
   if (loading) {
-  return (
-    <div className="container mx-auto py-8">
-      <div className="grid md:grid-cols-3 gap-6 animate-pulse">
-        {/* Skeleton para el resumen de reserva */}
-        <div className="bg-gray-200 h-48 rounded"></div>
-        {/* Skeleton para el formulario de pago */}
-        <div className="md:col-span-2 space-y-4">
-          <div className="bg-gray-200 h-6 rounded w-3/4"></div>
-          <div className="bg-gray-200 h-6 rounded w-1/2"></div>
-          <div className="bg-gray-200 h-10 rounded w-full"></div>
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600 font-medium">Cargando pasarela de pago...</p>
         </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
 
   if (!booking) {
     return (
-      <div className="container mx-auto py-8">
-        <Card className="p-8 text-center">
-          <p className="text-gray-600">Reserva no encontrada</p>
-          <Button onClick={() => router.push('/mis-reservas')} className="mt-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="p-8 max-w-md text-center rounded-2xl shadow-sm">
+          <h2 className="text-xl font-bold mb-2">Reserva no encontrada</h2>
+          <p className="text-gray-600 mb-6 text-sm">No pudimos localizar la reserva solicitada para procesar el pago.</p>
+          <Button onClick={() => router.push('/mis-reservas')} className="bg-slate-900 text-white rounded-xl">
             Ver mis reservas
           </Button>
         </Card>
@@ -318,295 +307,379 @@ export default function CheckoutPage({
     )
   }
 
-  const appearance = {
-    theme: 'stripe' as const,
-    variables: {
-      colorPrimary: '#2563eb'
-    }
-  }
+  const totalPrice = parseFloat(String(booking.total_price || 0))
+  const paidAmount = parseFloat(String(booking.paid_amount || 0))
+  const pendingBalance = (booking.pending_balance !== undefined && booking.pending_balance !== null)
+    ? parseFloat(String(booking.pending_balance))
+    : Math.max(0, totalPrice - paidAmount)
+
+  const currentManualInput = parseFloat(manualAmount) || 0
+  const remainingAfterPayment = Math.max(0, pendingBalance - currentManualInput)
 
   const options = {
     clientSecret,
-    appearance
+    appearance: {
+      theme: 'stripe' as const,
+      variables: {
+        colorPrimary: '#0f172a',
+      }
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-      <PageHeader showBackButton={true} backButtonText="Regresar" />
+    <div className="min-h-screen bg-slate-50/50 pb-16 font-sans">
+      <PageHeader showBackButton={true} backButtonHref={`/reserva/${booking.id}`} />
 
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Checkout</h1>
-            <p className="text-gray-600">Completa tu pago para confirmar la reserva</p>
+          
+          <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-serif">Pagar Reserva #{booking.id}</h1>
+              <p className="text-xs text-slate-500 mt-0.5">Completa tu pago de forma rápida y segura</p>
+            </div>
+            {isStaff && (
+              <Badge className="bg-amber-100 text-amber-900 border-amber-300 px-3 py-1 font-semibold text-xs flex items-center gap-1.5 shadow-xs">
+                <Shield className="w-3.5 h-3.5 text-amber-700" />
+                Modo Staff / Agente Activo
+              </Badge>
+            )}
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Resumen de la reserva */}
-            <div className="md:col-span-1">
-              <Card className="p-6 sticky top-4">
-                <h3 className="font-semibold mb-4">Resumen de reserva</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* ━━━ RESUMEN DE LA RESERVA (Columna Izquierda) ━━━ */}
+            <div className="md:col-span-1 space-y-4">
+              <Card className="p-5 rounded-2xl border-gray-200/80 shadow-sm bg-white">
+                <h3 className="font-bold text-slate-900 mb-3 text-sm flex items-center gap-2">
+                  <Receipt className="w-4 h-4 text-slate-600" />
+                  Detalle del Viaje
+                </h3>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5 text-xs">
                   <div>
-                    <p className="text-sm text-gray-600">Tipo</p>
-                    <Badge variant="secondary">{booking.type}</Badge>
+                    <span className="text-slate-400 font-medium">Servicio / Destino:</span>
+                    <p className="font-bold text-slate-800 text-sm mt-0.5">{booking.service_name || 'Viaje AS Operadora'}</p>
                   </div>
-
                   <div>
-                    <p className="text-sm text-gray-600">Servicio</p>
-                    <p className="font-medium">{booking.service_name}</p>
+                    <span className="text-slate-400 font-medium">Tipo:</span>
+                    <p className="font-semibold text-slate-700 capitalize">{booking.type}</p>
                   </div>
-
-                  <Separator />
-
                   <div>
-                    <p className="text-sm text-gray-600">Reserva #</p>
-                    <p className="font-mono">{booking.id}</p>
-                  </div>
-
-                  <Separator />
-
-                  <div className="pt-2 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <p className="text-gray-600">Costo total</p>
-                      <p className="font-semibold">
-                        ${booking.total_price.toFixed(2)} {booking.currency.toUpperCase()}
-                      </p>
-                    </div>
-                    {booking.paid_amount !== undefined && booking.paid_amount > 0 && (
-                      <div className="flex justify-between items-center text-green-600">
-                        <p>Pagado</p>
-                        <p className="font-semibold">
-                          -${booking.paid_amount.toFixed(2)} {booking.currency.toUpperCase()}
-                        </p>
-                      </div>
-                    )}
-                    <Separator />
-                    <div className="flex justify-between items-center pt-2">
-                      <p className="text-lg font-semibold">Saldo a pagar</p>
-                      <p className="text-2xl font-bold text-blue-600">
-                        ${(booking.pending_balance ?? booking.total_price).toFixed(2)} {booking.currency.toUpperCase()}
-                      </p>
+                    <span className="text-slate-400 font-medium">Estado de pago:</span>
+                    <div className="mt-1">
+                      <Badge className={
+                        booking.payment_status === 'paid' ? 'bg-emerald-500 text-white' :
+                        booking.payment_status === 'partial' ? 'bg-blue-600 text-white' : 'bg-amber-500 text-white'
+                      }>
+                        {booking.payment_status === 'paid' ? 'Pagado' : booking.payment_status === 'partial' ? 'Pago Parcial' : 'Pendiente'}
+                      </Badge>
                     </div>
                   </div>
+                </div>
 
-                  <div className="text-xs text-gray-500 pt-2">
-                    <p>Confirmación instantánea</p>
-                    <p>Pago seguro</p>
-                    <p>Sin cargos ocultos</p>
+                <Separator className="my-4" />
+
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Precio total:</span>
+                    <span className="font-semibold">${totalPrice.toLocaleString()} {booking.currency}</span>
+                  </div>
+
+                  {paidAmount > 0 && (
+                    <div className="flex justify-between text-emerald-600 font-medium">
+                      <span>Pagado acumulado:</span>
+                      <span>-${paidAmount.toLocaleString()} {booking.currency}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between text-sm font-black text-slate-900 pt-2 border-t border-gray-100">
+                    <span>Saldo pendiente:</span>
+                    <span className="text-slate-900 font-serif text-base">${pendingBalance.toLocaleString()} {booking.currency}</span>
                   </div>
                 </div>
               </Card>
+
+              <div className="p-4 bg-white rounded-2xl border border-gray-200/80 shadow-2xs text-xs space-y-2">
+                <div className="flex items-center gap-2 font-bold text-slate-800">
+                  <Shield className="w-4 h-4 text-emerald-600" />
+                  Transacción 100% Segura
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Cifrado SSL de 256 bits. Tus datos financieros nunca son almacenados en nuestros servidores.
+                </p>
+              </div>
             </div>
 
-            {/* Formulario de pago */}
+            {/* ━━━ MÉTODOS DE PAGO (Columna Derecha) ━━━ */}
             <div className="md:col-span-2">
-              <Card className="p-6">
-                <h3 className="font-semibold mb-4">Método de pago</h3>
+              <Card className="p-6 rounded-2xl border-gray-200/80 shadow-sm bg-white">
+                <h3 className="font-bold text-slate-900 mb-4 text-base">Selecciona el método de pago</h3>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                {/* Selector de Métodos */}
+                <div className={`grid gap-3 mb-6 ${isStaff ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
+                  
+                  {/* 1. Tarjeta (Stripe) */}
                   <Button
                     variant={paymentMethod === 'stripe' ? 'default' : 'outline'}
                     onClick={() => setPaymentMethod('stripe')}
-                    className="flex flex-col items-center py-4 h-auto"
+                    className={`flex flex-col items-center py-4 h-auto rounded-xl transition-all ${
+                      paymentMethod === 'stripe' ? 'bg-slate-900 text-white shadow-sm' : 'border-gray-200 hover:bg-slate-50 text-slate-700'
+                    }`}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                    <span className="text-xs sm:text-sm">Tarjeta</span>
+                    <CreditCard className="h-6 w-6 mb-1 text-current" />
+                    <span className="text-xs font-bold">Tarjeta</span>
                   </Button>
+
+                  {/* 2. PayPal */}
                   <Button
                     variant={paymentMethod === 'paypal' ? 'default' : 'outline'}
                     onClick={() => setPaymentMethod('paypal')}
-                    className="flex flex-col items-center py-4 h-auto"
+                    className={`flex flex-col items-center py-4 h-auto rounded-xl transition-all ${
+                      paymentMethod === 'paypal' ? 'bg-slate-900 text-white shadow-sm' : 'border-gray-200 hover:bg-slate-50 text-slate-700'
+                    }`}
                   >
                     <img
                       src="https://www.paypalobjects.com/webstatic/icon/pp258.png"
                       alt="PayPal"
                       className="h-6 mb-1"
                     />
-                    <span className="text-xs sm:text-sm">PayPal</span>
+                    <span className="text-xs font-bold">PayPal</span>
                   </Button>
+
+                  {/* 3. Mercado Pago */}
                   <Button
                     variant={paymentMethod === 'mercadopago' ? 'default' : 'outline'}
                     onClick={() => setPaymentMethod('mercadopago')}
-                    className="flex flex-col items-center py-4 h-auto px-1"
+                    className={`flex flex-col items-center py-4 h-auto rounded-xl transition-all ${
+                      paymentMethod === 'mercadopago' ? 'bg-slate-900 text-white shadow-sm' : 'border-gray-200 hover:bg-slate-50 text-slate-700'
+                    }`}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1 text-current" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M14.6 22h-5.2v-7.8h5.2V22zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.8 13.8l-1.3 1.3c-.4.4-1 .4-1.4 0l-1.1-1.1-1.1 1.1c-.4.4-1 .4-1.4 0l-1.3-1.3v-4.2h7.6v4.2z" />
-                    </svg>
-                    <span className="text-xs sm:text-sm text-center">Mercado Pago</span>
+                    <WalletCards className="h-6 w-6 mb-1 text-current" />
+                    <span className="text-xs font-bold text-center">Mercado Pago</span>
                   </Button>
-                  {isAgentOrHigher && (
+
+                  {/* 4. Pago Manual / Parcial (Exclusivo Staff & Agentes) */}
+                  {isStaff && (
                     <Button
                       variant={paymentMethod === 'manual' ? 'default' : 'outline'}
                       onClick={() => setPaymentMethod('manual')}
-                      className="flex flex-col items-center py-4 h-auto px-1"
+                      className={`flex flex-col items-center py-4 h-auto rounded-xl transition-all relative ${
+                        paymentMethod === 'manual' 
+                          ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-md shadow-amber-200' 
+                          : 'border-amber-300 bg-amber-50/50 hover:bg-amber-100/70 text-amber-900'
+                      }`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      <span className="text-xs sm:text-sm text-center">Pago Manual</span>
+                      <span className="absolute -top-2 right-1 text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full font-bold">STAFF</span>
+                      <Banknote className="h-6 w-6 mb-1 text-current" />
+                      <span className="text-xs font-bold text-center">Manual / Parcial</span>
                     </Button>
                   )}
                 </div>
 
                 <Separator className="my-6" />
 
-                {/* Formulario Stripe */}
+                {/* ━━━━ FORMULARIO STRIPE ━━━━ */}
                 {paymentMethod === 'stripe' && (
                   <div>
                     {!clientSecret ? (
                       <div className="text-center py-8">
-                        <p className="text-gray-600 mb-4">
-                          Haz clic para continuar con el pago con tarjeta
+                        <p className="text-slate-600 mb-4 text-sm">
+                          Paga el total pendiente de <strong>${pendingBalance.toLocaleString()} {booking.currency}</strong> con tarjeta de crédito o débito.
                         </p>
                         <Button
                           onClick={handleStripePayment}
                           disabled={processing}
                           size="lg"
+                          className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold"
                         >
-                          {processing ? 'Procesando...' : 'Pagar con tarjeta'}
+                          {processing ? 'Procesando...' : 'Continuar con Tarjeta'}
                         </Button>
                       </div>
                     ) : (
                       <Elements stripe={stripePromise} options={options}>
                         <StripeCheckoutForm
                           bookingId={booking.id}
-                          amount={booking.total_price}
+                          amount={pendingBalance}
                           currency={booking.currency}
                         />
                       </Elements>
                     )}
 
-                    <div className="mt-6 flex items-center justify-center gap-3 text-xs text-gray-500">
+                    <div className="mt-6 flex items-center justify-center gap-3 text-xs text-slate-400">
                       <img
                         src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/512px-Stripe_Logo%2C_revised_2016.svg.png"
                         alt="Stripe"
                         className="h-4"
                       />
                       <span>Pago seguro</span>
-                      <Badge variant="secondary" className="text-xs">SSL 256-bit</Badge>
+                      <Badge variant="secondary" className="text-[10px]">SSL 256-bit</Badge>
                     </div>
                   </div>
                 )}
 
-                {/* Botón PayPal */}
+                {/* ━━━━ FORMULARIO PAYPAL ━━━━ */}
                 {paymentMethod === 'paypal' && (
                   <div>
                     <div className="text-center py-8">
-                      <p className="text-gray-600 mb-4">
-                        Serás redirigido a PayPal para completar el pago
+                      <p className="text-slate-600 mb-4 text-sm">
+                        Serás redirigido a PayPal para pagar <strong>${pendingBalance.toLocaleString()} {booking.currency}</strong> con tu cuenta o tarjeta asociada.
                       </p>
                       <Button
                         onClick={handlePayPalPayment}
                         disabled={processing}
                         size="lg"
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold"
                       >
                         {processing ? 'Redirigiendo...' : 'Pagar con PayPal'}
                       </Button>
                     </div>
 
-                    <div className="mt-6 flex items-center justify-center gap-3 text-xs text-gray-500">
+                    <div className="mt-6 flex items-center justify-center gap-3 text-xs text-slate-400">
                       <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" className="h-4" />
                       <p>Pago seguro con PayPal</p>
-                      <Badge variant="secondary" className="text-xs">Protección al comprador</Badge>
+                      <Badge variant="secondary" className="text-[10px]">Protección al comprador</Badge>
                     </div>
                   </div>
                 )}
 
-                {/* Botón Mercado Pago */}
+                {/* ━━━━ FORMULARIO MERCADO PAGO ━━━━ */}
                 {paymentMethod === 'mercadopago' && (
                   <div>
                     <div className="text-center py-8">
-                      <div className="bg-[#00b1ea]/10 rounded-lg p-4 mb-6">
-                        <p className="text-sm text-gray-700 mb-2">
-                          <strong>Métodos disponibles:</strong>
-                        </p>
-                        <div className="flex flex-wrap justify-center gap-2 text-xs text-gray-600">
-                          <span className="bg-white px-2 py-1 rounded">Tarjeta de crédito</span>
-                          <span className="bg-white px-2 py-1 rounded">Tarjeta de débito</span>
-                          <span className="bg-white px-2 py-1 rounded">OXXO</span>
-                          <span className="bg-white px-2 py-1 rounded">SPEI</span>
-                          <span className="bg-white px-2 py-1 rounded">Dinero en cuenta</span>
-                        </div>
-                      </div>
-                      <p className="text-gray-600 mb-4">
-                        Serás redirigido a Mercado Pago para completar el pago
+                      <p className="text-slate-600 mb-4 text-sm">
+                        Paga <strong>${pendingBalance.toLocaleString()} {booking.currency}</strong> con Mercado Pago, tarjetas de crédito, débito o efectivo en tiendas OXXO.
                       </p>
                       <Button
                         onClick={handleMercadoPagoPayment}
                         disabled={processing}
                         size="lg"
-                        className="bg-[#00b1ea] hover:bg-[#009fd4] text-white"
+                        className="bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold"
                       >
-                        {processing ? 'Redirigiendo...' : 'Pagar con Mercado Pago'}
+                        {processing ? 'Conectando...' : 'Pagar con Mercado Pago'}
                       </Button>
                     </div>
 
-                    <div className="mt-6 flex items-center justify-center gap-3 text-xs text-gray-500">
+                    <div className="mt-6 flex items-center justify-center gap-3 text-xs text-slate-400">
                       <img
                         src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/6.6.82/mercadopago/logo__small.png"
                         alt="Mercado Pago"
                         className="h-4"
                       />
                       <p>Pago seguro con Mercado Pago</p>
-                      <Badge variant="secondary" className="text-xs">Compra Protegida</Badge>
+                      <Badge variant="secondary" className="text-[10px]">Compra Protegida</Badge>
                     </div>
                   </div>
                 )}
 
-                {/* Formulario Pago Manual */}
-                {paymentMethod === 'manual' && (
-                  <div className="space-y-4">
-                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg text-sm mb-4">
-                      <strong>Uso exclusivo para agentes:</strong> Registra un pago parcial o total recibido fuera de la plataforma (Transferencia, Depósito o Efectivo).
-                    </div>
+                {/* ━━━━ FORMULARIO PAGO MANUAL / PARCIAL (STAFF) ━━━━ */}
+                {isStaff && paymentMethod === 'manual' && (
+                  <div className="space-y-5 animate-in fade-in duration-200">
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Monto a registrar</label>
-                        <input 
-                          type="number" 
-                          className="w-full px-3 py-2 border rounded-md" 
-                          value={manualAmount}
-                          onChange={(e) => setManualAmount(e.target.value)}
-                          max={booking.pending_balance ?? booking.total_price}
-                          step="0.01"
-                        />
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-4 rounded-2xl space-y-2">
+                      <div className="flex items-center gap-2 font-bold text-amber-900 text-sm">
+                        <Sparkles className="w-4 h-4 text-amber-600" />
+                        Registro de Cobro en Caja / Manual y Abonos Parciales
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Método de pago</label>
-                        <select 
-                          className="w-full px-3 py-2 border rounded-md"
-                          value={manualMethod}
-                          onChange={(e) => setManualMethod(e.target.value as any)}
+                      <p className="text-xs text-amber-800 leading-relaxed">
+                        Permite ingresar abonos parciales o liquidaciones totales recibidas fuera de la pasarela digital (Transferencias SPEI, Depósitos en ventanilla, Efectivo o Terminal de punto de venta).
+                      </p>
+                    </div>
+
+                    {/* Presets Rápidos de Monto */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Accesos rápidos de monto:</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setManualAmount(pendingBalance.toString())}
+                          className="text-xs font-semibold rounded-xl border-gray-300 hover:bg-amber-50 hover:border-amber-300"
                         >
-                          <option value="transfer">Transferencia / Depósito</option>
-                          <option value="cash">Efectivo</option>
-                        </select>
+                          100% Saldo ($ {pendingBalance.toLocaleString()})
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setManualAmount((pendingBalance * 0.5).toFixed(2))}
+                          className="text-xs font-semibold rounded-xl border-gray-300 hover:bg-amber-50 hover:border-amber-300"
+                        >
+                          50% Anticipo ($ {(pendingBalance * 0.5).toLocaleString()})
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setManualAmount((pendingBalance * 0.3).toFixed(2))}
+                          className="text-xs font-semibold rounded-xl border-gray-300 hover:bg-amber-50 hover:border-amber-300"
+                        >
+                          30% Anticipo ($ {(pendingBalance * 0.3).toLocaleString()})
+                        </Button>
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Referencia / Comprobante (Opcional)</label>
+                    {/* Inputs de Cobro */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Monto a abonar *</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-2.5 text-slate-400 font-bold text-sm">$</span>
+                          <input 
+                            type="number" 
+                            className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900 outline-none" 
+                            value={manualAmount}
+                            onChange={(e) => setManualAmount(e.target.value)}
+                            max={pendingBalance}
+                            step="0.01"
+                            placeholder="0.00"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Método recibido *</label>
+                        <select 
+                          className="w-full px-3 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900 outline-none"
+                          value={manualMethod}
+                          onChange={(e) => setManualMethod(e.target.value as any)}
+                        >
+                          <option value="transfer">🏦 Transferencia Bancaria (SPEI)</option>
+                          <option value="deposit">🏢 Depósito en Ventanilla / Practicaja</option>
+                          <option value="cash">💵 Efectivo en Oficina</option>
+                          <option value="pos">💳 Terminal POS / Tarjeta en Oficina</option>
+                        </select>
+                      </div>
+
+                    </div>
+
+                    {/* Previsualización del Saldo Restante */}
+                    <div className="p-3 bg-slate-100 rounded-xl flex items-center justify-between text-xs font-medium text-slate-700">
+                      <span>Saldo tras este abono:</span>
+                      <span className="font-bold text-slate-900 text-sm">
+                        ${remainingAfterPayment.toLocaleString()} {booking.currency} {remainingAfterPayment === 0 ? '🎉 (Liquidado)' : '(Parcial)'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Folio / Clave de Rastreo / Referencia (Opcional)</label>
                       <input 
                         type="text" 
-                        className="w-full px-3 py-2 border rounded-md" 
-                        placeholder="Ej. SPEI 12345678, Recibo #102"
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-slate-900 outline-none" 
+                        placeholder="Ej. SPEI 872361928, Recibo #405, Autorización #8841"
                         value={manualReference}
                         onChange={(e) => setManualReference(e.target.value)}
                       />
                     </div>
                     
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Notas internas (Opcional)</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Notas internas de control</label>
                       <textarea 
-                        className="w-full px-3 py-2 border rounded-md" 
-                        placeholder="Cualquier información adicional..."
+                        className="w-full px-3 py-2 bg-slate-50 border border-gray-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-slate-900 outline-none" 
+                        placeholder="Detalles sobre quién recibió el pago o condiciones acordadas..."
                         value={manualNotes}
                         onChange={(e) => setManualNotes(e.target.value)}
                         rows={2}
@@ -615,25 +688,25 @@ export default function CheckoutPage({
 
                     <Button
                       onClick={handleManualPayment}
-                      disabled={processing}
-                      className="w-full mt-4"
-                      size="lg"
+                      disabled={processing || !parseFloat(manualAmount)}
+                      className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-md shadow-slate-300"
                     >
-                      {processing ? 'Registrando...' : 'Registrar Pago Manual'}
+                      {processing ? 'Registrando cobro...' : `Registrar Cobro de $${currentManualInput.toLocaleString()} ${booking.currency}`}
                     </Button>
                   </div>
                 )}
+
               </Card>
 
               {/* Info adicional */}
-              <div className="mt-6 text-sm text-gray-600 text-center">
-                <p>Al completar el pago aceptas nuestros términos y condiciones</p>
-                <p className="mt-2">
-                  ¿Necesitas ayuda? <a href="/contacto" className="text-blue-600 hover:underline">Contáctanos</a>
-                </p>
+              <div className="mt-6 text-xs text-slate-400 text-center">
+                <p>Al completar el pago aceptas nuestros términos y condiciones de servicio.</p>
               </div>
+
             </div>
+
           </div>
+
         </div>
       </div>
     </div>
