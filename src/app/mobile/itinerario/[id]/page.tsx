@@ -16,6 +16,88 @@ import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { ItineraryRouteMap } from "@/components/mobile/ItineraryRouteMap"
 import { useToast } from "@/hooks/use-toast"
 
+const DESTINATION_CITY_IMAGES: Record<string, string> = {
+  // Ciudades del Reino Unido & Europa
+  londres: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80",
+  london: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80",
+  paris: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80",
+  roma: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80",
+  rome: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80",
+  madrid: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=600&q=80",
+  barcelona: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=600&q=80",
+  venecia: "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?auto=format&fit=crop&w=600&q=80",
+  venice: "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?auto=format&fit=crop&w=600&q=80",
+  florencia: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=600&q=80",
+  florence: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=600&q=80",
+  amsterdam: "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?auto=format&fit=crop&w=600&q=80",
+  berlin: "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=600&q=80",
+  munich: "https://images.unsplash.com/photo-1595867818082-083862f3d630?auto=format&fit=crop&w=600&q=80",
+  frankfurt: "https://images.unsplash.com/photo-1577979749830-f1d742b96791?auto=format&fit=crop&w=600&q=80",
+  praga: "https://images.unsplash.com/photo-1541849546-216549ae216d?auto=format&fit=crop&w=600&q=80",
+  viena: "https://images.unsplash.com/photo-1516550893923-42d28e5677af?auto=format&fit=crop&w=600&q=80",
+  budapest: "https://images.unsplash.com/photo-1549877452-9c387954fbc2?auto=format&fit=crop&w=600&q=80",
+  atenas: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=600&q=80",
+  santorini: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=600&q=80",
+  mykonos: "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=600&q=80",
+  grecia: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=600&q=80",
+  
+  // Vuelo / Salida México
+  mexico: "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?auto=format&fit=crop&w=600&q=80",
+  cdmx: "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?auto=format&fit=crop&w=600&q=80",
+  vuelo: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80",
+  aeropuerto: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80",
+  
+  // Asia & Oriente
+  tokio: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=600&q=80",
+  tokyo: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=600&q=80",
+  kioto: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80",
+  japon: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80",
+  dubai: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=600&q=80",
+  estambul: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=600&q=80",
+  turquia: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=600&q=80",
+  egipto: "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=600&q=80",
+  cairo: "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=600&q=80",
+
+  // América
+  "nueva york": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=600&q=80",
+  "new york": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=600&q=80",
+  orlando: "https://images.unsplash.com/photo-1597466765990-64ad1c35dafc?auto=format&fit=crop&w=600&q=80",
+  cancun: "https://images.unsplash.com/photo-1510097467424-192d713fd8b2?auto=format&fit=crop&w=600&q=80",
+  peru: "https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=600&q=80",
+  cusco: "https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=600&q=80"
+}
+
+const ROTATING_TRAVEL_FALLBACKS = [
+  "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80", // Londres
+  "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", // Paris
+  "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80", // Roma
+  "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=600&q=80", // Madrid
+  "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?auto=format&fit=crop&w=600&q=80", // Venecia
+  "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?auto=format&fit=crop&w=600&q=80", // Amsterdam
+  "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=600&q=80", // Tokio
+  "https://images.unsplash.com/photo-1541849546-216549ae216d?auto=format&fit=crop&w=600&q=80", // Praga
+]
+
+function getDayDestinationImage(day: any, index: number, itineraryDestination?: string): string {
+  if (day?.hero_image && !day.hero_image.includes('1613395877344-13d4a8e0d49e') && !day.hero_image.includes('santorini')) {
+    return day.hero_image
+  }
+
+  const searchText = `${day?.title || ''} ${day?.places?.[0]?.name || ''} ${day?.description || ''} ${itineraryDestination || ''}`.toLowerCase()
+
+  if (index === 0 && (searchText.includes('méxico') || searchText.includes('mexico') || searchText.includes('salida') || searchText.includes('vuelo'))) {
+    return DESTINATION_CITY_IMAGES['mexico']
+  }
+
+  for (const [key, imgUrl] of Object.entries(DESTINATION_CITY_IMAGES)) {
+    if (searchText.includes(key)) {
+      return imgUrl
+    }
+  }
+
+  return ROTATING_TRAVEL_FALLBACKS[index % ROTATING_TRAVEL_FALLBACKS.length]
+}
+
 export default function MobileItineraryListPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { user } = useAuth()
@@ -575,38 +657,46 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
                   <p className="text-gray-500 font-medium">Aún no hay días configurados en este itinerario.</p>
                 </div>
               ) : (
-                days.map((day: any, index: number) => (
-                  <div 
-                    key={index}
-                    onClick={() => router.push(`/mobile/itinerario/${params.id}/dia/${index}?tab=${activeTab}`)}
-                    className="relative overflow-hidden bg-white/80 backdrop-blur-xl rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col gap-3 cursor-pointer hover:shadow-md transition-all duration-300 group"
-                  >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl opacity-60 -z-10 transition-transform group-hover:scale-150"></div>
-                    
-                    <div className="flex gap-4">
-                      <img src={day.hero_image || "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=400&q=80"} alt={day.title} className="w-20 h-20 rounded-2xl object-cover flex-shrink-0 shadow-sm" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start">
-                          <p className="text-[9px] font-bold text-brand-primary uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-full mb-1 inline-block">
-                            Día {index + 1}
-                          </p>
-                          <div className="w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-black transition-colors">
-                            <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-white transition-colors" />
+                days.map((day: any, index: number) => {
+                  const dayImg = getDayDestinationImage(day, index, itinerary?.destination || itinerary?.title)
+
+                  return (
+                    <div 
+                      key={index}
+                      onClick={() => router.push(`/mobile/itinerario/${params.id}/dia/${index}?tab=${activeTab}`)}
+                      className="relative overflow-hidden bg-white/90 backdrop-blur-xl rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col gap-3 cursor-pointer hover:shadow-md transition-all duration-300 group"
+                    >
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl opacity-60 -z-10 transition-transform group-hover:scale-150"></div>
+                      
+                      <div className="flex gap-4">
+                        <img 
+                          src={dayImg} 
+                          alt={day.title} 
+                          className="w-20 h-20 rounded-2xl object-cover flex-shrink-0 shadow-sm" 
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start">
+                            <p className="text-[9px] font-bold text-brand-primary uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-full mb-1 inline-block">
+                              Día {index + 1}
+                            </p>
+                            <div className="w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-black transition-colors flex-shrink-0 ml-1">
+                              <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-white transition-colors" />
+                            </div>
+                          </div>
+                          <h3 className="font-serif font-bold text-gray-900 text-base md:text-lg leading-snug mb-1">{day.title}</h3>
+                          <div className="flex items-center gap-1 text-gray-500 mb-1">
+                            <MapPin className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                            <span className="text-[10px] truncate">{day.places?.[0]?.name || "Ubicación"}</span>
                           </div>
                         </div>
-                        <h3 className="font-serif font-bold text-gray-900 text-lg leading-tight mb-1 truncate">{day.title}</h3>
-                        <div className="flex items-center gap-1 text-gray-500 mb-2">
-                          <MapPin className="w-3 h-3 text-blue-400" />
-                          <span className="text-[10px] truncate">{day.places?.[0]?.name || "Ubicación"}</span>
-                        </div>
                       </div>
+                      
+                      <p className="text-xs text-gray-700 leading-relaxed bg-gray-50/80 p-3 rounded-2xl border border-gray-100 whitespace-pre-wrap">
+                        {day.description || day.desc || `Disfruta de ${day.title} y sus maravillas.`}
+                      </p>
                     </div>
-                    
-                    <p className="text-[11px] text-gray-600 leading-relaxed bg-white/50 p-2 rounded-xl border border-gray-50 line-clamp-2">
-                      {day.description || day.desc || `Disfruta de ${day.title} y sus maravillas.`}
-                    </p>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
           </div>

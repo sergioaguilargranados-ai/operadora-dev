@@ -370,8 +370,11 @@ export default function MobileProfilePage() {
           <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
         </div>
 
-        {/* 3. Seguro de Viajero Card (Con botón Solicitar) */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 flex items-center justify-between">
+        {/* 3. Seguro de Viajero Card (Con flechita a Editar Perfil) */}
+        <div 
+          onClick={() => handleEdit('seguro')}
+          className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 cursor-pointer active:bg-gray-50 transition-colors flex items-center justify-between"
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center flex-shrink-0">
               <Shield className="w-5 h-5" />
@@ -383,13 +386,7 @@ export default function MobileProfilePage() {
               </p>
             </div>
           </div>
-          <Button 
-            onClick={() => window.open('/seguros', '_blank')}
-            size="sm"
-            className="bg-black hover:bg-gray-800 text-white rounded-xl font-bold text-xs px-4 h-9 shadow-sm"
-          >
-            Solicitar
-          </Button>
+          <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
         </div>
 
         {/* 4. Documentation Card */}

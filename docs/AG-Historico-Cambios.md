@@ -1,13 +1,23 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 19 de Agosto de 2026 - 18:32 CST  
-**Versión actual:** v2.490  
+**Última actualización:** 19 de Agosto de 2026 - 18:47 CST  
+**Versión actual:** v2.491  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.491 - 19 de Agosto de 2026 - 18:47 CST
+**Mejoras en Perfil, Seguro de Viajero e Itinerario con Imágenes de Destino y Descripción Completa**
+- **Perfil Móvil ([`/mobile/perfil`](file:///c:/operadora-dev/src/app/mobile/perfil/page.tsx)):**
+  - Estandarización de la tarjeta de **Seguro de Viajero**: sustituido el botón *"Solicitar"* por una flecha interactiva (`ChevronRight`) que redirige a `/mobile/perfil/editar?section=seguro`.
+- **Editar Perfil ([`/mobile/perfil/editar`](file:///c:/operadora-dev/src/app/mobile/perfil/editar/page.tsx)):**
+  - Enriquecida la sección de **Seguro de Viajero** con leyenda institucional detallada, switch interactivo de interés, botón formal *"Solicitar Seguro"* hacia `/seguros` y soporte de auto-desplazamiento suave cuando se accede desde la tarjeta de perfil.
+- **Itinerario ([`/mobile/itinerario/[id]`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/page.tsx) y [`/dia/[dayIndex]`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/dia/[dayIndex]/page.tsx)):**
+  - **Descripción Completa sin Recortes:** Eliminada la limitación `line-clamp-2` para que las tarjetas de cada día muestren la totalidad de la descripción del recorrido adaptando dinámicamente su altura.
+  - **Imágenes Específicas por Destino/Ciudad:** Implementada la función `getDayDestinationImage` con catálogo inteligente de fotografías de alta resolución (Londres, París, Roma, Madrid, México, Tokio, Atenas, Berlín, Ámsterdam, Venecia, etc.) evitando la repetición de imágenes genéricas en días consecutivos.
 
 ### v2.490 - 19 de Agosto de 2026 - 18:32 CST
 **Restauración de Formato Continuo y Desplazamiento Suave en Edición de Perfil ([`/mobile/perfil/editar`](file:///c:/operadora-dev/src/app/mobile/perfil/editar/page.tsx))**

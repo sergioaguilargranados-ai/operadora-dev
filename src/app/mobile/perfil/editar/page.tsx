@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, Save, Loader2, Plus, Trash2 } from "lucide-react"
+import { ChevronLeft, Save, Loader2, Plus, Trash2, Shield, ShieldCheck, ExternalLink, HeartPulse } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -21,6 +21,7 @@ function MobileProfileEditContent() {
   const { user } = useAuth()
   const { toast } = useToast()
 
+  const seguroRef = useRef<HTMLDivElement>(null)
   const contactosRef = useRef<HTMLDivElement>(null)
 
   const [loading, setLoading] = useState(true)
@@ -41,13 +42,20 @@ function MobileProfileEditContent() {
     }
   }, [user])
 
-  // Desplazar automáticamente hacia Contactos de Emergencia si se ingresó con ?section=contactos
+  // Desplazar automáticamente hacia la sección solicitada (seguro o contactos)
   useEffect(() => {
-    if (!loading && sectionParam === 'contactos') {
-      const timer = setTimeout(() => {
-        contactosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 200)
-      return () => clearTimeout(timer)
+    if (!loading) {
+      if (sectionParam === 'seguro') {
+        const timer = setTimeout(() => {
+          seguroRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 200)
+        return () => clearTimeout(timer)
+      } else if (sectionParam === 'contactos') {
+        const timer = setTimeout(() => {
+          contactosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 200)
+        return () => clearTimeout(timer)
+      }
     }
   }, [loading, sectionParam])
 
@@ -111,7 +119,7 @@ function MobileProfileEditContent() {
   const addEmergencyContact = () => {
     setFormData(prev => ({
       ...prev,
-      emergency_contacts: [...prev.emergency_contacts, { name: '', phone: '', relation: '' }]
+      emergency_contacts: [...prev.emergency_contacts, { name: '', phone: '', relation: 'Familiar directo' }]
     }))
   }
 
@@ -163,24 +171,24 @@ function MobileProfileEditContent() {
             <h2 className="text-sm font-bold text-gray-900 uppercase tracking-tight ml-1">Datos Personales</h2>
             <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Nombre Completo</label>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Nombre Completo *</label>
                 <input 
                   type="text" 
                   value={formData.name} 
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
-                  placeholder="Tu nombre"
+                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
+                  placeholder="Tu nombre completo"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Correo Electrónico</label>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Correo Electrónico *</label>
                 <input 
                   type="email" 
                   value={formData.email} 
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
+                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
                   placeholder="ejemplo@correo.com"
                   required
                 />
@@ -192,7 +200,7 @@ function MobileProfileEditContent() {
                   type="date" 
                   value={formData.date_of_birth} 
                   onChange={e => setFormData({ ...formData, date_of_birth: e.target.value })}
-                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
+                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
                 />
               </div>
 
@@ -202,30 +210,48 @@ function MobileProfileEditContent() {
                   type="tel" 
                   value={formData.phone} 
                   onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
-                  placeholder="Tu teléfono"
+                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
+                  placeholder="+52 55 1234 5678"
                 />
               </div>
             </div>
           </div>
 
           {/* 2. Seguro de Viajero */}
-          <div className="space-y-4">
+          <div ref={seguroRef} id="seguro-viajero" className="space-y-4 pt-1">
             <h2 className="text-sm font-bold text-gray-900 uppercase tracking-tight ml-1">Seguro de Viajero</h2>
-            <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold">Solicitar Seguro</h3>
-                <p className="text-xs text-gray-500 mt-1">¿Deseas que un agente te asista para adquirirlo?</p>
+            <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-4">
+              
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">¿Estás interesado en adquirir un Seguro de Viajero?</h3>
+                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                    Protección médica internacional con cobertura del Tratado Schengen (30,000 EUR sin deducible), cancelación de viaje, extravío de equipaje y asistencia 24/7.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-1">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={formData.wants_travel_insurance}
+                    onChange={e => setFormData({ ...formData, wants_travel_insurance: e.target.checked })}
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+                </label>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer"
-                  checked={formData.wants_travel_insurance}
-                  onChange={e => setFormData({ ...formData, wants_travel_insurance: e.target.checked })}
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
-              </label>
+
+              <div className="pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <span className="text-xs text-gray-600 font-medium">Cotiza y emite tu póliza internacional al instante:</span>
+                <Button 
+                  type="button"
+                  onClick={() => window.open('/seguros', '_blank')}
+                  size="sm"
+                  className="bg-black hover:bg-gray-800 text-white rounded-xl font-bold text-xs px-4 h-9 shadow-sm"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-400" /> Solicitar Seguro
+                </Button>
+              </div>
+
             </div>
           </div>
 
@@ -238,7 +264,7 @@ function MobileProfileEditContent() {
                 onClick={addEmergencyContact}
                 className="text-xs font-bold text-brand-primary flex items-center gap-1 hover:text-brand-primary-hover"
               >
-                <Plus className="w-3 h-3" /> Agregar
+                <Plus className="w-3.5 h-3.5" /> Agregar
               </button>
             </div>
 
@@ -257,35 +283,39 @@ function MobileProfileEditContent() {
                   </button>
                   
                   <div className="pr-10">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Nombre</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Nombre Completo *</label>
                     <input 
                       type="text" 
                       value={contact.name} 
                       onChange={e => updateEmergencyContact(idx, 'name', e.target.value)}
-                      className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
+                      className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
                       placeholder="Nombre del contacto"
                       required
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Parentesco</label>
-                      <input 
-                        type="text" 
+                      <select 
                         value={contact.relation} 
                         onChange={e => updateEmergencyContact(idx, 'relation', e.target.value)}
-                        className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
-                        placeholder="Ej: Hermano"
-                      />
+                        className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
+                      >
+                        <option value="Familiar directo">Familiar directo</option>
+                        <option value="Cónyuge">Cónyuge / Pareja</option>
+                        <option value="Hermano(a)">Hermano(a)</option>
+                        <option value="Amigo(a)">Amigo(a)</option>
+                        <option value="Otro">Otro</option>
+                      </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Teléfono</label>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Teléfono con WhatsApp *</label>
                       <input 
                         type="tel" 
                         value={contact.phone} 
                         onChange={e => updateEmergencyContact(idx, 'phone', e.target.value)}
-                        className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
-                        placeholder="Teléfono"
+                        className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
+                        placeholder="+52 55 1234 5678"
                         required
                       />
                     </div>

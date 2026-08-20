@@ -1,5 +1,5 @@
 // MegaTravelSyncService.ts - Servicio de sincronización de paquetes MegaTravel
-// Build: 19 Aug 2026 - v2.490 - Modelo completo con todos los campos
+// Build: 19 Aug 2026 - v2.491 - Modelo completo con todos los campos
 // 
 // Este servicio extrae datos de MegaTravel y los almacena localmente.
 // Se ejecuta a demanda (máximo 1 vez al día) desde el panel admin.
