@@ -86,6 +86,8 @@ export default function MisReservasPage() {
       
       if (!isStaff && user?.id) {
         params.append('userId', user.id.toString())
+      } else if (isStaff) {
+        params.append('userId', 'all')
       }
 
       const response = await fetch(`/api/bookings?${params}`, {

@@ -1,5 +1,5 @@
 // API para limpiar imágenes genéricas de categoría en tours existentes
-// Build: 19 Aug 2026 - v2.491
+// Build: 20 Aug 2026 - v2.492
 // Las imágenes de categoría (europa, asia, etc) fueron guardadas como main_image
 // cuando el scraping no encontraba una imagen específica del tour.
 // Este endpoint las limpia para que el próximo scrape las actualice correctamente.

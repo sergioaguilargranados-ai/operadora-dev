@@ -1,13 +1,21 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 19 de Agosto de 2026 - 18:47 CST  
-**Versión actual:** v2.491  
+**Última actualización:** 20 de Agosto de 2026 - 10:29 CST  
+**Versión actual:** v2.492  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.492 - 20 de Agosto de 2026 - 10:29 CST
+**Corrección en Conversión de Cotizaciones a Reservas y Estabilidad de Inputs de Fecha**
+- **Conversión de Cotización a Reserva ([`/dashboard/quotes`](file:///c:/operadora-dev/src/app/dashboard/quotes/page.tsx) y [`/api/bookings`](file:///c:/operadora-dev/src/app/api/bookings/route.ts)):**
+  - Se corrigió el endpoint `GET /api/bookings` para que cuando no se pase `userId` o se consulte como administrador (`userId=all`), devuelva la totalidad de las reservas en lugar de forzar `user_id = 1`.
+  - Se habilitó la búsqueda combinada por `user_id` o coincidencia de correo electrónico (`lead_traveler_email`), garantizando que cualquier cotización convertida a reserva aparezca de inmediato en [`/mis-reservas`](file:///c:/operadora-dev/src/app/mis-reservas/page.tsx) tanto para administradores como para el cliente final.
+- **Estabilidad de Inputs de Fecha y Texto en Modales ([`/dashboard/quotes`](file:///c:/operadora-dev/src/app/dashboard/quotes/page.tsx)):**
+  - Se eliminó la declaración de subcomponentes anidados dentro de `QuotesPage`, renderizando los modales de confirmación y reserva de forma directa en JSX. Con esto se resuelve el problema de pérdida de foco tras escribir una sola letra o seleccionar una fecha, permitiendo una escritura continua y sin interrupciones.
 
 ### v2.491 - 19 de Agosto de 2026 - 18:47 CST
 **Mejoras en Perfil, Seguro de Viajero e Itinerario con Imágenes de Destino y Descripción Completa**

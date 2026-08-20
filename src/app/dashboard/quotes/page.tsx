@@ -1,5 +1,5 @@
 "use client"
-// Build: 19 Aug 2026 - v2.491 - Cenefa estándar, botones texto blanco, acciones PDF/WhatsApp/Email en tours
+// Build: 20 Aug 2026 - v2.492 - Cenefa estándar, botones texto blanco, acciones PDF/WhatsApp/Email en tours
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -79,20 +79,34 @@ export default function QuotesPage() {
   const [creatingBooking, setCreatingBooking] = useState(false)
 
   const handleOpenBookingModal = (quote: Quote) => {
+    let startDate = ''
+    if (quote.travel_start_date) {
+      try {
+        const d = new Date(quote.travel_start_date)
+        if (!isNaN(d.getTime())) {
+          startDate = d.toISOString().split('T')[0]
+        } else {
+          startDate = String(quote.travel_start_date).substring(0, 10)
+        }
+      } catch (e) {
+        startDate = String(quote.travel_start_date)
+      }
+    }
+
     setBookingModal({ open: true, quote })
     setBookingForm({
       lead_traveler_name: quote.customer_name || '',
       lead_traveler_email: quote.customer_email || '',
       lead_traveler_phone: quote.customer_phone || '',
       adults: 1,
-      travel_start_date: quote.travel_start_date || ''
+      travel_start_date: startDate
     })
   }
 
   const handleCreateBooking = async () => {
     if (!bookingModal.quote) return
     if (!bookingForm.lead_traveler_name || !bookingForm.lead_traveler_email || !bookingForm.travel_start_date) {
-      toast({ title: 'Atención', description: 'Por favor completa los campos obligatorios.', variant: 'destructive' })
+      toast({ title: 'Atención', description: 'Por favor completa los campos obligatorios (Nombre, Email y Fecha de Inicio).', variant: 'destructive' })
       return
     }
 
@@ -106,16 +120,18 @@ export default function QuotesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: q.source === 'tour' ? 'tour' : 'general',
-          service_name: q.title || 'Servicio de Cotización',
+          service_name: q.title || q.destination || 'Servicio de Cotización',
           total_price: q.total,
           currency: q.currency || 'MXN',
-          status: 'pending',
+          status: 'confirmed',
           payment_status: 'pending',
-          user_id: user?.id,
+          user_id: user?.id || 1,
           details: {
-            destination: q.destination,
+            destination: q.destination || q.title,
             fecha_inicio: bookingForm.travel_start_date,
             pasajeros: bookingForm.adults,
+            quote_id: q.id,
+            quote_number: q.quote_number,
             contacto: {
               nombre: bookingForm.lead_traveler_name,
               email: bookingForm.lead_traveler_email,
@@ -139,7 +155,7 @@ export default function QuotesPage() {
         })
       })
 
-      toast({ title: '✅ Reserva Creada', description: `La cotización ${q.quote_number} ha sido convertida a reserva.` })
+      toast({ title: '✅ Reserva Creada', description: `La cotización ${q.quote_number} ha sido convertida a reserva exitosamente.` })
       setBookingModal({ open: false, quote: null })
       loadQuotes()
 
@@ -427,147 +443,140 @@ export default function QuotesPage() {
     )
   }
 
-  // ===== MODAL DE CONFIRMACIÓN ====================================================
-  const ConfirmModal = () => {
-    if (!confirmDialog?.open) return null
-    const icons = {
-      question: <CheckCircle2 className="w-10 h-10 text-blue-500" />,
-      warning:  <AlertTriangle className="w-10 h-10 text-amber-500" />,
-      info:     <Info className="w-10 h-10 text-sky-500" />
-    }
-    return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-        {/* Fondo traslúcido */}
-        <div
-          className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-          onClick={() => setConfirmDialog(null)}
-        />
-        {/* Panel glassmorphism */}
-        <div className="relative z-10 w-full max-w-sm mx-4 bg-white/90 backdrop-blur-xl border border-white/60 rounded-2xl shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200">
-          {/* Icono */}
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-blue-50 rounded-full">
-              {icons[confirmDialog.type]}
-            </div>
-          </div>
-          {/* Texto */}
-          <h3 className="text-lg font-bold text-gray-900 text-center mb-2">{confirmDialog.title}</h3>
-          <p className="text-gray-600 text-sm text-center mb-6 leading-relaxed">{confirmDialog.message}</p>
-          {/* Botones */}
-          <div className="flex gap-3">
-            <button
-              onClick={() => setConfirmDialog(null)}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={confirmDialog.onConfirm}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-md shadow-blue-200"
-            >
-              Aceptar
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // ===== MODAL DE CONVERTIR A RESERVA ==============================================
-  const BookingModal = () => {
-    if (!bookingModal.open) return null
-    return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => !creatingBooking && setBookingModal({ open: false, quote: null })} />
-        <div className="relative z-10 w-full max-w-md mx-4 bg-white/90 backdrop-blur-xl border border-white/60 rounded-2xl shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200">
-          <h3 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-600" />
-            Convertir a Reserva
-          </h3>
-          <p className="text-sm text-gray-500 mb-4">Confirma los datos principales para crear la reserva de esta cotización.</p>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Nombre Completo (Titular)</label>
-              <Input
-                value={bookingForm.lead_traveler_name}
-                onChange={(e) => setBookingForm({ ...bookingForm, lead_traveler_name: e.target.value })}
-                placeholder="Nombre del pasajero principal"
-                disabled={creatingBooking}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
-                <Input
-                  type="email"
-                  value={bookingForm.lead_traveler_email}
-                  onChange={(e) => setBookingForm({ ...bookingForm, lead_traveler_email: e.target.value })}
-                  placeholder="email@ejemplo.com"
-                  disabled={creatingBooking}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Teléfono</label>
-                <Input
-                  value={bookingForm.lead_traveler_phone}
-                  onChange={(e) => setBookingForm({ ...bookingForm, lead_traveler_phone: e.target.value })}
-                  placeholder="+52..."
-                  disabled={creatingBooking}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Fecha de Inicio</label>
-                <Input
-                  type="date"
-                  value={bookingForm.travel_start_date}
-                  onChange={(e) => setBookingForm({ ...bookingForm, travel_start_date: e.target.value })}
-                  disabled={creatingBooking}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Pasajeros</label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={bookingForm.adults}
-                  onChange={(e) => setBookingForm({ ...bookingForm, adults: parseInt(e.target.value) || 1 })}
-                  disabled={creatingBooking}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-3 mt-6">
-            <Button
-              variant="outline"
-              className="flex-1 rounded-xl"
-              onClick={() => setBookingModal({ open: false, quote: null })}
-              disabled={creatingBooking}
-            >
-              Cancelar
-            </Button>
-            <Button
-              className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200"
-              onClick={handleCreateBooking}
-              disabled={creatingBooking}
-            >
-              {creatingBooking ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Procesando...</>
-              ) : (
-                <><Check className="w-4 h-4 mr-2" /> Confirmar Reserva</>
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
-      <ConfirmModal />
-      <BookingModal />
+      {/* Modal de Confirmación */}
+      {confirmDialog?.open && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={() => setConfirmDialog(null)}
+          />
+          <div className="relative z-10 w-full max-w-sm mx-4 bg-white/90 backdrop-blur-xl border border-white/60 rounded-2xl shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 bg-blue-50 rounded-full">
+                {confirmDialog.type === 'warning' ? (
+                  <AlertTriangle className="w-10 h-10 text-amber-500" />
+                ) : confirmDialog.type === 'info' ? (
+                  <Info className="w-10 h-10 text-sky-500" />
+                ) : (
+                  <CheckCircle2 className="w-10 h-10 text-blue-500" />
+                )}
+              </div>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 text-center mb-2">{confirmDialog.title}</h3>
+            <p className="text-gray-600 text-sm text-center mb-6 leading-relaxed">{confirmDialog.message}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDialog(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDialog.onConfirm}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-md shadow-blue-200"
+              >
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Convertir a Reserva */}
+      {bookingModal.open && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div 
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm" 
+            onClick={() => !creatingBooking && setBookingModal({ open: false, quote: null })} 
+          />
+          <div className="relative z-10 w-full max-w-md mx-4 bg-white/95 backdrop-blur-xl border border-white/60 rounded-2xl shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-blue-600" />
+              Convertir a Reserva
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">Confirma los datos principales para crear la reserva de esta cotización.</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Nombre Completo (Titular) *</label>
+                <Input
+                  value={bookingForm.lead_traveler_name}
+                  onChange={(e) => setBookingForm(prev => ({ ...prev, lead_traveler_name: e.target.value }))}
+                  placeholder="Nombre del pasajero principal"
+                  disabled={creatingBooking}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Email *</label>
+                  <Input
+                    type="email"
+                    value={bookingForm.lead_traveler_email}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, lead_traveler_email: e.target.value }))}
+                    placeholder="email@ejemplo.com"
+                    disabled={creatingBooking}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Teléfono</label>
+                  <Input
+                    value={bookingForm.lead_traveler_phone}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, lead_traveler_phone: e.target.value }))}
+                    placeholder="+52..."
+                    disabled={creatingBooking}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Fecha de Inicio *</label>
+                  <Input
+                    type="date"
+                    value={bookingForm.travel_start_date}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, travel_start_date: e.target.value }))}
+                    disabled={creatingBooking}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Pasajeros</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={bookingForm.adults}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, adults: parseInt(e.target.value) || 1 }))}
+                    disabled={creatingBooking}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-xl"
+                onClick={() => setBookingModal({ open: false, quote: null })}
+                disabled={creatingBooking}
+              >
+                Cancelar
+              </Button>
+              <Button
+                className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200"
+                onClick={handleCreateBooking}
+                disabled={creatingBooking}
+              >
+                {creatingBooking ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Procesando...</>
+                ) : (
+                  <><Check className="w-4 h-4 mr-2" /> Confirmar Reserva</>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Header de la vista */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200/80 pb-4">

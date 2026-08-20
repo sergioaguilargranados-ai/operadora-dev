@@ -9,8 +9,8 @@ import { successResponse, errorResponse } from '@/types/api-response'
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const userId = searchParams.get('userId') || '1'
-    const limit = parseInt(searchParams.get('limit') || '20', 10)
+    const userId = searchParams.get('userId')
+    const limit = parseInt(searchParams.get('limit') || '50', 10)
     const offset = parseInt(searchParams.get('offset') || '0', 10)
     const view = (searchParams.get('view') || '').toLowerCase()
     const status = searchParams.get('status')
@@ -28,8 +28,10 @@ export async function GET(request: NextRequest) {
         payment_status,
         lead_traveler_name,
         lead_traveler_email,
+        lead_traveler_phone,
         special_requests,
         created_at,
+        confirmed_at,
         COALESCE((
           SELECT SUM(amount) 
           FROM payment_transactions 
@@ -41,8 +43,8 @@ export async function GET(request: NextRequest) {
     const params: any[] = []
     let paramIndex = 1
 
-    if (userId !== 'all') {
-      sql += ` AND user_id = $${paramIndex}`
+    if (userId && userId !== 'all') {
+      sql += ` AND (user_id = $${paramIndex} OR LOWER(lead_traveler_email) = (SELECT LOWER(email) FROM users WHERE id = $${paramIndex}))`
       params.push(userId)
       paramIndex++
     }
