@@ -1,13 +1,20 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 10:54 CST  
-**Versión actual:** v2.493  
+**Última actualización:** 20 de Agosto de 2026 - 11:09 CST  
+**Versión actual:** v2.494  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.494 - 20 de Agosto de 2026 - 11:09 CST
+**Rediseño de UX/UI en Menú Lateral: Acordeón Exclusivo por Sección y Buscador de Módulos ([`PortalSidebar.tsx`](file:///c:/operadora-dev/src/components/layout/PortalSidebar.tsx))**
+- **Acordeón Exclusivo (Single-Open Section):** Las secciones principales (`INTRANET & OPERACIÓN`, `GESTIÓN DE RESERVAS`, `ADMINISTRACIÓN Y AJUSTES`, `CUENTA PERSONAL`) aparecen organizadas y colapsadas. Al seleccionar una sección, se despliegan sus módulos y se contraen automáticamente las demás secciones, logrando una vista ligera, ordenada y profesional.
+- **Detección Automática y Contextual de Ruta:** Al navegar o cargar cualquier pantalla (ej. `/dashboard/crm`, `/mis-reservas`, etc.), el menú detecta en qué sección y submódulo te encuentras y abre automáticamente su categoría.
+- **Buscador Rápido Spotlight:** Incorporación de una barra de búsqueda para filtrar en tiempo real cualquier módulo, submódulo o pestaña con un clic para limpiar búsqueda (`X`).
+- **Submenús Anidados con Resaltado:** Sangría visual elegante, contador numérico de opciones por sección y micro-animaciones en flechas `ChevronDown`.
 
 ### v2.493 - 20 de Agosto de 2026 - 10:54 CST
 **Habilitación de Pago Manual y Abonos Parciales para Staff y Administradores ([`/checkout/[bookingId]`](file:///c:/operadora-dev/src/app/checkout/[bookingId]/page.tsx))**
