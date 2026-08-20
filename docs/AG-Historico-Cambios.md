@@ -1,13 +1,18 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 19 de Agosto de 2026 - 16:55 CST  
-**Versión actual:** v2.489  
+**Última actualización:** 19 de Agosto de 2026 - 18:32 CST  
+**Versión actual:** v2.490  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.490 - 19 de Agosto de 2026 - 18:32 CST
+**Restauración de Formato Continuo y Desplazamiento Suave en Edición de Perfil ([`/mobile/perfil/editar`](file:///c:/operadora-dev/src/app/mobile/perfil/editar/page.tsx))**
+- **Formato de Flujo Continuo:** Se restauró la estructura original de página continua y deslizable con todas las secciones visibles (Datos Personales arriba, Seguro de Viajero en medio y Contactos de Emergencia abajo con botón Guardar Cambios al final).
+- **Desplazamiento Suave Automático (Auto-Scroll):** Al acceder desde la tarjeta "Contactos de Emergencia" de [`/mobile/perfil`](file:///c:/operadora-dev/src/app/mobile/perfil/page.tsx), la vista abre la pantalla de edición y se desplaza automáticamente hacia abajo justo al inicio del bloque de Contactos de Emergencia (`scrollIntoView({ behavior: 'smooth' })`).
 
 ### v2.489 - 19 de Agosto de 2026 - 16:55 CST
 **Navegación Focalizada y Pestañas en Edición de Perfil Móvil (`/mobile/perfil/editar`)**

@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, Save, Loader2, Plus, Trash2, User, Users, Shield, Phone, Mail, Calendar, HeartPulse, CheckCircle2 } from "lucide-react"
+import { ChevronLeft, Save, Loader2, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -16,14 +16,12 @@ interface EmergencyContact {
 function MobileProfileEditContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const sectionParam = searchParams.get('section') || searchParams.get('tab') || 'datos'
+  const sectionParam = searchParams.get('section') || searchParams.get('tab') || ''
   
   const { user } = useAuth()
   const { toast } = useToast()
 
-  const [activeSection, setActiveSection] = useState<'datos' | 'contactos' | 'seguro' | 'todos'>(
-    (sectionParam as any) || 'datos'
-  )
+  const contactosRef = useRef<HTMLDivElement>(null)
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -38,16 +36,20 @@ function MobileProfileEditContent() {
   })
 
   useEffect(() => {
-    if (sectionParam && ['datos', 'contactos', 'seguro', 'todos'].includes(sectionParam)) {
-      setActiveSection(sectionParam as any)
-    }
-  }, [sectionParam])
-
-  useEffect(() => {
     if (user?.id) {
       fetchProfile()
     }
   }, [user])
+
+  // Desplazar automáticamente hacia Contactos de Emergencia si se ingresó con ?section=contactos
+  useEffect(() => {
+    if (!loading && sectionParam === 'contactos') {
+      const timer = setTimeout(() => {
+        contactosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 200)
+      return () => clearTimeout(timer)
+    }
+  }, [loading, sectionParam])
 
   const fetchProfile = async () => {
     try {
@@ -109,10 +111,7 @@ function MobileProfileEditContent() {
   const addEmergencyContact = () => {
     setFormData(prev => ({
       ...prev,
-      emergency_contacts: [
-        ...prev.emergency_contacts, 
-        { name: '', phone: '', relation: 'Familiar directo' }
-      ]
+      emergency_contacts: [...prev.emergency_contacts, { name: '', phone: '', relation: '' }]
     }))
   }
 
@@ -141,303 +140,170 @@ function MobileProfileEditContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 font-sans">
+    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
       
-      {/* Header Fijo */}
-      <div className="bg-white border-b border-gray-100 px-4 pt-12 pb-4 flex items-center justify-between sticky top-0 z-20 shadow-xs">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-100 px-4 pt-12 pb-4 flex items-center justify-between sticky top-0 z-20">
         <button 
           onClick={() => router.push('/mobile/perfil')} 
           className="p-2 -ml-2 text-gray-900 hover:bg-gray-50 rounded-full active:scale-95 transition-transform"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-base font-bold text-gray-900">Editar Perfil</h1>
+        <h1 className="text-lg font-bold">Editar Perfil</h1>
         <div className="w-10"></div>
       </div>
 
-      {/* Selector de Sección Superior (Pestañas Rápidas) */}
-      <div className="px-4 pt-4 max-w-lg mx-auto">
-        <div className="flex bg-gray-200/80 p-1 rounded-2xl gap-1">
-          <button
-            type="button"
-            onClick={() => setActiveSection('datos')}
-            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              activeSection === 'datos'
-                ? 'bg-white text-black shadow-xs'
-                : 'text-gray-600 hover:text-black'
-            }`}
-          >
-            <User className="w-3.5 h-3.5" /> Datos
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection('contactos')}
-            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              activeSection === 'contactos'
-                ? 'bg-white text-black shadow-xs'
-                : 'text-gray-600 hover:text-black'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" /> Contactos
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection('seguro')}
-            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              activeSection === 'seguro'
-                ? 'bg-white text-black shadow-xs'
-                : 'text-gray-600 hover:text-black'
-            }`}
-          >
-            <Shield className="w-3.5 h-3.5" /> Seguro
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection('todos')}
-            className={`py-2 px-3 text-xs font-bold rounded-xl transition-all ${
-              activeSection === 'todos'
-                ? 'bg-white text-black shadow-xs'
-                : 'text-gray-600 hover:text-black'
-            }`}
-          >
-            Todos
-          </button>
-        </div>
-      </div>
-
-      {/* Formulario Principal */}
-      <div className="px-4 pt-5 space-y-6 max-w-lg mx-auto">
+      {/* Formulario Continuo */}
+      <div className="px-4 pt-6 space-y-6 max-w-lg mx-auto">
         <form onSubmit={handleSave} className="space-y-6">
           
-          {/* SECCIÓN 1: DATOS PERSONALES */}
-          {(activeSection === 'datos' || activeSection === 'todos') && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 ml-1">
-                <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center">
-                  <User className="w-3.5 h-3.5" />
-                </div>
-                <h2 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Datos Personales</h2>
+          {/* 1. Datos Personales */}
+          <div className="space-y-4">
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-tight ml-1">Datos Personales</h2>
+            <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Nombre Completo</label>
+                <input 
+                  type="text" 
+                  value={formData.name} 
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
+                  placeholder="Tu nombre"
+                  required
+                />
               </div>
 
-              <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                    Nombre Completo *
-                  </label>
-                  <input 
-                    type="text" 
-                    value={formData.name} 
-                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
-                    placeholder="Tu nombre completo"
-                    required
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Correo Electrónico</label>
+                <input 
+                  type="email" 
+                  value={formData.email} 
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
+                  placeholder="ejemplo@correo.com"
+                  required
+                />
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                    Correo Electrónico *
-                  </label>
-                  <input 
-                    type="email" 
-                    value={formData.email} 
-                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
-                    placeholder="ejemplo@correo.com"
-                    required
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Fecha de Nacimiento</label>
+                <input 
+                  type="date" 
+                  value={formData.date_of_birth} 
+                  onChange={e => setFormData({ ...formData, date_of_birth: e.target.value })}
+                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                    Fecha de Nacimiento
-                  </label>
-                  <input 
-                    type="date" 
-                    value={formData.date_of_birth} 
-                    onChange={e => setFormData({ ...formData, date_of_birth: e.target.value })}
-                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                    Teléfono
-                  </label>
-                  <input 
-                    type="tel" 
-                    value={formData.phone} 
-                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
-                    placeholder="+52 55 1234 5678"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Teléfono</label>
+                <input 
+                  type="tel" 
+                  value={formData.phone} 
+                  onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
+                  placeholder="Tu teléfono"
+                />
               </div>
             </div>
-          )}
+          </div>
 
-          {/* SECCIÓN 2: CONTACTOS DE EMERGENCIA */}
-          {(activeSection === 'contactos' || activeSection === 'todos') && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between ml-1">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center">
-                    <HeartPulse className="w-3.5 h-3.5 text-red-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Contactos de Emergencia</h2>
-                  </div>
-                </div>
-                <button 
-                  type="button" 
-                  onClick={addEmergencyContact}
-                  className="text-xs font-bold bg-black text-white px-3 py-1.5 rounded-xl flex items-center gap-1 hover:bg-gray-800 shadow-xs active:scale-95 transition-all"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Agregar Contacto
-                </button>
+          {/* 2. Seguro de Viajero */}
+          <div className="space-y-4">
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-tight ml-1">Seguro de Viajero</h2>
+            <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold">Solicitar Seguro</h3>
+                <p className="text-xs text-gray-500 mt-1">¿Deseas que un agente te asista para adquirirlo?</p>
               </div>
-
-              <p className="text-xs text-gray-500 ml-1 leading-relaxed">
-                Personas a contactar en caso de cualquier urgencia médica o eventualidad durante tus viajes.
-              </p>
-
-              <div className="space-y-3">
-                {formData.emergency_contacts.length === 0 ? (
-                  <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 text-center space-y-3">
-                    <Users className="w-10 h-10 text-gray-300 mx-auto" />
-                    <p className="text-xs text-gray-500 font-medium">Aún no has registrado contactos de emergencia.</p>
-                    <Button
-                      type="button"
-                      onClick={addEmergencyContact}
-                      size="sm"
-                      className="bg-black hover:bg-gray-800 text-white rounded-xl text-xs font-bold"
-                    >
-                      <Plus className="w-3.5 h-3.5 mr-1" /> Registrar Primer Contacto
-                    </Button>
-                  </div>
-                ) : (
-                  formData.emergency_contacts.map((contact, idx) => (
-                    <div key={idx} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-4 relative">
-                      <div className="flex justify-between items-center border-b border-gray-100 pb-2.5">
-                        <span className="text-xs font-bold text-gray-900">
-                          Contacto #{idx + 1}
-                        </span>
-                        <button 
-                          type="button"
-                          onClick={() => removeEmergencyContact(idx)}
-                          className="text-red-500 p-1.5 bg-red-50 rounded-lg hover:bg-red-100 active:scale-95 transition-all"
-                          title="Eliminar contacto"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                          Nombre Completo *
-                        </label>
-                        <input 
-                          type="text" 
-                          value={contact.name} 
-                          onChange={e => updateEmergencyContact(idx, 'name', e.target.value)}
-                          className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
-                          placeholder="Nombre del familiar o persona de confianza"
-                          required
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                            Parentesco / Relación
-                          </label>
-                          <select
-                            value={contact.relation}
-                            onChange={e => updateEmergencyContact(idx, 'relation', e.target.value)}
-                            className="w-full bg-gray-50 border-none rounded-xl px-3 py-2.5 text-xs md:text-sm font-medium outline-none focus:ring-2 focus:ring-black cursor-pointer"
-                          >
-                            <option value="Familiar directo">Familiar directo (Padre/Madre/Hijo)</option>
-                            <option value="Cónyuge">Cónyuge / Pareja</option>
-                            <option value="Hermano(a)">Hermano(a)</option>
-                            <option value="Amigo(a)">Amigo(a)</option>
-                            <option value="Otro">Otro</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                            Teléfono con WhatsApp *
-                          </label>
-                          <input 
-                            type="tel" 
-                            value={contact.phone} 
-                            onChange={e => updateEmergencyContact(idx, 'phone', e.target.value)}
-                            className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
-                            placeholder="+52 55 1234 5678"
-                            required
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer"
+                  checked={formData.wants_travel_insurance}
+                  onChange={e => setFormData({ ...formData, wants_travel_insurance: e.target.checked })}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+              </label>
             </div>
-          )}
+          </div>
 
-          {/* SECCIÓN 3: SEGURO DE VIAJERO */}
-          {(activeSection === 'seguro' || activeSection === 'todos') && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 ml-1">
-                <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center">
-                  <Shield className="w-3.5 h-3.5 text-emerald-400" />
-                </div>
-                <h2 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Seguro de Viajero</h2>
-              </div>
+          {/* 3. Contactos de Emergencia */}
+          <div ref={contactosRef} id="contactos-emergencia" className="space-y-4 pt-1">
+            <div className="flex items-center justify-between ml-1">
+              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Contactos de Emergencia</h2>
+              <button 
+                type="button" 
+                onClick={addEmergencyContact}
+                className="text-xs font-bold text-brand-primary flex items-center gap-1 hover:text-brand-primary-hover"
+              >
+                <Plus className="w-3 h-3" /> Agregar
+              </button>
+            </div>
 
-              <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900">Interés en Seguro Internacional</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">¿Deseas asistencia para cotizar tu seguro médico?</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer"
-                      checked={formData.wants_travel_insurance}
-                      onChange={e => setFormData({ ...formData, wants_travel_insurance: e.target.checked })}
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
-                  </label>
-                </div>
-
-                <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
-                  <span className="text-xs text-gray-500 font-medium">Cotiza y emite tu póliza al instante:</span>
-                  <Button
+            <div className="space-y-3">
+              {formData.emergency_contacts.length === 0 && (
+                <p className="text-sm text-gray-500 text-center py-4">No has agregado contactos de emergencia.</p>
+              )}
+              {formData.emergency_contacts.map((contact, idx) => (
+                <div key={idx} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-4 relative group">
+                  <button 
                     type="button"
-                    onClick={() => window.open('/seguros', '_blank')}
-                    size="sm"
-                    className="bg-black hover:bg-gray-800 text-white rounded-xl text-xs font-bold px-4"
+                    onClick={() => removeEmergencyContact(idx)}
+                    className="absolute top-4 right-4 text-red-500 p-2 bg-red-50 rounded-full hover:bg-red-100"
                   >
-                    Ir al Cotizador
-                  </Button>
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  
+                  <div className="pr-10">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Nombre</label>
+                    <input 
+                      type="text" 
+                      value={contact.name} 
+                      onChange={e => updateEmergencyContact(idx, 'name', e.target.value)}
+                      className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
+                      placeholder="Nombre del contacto"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Parentesco</label>
+                      <input 
+                        type="text" 
+                        value={contact.relation} 
+                        onChange={e => updateEmergencyContact(idx, 'relation', e.target.value)}
+                        className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
+                        placeholder="Ej: Hermano"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Teléfono</label>
+                      <input 
+                        type="tel" 
+                        value={contact.phone} 
+                        onChange={e => updateEmergencyContact(idx, 'phone', e.target.value)}
+                        className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none"
+                        placeholder="Teléfono"
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          )}
+          </div>
 
           {/* Botón Guardar Cambios */}
-          <div className="pt-4">
+          <div className="pt-6 pb-12">
             <Button 
               type="submit" 
               disabled={saving}
-              className="w-full h-14 bg-black hover:bg-gray-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 text-base shadow-md active:scale-[0.99] transition-all"
+              className="w-full h-14 bg-black hover:bg-gray-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 text-base transition-colors"
             >
-              {saving ? (
-                <><Loader2 className="w-5 h-5 animate-spin mr-1" /> Guardando datos...</>
-              ) : (
-                <><Save className="w-5 h-5 mr-1" /> Guardar Cambios</>
-              )}
+              {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              Guardar Cambios
             </Button>
           </div>
         </form>
