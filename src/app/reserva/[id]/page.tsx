@@ -128,6 +128,13 @@ export default function BookingDetailsPage() {
   const refCode = `AS-${booking.booking_reference}`
   const customerName = booking.lead_traveler_name || 'María Fernanda López González'
 
+  const details = booking.details || safeParseJSON(booking.special_requests, {})
+  const destination = booking.service_name || booking.destination || details.destination || 'Destino'
+  const itinerary = booking.custom_itinerary
+  const days = itinerary?.days || []
+  const startDateStr = details.fecha_inicio || booking.check_in || details.travel_date || (booking.created_at ? new Date(booking.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Próximamente')
+  const pax = details.pasajeros || booking.adults || 2
+
   return (
     <div className="min-h-screen bg-slate-50/60 pb-12">
       <PageHeader showBackButton={true} backButtonHref="/mis-reservas" />
@@ -143,17 +150,16 @@ export default function BookingDetailsPage() {
           <span className="font-semibold text-slate-700">{refCode}</span>
         </div>
 
-        {/* HEADER DE RESERVA CON LOCALIZADOR (Mockup #5) */}
+        {/* HEADER DE RESERVA CON LOCALIZADOR */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-extrabold text-slate-900">Reserva {refCode}</h1>
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold">
-                <CheckCircle className="w-3.5 h-3.5" />
-                Confirmada
-              </span>
+              {getStatusBadge(booking.status || 'pending')}
             </div>
-            <p className="text-xs text-slate-500 mt-1">Reservada el 15 mayo 2025</p>
+            <p className="text-xs text-slate-500 mt-1">
+              Reservada el {booking.created_at ? new Date(booking.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Reciente'}
+            </p>
           </div>
 
           <Card className="px-5 py-3 border-gray-200/80 shadow-2xs rounded-xl bg-white flex items-center gap-8 text-xs">
@@ -175,7 +181,7 @@ export default function BookingDetailsPage() {
           </Card>
         </div>
 
-        {/* LAYOUT PRINCIPAL DE 2 COLUMNAS (Mockup #5) */}
+        {/* LAYOUT PRINCIPAL DE 2 COLUMNAS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* ━━━━ COLUMNA IZQUIERDA (70%) ━━━━ */}
@@ -187,34 +193,31 @@ export default function BookingDetailsPage() {
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-slate-50/80 rounded-xl border border-gray-100">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-slate-200 flex items-center justify-center text-slate-700">
-                    <Hotel className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-xl bg-black flex items-center justify-center text-white">
+                    <Plane className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 text-base">Paquete vacacional</h3>
-                    <p className="text-xs text-slate-500">Todo incluido</p>
+                    <h3 className="font-bold text-slate-900 text-base">{destination}</h3>
+                    <p className="text-xs text-slate-500">{booking.booking_type === 'tour' || booking.booking_type === 'group' ? 'Tour / Paquete Turístico' : 'Viaje Personalizado'}</p>
                     <p className="text-xs font-semibold text-slate-700 flex items-center gap-1 mt-1">
                       <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      Cancún, México
+                      {destination}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-6 text-center text-xs w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
                   <div>
-                    <p className="text-slate-400 font-medium">Check-in</p>
-                    <p className="font-bold text-slate-800 mt-0.5">00 mes 2025</p>
-                    <p className="text-slate-400">15:00</p>
+                    <p className="text-slate-400 font-medium">Fecha de Salida</p>
+                    <p className="font-bold text-slate-800 mt-0.5">{startDateStr}</p>
                   </div>
                   <div>
-                    <p className="text-slate-400 font-medium">Check-out</p>
-                    <p className="font-bold text-slate-800 mt-0.5">00 mes 2025</p>
-                    <p className="text-slate-400">12:00</p>
+                    <p className="text-slate-400 font-medium">Duración</p>
+                    <p className="font-bold text-slate-800 mt-0.5">{days.length > 0 ? `${days.length} días` : 'Confirmando'}</p>
                   </div>
                   <div>
-                    <p className="text-slate-400 font-medium">Huéspedes</p>
-                    <p className="font-bold text-slate-800 mt-0.5">2 personas</p>
-                    <p className="text-slate-400">1 habitación</p>
+                    <p className="text-slate-400 font-medium">Viajeros</p>
+                    <p className="font-bold text-slate-800 mt-0.5">{pax} personas</p>
                   </div>
                 </div>
               </div>
@@ -222,63 +225,51 @@ export default function BookingDetailsPage() {
 
             {/* Itinerario */}
             <Card className="p-6 border-gray-200/80 shadow-sm rounded-2xl bg-white space-y-4">
-              <h2 className="text-lg font-bold text-slate-900">Itinerario</h2>
-
-              <div className="space-y-3">
-                {/* Vuelo redondo */}
-                <div className="p-4 bg-slate-50/80 rounded-xl border border-gray-100 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-3">
-                    <Plane className="w-5 h-5 text-slate-700" />
-                    <div>
-                      <p className="font-bold text-slate-900">Vuelo redondo</p>
-                      <p className="text-slate-500">Clase turista</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-8 text-slate-600 font-medium">
-                    <div>
-                      <span className="text-slate-400">IDA</span>
-                      <p className="font-bold text-slate-900">AAA 00:00 → BBB 00:00</p>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">VUELTA</span>
-                      <p className="font-bold text-slate-900">BBB 00:00 → AAA 00:00</p>
-                    </div>
-                    <ChevronDown className="w-4 h-4 text-slate-400 cursor-pointer" />
-                  </div>
-                </div>
-
-                {/* Traslados */}
-                <div className="p-4 bg-slate-50/80 rounded-xl border border-gray-100 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-3">
-                    <Package className="w-5 h-5 text-slate-700" />
-                    <div>
-                      <p className="font-bold text-slate-900">Traslados aeropuerto - hotel - aeropuerto</p>
-                      <p className="text-slate-500">Servicio privado</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-emerald-600 font-semibold">
-                    <span>Incluidos</span>
-                    <ChevronDown className="w-4 h-4 text-slate-400 cursor-pointer" />
-                  </div>
-                </div>
-
-                {/* Alojamiento */}
-                <div className="p-4 bg-slate-50/80 rounded-xl border border-gray-100 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-3">
-                    <Hotel className="w-5 h-5 text-slate-700" />
-                    <div>
-                      <p className="font-bold text-slate-900">Alojamiento</p>
-                      <p className="text-slate-500">00 noches • Todo incluido</p>
-                    </div>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-slate-400 cursor-pointer" />
-                </div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-slate-900">
+                  {itinerary?.title || 'Itinerario de Viaje'}
+                </h2>
+                {days.length > 0 && (
+                  <span className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-bold">
+                    {days.length} Días Enriquecidos con IA
+                  </span>
+                )}
               </div>
 
-              <button className="text-xs font-semibold text-slate-700 hover:text-slate-900 flex items-center gap-1 mx-auto pt-2">
-                Ver detalles completos
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
+              {days.length > 0 ? (
+                <div className="space-y-3">
+                  {days.slice(0, 5).map((d: any, i: number) => (
+                    <div key={i} className="p-4 bg-slate-50/80 rounded-xl border border-gray-100 flex items-start justify-between text-xs gap-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+                          {i + 1}
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900 text-sm">{d.title || `Día ${i + 1}`}</p>
+                          <p className="text-slate-500 mt-1 line-clamp-2">{d.description || d.desc || (d.activities?.[0]?.description) || ''}</p>
+                          {d.foods && d.foods.length > 0 && (
+                            <p className="text-xs text-amber-700 font-medium mt-1">🍽️ {d.foods.map((f: any) => f.name).join(', ')}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {days.length > 5 && (
+                    <p className="text-xs text-center text-slate-500">Y {days.length - 5} días más en tu itinerario...</p>
+                  )}
+                  <Button 
+                    onClick={() => router.push(`/mobile/itinerario/${booking.id}`)}
+                    className="w-full mt-2 bg-black text-white hover:bg-gray-800 font-bold rounded-xl h-11"
+                  >
+                    📱 Ver Itinerario Interactivo Completo en la PWA
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center py-6 bg-slate-50 rounded-xl">
+                  <Clock className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                  <p className="text-slate-600 text-sm font-medium">Generando itinerario con IA en segundo plano...</p>
+                </div>
+              )}
             </Card>
 
             {/* Información importante */}

@@ -1,5 +1,5 @@
 // Catálogo de Tours y Viajes Grupales - Diseño con Sidebar
-// Build: 20 Aug 2026 - v2.500 - Filtros laterales estilo MegaTravel
+// Build: 20 Aug 2026 - v2.501 - Filtros laterales estilo MegaTravel
 
 'use client'
 

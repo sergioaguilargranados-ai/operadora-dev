@@ -344,21 +344,32 @@ export default function MisReservasPage() {
                                 <ChevronDown className="w-4 h-4 text-slate-400 -rotate-90" />
                               </div>
 
-                              <p className="text-sm font-semibold text-slate-700">
-                                {booking.destination || booking.service_name || 'Cancún, México'}
-                              </p>
+                              {(() => {
+                                const details = typeof booking.special_requests === 'string' ? (booking.special_requests.startsWith('{') ? JSON.parse(booking.special_requests) : {}) : (booking.special_requests || {})
+                                const destName = booking.service_name || booking.destination || details.destination || details.tour_name || 'Viaje'
+                                const paxCount = details.pasajeros || booking.adults || 2
+                                const travelDateStr = details.fecha_inicio ? formatDate(details.fecha_inicio) : formatDate(booking.created_at)
 
-                              <div className="flex items-center gap-4 text-xs text-slate-500 pt-1 flex-wrap">
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                                  {formatDate(booking.created_at)}
-                                </span>
-                                <span>•</span>
-                                <span className="flex items-center gap-1">
-                                  <Users className="w-3.5 h-3.5 text-slate-400" />
-                                  2 personas
-                                </span>
-                              </div>
+                                return (
+                                  <>
+                                    <p className="text-sm font-semibold text-slate-700">
+                                      {destName}
+                                    </p>
+
+                                    <div className="flex items-center gap-4 text-xs text-slate-500 pt-1 flex-wrap">
+                                      <span className="flex items-center gap-1">
+                                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                                        {travelDateStr}
+                                      </span>
+                                      <span>•</span>
+                                      <span className="flex items-center gap-1">
+                                        <Users className="w-3.5 h-3.5 text-slate-400" />
+                                        {paxCount} {paxCount === 1 ? 'persona' : 'personas'}
+                                      </span>
+                                    </div>
+                                  </>
+                                )
+                              })()}
                             </div>
                           </div>
 

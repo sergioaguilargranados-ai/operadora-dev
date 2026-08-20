@@ -1,13 +1,19 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 12:17 CST  
-**Versión actual:** v2.500  
+**Última actualización:** 20 de Agosto de 2026 - 13:02 CST  
+**Versión actual:** v2.501  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.501 - 20 de Agosto de 2026 - 13:02 CST
+**Sincronización Dinámica de Itinerarios y Reservas en Web y PWA ([`reserva/[id]/page.tsx`](file:///c:/operadora-dev/src/app/reserva/[id]/page.tsx) y [`mis-reservas/page.tsx`](file:///c:/operadora-dev/src/app/mis-reservas/page.tsx))**
+- **Vista de Detalle de Reserva Dinámica:** Se reemplazaron las plantillas estáticas en `/reserva/[id]` por la información real del viaje, fecha de salida, desglose de viajeros y los días enriquecidos del itinerario generado con IA.
+- **Acceso Cruzado Web ↔ PWA:** Se incorporó un botón directo *"📱 Ver Itinerario Interactivo Completo en la PWA"* para abrir y navegar la experiencia completa de actividades, gastronomía, lugares y frases interactivas.
+- **Filtro y Render Dinámico en Mis Reservas:** Se ajustó el parsing de `special_requests` para mostrar destinos, fechas de viaje y número de pasajeros reales en cada tarjeta de reserva.
 
 ### v2.500 - 20 de Agosto de 2026 - 12:17 CST
 **Auditoría y Corrección QA: Carga y Sincronización de Itinerarios Enriquecidos con IA en PWA ([`itinerario/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/page.tsx), [`itinerario/[id]/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/page.tsx), [`itinerario/active/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/active/page.tsx))**
