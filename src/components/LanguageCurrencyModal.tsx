@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useLanguageCurrency, CURRENCY_OPTIONS, Language, CurrencyCode } from '@/contexts/LanguageCurrencyContext'
 import { X, Check, Info } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 export function LanguageCurrencyModal() {
     const { isModalOpen, closeModal, language, currency, setLanguage, setCurrency, t } = useLanguageCurrency()
+    const { toast } = useToast()
 
     const [tempLang, setTempLang] = useState<Language>(language)
     const [tempCurr, setTempCurr] = useState<CurrencyCode>(currency)
@@ -23,6 +25,12 @@ export function LanguageCurrencyModal() {
         setLanguage(tempLang)
         setCurrency(tempCurr)
         closeModal()
+        toast({
+            title: tempLang === 'es' ? '🌐 Configuración aplicada' : '🌐 Settings applied',
+            description: tempLang === 'es'
+                ? `Idioma establecido en Español • Divisa de visualización: ${tempCurr}`
+                : `Language set to English • Display currency: ${tempCurr}`
+        })
     }
 
     return (

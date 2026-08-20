@@ -12,6 +12,7 @@ import { PageHeader } from '@/components/PageHeader'
 import { useToast } from '@/hooks/use-toast'
 import StripeCheckoutForm from '@/components/StripeCheckoutForm'
 import { useAuth } from '@/contexts/AuthContext'
+import { useLanguageCurrency } from '@/contexts/LanguageCurrencyContext'
 import { Shield, CheckCircle2, WalletCards, Receipt, DollarSign, ArrowRight, Building, Banknote, CreditCard, Sparkles, Loader2 } from 'lucide-react'
 
 // Inicializar Stripe
@@ -45,6 +46,7 @@ export default function CheckoutPage({
   const router = useRouter()
   const { toast } = useToast()
   const { user } = useAuth()
+  const { currency: userCurrency, convertPrice } = useLanguageCurrency()
   
   // Normalizar rol del usuario actual o desde storage para determinar si es Staff/Admin
   const normalizedRole = (user?.role || '').toUpperCase().replace(/[\s_-]/g, '')
@@ -392,22 +394,37 @@ export default function CheckoutPage({
 
                 <Separator className="my-4" />
 
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-600">
+                <div className="space-y-2.5 text-xs">
+                  <div className="flex justify-between items-start text-slate-600">
                     <span>Precio total:</span>
-                    <span className="font-semibold">${totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</span>
+                    <div className="text-right">
+                      <span className="font-semibold">${totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</span>
+                      {userCurrency !== (booking.currency || 'MXN').toUpperCase() && (
+                        <p className="text-[11px] text-slate-400 font-medium">(~ {convertPrice(totalPrice, booking.currency).formatted})</p>
+                      )}
+                    </div>
                   </div>
 
                   {paidAmount > 0 && (
-                    <div className="flex justify-between text-emerald-600 font-medium">
+                    <div className="flex justify-between items-start text-emerald-600 font-medium">
                       <span>Pagado acumulado:</span>
-                      <span>-${paidAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</span>
+                      <div className="text-right">
+                        <span>-${paidAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</span>
+                        {userCurrency !== (booking.currency || 'MXN').toUpperCase() && (
+                          <p className="text-[10px] text-emerald-500 font-medium">(~ {convertPrice(paidAmount, booking.currency).formatted})</p>
+                        )}
+                      </div>
                     </div>
                   )}
 
-                  <div className="flex justify-between text-sm font-black text-slate-900 pt-2 border-t border-gray-100">
+                  <div className="flex justify-between items-start text-sm font-black text-slate-900 pt-2 border-t border-gray-100">
                     <span>Saldo pendiente:</span>
-                    <span className="text-slate-900 font-serif text-base">${pendingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</span>
+                    <div className="text-right">
+                      <span className="text-slate-900 font-serif text-base">${pendingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {booking.currency}</span>
+                      {userCurrency !== (booking.currency || 'MXN').toUpperCase() && (
+                        <p className="text-xs text-amber-700 font-bold">(~ {convertPrice(pendingBalance, booking.currency).formatted})</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Card>

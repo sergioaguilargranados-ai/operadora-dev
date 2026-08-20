@@ -1,13 +1,19 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 11:22 CST  
-**Versión actual:** v2.495  
+**Última actualización:** 20 de Agosto de 2026 - 11:29 CST  
+**Versión actual:** v2.496  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.496 - 20 de Agosto de 2026 - 11:29 CST
+**Sincronización Activa de Idioma (Google Translate) y Conversión Dinámica de Divisas ([`LanguageCurrencyContext.tsx`](file:///c:/operadora-dev/src/contexts/LanguageCurrencyContext.tsx), [`LanguageCurrencyModal.tsx`](file:///c:/operadora-dev/src/components/LanguageCurrencyModal.tsx) y [`checkout/[bookingId]`](file:///c:/operadora-dev/src/app/checkout/[bookingId]/page.tsx))**
+- **Traducción Automática en Tiempo Real:** Al seleccionar un idioma en el modal del menú superior (`ES / EN`), se dispara automáticamente el motor de Google Translate en el DOM (`.goog-te-combo`), se sincronizan las cookies de idioma (`googtrans`) y se traducen instantáneamente todas las secciones del portal sin necesidad de recargar la página.
+- **Conversión de Divisas Dinámica:** Se implementó `convertPrice` en el contexto global, permitiendo a cualquier pantalla (como la pasarela de checkout) mostrar tanto la divisa original de la reserva como su valor equivalente en la moneda seleccionada (EUR, USD, CAD, COP, ARS, BRL, etc.) según las tasas oficiales de cambio.
+- **Notificaciones de Configuración:** Feedback visual con toast al guardar preferencias de idioma y moneda.
 
 ### v2.495 - 20 de Agosto de 2026 - 11:22 CST
 **Corrección de Redondeo de Precisión Numérica y Redirección Garantizada tras Pago ([`/checkout/[bookingId]`](file:///c:/operadora-dev/src/app/checkout/[bookingId]/page.tsx) y [`/reserva/[id]`](file:///c:/operadora-dev/src/app/reserva/[id]/page.tsx))**

@@ -1,5 +1,5 @@
 // BrandMeta.tsx - Favicon y título dinámicos por tenant
-// Build: 20 Aug 2026 - v2.495 - Fase 2 Multi-Empresa / White-Label
+// Build: 20 Aug 2026 - v2.496 - Fase 2 Multi-Empresa / White-Label
 
 'use client';
 

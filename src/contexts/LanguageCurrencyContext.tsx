@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 
 export type Language = 'es' | 'en'
 
@@ -24,7 +24,7 @@ export interface CurrencyOption {
     name: string
     symbol: string
     flag: string
-    rateAgainstMXN: number // Cuántos MXN equivale 1 de esta moneda
+    rateAgainstMXN: number // Cuántos MXN equivale 1 unidad de esta moneda
 }
 
 export const CURRENCY_OPTIONS: CurrencyOption[] = [
@@ -43,6 +43,13 @@ export const CURRENCY_OPTIONS: CurrencyOption[] = [
     { code: 'UYU', name: 'Peso uruguayo', symbol: '$', flag: '🇺🇾', rateAgainstMXN: 0.49 }
 ]
 
+export interface ConvertedPrice {
+    amount: number
+    currency: CurrencyCode
+    symbol: string
+    formatted: string
+}
+
 interface LanguageCurrencyContextType {
     language: Language
     currency: CurrencyCode
@@ -51,7 +58,8 @@ interface LanguageCurrencyContextType {
     setCurrency: (curr: CurrencyCode) => void
     openModal: () => void
     closeModal: () => void
-    formatPrice: (amountMXN: number) => string
+    formatPrice: (amount: number, fromCurrency?: string) => string
+    convertPrice: (amount: number, fromCurrency?: string) => ConvertedPrice
     t: (key: string) => string
 }
 
@@ -86,6 +94,39 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     }
 }
 
+// Función para disparar la traducción en Google Translate en el DOM y cookies
+export function triggerGoogleTranslate(langCode: string) {
+    if (typeof window === 'undefined') return
+
+    try {
+        // 1. Configurar cookies de Google Translate para el dominio actual
+        const host = window.location.hostname
+        const cookieVal = langCode === 'es' ? '/es/es' : `/es/${langCode}`
+        
+        document.cookie = `googtrans=${cookieVal};path=/;`
+        document.cookie = `googtrans=${cookieVal};path=/;domain=${host};`
+        document.cookie = `googtrans=${cookieVal};path=/;domain=.${host};`
+
+        // 2. Disparar el cambio en el selector generado por Google Translate
+        const select = document.querySelector('.goog-te-combo') as HTMLSelectElement
+        if (select) {
+            select.value = langCode
+            select.dispatchEvent(new Event('change'))
+        } else {
+            // Reintento si el script aún se está inicializando
+            setTimeout(() => {
+                const retrySelect = document.querySelector('.goog-te-combo') as HTMLSelectElement
+                if (retrySelect) {
+                    retrySelect.value = langCode
+                    retrySelect.dispatchEvent(new Event('change'))
+                }
+            }, 600)
+        }
+    } catch (e) {
+        console.warn('Error activating Google Translate:', e)
+    }
+}
+
 export function LanguageCurrencyProvider({ children }: { children: React.ReactNode }) {
     const [language, setLanguageState] = useState<Language>('es')
     const [currency, setCurrencyState] = useState<CurrencyCode>('MXN')
@@ -94,37 +135,71 @@ export function LanguageCurrencyProvider({ children }: { children: React.ReactNo
     useEffect(() => {
         const savedLang = localStorage.getItem('as_lang') as Language
         const savedCurr = localStorage.getItem('as_curr') as CurrencyCode
-        if (savedLang && ['es', 'en'].includes(savedLang)) setLanguageState(savedLang)
-        if (savedCurr && CURRENCY_OPTIONS.some(c => c.code === savedCurr)) setCurrencyState(savedCurr)
+        
+        if (savedLang && ['es', 'en'].includes(savedLang)) {
+            setLanguageState(savedLang)
+            if (savedLang !== 'es') {
+                setTimeout(() => triggerGoogleTranslate(savedLang), 800)
+            }
+        }
+        if (savedCurr && CURRENCY_OPTIONS.some(c => c.code === savedCurr)) {
+            setCurrencyState(savedCurr)
+        }
     }, [])
 
-    const setLanguage = (lang: Language) => {
+    const setLanguage = useCallback((lang: Language) => {
         setLanguageState(lang)
         localStorage.setItem('as_lang', lang)
-    }
+        triggerGoogleTranslate(lang)
+        window.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: lang } }))
+    }, [])
 
-    const setCurrency = (curr: CurrencyCode) => {
+    const setCurrency = useCallback((curr: CurrencyCode) => {
         setCurrencyState(curr)
         localStorage.setItem('as_curr', curr)
-    }
+        window.dispatchEvent(new CustomEvent('currencyChanged', { detail: { currency: curr } }))
+    }, [])
 
     const openModal = () => setIsModalOpen(true)
     const closeModal = () => setIsModalOpen(false)
 
-    const formatPrice = (amountMXN: number): string => {
-        const selected = CURRENCY_OPTIONS.find(c => c.code === currency) || CURRENCY_OPTIONS[0]
-        const converted = amountMXN / selected.rateAgainstMXN
+    /**
+     * Convierte un monto numérico desde cualquier moneda base (MXN, USD, etc.) a la moneda seleccionada
+     */
+    const convertPrice = useCallback((amount: number, fromCurrency: string = 'MXN'): ConvertedPrice => {
+        const fromUpper = (fromCurrency || 'MXN').toUpperCase()
+        const fromOption = CURRENCY_OPTIONS.find(c => c.code === fromUpper) || CURRENCY_OPTIONS[0]
+        const toOption = CURRENCY_OPTIONS.find(c => c.code === currency) || CURRENCY_OPTIONS[0]
 
-        return new Intl.NumberFormat(language === 'es' ? 'es-MX' : 'en-US', {
+        // 1. Convertir a MXN como pivote central
+        const amountInMXN = amount * fromOption.rateAgainstMXN
+
+        // 2. Convertir de MXN a la moneda destino
+        const targetAmount = amountInMXN / toOption.rateAgainstMXN
+        const rounded = Math.round((targetAmount + Number.EPSILON) * 100) / 100
+
+        const formatted = new Intl.NumberFormat(language === 'es' ? 'es-MX' : 'en-US', {
             style: 'currency',
-            currency: currency,
+            currency: toOption.code,
+            minimumFractionDigits: 2,
             maximumFractionDigits: 2
-        }).format(converted)
-    }
+        }).format(rounded)
 
-    const t = (key: string): string => {
+        return {
+            amount: rounded,
+            currency: toOption.code,
+            symbol: toOption.symbol,
+            formatted
+        }
+    }, [currency, language])
+
+    const formatPrice = useCallback((amount: number, fromCurrency: string = 'MXN'): string => {
+        return convertPrice(amount, fromCurrency).formatted
+    }, [convertPrice])
+
+    const t = useCallback((key: string): string => {
         return TRANSLATIONS[language]?.[key] || TRANSLATIONS.es[key] || key
-    }
+    }, [language])
 
     return (
         <LanguageCurrencyContext.Provider value={{
@@ -136,6 +211,7 @@ export function LanguageCurrencyProvider({ children }: { children: React.ReactNo
             openModal,
             closeModal,
             formatPrice,
+            convertPrice,
             t
         }}>
             {children}
