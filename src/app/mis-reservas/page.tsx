@@ -372,6 +372,16 @@ export default function MisReservasPage() {
                             </div>
 
                             <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => router.push(`/reserva/${booking.id}`)}
+                                className="h-8 text-xs font-semibold border-gray-300 hover:bg-slate-50"
+                              >
+                                <MapPin className="w-3.5 h-3.5 mr-1.5 text-slate-600" />
+                                Ver Itinerario
+                              </Button>
+
                               {booking.status === 'pending' && (
                                 <Button
                                   size="sm"

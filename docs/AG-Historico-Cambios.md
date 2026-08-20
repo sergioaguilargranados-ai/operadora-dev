@@ -1,13 +1,19 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 11:29 CST  
-**Versión actual:** v2.496  
+**Última actualización:** 20 de Agosto de 2026 - 11:40 CST  
+**Versión actual:** v2.497  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.497 - 20 de Agosto de 2026 - 11:40 CST
+**Conexión y Disponibilidad del Generador de Itinerarios (IA & Civitatis) en Menú y Reservas ([`PortalSidebar.tsx`](file:///c:/operadora-dev/src/components/layout/PortalSidebar.tsx) y [`mis-reservas/page.tsx`](file:///c:/operadora-dev/src/app/mis-reservas/page.tsx))**
+- **Menú Intranet (Staff/Admin):** Se agregó **"Generador Itinerarios"** con badge `IA` bajo la sección *GESTIÓN DE RESERVAS* (`/dashboard/itineraries`), permitiendo crear, consultar, enriquecer ciudades con IA y gestionar actividades de Civitatis para cualquier tour o reserva.
+- **Menú Portal Viajero (Clientes):** Se agregó **"Tus Itinerarios"** con badge `IA` bajo la sección *MI CUENTA & VIAJES* (`/mobile/itinerario`).
+- **Acceso Directo desde Reservas:** En cada tarjeta de reserva dentro de [`/mis-reservas`](file:///c:/operadora-dev/src/app/mis-reservas/page.tsx), se incorporó el botón de acceso directo **"Ver Itinerario"** (`/reserva/[id]`), permitiendo acceder al itinerario día por día con un solo clic.
 
 ### v2.496 - 20 de Agosto de 2026 - 11:29 CST
 **Sincronización Activa de Idioma (Google Translate) y Conversión Dinámica de Divisas ([`LanguageCurrencyContext.tsx`](file:///c:/operadora-dev/src/contexts/LanguageCurrencyContext.tsx), [`LanguageCurrencyModal.tsx`](file:///c:/operadora-dev/src/components/LanguageCurrencyModal.tsx) y [`checkout/[bookingId]`](file:///c:/operadora-dev/src/app/checkout/[bookingId]/page.tsx))**
