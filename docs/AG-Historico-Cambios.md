@@ -1,13 +1,19 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 11:40 CST  
-**Versión actual:** v2.497  
+**Última actualización:** 20 de Agosto de 2026 - 11:50 CST  
+**Versión actual:** v2.498  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.498 - 20 de Agosto de 2026 - 11:50 CST
+**Automatización Total de Generación y Enriquecimiento de Itinerarios con IA para Todo Tipo de Reserva ([`TripWorkflowService.ts`](file:///c:/operadora-dev/src/services/TripWorkflowService.ts), [`CustomItineraryService.ts`](file:///c:/operadora-dev/src/services/CustomItineraryService.ts) y [`bookings/[id]/route.ts`](file:///c:/operadora-dev/src/app/api/bookings/[id]/route.ts))**
+- **Generación 100% Automática:** El sistema genera el itinerario estructurado con IA (GPT-4o-mini / Gemini) automáticamente tras crearse o convertirse una reserva de cualquier tipo (Vuelos, Hoteles, Cotizaciones a medida, Paquetes o MegaTravel) sin requerir ninguna acción manual del staff.
+- **Auto-Enriquecimiento de Destinos (IA & Civitatis):** Para tours de MegaTravel, clona el itinerario base y dispara en segundo plano el enriquecimiento de ciudades (gastronomía típica con fotos reales, souvenirs, lugares icónicos, clima y frases locales con pronunciación fonética).
+- **Auto-Generación On-Demand (Fallback):** Si una reserva previa no contaba con itinerario guardado, al consultarse en [`/reserva/[id]`](file:///c:/operadora-dev/src/app/reserva/[id]/page.tsx) el backend lo genera al instante bajo demanda.
 
 ### v2.497 - 20 de Agosto de 2026 - 11:40 CST
 **Conexión y Disponibilidad del Generador de Itinerarios (IA & Civitatis) en Menú y Reservas ([`PortalSidebar.tsx`](file:///c:/operadora-dev/src/components/layout/PortalSidebar.tsx) y [`mis-reservas/page.tsx`](file:///c:/operadora-dev/src/app/mis-reservas/page.tsx))**

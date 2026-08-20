@@ -105,9 +105,10 @@ export class TripWorkflowService {
       let endDateStr = details?.fecha_fin || null;
 
       // 5. Insert into itineraries
-      await client.query(`
+      const insertRes = await client.query(`
         INSERT INTO itineraries (booking_id, user_id, title, description, destination, start_date, end_date, days)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id
       `, [
         bookingId, 
         booking.user_id, 
@@ -122,7 +123,14 @@ export class TripWorkflowService {
       await client.query('COMMIT');
       console.log(`TripWorkflowService: Cloned MT itinerary for booking ${bookingId}`);
       
-      // Future Enhancement: Call a function here to enrich the empty `foods`, `places`, etc. using AI if desired.
+      // Auto-enriquecer con IA ciudades, gastronomía, lugares y frases
+      if (insertRes.rows.length > 0) {
+        const itinId = insertRes.rows[0].id;
+        const { DestinationContentService } = await import('./DestinationContentService');
+        DestinationContentService.enrichItineraryDays(itinId).catch(err => {
+          console.error(`Error auto-enriqueciendo itinerario ${itinId} con IA:`, err);
+        });
+      }
       
     } catch (error) {
       await client.query('ROLLBACK');

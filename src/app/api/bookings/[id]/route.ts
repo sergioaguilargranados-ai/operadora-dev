@@ -92,9 +92,16 @@ export async function GET(
 
     // Buscar si hay un itinerario de IA asociado
     try {
-      const itinResult = await queryOne('SELECT * FROM itineraries WHERE booking_id = $1', [id])
-      let days = []
+      let itinResult = await queryOne('SELECT * FROM itineraries WHERE booking_id = $1', [id])
       
+      // Si no existe aún el itinerario (ej. reservas previas o creadas manualmente), generar automáticamente
+      if (!itinResult) {
+        const { TripWorkflowService } = await import('@/services/TripWorkflowService')
+        await TripWorkflowService.executePostBookingWorkflow(Number(id))
+        itinResult = await queryOne('SELECT * FROM itineraries WHERE booking_id = $1', [id])
+      }
+
+      let days = []
       if (itinResult) {
         if (itinResult.days) {
           days = typeof itinResult.days === 'string' ? JSON.parse(itinResult.days) : itinResult.days
@@ -106,7 +113,7 @@ export async function GET(
         }
       }
     } catch (e) {
-      console.error('Error fetching custom itinerary:', e)
+      console.error('Error fetching/generating custom itinerary:', e)
     }
 
     // Fetch Payment History
