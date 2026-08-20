@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams, useParams } from "next/navigation"
 import { 
   ChevronLeft, Bell, Calendar as CalendarIcon, ChevronRight, MapPin, Loader2, 
   Bookmark, CheckCircle2, Bed, Tag, Users, Plane, ClipboardList, Info, 
@@ -98,8 +98,10 @@ function getDayDestinationImage(day: any, index: number, itineraryDestination?: 
   return ROTATING_TRAVEL_FALLBACKS[index % ROTATING_TRAVEL_FALLBACKS.length]
 }
 
-export default function MobileItineraryListPage({ params }: { params: { id: string } }) {
+export default function MobileItineraryListPage({ params }: { params?: { id: string } }) {
   const router = useRouter()
+  const urlParams = useParams()
+  const targetId = (urlParams?.id as string) || (params as any)?.id
   const { user } = useAuth()
   const { toast } = useToast()
   const { logoUrl, logoMobileUrl } = useWhiteLabel()
@@ -123,16 +125,20 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
 
   const handleTabSelect = (tab: 'resumen' | 'itinerario' | 'documentos') => {
     setActiveTab(tab)
-    router.replace(`/mobile/itinerario/${params.id}?tab=${tab}`, { scroll: false })
+    if (targetId) {
+      router.replace(`/mobile/itinerario/${targetId}?tab=${tab}`, { scroll: false })
+    }
   }
 
   useEffect(() => {
+    if (!targetId) return
+
     const fetchData = async () => {
       try {
         setLoading(true)
         
         // 1. Obtener el itinerario actual
-        const resItinerary = await fetch(`/api/itineraries/${params.id}`)
+        const resItinerary = await fetch(`/api/itineraries/${targetId}`)
         const dataItinerary = await resItinerary.json()
         
         let dbItinerary: any = null
@@ -169,7 +175,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
           setItinerary(dbItinerary)
         } else {
           // Fallback a MegaTravel si no existe itinerario personalizado
-          const resGroup = await fetch(`/api/groups/${params.id}`)
+          const resGroup = await fetch(`/api/groups/${targetId}`)
           const dataGroup = await resGroup.json()
           if (dataGroup.success && dataGroup.data) {
             const pkg = dataGroup.data
@@ -260,7 +266,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
                   userToursMap.set(tripId, bookingData)
                 }
 
-                if (tripId === params.id || (details.tour_id && details.tour_id === params.id)) {
+                if (tripId === targetId || (details.tour_id && details.tour_id === targetId)) {
                   matchedBooking = bookingData
                 }
               } catch(e) {}
@@ -271,8 +277,8 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
 
             if (matchedBooking) {
               setActiveBooking(matchedBooking)
-            } else if (userToursMap.has(params.id)) {
-              setActiveBooking(userToursMap.get(params.id))
+            } else if (userToursMap.has(targetId)) {
+              setActiveBooking(userToursMap.get(targetId))
             } else if (allUserBookings.length > 0) {
               const upcoming = allUserBookings.find((b: any) => new Date(b.dateObj) >= new Date()) || allUserBookings[0]
               setActiveBooking(upcoming)
@@ -289,7 +295,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
     }
     
     fetchData()
-  }, [params.id, user?.id])
+  }, [targetId, user?.id])
 
   if (loading) {
     return (
@@ -664,7 +670,7 @@ export default function MobileItineraryListPage({ params }: { params: { id: stri
                   return (
                     <div 
                       key={index}
-                      onClick={() => router.push(`/mobile/itinerario/${params.id}/dia/${index}?tab=${activeTab}`)}
+                      onClick={() => router.push(`/mobile/itinerario/${targetId}/dia/${index}?tab=${activeTab}`)}
                       className="relative overflow-hidden bg-white/90 backdrop-blur-xl rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col gap-3 cursor-pointer hover:shadow-md transition-all duration-300 group"
                     >
                       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl opacity-60 -z-10 transition-transform group-hover:scale-150"></div>

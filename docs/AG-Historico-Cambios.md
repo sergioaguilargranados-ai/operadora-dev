@@ -1,13 +1,20 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 13:02 CST  
-**Versión actual:** v2.501  
+**Última actualización:** 20 de Agosto de 2026 - 16:35 CST  
+**Versión actual:** v2.502  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.502 - 20 de Agosto de 2026 - 16:35 CST
+**Corrección Crítica de Parámetros Asíncronos Next.js 15 en Itinerarios PWA ([`/api/itineraries/[id]`](file:///c:/operadora-dev/src/app/api/itineraries/[id]/route.ts), [`itinerario/[id]`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/page.tsx), [`itinerario/[id]/dia/[dayIndex]`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/dia/[dayIndex]/page.tsx), [`mobile/page.tsx`](file:///c:/operadora-dev/src/app/mobile/page.tsx), [`mobile/perfil/page.tsx`](file:///c:/operadora-dev/src/app/mobile/perfil/page.tsx))**
+- **Soporte de `Promise<params>` en API de Itinerarios:** En Next.js 15, `params` es una Promise asíncrona. Se agregó `await params` en `/api/itineraries/[id]`, `/enrich` y `/enrich-plan`, solucionando el error 400 (`ID es requerido`) que impedía cargar los datos del itinerario en producción.
+- **Auto-generación de Respaldo:** En `/api/itineraries/[id]`, si se consulta un `booking_id` numérico y no existe aún el itinerario, se dispara en tiempo real la generación con IA vía `TripWorkflowService`.
+- **Migración a `useParams()` en Vistas Cliente:** Se reemplazó el acceso directo a `params.id` y `params.dayIndex` por el hook oficial `useParams()` de Next.js 15.
+- **Tarjeta de Viaje Activo en Inicio y Perfil Móvil:** Se agregó una tarjeta destacada con acceso en 1 solo toque hacia el itinerario activo tanto en la pantalla principal de la PWA (`/mobile`) como en la pantalla de Perfil (`/mobile/perfil`).
 
 ### v2.501 - 20 de Agosto de 2026 - 13:02 CST
 **Sincronización Dinámica de Itinerarios y Reservas en Web y PWA ([`reserva/[id]/page.tsx`](file:///c:/operadora-dev/src/app/reserva/[id]/page.tsx) y [`mis-reservas/page.tsx`](file:///c:/operadora-dev/src/app/mis-reservas/page.tsx))**

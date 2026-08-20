@@ -7,10 +7,11 @@ import { DestinationContentService } from '@/services/DestinationContentService'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const itineraryId = parseInt(params.id)
+    const resolvedParams = await params
+    const itineraryId = parseInt(resolvedParams?.id)
     if (isNaN(itineraryId)) {
       return NextResponse.json({ success: false, error: 'ID de itinerario inválido' }, { status: 400 })
     }

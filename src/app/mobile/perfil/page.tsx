@@ -25,6 +25,7 @@ export default function MobileProfilePage() {
 
   const [documents, setDocuments] = useState<DocumentItem[]>([])
   const [profileData, setProfileData] = useState<any>(null)
+  const [upcomingTrip, setUpcomingTrip] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   const [uploadingId, setUploadingId] = useState<string | null>(null)
@@ -40,6 +41,7 @@ export default function MobileProfilePage() {
   const fetchProfile = async () => {
     try {
       setLoading(true)
+      const token = localStorage.getItem('as_token') || localStorage.getItem('token') || ''
       const res = await fetch(`/api/mobile/profile?user_id=${user?.id}&t=${Date.now()}`)
       const data = await res.json()
       if (data.success) {
@@ -50,6 +52,25 @@ export default function MobileProfilePage() {
           fileName: d.url
         })) || []
         setDocuments(dbDocs)
+      }
+
+      // Fetch upcoming booking for profile
+      const resBookings = await fetch(`/api/bookings?userId=${user?.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (resBookings.ok) {
+        const bData = await resBookings.json()
+        const list = bData.data || []
+        if (list.length > 0) {
+          const b = list[0]
+          const details = typeof b.special_requests === 'string' ? (b.special_requests.startsWith('{') ? JSON.parse(b.special_requests) : {}) : (b.special_requests || {})
+          const dateObj = new Date(b.travel_date || details.fecha_inicio || b.created_at)
+          setUpcomingTrip({
+            id: b.id,
+            name: b.service_name || details.tour_name || details.destination || 'Viaje',
+            dateStr: dateObj.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+          })
+        }
       }
     } catch (err) {
       console.error(err)
@@ -308,6 +329,29 @@ export default function MobileProfilePage() {
             <option value="it">Italiano</option>
           </select>
         </div>
+
+        {/* Mi Próximo Viaje Card */}
+        {upcomingTrip && (
+          <div 
+            onClick={() => router.push(`/mobile/itinerario/${upcomingTrip.id}?tab=itinerario`)}
+            className="bg-gradient-to-r from-slate-900 via-slate-800 to-black text-white rounded-3xl shadow-sm p-5 cursor-pointer active:scale-[0.99] transition-all flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-11 h-11 bg-white/10 rounded-2xl flex items-center justify-center text-amber-400 text-xl flex-shrink-0">
+                ✈️
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] uppercase font-bold text-blue-300 tracking-wider block">Mi Próximo Viaje</span>
+                <h3 className="text-sm font-bold text-white leading-tight truncate">{upcomingTrip.name}</h3>
+                <p className="text-xs text-gray-300 mt-0.5">{upcomingTrip.dateStr}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-xs font-semibold text-amber-400 flex-shrink-0 ml-2">
+              <span>Ver Itinerario</span>
+              <ChevronRight className="w-4 h-4" />
+            </div>
+          </div>
+        )}
 
         {/* 1. Datos Personales Unificados Card */}
         <div 

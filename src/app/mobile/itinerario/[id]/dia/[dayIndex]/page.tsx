@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { ChevronLeft, Bookmark, MapPin, Info, Volume2, ArrowRightLeft, Mic, Copy, Volume1, Calendar as CalendarIcon, Heart, Loader2 } from "lucide-react"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
@@ -80,8 +80,13 @@ function getDayDestinationImage(day: any, index: number, itineraryDestination?: 
   return ROTATING_TRAVEL_FALLBACKS[index % ROTATING_TRAVEL_FALLBACKS.length]
 }
 
-export default function MobileItineraryDayDetail({ params }: { params: { id: string, dayIndex: string } }) {
+export default function MobileItineraryDayDetail({ params }: { params?: { id: string, dayIndex: string } }) {
   const router = useRouter()
+  const urlParams = useParams()
+  const targetId = (urlParams?.id as string) || (params as any)?.id
+  const targetDayIndex = (urlParams?.dayIndex as string) || (params as any)?.dayIndex || '0'
+  const dayIndexNum = parseInt(targetDayIndex, 10) || 0
+
   const { logoUrl, logoMobileUrl } = useWhiteLabel()
   const customLogoUrl = logoMobileUrl || logoUrl || null
   const { toast } = useToast()
@@ -229,9 +234,11 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
   }
 
   useEffect(() => {
+    if (!targetId) return
+
     const fetchItinerary = async () => {
       try {
-        const res = await fetch(`/api/itineraries/${params.id}`)
+        const res = await fetch(`/api/itineraries/${targetId}`)
         const data = await res.json()
         if (data.success && data.data) {
           let fetchedItinerary = data.data
@@ -261,7 +268,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
 
           setItinerary(fetchedItinerary)
           const days = fetchedItinerary.days || []
-          const index = parseInt(params.dayIndex, 10) || 0
+          const index = dayIndexNum
           if (days.length > index) {
             setDayData(days[index])
           } else if (days.length > 0) {
@@ -269,7 +276,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           }
         } else {
           // Fallback a MegaTravel si no existe itinerario personalizado
-          const resGroup = await fetch(`/api/groups/${params.id}`)
+          const resGroup = await fetch(`/api/groups/${targetId}`)
           const dataGroup = await resGroup.json()
           if (dataGroup.success && dataGroup.data) {
             const pkg = dataGroup.data
@@ -303,7 +310,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
               days: generatedDays
             })
             
-            const index = parseInt(params.dayIndex, 10) || 0
+            const index = dayIndexNum
             if (generatedDays.length > index) {
               setDayData(generatedDays[index])
             } else if (generatedDays.length > 0) {
@@ -318,7 +325,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
       }
     }
     fetchItinerary()
-  }, [params.id])
+  }, [targetId, dayIndexNum])
 
   // Datos dinámicos del destino (generados por IA y almacenados en days JSONB)
   const foods = dayData?.foods || []
@@ -353,12 +360,12 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: user.id,
-          item_name: dayData?.title || `Día ${parseInt(params.dayIndex) + 1}`,
+          item_name: dayData?.title || `Día ${dayIndexNum + 1}`,
           item_desc: dayData?.description || dayData?.desc || "Detalle del día",
           item_img: dayData?.hero_image || "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=400&q=80",
           city: dayData?.places?.[0]?.name || "Destino",
-          itinerary_id: parseInt(params.id),
-          day_index: parseInt(params.dayIndex)
+          itinerary_id: parseInt(targetId),
+          day_index: dayIndexNum
         })
       })
       const data = await res.json()
@@ -395,7 +402,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
       {/* Absolute top navbar over the image */}
       <div className="absolute top-0 w-full px-4 pt-8 flex items-center justify-between z-30">
         <button 
-          onClick={() => router.push(`/mobile/itinerario/${params.id}?tab=itinerario`)} 
+          onClick={() => router.push(`/mobile/itinerario/${targetId}?tab=itinerario`)} 
           className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors border border-white/30"
         >
           <ChevronLeft className="w-6 h-6" />
@@ -412,7 +419,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
       <div className="px-4 pt-4 mb-4">
         <div className="relative w-full h-[320px] rounded-[32px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
           <img 
-            src={getDayDestinationImage(dayData, parseInt(params.dayIndex), itinerary?.destination || itinerary?.title)} 
+            src={getDayDestinationImage(dayData, dayIndexNum, itinerary?.destination || itinerary?.title)} 
             alt={dayData?.title || "Destino"} 
             className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
           />
@@ -421,7 +428,7 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
           <div className="absolute bottom-6 left-6 right-6 text-white">
             <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-flex mb-3 border border-white/30">
               <p className="text-xs font-bold uppercase tracking-wider text-white">
-                Día {parseInt(params.dayIndex) + 1} {dayData?.date ? `- ${dayData.date}` : ''}
+                Día {dayIndexNum + 1} {dayData?.date ? `- ${dayData.date}` : ''}
               </p>
             </div>
             <h1 className="text-4xl font-serif font-bold mb-2 text-white leading-tight">
@@ -462,8 +469,8 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
                 <WishlistHeart 
                   item={{...food, category: 'food'}} 
                   city={destinationName} 
-                  itineraryId={parseInt(params.id)} 
-                  dayIndex={parseInt(params.dayIndex)} 
+                  itineraryId={parseInt(targetId)} 
+                  dayIndex={dayIndexNum} 
                 />
               </div>
               <h4 className="font-bold text-sm text-gray-900 mb-1 leading-tight">{food.name}</h4>
@@ -486,8 +493,8 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
                 <WishlistHeart 
                   item={{...place, category: 'place'}} 
                   city={destinationName} 
-                  itineraryId={parseInt(params.id)} 
-                  dayIndex={parseInt(params.dayIndex)} 
+                  itineraryId={parseInt(targetId)} 
+                  dayIndex={dayIndexNum} 
                 />
               </div>
               <h4 className="font-bold text-sm text-gray-900 mb-1 leading-tight">{place.name}</h4>
@@ -660,8 +667,8 @@ export default function MobileItineraryDayDetail({ params }: { params: { id: str
                 <WishlistHeart 
                   item={{...item, category: 'souvenir'}} 
                   city={destinationName} 
-                  itineraryId={parseInt(params.id)} 
-                  dayIndex={parseInt(params.dayIndex)} 
+                  itineraryId={parseInt(targetId)} 
+                  dayIndex={dayIndexNum} 
                 />
               </div>
               <h4 className="font-bold text-xs text-gray-900 mb-1 leading-tight">{item.name}</h4>

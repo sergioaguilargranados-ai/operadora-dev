@@ -51,6 +51,10 @@ export default function MobileActiveItineraryRedirect() {
             } catch(e) {}
           })
 
+          if (!nearestTripId && bookingsList.length > 0) {
+            nearestTripId = bookingsList[0].id.toString()
+          }
+
           if (nearestTripId) {
             router.replace(`/mobile/itinerario/${nearestTripId}?tab=itinerario`)
           } else {

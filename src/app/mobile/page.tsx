@@ -21,6 +21,7 @@ export default function MobileHomePage() {
   const [loading, setLoading] = useState(false)
   const [mobileContent, setMobileContent] = useState<any>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [upcomingTrip, setUpcomingTrip] = useState<any>(null)
 
   useEffect(() => {
     const fetchMobileContent = async () => {
@@ -38,7 +39,7 @@ export default function MobileHomePage() {
     fetchMobileContent()
   }, [])
 
-  // Precarga silenciosa de reservas, itinerarios y perfil para soporte offline
+  // Precarga silenciosa de reservas, itinerarios y perfil para soporte offline y viaje activo
   useEffect(() => {
     if (!user?.id) return
     const prefetchData = async () => {
@@ -50,10 +51,21 @@ export default function MobileHomePage() {
         if (res.ok) {
           const data = await res.json()
           const bookings = data.data || []
+          if (bookings.length > 0) {
+            const b = bookings[0]
+            const details = typeof b.special_requests === 'string' ? (b.special_requests.startsWith('{') ? JSON.parse(b.special_requests) : {}) : (b.special_requests || {})
+            const dateObj = new Date(b.travel_date || details.fecha_inicio || b.created_at)
+            setUpcomingTrip({
+              id: b.id,
+              name: b.service_name || details.tour_name || details.destination || 'Viaje',
+              dateStr: dateObj.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+            })
+          }
+
           bookings.forEach(async (b: any) => {
             try {
-              const details = typeof b.special_requests === 'string' ? JSON.parse(b.special_requests) : (b.special_requests || {})
-              const tripId = details.tour_id || b.id.toString()
+              const details = typeof b.special_requests === 'string' ? (b.special_requests.startsWith('{') ? JSON.parse(b.special_requests) : {}) : (b.special_requests || {})
+              const tripId = b.id.toString()
               if (tripId) {
                 // Peticiones silenciosas para detonar el cacheado en el Service Worker
                 fetch(`/api/itineraries/${tripId}`)
@@ -87,7 +99,7 @@ export default function MobileHomePage() {
     {
       icon: <User className="w-6 h-6" strokeWidth={1.5} />,
       title: "Perfil",
-      desc: "Consulta el detalle de tu viaje, vuelos, hospedaje y actividades.",
+      desc: "Consulta y gestiona tu información personal y documentos de viaje.",
       route: "/mobile/perfil",
     },
     {
@@ -164,8 +176,31 @@ export default function MobileHomePage() {
       {/* Main Menu Container — rounded top, un solo panel blanco con separadores */}
       <div className="bg-white rounded-t-3xl -mt-6 relative z-30 overflow-hidden">
 
+        {/* Tarjeta de Viaje Activo Destacada */}
+        {upcomingTrip && (
+          <div 
+            onClick={() => router.push(`/mobile/itinerario/${upcomingTrip.id}?tab=itinerario`)}
+            className="mx-4 mt-4 p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-black text-white shadow-md cursor-pointer flex items-center justify-between group hover:shadow-lg transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-amber-400 text-lg flex-shrink-0">
+                ✈️
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] uppercase font-bold text-blue-300 tracking-wider block">Tu Próximo Viaje Activo</span>
+                <h4 className="font-bold text-sm text-white truncate">{upcomingTrip.name}</h4>
+                <p className="text-[11px] text-gray-300">{upcomingTrip.dateStr}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-xs font-semibold text-amber-400 flex-shrink-0 ml-2">
+              <span>Ver Itinerario</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </div>
+        )}
+
         {/* Items principales con separadores sutiles */}
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 mt-2">
           {menuItems.map((item, i) => (
             <div
               key={i}
