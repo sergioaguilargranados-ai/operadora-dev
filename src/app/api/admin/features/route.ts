@@ -1,7 +1,7 @@
 // API Route: /api/admin/features
 // GET: List all features with role access
 // PUT: Update feature settings
-// Build: 20 Aug 2026 - v2.504
+// Build: 20 Aug 2026 - v2.505
 
 import { NextRequest, NextResponse } from 'next/server';
 import { FeatureService } from '@/services/FeatureService';

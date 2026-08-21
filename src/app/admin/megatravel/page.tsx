@@ -1,7 +1,7 @@
 'use client'
 
 // Panel de Administración MegaTravel
-// Build: 20 Aug 2026 - v2.504 - Panel admin para sincronización MegaTravel
+// Build: 20 Aug 2026 - v2.505 - Panel admin para sincronización MegaTravel
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -324,7 +324,7 @@ export default function MegaTravelAdminPage() {
             <footer className="bg-white border-t border-gray-200 mt-12 py-6">
                 <div className="container mx-auto px-4 text-center text-sm text-gray-600">
                     <p>© 2026 AS Operadora - Panel de Administración MegaTravel</p>
-                    <p className="text-xs mt-1 opacity-50">v2.504 | 20 Aug 2026 19:42</p>
+                    <p className="text-xs mt-1 opacity-50">v2.505 | 20 Aug 2026 21:22</p>
                 </div>
             </footer>
         </div>

@@ -189,6 +189,8 @@ export function isInvalidOrGenericImage(url?: string): boolean {
   if (trimmed === '' || trimmed === 'about:blank' || trimmed === 'null' || trimmed === 'undefined') return true;
   // URL de la combi en el desierto que se usaba como fallback global
   if (trimmed.includes('photo-1469854523086-cc02fe5d8800')) return true;
+  // Placeholders vacíos / borrados de Pexels
+  if (trimmed.includes('38389551') || trimmed.includes('38389566')) return true;
   return false;
 }
 

@@ -1,13 +1,18 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 19:35 CST  
-**Versión actual:** v2.504  
+**Última actualización:** 20 de Agosto de 2026 - 21:21 CST  
+**Versión actual:** v2.505  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.505 - 20 de Agosto de 2026 - 21:21 CST
+**Filtrado de Placeholders Ocultos de Pexels y Sanitización de Monumentos ([`image-fallbacks.ts`](file:///c:/operadora-dev/src/lib/image-fallbacks.ts), [`dia/[dayIndex]/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/dia/[dayIndex]/page.tsx))**
+- **Detección de Falsos Positivos 200 OK de Pexels:** Se descubrió que Pexels devuelve un archivo PNG transparente de 4.4 KB con código HTTP 200 en imágenes eliminadas (como la del British Museum `38389551`). Se agregaron identificadores de bloqueo en `isInvalidOrGenericImage`.
+- **Sustitución en BD de British Museum:** Se reemplazaron todas las entradas de British Museum en la base de datos por imágenes auténticas en alta definición de Unsplash.
 
 ### v2.504 - 20 de Agosto de 2026 - 19:35 CST
 **Arquitectura Robusta Anti-Imágenes Rotas y Fallbacks Contextuales ([`image-fallbacks.ts`](file:///c:/operadora-dev/src/lib/image-fallbacks.ts), [`DestinationContentService.ts`](file:///c:/operadora-dev/src/services/DestinationContentService.ts), [`dia/[dayIndex]/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/dia/[dayIndex]/page.tsx), [`FoodDetailModal.tsx`](file:///c:/operadora-dev/src/components/mobile/FoodDetailModal.tsx), [`PlaceDetailModal.tsx`](file:///c:/operadora-dev/src/components/mobile/PlaceDetailModal.tsx))**
