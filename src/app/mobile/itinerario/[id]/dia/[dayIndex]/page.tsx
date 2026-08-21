@@ -11,73 +11,38 @@ import { WeatherForecast } from "@/components/mobile/WeatherForecast"
 import { useToast } from "@/hooks/use-toast"
 import { FoodDetailModal } from "@/components/mobile/FoodDetailModal"
 import { PlaceDetailModal } from "@/components/mobile/PlaceDetailModal"
-
-const DESTINATION_CITY_IMAGES: Record<string, string> = {
-  londres: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80",
-  london: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80",
-  paris: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80",
-  roma: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80",
-  rome: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80",
-  madrid: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=800&q=80",
-  barcelona: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=800&q=80",
-  venecia: "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?auto=format&fit=crop&w=800&q=80",
-  venice: "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?auto=format&fit=crop&w=800&q=80",
-  florencia: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=800&q=80",
-  florence: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=800&q=80",
-  amsterdam: "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?auto=format&fit=crop&w=800&q=80",
-  berlin: "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=800&q=80",
-  munich: "https://images.unsplash.com/photo-1595867818082-083862f3d630?auto=format&fit=crop&w=800&q=80",
-  frankfurt: "https://images.unsplash.com/photo-1577979749830-f1d742b96791?auto=format&fit=crop&w=800&q=80",
-  praga: "https://images.unsplash.com/photo-1541849546-216549ae216d?auto=format&fit=crop&w=800&q=80",
-  viena: "https://images.unsplash.com/photo-1516550893923-42d28e5677af?auto=format&fit=crop&w=800&q=80",
-  budapest: "https://images.unsplash.com/photo-1549877452-9c387954fbc2?auto=format&fit=crop&w=800&q=80",
-  atenas: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80",
-  santorini: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=800&q=80",
-  mykonos: "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=800&q=80",
-  grecia: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80",
-  mexico: "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?auto=format&fit=crop&w=800&q=80",
-  cdmx: "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?auto=format&fit=crop&w=800&q=80",
-  vuelo: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80",
-  tokio: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=800&q=80",
-  tokyo: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=800&q=80",
-  kioto: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=80",
-  japon: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=80",
-  dubai: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80",
-  estambul: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=800&q=80",
-  turquia: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=800&q=80",
-  egipto: "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=800&q=80",
-  cairo: "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=800&q=80"
-}
-
-const ROTATING_TRAVEL_FALLBACKS = [
-  "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1541849546-216549ae216d?auto=format&fit=crop&w=800&q=80"
-]
+import {
+  handleImageFallback,
+  getFoodFallback,
+  getPlaceFallback,
+  getHeroFallback,
+  isInvalidOrGenericImage,
+  CITY_HERO_CATALOG
+} from "@/lib/image-fallbacks"
 
 function getDayDestinationImage(day: any, index: number, itineraryDestination?: string): string {
-  if (day?.hero_image && !day.hero_image.includes('1613395877344-13d4a8e0d49e') && !day.hero_image.includes('santorini')) {
+  if (day?.hero_image && !isInvalidOrGenericImage(day.hero_image) && !day.hero_image.includes('1613395877344-13d4a8e0d49e') && !day.hero_image.includes('santorini')) {
     return day.hero_image
   }
 
   const searchText = `${day?.title || ''} ${day?.places?.[0]?.name || ''} ${day?.description || ''} ${itineraryDestination || ''}`.toLowerCase()
 
-  if (index === 0 && (searchText.includes('méxico') || searchText.includes('mexico') || searchText.includes('salida') || searchText.includes('vuelo'))) {
-    return DESTINATION_CITY_IMAGES['mexico']
+  // Si el Día 1 es vuelo internacional (México - Londres/París/Madrid), mostrar la ciudad destino o vuelo
+  if (index === 0) {
+    if (searchText.includes('londres') || searchText.includes('london')) return CITY_HERO_CATALOG['londres']
+    if (searchText.includes('parís') || searchText.includes('paris')) return CITY_HERO_CATALOG['paris']
+    if (searchText.includes('madrid')) return CITY_HERO_CATALOG['madrid']
+    if (searchText.includes('roma') || searchText.includes('rome')) return CITY_HERO_CATALOG['roma']
+    return CITY_HERO_CATALOG['vuelo']
   }
 
-  for (const [key, imgUrl] of Object.entries(DESTINATION_CITY_IMAGES)) {
+  for (const [key, imgUrl] of Object.entries(CITY_HERO_CATALOG)) {
     if (searchText.includes(key)) {
       return imgUrl
     }
   }
 
-  return ROTATING_TRAVEL_FALLBACKS[index % ROTATING_TRAVEL_FALLBACKS.length]
+  return getHeroFallback(itineraryDestination || 'default')
 }
 
 export default function MobileItineraryDayDetail({ params }: { params?: { id: string, dayIndex: string } }) {
@@ -421,6 +386,7 @@ export default function MobileItineraryDayDetail({ params }: { params?: { id: st
           <img 
             src={getDayDestinationImage(dayData, dayIndexNum, itinerary?.destination || itinerary?.title)} 
             alt={dayData?.title || "Destino"} 
+            onError={(e) => handleImageFallback(e, 'hero', dayData?.title, itinerary?.destination)}
             className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
@@ -462,21 +428,29 @@ export default function MobileItineraryDayDetail({ params }: { params?: { id: st
       <div className="mb-8">
         <h2 className="text-lg font-serif font-bold text-gray-900 px-4 mb-4">Gastronomía recomendada</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-none">
-          {foods.map((food, i) => (
-            <div key={i} className="w-[140px] flex-shrink-0 flex flex-col cursor-pointer active:scale-95 transition-transform relative" onClick={() => setSelectedFood(food)}>
-              <div className="relative mb-2">
-                <img src={food.img} alt={food.name} className="w-full h-24 object-cover rounded-xl shadow-sm" />
-                <WishlistHeart 
-                  item={{...food, category: 'food'}} 
-                  city={destinationName} 
-                  itineraryId={parseInt(targetId)} 
-                  dayIndex={dayIndexNum} 
-                />
+          {foods.map((food, i) => {
+            const foodImg = isInvalidOrGenericImage(food.img) ? getFoodFallback(food.name, destinationName) : food.img;
+            return (
+              <div key={i} className="w-[140px] flex-shrink-0 flex flex-col cursor-pointer active:scale-95 transition-transform relative" onClick={() => setSelectedFood(food)}>
+                <div className="relative mb-2">
+                  <img 
+                    src={foodImg} 
+                    alt={food.name} 
+                    onError={(e) => handleImageFallback(e, 'food', food.name, destinationName)}
+                    className="w-full h-24 object-cover rounded-xl shadow-sm" 
+                  />
+                  <WishlistHeart 
+                    item={{...food, category: 'food'}} 
+                    city={destinationName} 
+                    itineraryId={parseInt(targetId)} 
+                    dayIndex={dayIndexNum} 
+                  />
+                </div>
+                <h4 className="font-bold text-sm text-gray-900 mb-1 leading-tight">{food.name}</h4>
+                <p className="text-xs text-gray-500 leading-tight">{food.desc}</p>
               </div>
-              <h4 className="font-bold text-sm text-gray-900 mb-1 leading-tight">{food.name}</h4>
-              <p className="text-xs text-gray-500 leading-tight">{food.desc}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       )}
@@ -486,21 +460,29 @@ export default function MobileItineraryDayDetail({ params }: { params?: { id: st
       <div className="mb-8">
         <h2 className="text-lg font-serif font-bold text-gray-900 px-4 mb-4">Lugares imperdibles</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-none">
-          {places.map((place, i) => (
-            <div key={i} className="w-[120px] flex-shrink-0 flex flex-col cursor-pointer active:scale-95 transition-transform relative" onClick={() => setSelectedPlace(place)}>
-              <div className="relative mb-2">
-                <img src={place.img} alt={place.name} className="w-full h-[120px] object-cover rounded-2xl shadow-sm" />
-                <WishlistHeart 
-                  item={{...place, category: 'place'}} 
-                  city={destinationName} 
-                  itineraryId={parseInt(targetId)} 
-                  dayIndex={dayIndexNum} 
-                />
+          {places.map((place, i) => {
+            const placeImg = isInvalidOrGenericImage(place.img) ? getPlaceFallback(place.name, destinationName) : place.img;
+            return (
+              <div key={i} className="w-[120px] flex-shrink-0 flex flex-col cursor-pointer active:scale-95 transition-transform relative" onClick={() => setSelectedPlace(place)}>
+                <div className="relative mb-2">
+                  <img 
+                    src={placeImg} 
+                    alt={place.name} 
+                    onError={(e) => handleImageFallback(e, 'place', place.name, destinationName)}
+                    className="w-full h-[120px] object-cover rounded-2xl shadow-sm" 
+                  />
+                  <WishlistHeart 
+                    item={{...place, category: 'place'}} 
+                    city={destinationName} 
+                    itineraryId={parseInt(targetId)} 
+                    dayIndex={dayIndexNum} 
+                  />
+                </div>
+                <h4 className="font-bold text-sm text-gray-900 mb-1 leading-tight">{place.name}</h4>
+                <p className="text-[10px] text-gray-500 leading-tight">{place.desc}</p>
               </div>
-              <h4 className="font-bold text-sm text-gray-900 mb-1 leading-tight">{place.name}</h4>
-              <p className="text-[10px] text-gray-500 leading-tight">{place.desc}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       )}

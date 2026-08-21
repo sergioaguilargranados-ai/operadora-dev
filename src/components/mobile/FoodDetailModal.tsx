@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { X, Clock, Users, Utensils, Star, Heart } from "lucide-react"
+import { handleImageFallback, getFoodFallback } from "@/lib/image-fallbacks"
 
 interface FoodDetailModalProps {
   isOpen: boolean
@@ -35,6 +36,10 @@ export function FoodDetailModal({ isOpen, onClose, food }: FoodDetailModalProps)
     "¡Disfruta los sabores auténticos!"
   ]
 
+  const safeImg = (food?.img && !food.img.includes('photo-1469854523086-cc02fe5d8800')) 
+    ? food.img 
+    : getFoodFallback(food?.name);
+
   return (
     <>
       <div 
@@ -46,7 +51,12 @@ export function FoodDetailModal({ isOpen, onClose, food }: FoodDetailModalProps)
       >
         {/* Header Image */}
         <div className="relative h-64 shrink-0 rounded-t-3xl overflow-hidden">
-          <img src={food?.img || "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=800&q=80"} alt={food?.name} className="w-full h-full object-cover" />
+          <img 
+            src={safeImg} 
+            alt={food?.name} 
+            onError={(e) => handleImageFallback(e, 'food', food?.name)}
+            className="w-full h-full object-cover" 
+          />
           
           <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start bg-gradient-to-b from-black/50 to-transparent">
             <button onClick={onClose} className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30">

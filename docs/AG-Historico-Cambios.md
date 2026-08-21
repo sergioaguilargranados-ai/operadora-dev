@@ -1,13 +1,20 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 17:32 CST  
-**Versión actual:** v2.503  
+**Última actualización:** 20 de Agosto de 2026 - 19:35 CST  
+**Versión actual:** v2.504  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.504 - 20 de Agosto de 2026 - 19:35 CST
+**Arquitectura Robusta Anti-Imágenes Rotas y Fallbacks Contextuales ([`image-fallbacks.ts`](file:///c:/operadora-dev/src/lib/image-fallbacks.ts), [`DestinationContentService.ts`](file:///c:/operadora-dev/src/services/DestinationContentService.ts), [`dia/[dayIndex]/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/dia/[dayIndex]/page.tsx), [`FoodDetailModal.tsx`](file:///c:/operadora-dev/src/components/mobile/FoodDetailModal.tsx), [`PlaceDetailModal.tsx`](file:///c:/operadora-dev/src/components/mobile/PlaceDetailModal.tsx))**
+- **Catálogo Curado de Alta Resolución:** Se creó `src/lib/image-fallbacks.ts` con cientos de imágenes HD verificadas organizadas por categoría (comidas británicas, francesas, italianas, españolas, mexicanas, monumentos de cada ciudad, souvenirs y paisajes).
+- **Manejador Universal `onError` en Frontend:** Se implementó `handleImageFallback` en todas las imágenes de la PWA para que si alguna URL externa falla al cargar, sea sustituida de inmediato por su fotografía contextual exacta sin parpadeos ni imágenes rotas.
+- **Búsqueda Jerárquica en Backend:** Se integró la selección por categoría (`food`, `place`, `souvenir`, `hero`) en `fetchRealImages` y `enrichItineraryDays`.
+- **Limpieza y Reparación de Base de Datos:** Se actualizaron todos los itinerarios existentes (#1 al #12) y el caché de destinos reemplazando las fotos genéricas por platillos y lugares reales (Fish and Chips, Sunday Roast, Full English Breakfast, etc.).
 
 ### v2.503 - 20 de Agosto de 2026 - 17:32 CST
 **Robustez y Sanitización de Autenticación Móvil ([`tenant-lookup/route.ts`](file:///c:/operadora-dev/src/app/api/mobile/tenant-lookup/route.ts), [`AuthService.ts`](file:///c:/operadora-dev/src/services/AuthService.ts), [`mobile/login/page.tsx`](file:///c:/operadora-dev/src/app/mobile/login/page.tsx))**

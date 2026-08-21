@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { X, MapPin, Clock, Navigation, DollarSign, Heart } from "lucide-react"
 import { ItineraryRouteMap } from "./ItineraryRouteMap"
+import { handleImageFallback, getPlaceFallback } from "@/lib/image-fallbacks"
 
 interface PlaceDetailModalProps {
   isOpen: boolean
@@ -30,12 +31,16 @@ export function PlaceDetailModal({ isOpen, onClose, place }: PlaceDetailModalPro
     "Disfruta de la cultura local"
   ]
   
+  const safeMainImg = (place?.img && !place.img.includes('photo-1469854523086-cc02fe5d8800'))
+    ? place.img
+    : getPlaceFallback(place?.name);
+
   // Si no hay gallery, usamos la imagen principal repetida o imágenes dummy
-  const gallery = place?.gallery || [
-    place?.img || "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=400&q=80",
+  const gallery = (place?.gallery && place.gallery.length > 0) ? place.gallery : [
+    safeMainImg,
     "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=400&q=80",
     "https://images.unsplash.com/photo-1520625692631-f13c6d70ff99?auto=format&fit=crop&w=400&q=80"
-  ]
+  ];
 
   return (
     <>
@@ -48,7 +53,12 @@ export function PlaceDetailModal({ isOpen, onClose, place }: PlaceDetailModalPro
       >
         {/* Header Image */}
         <div className="relative h-64 shrink-0 rounded-t-3xl overflow-hidden">
-          <img src={place?.img || gallery[0]} alt={place?.name} className="w-full h-full object-cover" />
+          <img 
+            src={safeMainImg} 
+            alt={place?.name} 
+            onError={(e) => handleImageFallback(e, 'place', place?.name)}
+            className="w-full h-full object-cover" 
+          />
           
           <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start bg-gradient-to-b from-black/50 to-transparent z-10">
             <button onClick={onClose} className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30">

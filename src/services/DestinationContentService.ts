@@ -3,8 +3,16 @@
 // Genera y cachea información turística (comidas, lugares, frases, tips) para cada destino
 
 import { pool } from '@/lib/db';
+import { 
+  getFoodFallback, 
+  getPlaceFallback, 
+  getHeroFallback, 
+  getSouvenirFallback, 
+  isInvalidOrGenericImage,
+  PLACE_CATALOG 
+} from '@/lib/image-fallbacks';
 
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80';
+const FALLBACK_IMAGE = PLACE_CATALOG.default;
 
 // ==================== INTERFACES ====================
 
@@ -153,25 +161,26 @@ export class DestinationContentService {
       console.log(`🤖 Generando contenido con Gemini para: ${city}, ${country}`);
       const generated = await DestinationContentService.generateWithGemini(city, country);
 
-      // Enriquecer con imágenes reales de Pexels/Unsplash
+      // Enriquecer con imágenes reales de Pexels/Unsplash y fallbacks temáticos
       const foodsWithImages = await DestinationContentService.fetchRealImages(
         generated.foods.map(f => ({ name: f.name, image_search: f.image_search })),
-        false, city, country
+        false, city, country, 'food'
       );
       const placesWithImages = await DestinationContentService.fetchRealImages(
         generated.places.map(p => ({ name: p.name, image_search: p.image_search })),
-        true, city, country
+        true, city, country, 'place'
       );
       const souvenirsWithImages = await DestinationContentService.fetchRealImages(
         generated.souvenirs.map(s => ({ name: s.name, image_search: s.image_search })),
-        false, city, country
+        false, city, country, 'souvenir'
       );
 
       // Obtener imagen hero del destino
       const heroImages = await DestinationContentService.fetchRealImages(
-        [{ name: city, image_search: `${city} ${country} travel landscape scenery no people` }]
+        [{ name: city, image_search: `${city} ${country} travel landscape scenery landmark` }],
+        false, city, country, 'hero'
       );
-      const heroImageUrl = heroImages.length > 0 ? heroImages[0].img : undefined;
+      const heroImageUrl = heroImages.length > 0 ? heroImages[0].img : getHeroFallback(city);
 
       // Armar contenido final
       const content: DestinationContent = {
@@ -359,7 +368,8 @@ REQUISITOS:
     items: ImageSearchItem[],
     fetchGallery: boolean = false,
     cityFallback: string = '',
-    countryFallback: string = ''
+    countryFallback: string = '',
+    category: 'food' | 'place' | 'souvenir' | 'hero' = 'place'
   ): Promise<Array<{ name: string; img: string; gallery?: string[] }>> {
     const pexelsKey = process.env.PEXELS_API_KEY;
     const pixabayKey = process.env.PIXABAY_API_KEY;
@@ -423,7 +433,7 @@ REQUISITOS:
             }
           }
 
-          // 3. Wikipedia
+          // 4. Wikipedia
           if (photoUrls.length === 0) {
             try {
               const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&utf8=&format=json`);
@@ -452,22 +462,33 @@ REQUISITOS:
           }
         }
 
-        if (photoUrls.length > 0) {
-          results.push({ name: item.name, img: photoUrls[0], gallery: fetchGallery ? photoUrls : undefined });
-        } else {
-          // Fallback final: imagen genérica
-          results.push({
-            name: item.name,
-            img: FALLBACK_IMAGE,
-            gallery: fetchGallery ? [FALLBACK_IMAGE] : undefined
-          });
-        }
-      } catch (error: any) {
-        console.error(`⚠️ Error buscando imagen para "${item.name}":`, error.message);
+        // Obtener fallback contextual seguro si la imagen no se encontró o es genérica
+        let safeCategoryFallback = PLACE_CATALOG.default;
+        if (category === 'food') safeCategoryFallback = getFoodFallback(item.name, cityFallback);
+        else if (category === 'place') safeCategoryFallback = getPlaceFallback(item.name, cityFallback);
+        else if (category === 'hero') safeCategoryFallback = getHeroFallback(cityFallback || item.name);
+        else if (category === 'souvenir') safeCategoryFallback = getSouvenirFallback(item.name, cityFallback);
+
+        const chosenImg = (photoUrls.length > 0 && !isInvalidOrGenericImage(photoUrls[0])) ? photoUrls[0] : safeCategoryFallback;
+        const chosenGallery = fetchGallery ? (photoUrls.length > 0 ? photoUrls : [chosenImg]) : undefined;
+
         results.push({
           name: item.name,
-          img: FALLBACK_IMAGE,
-          gallery: fetchGallery ? [FALLBACK_IMAGE] : undefined
+          img: chosenImg,
+          gallery: chosenGallery
+        });
+      } catch (error: any) {
+        console.error(`⚠️ Error buscando imagen para "${item.name}":`, error.message);
+        let safeCategoryFallback = PLACE_CATALOG.default;
+        if (category === 'food') safeCategoryFallback = getFoodFallback(item.name, cityFallback);
+        else if (category === 'place') safeCategoryFallback = getPlaceFallback(item.name, cityFallback);
+        else if (category === 'hero') safeCategoryFallback = getHeroFallback(cityFallback || item.name);
+        else if (category === 'souvenir') safeCategoryFallback = getSouvenirFallback(item.name, cityFallback);
+
+        results.push({
+          name: item.name,
+          img: safeCategoryFallback,
+          gallery: fetchGallery ? [safeCategoryFallback] : undefined
         });
       }
     }
@@ -549,17 +570,45 @@ REQUISITOS:
 
           const content = contentCache[cacheKey];
 
-          const hasValidFoods = day.foods?.length > 0 && day.foods[0].name && !['La mejor comida', 'comida 1'].includes(day.foods[0].name);
-          const hasValidPlaces = day.places?.length > 0 && day.places[0].name && !['lugar 1'].includes(day.places[0].name);
-          const hasValidSouvenirs = day.souvenirs?.length > 0 && day.souvenirs[0].name && !['suvenir 1'].includes(day.souvenirs[0].name);
+          const rawFoods = (day.foods?.length > 0 && day.foods[0].name && !['La mejor comida', 'comida 1'].includes(day.foods[0].name)) 
+            ? day.foods 
+            : content.foods;
+
+          const rawPlaces = (day.places?.length > 0 && day.places[0].name && !['lugar 1'].includes(day.places[0].name)) 
+            ? day.places 
+            : content.places;
+
+          const rawSouvenirs = (day.souvenirs?.length > 0 && day.souvenirs[0].name && !['suvenir 1'].includes(day.souvenirs[0].name)) 
+            ? day.souvenirs 
+            : content.souvenirs;
+
+          // Reparación de imágenes genéricas/rotas
+          const cleanFoods = (rawFoods || []).map((f: any) => ({
+            ...f,
+            img: isInvalidOrGenericImage(f.img) ? getFoodFallback(f.name, dayCity) : f.img
+          }));
+
+          const cleanPlaces = (rawPlaces || []).map((p: any) => ({
+            ...p,
+            img: isInvalidOrGenericImage(p.img) ? getPlaceFallback(p.name, dayCity) : p.img,
+            gallery: (p.gallery && p.gallery.length > 0 && !isInvalidOrGenericImage(p.gallery[0])) 
+              ? p.gallery 
+              : [isInvalidOrGenericImage(p.img) ? getPlaceFallback(p.name, dayCity) : p.img]
+          }));
+
+          const cleanSouvenirs = (rawSouvenirs || []).map((s: any) => ({
+            ...s,
+            img: isInvalidOrGenericImage(s.img) ? getSouvenirFallback(s.name, dayCity) : s.img
+          }));
+
           const hasValidPhrases = day.phrases?.length > 0 && day.phrases[0].es && !['hola', 'Gracias '].includes(day.phrases[0].es);
 
           // Enriquecer el día con el contenido del destino, sobrescribiendo placeholders
           enrichedDays.push({
             ...day,
-            foods: hasValidFoods ? day.foods : content.foods,
-            places: hasValidPlaces ? day.places : content.places,
-            souvenirs: hasValidSouvenirs ? day.souvenirs : content.souvenirs,
+            foods: cleanFoods,
+            places: cleanPlaces,
+            souvenirs: cleanSouvenirs,
             phrases: hasValidPhrases ? day.phrases : content.phrases,
             practical_info: day.practical_info || content.practical_info,
             general_description: content.general_description,
