@@ -1,6 +1,6 @@
 // API endpoint para descubrir tours de UNA categoría de MegaTravel
 // Diseñado para ser llamado en batch desde el frontend (una categoría a la vez)
-// Build: 21 Aug 2026 - v2.510 - Con last_sync_at + log-sync + cleanup
+// Build: 21 Aug 2026 - v2.511 - Con last_sync_at + log-sync + cleanup
 
 import { NextRequest, NextResponse } from 'next/server';
 import { pool } from '@/lib/db';

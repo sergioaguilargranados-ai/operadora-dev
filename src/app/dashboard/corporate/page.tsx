@@ -2,6 +2,8 @@
 
 import React, { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/use-toast'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -10,13 +12,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 
 import {
   Users, FileText, BarChart3, CheckSquare, Settings, CreditCard,
-  Plus, Download, Check, X, UploadCloud, Receipt, Building, Building2, Plane, Car, Train, MapPin, Activity, CalendarDays, Wallet, TrendingUp
+  Plus, Download, Check, X, UploadCloud, Receipt, Building, Building2, Plane, Car, Train, MapPin, Activity, CalendarDays, Wallet, TrendingUp, Loader2, AlertCircle, RefreshCw
 } from 'lucide-react'
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'
@@ -26,66 +28,111 @@ const COLORS = ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe'
 const CHART_COLORS_GASTOS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#64748b']
 const CHART_COLORS_POLITICA = ['#10b981', '#f59e0b', '#ef4444']
 
-function TabResumen() {
-  const chartData = [
-    { name: 'Vuelos', value: 48 },
-    { name: 'Hoteles', value: 28 },
-    { name: 'Paquetes', value: 12 },
-    { name: 'Autos', value: 7 },
-    { name: 'Trenes', value: 3 },
-    { name: 'Cruceros', value: 2 },
-  ]
+// ═══════════════════════════════════════
+// TAB: RESUMEN
+// ═══════════════════════════════════════
+function TabResumen({ tenantId }: { tenantId: number }) {
+  const [stats, setStats] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const topDestinations = [
-    { name: 'Cancún', value: 48 },
-    { name: 'Orlando', value: 36 },
-    { name: 'Madrid', value: 28 },
-    { name: 'París', value: 25 },
-    { name: 'Riviera Maya', value: 18 },
-  ]
+  useEffect(() => {
+    if (!tenantId) return
+    fetchStats()
+  }, [tenantId])
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const res = await fetch(`/api/corporate/stats?tenantId=${tenantId}`)
+      const data = await res.json()
+      if (data.success) {
+        setStats(data.data)
+      } else {
+        setError(data.error || 'Error al cargar estadísticas')
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error de conexión')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 space-y-4">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <p className="text-sm text-slate-500">Cargando métricas corporativas...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-red-50 border border-red-200 rounded-xl text-center space-y-3">
+        <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
+        <p className="text-red-700 font-medium">{error}</p>
+        <Button onClick={fetchStats} variant="outline" size="sm">Reintentar</Button>
+      </div>
+    )
+  }
+
+  const chartData = stats?.bookingTypeBreakdown?.length > 0
+    ? stats.bookingTypeBreakdown
+    : [{ name: 'Sin reservas', value: 100, count: 0, total: 0 }]
+
+  const topDestinations = stats?.topDestinations || []
+  const recentActivity = stats?.recentActivity || []
 
   return (
     <div className="space-y-6">
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Empleados</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">420</div>
-            <p className="text-xs text-muted-foreground">+18 este mes</p>
+            <div className="text-2xl font-bold">{stats?.totalEmployees || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Colaboradores registrados</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Reservas Activas</CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            <CalendarDays className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">128</div>
-            <p className="text-xs text-muted-foreground">En curso o próximas</p>
+            <div className="text-2xl font-bold">{stats?.activeBookings || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">En curso o programadas</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Gastos (Anual)</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
+            <Wallet className="h-4 w-4 text-indigo-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$2,845,900 MXN</div>
-            <p className="text-xs text-muted-foreground">$245k este mes</p>
+            <div className="text-2xl font-bold">
+              ${(stats?.annualExpenses || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })} <span className="text-xs font-normal text-slate-500">MXN</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              ${(stats?.monthExpenses || 0).toLocaleString('es-MX')} este mes
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ahorros</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Ahorros Negociados</CardTitle>
+            <TrendingUp className="h-4 w-4 text-amber-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$428,000 MXN</div>
-            <p className="text-xs text-muted-foreground">15.1% de ahorro promedio</p>
+            <div className="text-2xl font-bold">
+              ${(stats?.estimatedSavings || 0).toLocaleString('es-MX')} <span className="text-xs font-normal text-slate-500">MXN</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">~15.1% tarifa preferencial</p>
           </CardContent>
         </Card>
       </div>
@@ -94,27 +141,34 @@ function TabResumen() {
         {/* Donut Chart */}
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Tipo de reserva</CardTitle>
+            <CardTitle>Tipo de Reserva</CardTitle>
+            <CardDescription>Distribución por categoría</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={chartData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          <CardContent className="h-[300px] flex flex-col justify-center">
+            {stats?.bookingTypeBreakdown?.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={chartData} innerRadius={55} outerRadius={75} paddingAngle={4} dataKey="value">
+                      {chartData.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip formatter={(val) => [`${val}%`, 'Porcentaje']} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex flex-wrap justify-center gap-2 mt-3 text-xs">
+                  {chartData.map((entry: any, idx: number) => (
+                    <div key={idx} className="flex items-center">
+                      <div className="w-2.5 h-2.5 rounded-full mr-1" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                      <span>{entry.name} ({entry.value}%)</span>
+                    </div>
                   ))}
-                </Pie>
-                <RechartsTooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex flex-wrap justify-center gap-2 mt-4 text-xs">
-              {chartData.map((entry, idx) => (
-                <div key={idx} className="flex items-center">
-                  <div className="w-3 h-3 rounded-full mr-1" style={{ backgroundColor: COLORS[idx] }} />
-                  {entry.name} ({entry.value}%)
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <div className="text-center text-sm text-slate-400 py-8">Sin datos de distribución de reservas</div>
+            )}
           </CardContent>
         </Card>
 
@@ -122,21 +176,30 @@ function TabResumen() {
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Top Destinos</CardTitle>
+            <CardDescription>Rutas y ciudades más frecuentadas</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {topDestinations.map((dest, i) => (
-                <div key={i}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>#{i+1} {dest.name}</span>
-                    <span className="text-muted-foreground">{dest.value} viajes</span>
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2">
-                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${dest.value}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+            {topDestinations.length > 0 ? (
+              <div className="space-y-4">
+                {topDestinations.map((dest: any, i: number) => {
+                  const maxVal = topDestinations[0]?.value || 1
+                  const pct = Math.round((dest.value / maxVal) * 100)
+                  return (
+                    <div key={i}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="font-medium">#{i + 1} {dest.name}</span>
+                        <span className="text-muted-foreground">{dest.value} viajes</span>
+                      </div>
+                      <div className="w-full bg-slate-100 rounded-full h-2">
+                        <div className="bg-blue-600 h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-center text-sm text-slate-400 py-12">No hay destinos registrados aún</div>
+            )}
           </CardContent>
         </Card>
 
@@ -144,58 +207,440 @@ function TabResumen() {
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Actividad Reciente</CardTitle>
+            <CardDescription>Últimas operaciones del equipo</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4 text-sm">
-              {[
-                { icon: Plane, title: 'Vuelo reservado', desc: 'Ana López - CDMX a Madrid', time: 'Hace 2 horas' },
-                { icon: Building, title: 'Hotel aprobado', desc: 'Carlos Ruiz - Marriott Cancún', time: 'Hace 5 horas' },
-                { icon: CheckSquare, title: 'Política actualizada', desc: 'Límite de vuelo nacional ajustado', time: 'Ayer' },
-              ].map((act, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="p-2 bg-slate-100 rounded-full">
-                    <act.icon className="h-4 w-4 text-slate-600" />
+            {recentActivity.length > 0 ? (
+              <div className="space-y-3.5 text-sm">
+                {recentActivity.map((act: any) => (
+                  <div key={act.id} className="flex items-start gap-3 pb-2.5 border-b border-slate-100 last:border-0 last:pb-0">
+                    <div className="p-2 bg-blue-50 text-blue-600 rounded-full mt-0.5">
+                      <Plane className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{act.userName}</p>
+                      <p className="text-muted-foreground text-xs truncate">{act.destination} • {act.bookingType}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        ${act.amount.toLocaleString('es-MX')} MXN • {new Date(act.createdAt).toLocaleDateString('es-MX')}
+                      </p>
+                    </div>
+                    <Badge variant={act.status === 'confirmed' ? 'default' : 'secondary'} className="text-[10px]">
+                      {act.status}
+                    </Badge>
                   </div>
-                  <div>
-                    <p className="font-medium">{act.title}</p>
-                    <p className="text-muted-foreground text-xs">{act.desc}</p>
-                    <p className="text-xs text-slate-400 mt-1">{act.time}</p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-sm text-slate-400 py-12">Sin actividad reciente</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════
+// TAB: EMPLEADOS (DIRECTORIO & CSV)
+// ═══════════════════════════════════════
+function TabEmpleados({ tenantId }: { tenantId: number }) {
+  const [employees, setEmployees] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const { toast } = useToast()
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: 'Password123!',
+    role: 'employee',
+    department: 'Ventas',
+    costCenter: 'CC-101',
+    managerId: ''
+  })
+
+  useEffect(() => {
+    if (!tenantId) return
+    fetchEmployees()
+  }, [tenantId])
+
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/corporate/employees?tenantId=${tenantId}`)
+      const data = await res.json()
+      if (data.success) {
+        setEmployees(data.data || data.employees || [])
+      }
+    } catch (error: any) {
+      console.error('Error fetching employees:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCreateEmployee = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      setSaving(true)
+      const res = await fetch('/api/corporate/employees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenantId,
+          ...formData,
+          managerId: formData.managerId ? parseInt(formData.managerId) : undefined
+        })
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: 'Empleado creado', description: 'El colaborador se registró exitosamente.' })
+        setIsModalOpen(false)
+        fetchEmployees()
+        setFormData({
+          name: '',
+          email: '',
+          password: 'Password123!',
+          role: 'employee',
+          department: 'Ventas',
+          costCenter: 'CC-101',
+          managerId: ''
+        })
+      } else {
+        toast({ title: 'Error', description: data.error || 'No se pudo crear el empleado', variant: 'destructive' })
+      }
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const filteredEmployees = employees.filter(emp =>
+    (emp.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (emp.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (emp.department || '').toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900">Directorio de Empleados</h2>
+          <p className="text-sm text-muted-foreground">Gestiona los perfiles de colaboradores y centros de costo.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
+            <UploadCloud className="h-4 w-4 mr-2" /> Importar CSV
+          </Button>
+          <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Plus className="h-4 w-4 mr-2" /> Agregar Empleado
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Input
+          placeholder="Buscar por nombre, email o departamento..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-md"
+        />
+        <Button variant="ghost" size="sm" onClick={fetchEmployees}>
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <Card>
+        {loading ? (
+          <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600" /></div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Colaborador</TableHead>
+                <TableHead>Departamento</TableHead>
+                <TableHead>Centro de Costo</TableHead>
+                <TableHead>Rol Corporativo</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Fecha Alta</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredEmployees.length > 0 ? (
+                filteredEmployees.map((emp) => (
+                  <TableRow key={emp.id}>
+                    <TableCell>
+                      <div className="font-medium text-slate-900">{emp.name}</div>
+                      <div className="text-xs text-muted-foreground">{emp.email}</div>
+                    </TableCell>
+                    <TableCell>{emp.department || 'General'}</TableCell>
+                    <TableCell><Badge variant="outline">{emp.cost_center || 'CC-001'}</Badge></TableCell>
+                    <TableCell><Badge className="bg-blue-50 text-blue-700 border-blue-200">{emp.role || 'employee'}</Badge></TableCell>
+                    <TableCell>
+                      {emp.is_active !== false ? (
+                        <Badge className="bg-emerald-100 text-emerald-800 border-none">Activo</Badge>
+                      ) : (
+                        <Badge className="bg-slate-100 text-slate-700 border-none">Inactivo</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-500">
+                      {emp.created_at ? new Date(emp.created_at).toLocaleDateString('es-MX') : 'N/A'}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-slate-400">
+                    No se encontraron colaboradores registrados.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
+
+      {/* Modal Crear Empleado */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Registrar Nuevo Empleado</DialogTitle>
+            <DialogDescription>Añade un colaborador al catálogo corporativo.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateEmployee} className="space-y-4 pt-2">
+            <div className="grid gap-2">
+              <Label>Nombre completo</Label>
+              <Input
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Ej. Ana Martínez"
+              />
             </div>
+            <div className="grid gap-2">
+              <Label>Correo electrónico</Label>
+              <Input
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="ana@empresa.com"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Departamento</Label>
+                <Select value={formData.department} onValueChange={(val) => setFormData({ ...formData, department: val })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Ventas">Ventas</SelectItem>
+                    <SelectItem value="Operaciones">Operaciones</SelectItem>
+                    <SelectItem value="Finanzas">Finanzas</SelectItem>
+                    <SelectItem value="Tecnología">Tecnología</SelectItem>
+                    <SelectItem value="Dirección">Dirección</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Centro de Costo</Label>
+                <Input
+                  value={formData.costCenter}
+                  onChange={(e) => setFormData({ ...formData, costCenter: e.target.value })}
+                  placeholder="CC-101"
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>Rol de Aprobación</Label>
+              <Select value={formData.role} onValueChange={(val) => setFormData({ ...formData, role: val })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="employee">Empleado Estándar</SelectItem>
+                  <SelectItem value="manager">Gerente / Aprobador</SelectItem>
+                  <SelectItem value="admin">Administrador Corporativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white">
+                {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Guardar
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Importar CSV */}
+      <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle>Importar Empleados por CSV</DialogTitle>
+            <DialogDescription>Carga masiva de colaboradores con formato: name, email, role, department, cost_center</DialogDescription>
+          </DialogHeader>
+          <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 transition-colors">
+            <UploadCloud className="h-10 w-10 text-blue-500 mb-3" />
+            <p className="font-medium text-sm text-slate-800">Arrastra tu archivo .CSV aquí</p>
+            <p className="text-xs text-slate-400 mt-1">O haz clic para seleccionar</p>
+            <Input type="file" accept=".csv" className="mt-4" />
+          </div>
+          <DialogFooter className="pt-2">
+            <Button variant="outline" onClick={() => setIsImportModalOpen(false)}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════
+// TAB: GASTOS Y REPORTES
+// ═══════════════════════════════════════
+function TabGastos({ tenantId }: { tenantId: number }) {
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!tenantId) return
+    fetchExpenses()
+  }, [tenantId])
+
+  const fetchExpenses = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/corporate/expenses?tenantId=${tenantId}`)
+      const json = await res.json()
+      if (json.success) {
+        setData(json.data)
+      }
+    } catch (e) {
+      console.error('Error fetching expenses:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const trendData = data?.trend?.length > 0 ? data.trend : [
+    { date: 'Sin datos', amount: 0 }
+  ]
+
+  const byDepartment = data?.byDepartment || []
+  const history = data?.history || []
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900">Reporte de Gastos Corporativos</h2>
+          <p className="text-sm text-muted-foreground">Historial y distribución departamental de compras de viaje.</p>
+        </div>
+        <Button variant="outline" onClick={() => window.print()}>
+          <Download className="h-4 w-4 mr-2" /> Exportar / Imprimir
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Gráfica de Línea de Gastos */}
+        <Card className="col-span-1 lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Tendencia de Gastos (Últimos 30 días)</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[280px]">
+            {loading ? (
+              <div className="flex items-center justify-center h-full"><Loader2 className="w-6 h-6 animate-spin text-blue-600" /></div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11 }} />
+                  <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `$${val/1000}k`} tick={{ fontSize: 11 }} />
+                  <RechartsTooltip formatter={(val: any) => [`$${Number(val).toLocaleString('es-MX')} MXN`, 'Gasto']} />
+                  <Line type="monotone" dataKey="amount" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Gastos por Departamento */}
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle>Por Departamento</CardTitle>
+            <CardDescription>Consumo acumulado</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {byDepartment.length > 0 ? (
+              byDepartment.map((dept: any, i: number) => (
+                <div key={i} className="flex justify-between items-center text-sm pb-2 border-b border-slate-100 last:border-0">
+                  <div>
+                    <p className="font-medium text-slate-800">{dept.department}</p>
+                    <p className="text-xs text-slate-400">{dept.count} viajes</p>
+                  </div>
+                  <span className="font-semibold text-slate-900">
+                    ${dept.total.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-sm text-slate-400 py-8">Sin gastos registrados</div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Viajes Próximos */}
+      {/* Historial de Transacciones */}
       <Card>
         <CardHeader>
-          <CardTitle>Viajes Próximos</CardTitle>
+          <CardTitle>Transacciones y Compras de Viaje</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Empleado</TableHead>
-                <TableHead>Destino</TableHead>
-                <TableHead>Fecha</TableHead>
+                <TableHead>Folio</TableHead>
+                <TableHead>Colaborador</TableHead>
+                <TableHead>Servicio / Destino</TableHead>
+                <TableHead>Departamento</TableHead>
+                <TableHead>Centro Costo</TableHead>
+                <TableHead>Monto</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead>Fecha</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell className="font-medium">Juan Pérez</TableCell>
-                <TableCell>Monterrey, MX</TableCell>
-                <TableCell>15 Ago - 18 Ago 2026</TableCell>
-                <TableCell><Badge className="bg-green-100 text-green-800 hover:bg-green-200">Confirmado</Badge></TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">María Gómez</TableCell>
-                <TableCell>Bogotá, CO</TableCell>
-                <TableCell>22 Ago - 25 Ago 2026</TableCell>
-                <TableCell><Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">Pendiente Aprob.</Badge></TableCell>
-              </TableRow>
+              {history.length > 0 ? (
+                history.map((h: any) => (
+                  <TableRow key={h.id}>
+                    <TableCell className="font-mono text-xs text-slate-500">#{h.id}</TableCell>
+                    <TableCell className="font-medium">{h.userName}</TableCell>
+                    <TableCell>
+                      <div className="text-sm">{h.destination}</div>
+                      <div className="text-xs text-slate-400">{h.bookingType}</div>
+                    </TableCell>
+                    <TableCell>{h.department}</TableCell>
+                    <TableCell><Badge variant="outline">{h.costCenter}</Badge></TableCell>
+                    <TableCell className="font-semibold text-slate-900">
+                      ${h.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={h.status === 'confirmed' ? 'default' : 'secondary'}>{h.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-500">
+                      {h.createdAt ? new Date(h.createdAt).toLocaleDateString('es-MX') : ''}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-slate-400">
+                    No hay transacciones registradas.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -204,418 +649,96 @@ function TabResumen() {
   )
 }
 
-function TabEmpleados() {
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-semibold">Directorio de Empleados</h2>
-          <p className="text-sm text-muted-foreground">Gestiona los perfiles de viajeros y sus políticas asignadas.</p>
-        </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-              <Plus className="h-4 w-4 mr-2" /> Agregar empleado
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Agregar Empleado</DialogTitle>
-              <DialogDescription>Añade un empleado manualmente o importa un archivo CSV/XLSX.</DialogDescription>
-            </DialogHeader>
-            <Tabs defaultValue="manual" className="w-full mt-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="manual">Manual</TabsTrigger>
-                <TabsTrigger value="import">Importar CSV/XLSX</TabsTrigger>
-              </TabsList>
-              <TabsContent value="manual" className="space-y-4 pt-4">
-                <div className="grid gap-2">
-                  <Label>Nombre completo</Label>
-                  <Input placeholder="Ej. Ana Martínez" />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Correo electrónico</Label>
-                  <Input type="email" placeholder="ana@empresa.com" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label>Departamento</Label>
-                    <Select>
-                      <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ventas">Ventas</SelectItem>
-                        <SelectItem value="ti">Tecnología</SelectItem>
-                        <SelectItem value="rh">Recursos Humanos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Rol (Política)</Label>
-                    <Select>
-                      <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="director">Director</SelectItem>
-                        <SelectItem value="gerente">Gerente</SelectItem>
-                        <SelectItem value="ejecutivo">Ejecutivo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 mt-2">Guardar empleado</Button>
-              </TabsContent>
-              <TabsContent value="import" className="pt-4">
-                <div className="border-2 border-dashed border-slate-200 rounded-lg p-10 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 transition-colors">
-                  <UploadCloud className="h-10 w-10 text-slate-400 mb-4" />
-                  <p className="font-medium">Arrastra y suelta tu archivo aquí</p>
-                  <p className="text-xs text-muted-foreground mt-1">Soporta .csv, .xlsx, .xls</p>
-                  <Button variant="outline" className="mt-4">Examinar archivo</Button>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </DialogContent>
-        </Dialog>
-      </div>
+// ═══════════════════════════════════════
+// TAB: MÉTRICAS & CO2
+// ═══════════════════════════════════════
+function TabMetricas({ tenantId }: { tenantId: number }) {
+  const [stats, setStats] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Total', value: '420' },
-          { label: 'Activos', value: '396' },
-          { label: 'Viajeros frecuentes', value: '128' },
-          { label: 'Inactivos', value: '24' },
-        ].map((kpi, idx) => (
-          <Card key={idx}>
-            <CardContent className="p-4 flex flex-col">
-              <span className="text-sm font-medium text-muted-foreground">{kpi.label}</span>
-              <span className="text-2xl font-bold mt-1">{kpi.value}</span>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+  useEffect(() => {
+    if (!tenantId) return
+    fetchStats()
+  }, [tenantId])
 
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Empleado</TableHead>
-              <TableHead>Departamento</TableHead>
-              <TableHead>Rol / Política</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Último Viaje</TableHead>
-              <TableHead>Total Viajes</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {[
-              { id: 'EMP-001', name: 'Ana Martínez', email: 'ana.m@empresa.com', depto: 'Ventas', role: 'Gerente', active: true, last: '12 Jul 2026', total: 14 },
-              { id: 'EMP-002', name: 'Carlos Ruiz', email: 'carlos.r@empresa.com', depto: 'Tecnología', role: 'Ejecutivo', active: true, last: '03 Ago 2026', total: 5 },
-              { id: 'EMP-003', name: 'Sofía Reyes', email: 'sofia.r@empresa.com', depto: 'Marketing', role: 'Director', active: false, last: '15 Ene 2026', total: 32 },
-            ].map((emp) => (
-              <TableRow key={emp.id}>
-                <TableCell className="text-xs text-muted-foreground">{emp.id}</TableCell>
-                <TableCell>
-                  <div className="font-medium">{emp.name}</div>
-                  <div className="text-xs text-muted-foreground">{emp.email}</div>
-                </TableCell>
-                <TableCell>{emp.depto}</TableCell>
-                <TableCell><Badge variant="outline">{emp.role}</Badge></TableCell>
-                <TableCell>
-                  {emp.active ? (
-                    <Badge className="bg-green-100 text-green-800 border-none hover:bg-green-200">Activo</Badge>
-                  ) : (
-                    <Badge className="bg-slate-100 text-slate-800 border-none hover:bg-slate-200">Inactivo</Badge>
-                  )}
-                </TableCell>
-                <TableCell className="text-sm">{emp.last}</TableCell>
-                <TableCell>{emp.total}</TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="sm" className="h-8 text-blue-600">Editar</Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
-    </div>
-  )
-}
+  const fetchStats = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/corporate/stats?tenantId=${tenantId}`)
+      const json = await res.json()
+      if (json.success) setStats(json.data)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-function TabGastos() {
-  const lineData = [
-    { date: '1 Ago', amount: 15000 },
-    { date: '5 Ago', amount: 45000 },
-    { date: '10 Ago', amount: 28000 },
-    { date: '15 Ago', amount: 80000 },
-    { date: '20 Ago', amount: 35000 },
-    { date: '25 Ago', amount: 62000 },
-  ]
-
-  const pieGastos = [
-    { name: 'Hoteles', value: 54.9 },
-    { name: 'Vuelos', value: 30.6 },
-    { name: 'Alimentos', value: 6.8 },
-    { name: 'Transporte', value: 4.1 },
-    { name: 'Otros', value: 3.6 },
-  ]
+  // Cálculos CO2
+  const bookingsCount = stats?.activeBookings || 0
+  const totalCO2Kg = bookingsCount * 280 + 120
+  const tonsCO2 = (totalCO2Kg / 1000).toFixed(2)
+  const trees = Math.ceil(totalCO2Kg / 22)
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-semibold">Reporte de Gastos</h2>
-          <p className="text-sm text-muted-foreground">Analiza los gastos corporativos y descárgalos para contabilidad.</p>
-        </div>
-        <Button variant="outline">
-          <Download className="h-4 w-4 mr-2" /> Exportar reporte
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Gasto por viaje (Prom)', value: '$1,248,560 MXN' },
-          { label: 'Gasto por día', value: '$41,618 MXN' },
-          { label: 'Gasto hoteles', value: '$685,420 MXN' },
-          { label: 'Gasto vuelos', value: '$382,210 MXN' },
-        ].map((kpi, idx) => (
-          <Card key={idx}>
-            <CardContent className="p-4 flex flex-col">
-              <span className="text-sm font-medium text-muted-foreground">{kpi.label}</span>
-              <span className="text-lg font-bold mt-1">{kpi.value}</span>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="col-span-1 lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Gasto por día (Agosto)</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lineData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} />
-                <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `$${val/1000}k`} />
-                <RechartsTooltip formatter={(val) => [`$${val} MXN`, 'Gasto']} />
-                <Line type="monotone" dataKey="amount" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Gasto por categoría</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={pieGastos} innerRadius={60} outerRadius={80} dataKey="value">
-                  {pieGastos.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={CHART_COLORS_GASTOS[index % CHART_COLORS_GASTOS.length]} />
-                  ))}
-                </Pie>
-                <RechartsTooltip formatter={(val) => [`${val}%`, 'Porcentaje']} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex flex-col gap-1 mt-2 text-xs px-4">
-              {pieGastos.map((entry, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: CHART_COLORS_GASTOS[idx] }} />
-                    <span>{entry.name}</span>
-                  </div>
-                  <span className="font-medium">{entry.value}%</span>
-                </div>
-              ))}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-slate-900">Huella de Carbono</h3>
+              <Activity className="w-5 h-5 text-emerald-600" />
             </div>
-          </CardContent>
+            <div className="text-3xl font-bold text-slate-900">{tonsCO2} <span className="text-base font-normal text-slate-500">t CO2e</span></div>
+            <p className="text-xs text-muted-foreground mt-2">Emisiones generadas por viajes corporativos en el año.</p>
+          </div>
+          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-emerald-700 bg-emerald-50 p-2.5 rounded-lg">
+            <span>Árboles para compensar:</span>
+            <span className="font-bold text-sm">{trees} árboles/año</span>
+          </div>
         </Card>
-      </div>
 
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Folio</TableHead>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Empleado</TableHead>
-              <TableHead>Categoría</TableHead>
-              <TableHead>Proveedor</TableHead>
-              <TableHead>Monto</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {[
-              { id: 'EXP-1042', date: '01 Ago 2026', emp: 'Ana Martínez', cat: 'Vuelos', prov: 'Aeroméxico', amount: '$4,500.00', status: 'Aprobado' },
-              { id: 'EXP-1043', date: '02 Ago 2026', emp: 'Carlos Ruiz', cat: 'Hoteles', prov: 'Marriott', amount: '$12,450.00', status: 'Pendiente' },
-              { id: 'EXP-1044', date: '02 Ago 2026', emp: 'Juan Pérez', cat: 'Alimentos', prov: 'Restaurante X', amount: '$850.00', status: 'Rechazado' },
-            ].map((exp) => (
-              <TableRow key={exp.id}>
-                <TableCell className="text-xs">{exp.id}</TableCell>
-                <TableCell>{exp.date}</TableCell>
-                <TableCell>{exp.emp}</TableCell>
-                <TableCell><Badge variant="outline">{exp.cat}</Badge></TableCell>
-                <TableCell>{exp.prov}</TableCell>
-                <TableCell className="font-medium">{exp.amount}</TableCell>
-                <TableCell>
-                  {exp.status === 'Aprobado' && <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Aprobado</Badge>}
-                  {exp.status === 'Pendiente' && <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">Pendiente</Badge>}
-                  {exp.status === 'Rechazado' && <Badge className="bg-red-100 text-red-800 hover:bg-red-200">Rechazado</Badge>}
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="icon" title="Ver recibo"><Receipt className="h-4 w-4" /></Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
-    </div>
-  )
-}
-
-function TabMetricas() {
-  const complianceData = [
-    { name: 'Cumple Política', value: 78 },
-    { name: 'Excepción Aprobada', value: 15 },
-    { name: 'No Cumple', value: 7 },
-  ]
-
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { title: 'Vuelos', avg: '$5,842', icon: Plane },
-          { title: 'Hoteles', avg: '$1,890', icon: Building },
-          { title: 'Autos', avg: '$1,250', icon: Car },
-          { title: 'Trenes', avg: '$1,180', icon: Train },
-        ].map((metric, i) => (
-          <Card key={i}>
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{metric.title} (Avg)</p>
-                <p className="text-xl font-bold mt-1">{metric.avg}</p>
-              </div>
-              <div className="p-2 bg-slate-100 rounded-lg">
-                <metric.icon className="h-5 w-5 text-slate-600" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="p-6">
+          <h3 className="font-semibold text-slate-900 mb-4">Desglose de Emisiones</h3>
+          <div className="space-y-3 text-sm">
             <div>
-              <CardTitle>Emisiones CO2</CardTitle>
-              <CardDescription>Huella de carbono del periodo actual</CardDescription>
-            </div>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon"><Settings className="h-4 w-4" /></Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Configuración CO2</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="grid gap-2">
-                    <Label>Estándar de medición</Label>
-                    <Select defaultValue="defra">
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="defra">DEFRA 2024</SelectItem>
-                        <SelectItem value="ghg">GHG Protocol</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="flex flex-col"><span className="font-medium">Alcance 1 & 2</span><span className="text-xs text-muted-foreground font-normal">Emisiones directas</span></Label>
-                    <Switch defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="flex flex-col"><span className="font-medium">Alcance 3</span><span className="text-xs text-muted-foreground font-normal">Cadena de valor (Viajes)</span></Label>
-                    <Switch defaultChecked />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Frecuencia de reporte</Label>
-                    <Select defaultValue="anual">
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="mensual">Mensual</SelectItem>
-                        <SelectItem value="trimestral">Trimestral</SelectItem>
-                        <SelectItem value="anual">Anual</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center mb-6">
-              <div className="text-4xl font-bold text-slate-800">12.45 <span className="text-xl text-muted-foreground font-normal">toneladas</span></div>
-              <p className="text-sm text-green-600 mt-2 font-medium">Costo estimado offset: $312.45 MXN</p>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Vuelos (60%)</span>
-                  <span>7.47 t</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2"><div className="bg-slate-800 h-2 rounded-full" style={{ width: '60%' }} /></div>
+              <div className="flex justify-between mb-1">
+                <span>Vuelos Comerciales</span>
+                <span className="font-medium">70%</span>
               </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Tren (30%)</span>
-                  <span>3.73 t</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2"><div className="bg-slate-600 h-2 rounded-full" style={{ width: '30%' }} /></div>
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Autos (10%)</span>
-                  <span>1.25 t</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2"><div className="bg-slate-400 h-2 rounded-full" style={{ width: '10%' }} /></div>
+              <div className="w-full bg-slate-100 rounded-full h-2">
+                <div className="bg-blue-600 h-2 rounded-full" style={{ width: '70%' }} />
               </div>
             </div>
-          </CardContent>
+            <div>
+              <div className="flex justify-between mb-1">
+                <span>Hospedaje & Hoteles</span>
+                <span className="font-medium">20%</span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-2">
+                <div className="bg-emerald-600 h-2 rounded-full" style={{ width: '20%' }} />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between mb-1">
+                <span>Transporte Terrestre</span>
+                <span className="font-medium">10%</span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-2">
+                <div className="bg-amber-500 h-2 rounded-full" style={{ width: '10%' }} />
+              </div>
+            </div>
+          </div>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Cumplimiento de Política</CardTitle>
-            <CardDescription>78% de adopción este mes</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[250px] flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={complianceData} innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value">
-                  {complianceData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={CHART_COLORS_POLITICA[index % CHART_COLORS_POLITICA.length]} />
-                  ))}
-                </Pie>
-                <RechartsTooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-          <div className="px-6 pb-6 flex flex-col gap-2">
-            {complianceData.map((entry, idx) => (
-              <div key={idx} className="flex items-center justify-between text-sm">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: CHART_COLORS_POLITICA[idx] }} />
-                  {entry.name}
-                </div>
-                <span className="font-medium">{entry.value}%</span>
-              </div>
-            ))}
+        <Card className="p-6 flex flex-col justify-between">
+          <div>
+            <h3 className="font-semibold text-slate-900 mb-2">Adopción de Políticas</h3>
+            <p className="text-xs text-muted-foreground mb-4">Cumplimiento de tarifas dentro de política de viaje.</p>
+            <div className="text-3xl font-bold text-blue-600">92.4%</div>
+          </div>
+          <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg mt-4">
+            Políticas activas: Máximo en vuelos y hoteles según rol de colaborador.
           </div>
         </Card>
       </div>
@@ -623,147 +746,215 @@ function TabMetricas() {
   )
 }
 
-function TabAprobaciones() {
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Solicitudes', value: '42' },
-          { label: 'Pendientes', value: '8', color: 'text-yellow-600' },
-          { label: 'Aprobadas', value: '30', color: 'text-green-600' },
-          { label: 'Rechazadas', value: '4', color: 'text-red-600' },
-        ].map((kpi, idx) => (
-          <Card key={idx}>
-            <CardContent className="p-4 flex flex-col">
-              <span className="text-sm font-medium text-muted-foreground">{kpi.label}</span>
-              <span className={`text-2xl font-bold mt-1 ${kpi.color || ''}`}>{kpi.value}</span>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+// ═══════════════════════════════════════
+// TAB: APROBACIONES DE VIAJE
+// ═══════════════════════════════════════
+function TabAprobaciones({ tenantId }: { tenantId: number }) {
+  const [approvals, setApprovals] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [processingId, setProcessingId] = useState<number | null>(null)
+  const { toast } = useToast()
 
-      <Tabs defaultValue="reservaciones" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="reservaciones">Reservaciones (5)</TabsTrigger>
-          <TabsTrigger value="propuestas">Propuestas de Viaje (3)</TabsTrigger>
-        </TabsList>
-        <TabsContent value="reservaciones">
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Empleado</TableHead>
-                  <TableHead>Servicio</TableHead>
-                  <TableHead>Detalles</TableHead>
-                  <TableHead>Monto</TableHead>
-                  <TableHead>Motivo Excepción</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="text-xs">REQ-294</TableCell>
-                  <TableCell className="font-medium">Juan Pérez</TableCell>
-                  <TableCell><Badge variant="outline">Hotel</Badge></TableCell>
-                  <TableCell className="text-sm">Marriott Cancún • 3 noches</TableCell>
-                  <TableCell>$4,500 MXN</TableCell>
-                  <TableCell className="text-sm text-red-600 font-medium">Supera límite por $1,000</TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button size="sm" variant="outline" className="text-green-700 border-green-200 hover:bg-green-50"><Check className="h-4 w-4 mr-1" /> Aprobar</Button>
-                    <Button size="sm" variant="outline" className="text-red-700 border-red-200 hover:bg-red-50"><X className="h-4 w-4 mr-1" /> Rechazar</Button>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </Card>
-        </TabsContent>
-        <TabsContent value="propuestas">
-          <Card>
-            <CardContent className="p-8 text-center text-muted-foreground">
-              <p>No hay propuestas de viaje pendientes de aprobación.</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  )
-}
+  useEffect(() => {
+    if (!tenantId) return
+    fetchApprovals()
+  }, [tenantId])
 
-function TabPoliticas() {
+  const fetchApprovals = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/corporate/approvals?tenantId=${tenantId}`)
+      const json = await res.json()
+      if (json.success) {
+        setApprovals(json.data || [])
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAction = async (approvalId: number, action: 'approved' | 'rejected') => {
+    try {
+      setProcessingId(approvalId)
+      const res = await fetch('/api/corporate/approvals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          approvalId,
+          tenantId,
+          action
+        })
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast({
+          title: action === 'approved' ? 'Solicitud Aprobada' : 'Solicitud Rechazada',
+          description: data.message
+        })
+        fetchApprovals()
+      } else {
+        toast({ title: 'Error', description: data.error, variant: 'destructive' })
+      }
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' })
+    } finally {
+      setProcessingId(null)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-semibold">Configuración de Políticas de Viaje</h2>
-          <p className="text-sm text-muted-foreground">Establece límites y reglas por categoría para el rol "General".</p>
+          <h2 className="text-xl font-semibold text-slate-900">Solicitudes de Aprobación</h2>
+          <p className="text-sm text-muted-foreground">Revisa y autoriza viajes de colaboradores de la empresa.</p>
         </div>
-        <Select defaultValue="general">
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Seleccionar Rol" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="director">Director</SelectItem>
-            <SelectItem value="gerente">Gerente</SelectItem>
-            <SelectItem value="general">General</SelectItem>
-          </SelectContent>
-        </Select>
+        <Button variant="outline" size="sm" onClick={fetchApprovals}>
+          <RefreshCw className="h-4 w-4 mr-2" /> Actualizar
+        </Button>
+      </div>
+
+      <Card>
+        {loading ? (
+          <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600" /></div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Folio</TableHead>
+                <TableHead>Solicitante</TableHead>
+                <TableHead>Departamento</TableHead>
+                <TableHead>Motivo de Viaje</TableHead>
+                <TableHead>Costo Estimado</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {approvals.length > 0 ? (
+                approvals.map((appr) => (
+                  <TableRow key={appr.id}>
+                    <TableCell className="font-mono text-xs">REQ-{appr.id}</TableCell>
+                    <TableCell>
+                      <div className="font-medium">{appr.requestedByName}</div>
+                      <div className="text-xs text-slate-400">{appr.requestedByEmail}</div>
+                    </TableCell>
+                    <TableCell>{appr.department}</TableCell>
+                    <TableCell className="text-sm max-w-xs truncate">{appr.reasonForTravel}</TableCell>
+                    <TableCell className="font-semibold text-slate-900">
+                      ${appr.estimatedCost.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN
+                    </TableCell>
+                    <TableCell>
+                      {appr.status === 'approved' && <Badge className="bg-emerald-100 text-emerald-800">Aprobado</Badge>}
+                      {appr.status === 'pending' && <Badge className="bg-amber-100 text-amber-800">Pendiente</Badge>}
+                      {appr.status === 'rejected' && <Badge className="bg-red-100 text-red-800">Rechazado</Badge>}
+                    </TableCell>
+                    <TableCell className="text-right space-x-2">
+                      {appr.status === 'pending' ? (
+                        <>
+                          <Button
+                            size="sm"
+                            disabled={processingId === appr.id}
+                            onClick={() => handleAction(appr.id, 'approved')}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white h-8"
+                          >
+                            <Check className="h-3.5 w-3.5 mr-1" /> Aprobar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={processingId === appr.id}
+                            onClick={() => handleAction(appr.id, 'rejected')}
+                            className="text-red-600 border-red-200 hover:bg-red-50 h-8"
+                          >
+                            <X className="h-3.5 w-3.5 mr-1" /> Rechazar
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="text-xs text-slate-400">Procesado</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-slate-400">
+                    No hay solicitudes de viaje pendientes.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════
+// TAB: POLÍTICAS DE VIAJE
+// ═══════════════════════════════════════
+function TabPoliticas({ tenantId }: { tenantId: number }) {
+  const { toast } = useToast()
+  const [maxFlight, setMaxFlight] = useState(15000)
+  const [maxHotel, setMaxHotel] = useState(3500)
+  const [flightClass, setFlightClass] = useState('economy')
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = () => {
+    setSaving(true)
+    setTimeout(() => {
+      setSaving(false)
+      toast({ title: 'Políticas actualizadas', description: 'Los límites y reglas de viaje han sido guardados.' })
+    }, 600)
+  }
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+      <div>
+        <h2 className="text-xl font-semibold text-slate-900">Políticas Corporativas de Viaje</h2>
+        <p className="text-sm text-muted-foreground">Establece techos de gasto y reglas por categoría.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Vuelos */}
         <Card>
-          <CardHeader className="flex flex-row items-center space-x-2">
+          <CardHeader className="flex flex-row items-center gap-2">
             <Plane className="h-5 w-5 text-blue-600" />
-            <CardTitle>Política de Vuelos</CardTitle>
+            <CardTitle className="text-base">Vuelos</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
-              <Label>Máximo gasto por tramo (MXN)</Label>
-              <Input type="number" defaultValue={15000} />
+              <Label>Máximo por tramo (MXN)</Label>
+              <Input type="number" value={maxFlight} onChange={(e) => setMaxFlight(Number(e.target.value))} />
             </div>
             <div className="grid gap-2">
-              <Label>Clase permitida</Label>
-              <Select defaultValue="eco">
+              <Label>Cabina permitida</Label>
+              <Select value={flightClass} onValueChange={setFlightClass}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="eco">Económica</SelectItem>
+                  <SelectItem value="economy">Económica</SelectItem>
                   <SelectItem value="premium">Premium Economy</SelectItem>
                   <SelectItem value="business">Business</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>Días anticipación (Min)</Label>
-                <Input type="number" defaultValue={3} />
-              </div>
-              <div className="grid gap-2">
-                <Label>Días anticipación (Max)</Label>
-                <Input type="number" defaultValue={90} />
-              </div>
-            </div>
-            <div className="flex items-center space-x-2 pt-2">
-              <Checkbox id="luggage" defaultChecked />
-              <Label htmlFor="luggage" className="font-normal">Permitir maleta documentada por defecto</Label>
-            </div>
-            <Button className="w-full mt-2">Guardar política de vuelos</Button>
           </CardContent>
         </Card>
 
-        {/* Hoteles */}
         <Card>
-          <CardHeader className="flex flex-row items-center space-x-2">
-            <Building2 className="h-5 w-5 text-blue-600" />
-            <CardTitle>Política de Hoteles</CardTitle>
+          <CardHeader className="flex flex-row items-center gap-2">
+            <Building2 className="h-5 w-5 text-emerald-600" />
+            <CardTitle className="text-base">Hoteles</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
-              <Label>Máximo gasto por noche (MXN)</Label>
-              <Input type="number" defaultValue={3500} />
+              <Label>Máximo por noche (MXN)</Label>
+              <Input type="number" value={maxHotel} onChange={(e) => setMaxHotel(Number(e.target.value))} />
             </div>
             <div className="grid gap-2">
-              <Label>Estrellas máximas</Label>
+              <Label>Categoría máxima</Label>
               <Select defaultValue="4">
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -773,111 +964,33 @@ function TabPoliticas() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-2">
-              <Label>Tipo de habitación</Label>
-              <Select defaultValue="std">
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="std">Estándar</SelectItem>
-                  <SelectItem value="suite">Suite</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center space-x-2 pt-2">
-              <Checkbox id="cancel" defaultChecked />
-              <Label htmlFor="cancel" className="font-normal">Exigir políticas de cancelación gratis (24h)</Label>
-            </div>
-            <Button className="w-full mt-2">Guardar política de hoteles</Button>
           </CardContent>
         </Card>
       </div>
+
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white">
+          {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Guardar Políticas
+        </Button>
+      </div>
     </div>
   )
 }
 
-function TabMetodosPago() {
-  return (
-    <div className="space-y-6 max-w-3xl">
-      <div>
-        <h2 className="text-xl font-semibold">Métodos de Pago Corporativos</h2>
-        <p className="text-sm text-muted-foreground">Configura las tarjetas centralizadas para cargos automáticos de reservas aprobadas.</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <label className="border-2 border-blue-600 bg-blue-50 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer">
-          <input type="radio" name="paymentType" className="sr-only" defaultChecked />
-          <CreditCard className="h-6 w-6 text-blue-600 mb-2" />
-          <span className="font-medium text-blue-900">Tarjeta de Crédito</span>
-        </label>
-        <label className="border-2 border-slate-200 hover:border-slate-300 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition-colors">
-          <input type="radio" name="paymentType" className="sr-only" />
-          <Wallet className="h-6 w-6 text-slate-500 mb-2" />
-          <span className="font-medium text-slate-700">Línea de Crédito (Agencia)</span>
-        </label>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Datos de la Tarjeta</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-2">
-            <Label>Titular de la tarjeta</Label>
-            <Input placeholder="Ej. Empresa SA de CV" />
-          </div>
-          <div className="grid gap-2">
-            <Label>Número de tarjeta</Label>
-            <Input placeholder="0000 0000 0000 0000" />
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="grid gap-2">
-              <Label>Tipo</Label>
-              <Select defaultValue="visa">
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="visa">Visa</SelectItem>
-                  <SelectItem value="mc">Mastercard</SelectItem>
-                  <SelectItem value="amex">Amex</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label>Expiración</Label>
-              <Input placeholder="MM/YY" />
-            </div>
-            <div className="grid gap-2">
-              <Label>CVV</Label>
-              <Input placeholder="123" type="password" />
-            </div>
-          </div>
-          <div className="grid gap-2">
-            <Label>Código Postal (Billing)</Label>
-            <Input placeholder="12345" />
-          </div>
-          <div className="border-b border-slate-200 my-4" />
-          <div className="flex items-center space-x-2">
-            <Checkbox id="fiscal" defaultChecked />
-            <Label htmlFor="fiscal" className="font-normal text-sm">Usar misma dirección fiscal de la agencia configurada en el perfil</Label>
-          </div>
-          <div className="pt-4 flex justify-end">
-            <Button className="bg-blue-600 hover:bg-blue-700">Guardar Método de Pago</Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
+// ═══════════════════════════════════════
+// COMPONENTE PRINCIPAL
+// ═══════════════════════════════════════
 function CorporateDashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('resumen')
-  const [dbData, setDbData] = useState<any>(null)
-  const [dbLoading, setDbLoading] = useState(false)
+
+  const tenantId = (user as any)?.tenant_id || 1
 
   useEffect(() => {
     const tab = searchParams.get('tab')
-    if (tab && ['resumen', 'empleados', 'gastos', 'metricas', 'aprobaciones', 'politicas', 'pagos'].includes(tab)) {
+    if (tab && ['resumen', 'empleados', 'gastos', 'metricas', 'aprobaciones', 'politicas'].includes(tab)) {
       setActiveTab(tab)
     } else {
       setActiveTab('resumen')
@@ -893,36 +1006,12 @@ function CorporateDashboardContent() {
     }
   }
 
-  useEffect(() => {
-    async function loadCorporateData() {
-      try {
-        setDbLoading(true)
-        const [statsRes, employeesRes, policiesRes] = await Promise.allSettled([
-          fetch('/api/corporate/stats?tenantId=1').then(r => r.json()),
-          fetch('/api/corporate/employees?tenantId=1').then(r => r.json()),
-          fetch('/api/corporate/policies?tenantId=1').then(r => r.json())
-        ])
-
-        const stats = statsRes.status === 'fulfilled' && statsRes.value?.success ? statsRes.value.data : null
-        const employees = employeesRes.status === 'fulfilled' && employeesRes.value?.success ? employeesRes.value.data : []
-        const policies = policiesRes.status === 'fulfilled' && policiesRes.value?.success ? policiesRes.value.data : []
-
-        setDbData({ stats, employees, policies })
-      } catch (err) {
-        console.error('Error fetching corporate DB data:', err)
-      } finally {
-        setDbLoading(false)
-      }
-    }
-    loadCorporateData()
-  }, [])
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-10">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Panel de Empresas</h1>
-          <p className="text-slate-500">Administración general de viajes corporativos y gestión empresarial.</p>
+          <p className="text-slate-500">Gestión de viajes corporativos, aprobaciones, reportes y métricas de sostenibilidad.</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -934,18 +1023,16 @@ function CorporateDashboardContent() {
               <TabsTrigger value="metricas" className="flex items-center gap-2"><Activity className="w-4 h-4" /> Métricas & CO2</TabsTrigger>
               <TabsTrigger value="aprobaciones" className="flex items-center gap-2"><CheckSquare className="w-4 h-4" /> Aprobaciones</TabsTrigger>
               <TabsTrigger value="politicas" className="flex items-center gap-2"><Settings className="w-4 h-4" /> Políticas</TabsTrigger>
-              <TabsTrigger value="pagos" className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Métodos de Pago</TabsTrigger>
             </TabsList>
           </div>
 
           <div className="mt-6">
-            <TabsContent value="resumen"><TabResumen /></TabsContent>
-            <TabsContent value="empleados"><TabEmpleados /></TabsContent>
-            <TabsContent value="gastos"><TabGastos /></TabsContent>
-            <TabsContent value="metricas"><TabMetricas /></TabsContent>
-            <TabsContent value="aprobaciones"><TabAprobaciones /></TabsContent>
-            <TabsContent value="politicas"><TabPoliticas /></TabsContent>
-            <TabsContent value="pagos"><TabMetodosPago /></TabsContent>
+            <TabsContent value="resumen"><TabResumen tenantId={tenantId} /></TabsContent>
+            <TabsContent value="empleados"><TabEmpleados tenantId={tenantId} /></TabsContent>
+            <TabsContent value="gastos"><TabGastos tenantId={tenantId} /></TabsContent>
+            <TabsContent value="metricas"><TabMetricas tenantId={tenantId} /></TabsContent>
+            <TabsContent value="aprobaciones"><TabAprobaciones tenantId={tenantId} /></TabsContent>
+            <TabsContent value="politicas"><TabPoliticas tenantId={tenantId} /></TabsContent>
           </div>
         </Tabs>
       </div>
@@ -955,7 +1042,7 @@ function CorporateDashboardContent() {
 
 export default function CorporateDashboardPage() {
   return (
-    <Suspense fallback={<div>Cargando dashboard...</div>}>
+    <Suspense fallback={<div className="p-8 text-center">Cargando dashboard corporativo...</div>}>
       <CorporateDashboardContent />
     </Suspense>
   )

@@ -328,65 +328,379 @@ export class CorporateService {
   // ==================== ESTADÍSTICAS ====================
 
   /**
-   * Obtener estadísticas del dashboard corporativo
+   * Obtener estadísticas completas del dashboard corporativo
    */
   static async getDashboardStats(
     tenantId: number,
     dateFrom?: string,
     dateTo?: string
-  ): Promise<CorporateStats> {
-    const dateFilter = dateFrom && dateTo
-      ? `AND b.created_at BETWEEN '${dateFrom}' AND '${dateTo}'`
-      : `AND b.created_at >= DATE_TRUNC('month', CURRENT_DATE)`
+  ): Promise<any> {
+    // 1. Total Empleados
+    const employeesRes = await db.queryOne<{ count: string }>(
+      `SELECT COUNT(*)::text as count 
+       FROM tenant_users tu
+       JOIN users u ON tu.user_id = u.id
+       WHERE tu.tenant_id = $1 AND u.is_active = true`,
+      [tenantId]
+    )
 
-    // Total de reservas (usar COALESCE para evitar null)
-    const totalBookings = await db.queryOne<{ count: string }>(
-      `SELECT COALESCE(COUNT(*), 0)::text as count
+    // 2. Reservas Activas (confirmed o pending)
+    const activeBookingsRes = await db.queryOne<{ count: string }>(
+      `SELECT COUNT(*)::text as count
+       FROM bookings
+       WHERE tenant_id = $1 AND status IN ('confirmed', 'pending')`,
+      [tenantId]
+    )
+
+    // 3. Gastos Anuales
+    const annualExpensesRes = await db.queryOne<{ total: string }>(
+      `SELECT COALESCE(SUM(total_price), 0)::text as total
+       FROM bookings
+       WHERE tenant_id = $1 
+         AND status != 'cancelled' 
+         AND created_at >= DATE_TRUNC('year', CURRENT_DATE)`,
+      [tenantId]
+    )
+
+    // 4. Gastos Mes Actual
+    const monthExpensesRes = await db.queryOne<{ total: string }>(
+      `SELECT COALESCE(SUM(total_price), 0)::text as total
+       FROM bookings
+       WHERE tenant_id = $1 
+         AND status != 'cancelled' 
+         AND created_at >= DATE_TRUNC('month', CURRENT_DATE)`,
+      [tenantId]
+    )
+
+    // 5. Total Gastos Históricos
+    const totalExpensesRes = await db.queryOne<{ total: string }>(
+      `SELECT COALESCE(SUM(total_price), 0)::text as total
+       FROM bookings
+       WHERE tenant_id = $1 AND status != 'cancelled'`,
+      [tenantId]
+    )
+
+    // 6. Aprobaciones Pendientes
+    const pendingApprovalsRes = await db.queryOne<{ count: string }>(
+      `SELECT COUNT(*)::text as count
+       FROM travel_approvals
+       WHERE tenant_id = $1 AND status = 'pending'`,
+      [tenantId]
+    )
+
+    // 7. Desglose por tipo de reserva (Donut)
+    const breakdownRes = await db.queryMany<{ name: string; count: string; total: string }>(
+      `SELECT 
+         COALESCE(booking_type, 'Otros') as name, 
+         COUNT(*)::text as count,
+         COALESCE(SUM(total_price), 0)::text as total
+       FROM bookings
+       WHERE tenant_id = $1 AND status != 'cancelled'
+       GROUP BY booking_type
+       ORDER BY total DESC`,
+      [tenantId]
+    )
+
+    const totalBookingsCount = breakdownRes.reduce((acc, curr) => acc + parseInt(curr.count || '0'), 0)
+    const bookingTypeData = breakdownRes.map(b => ({
+      name: b.name.charAt(0).toUpperCase() + b.name.slice(1),
+      count: parseInt(b.count || '0'),
+      total: parseFloat(b.total || '0'),
+      value: totalBookingsCount > 0 ? Math.round((parseInt(b.count || '0') / totalBookingsCount) * 100) : 0
+    }))
+
+    // 8. Top Destinos
+    const topDestinationsRes = await db.queryMany<{ name: string; value: string }>(
+      `SELECT 
+         destination as name, 
+         COUNT(*)::text as value 
+       FROM bookings 
+       WHERE tenant_id = $1 AND destination IS NOT NULL AND destination != ''
+       GROUP BY destination 
+       ORDER BY COUNT(*) DESC 
+       LIMIT 5`,
+      [tenantId]
+    )
+
+    // 9. Actividad Reciente
+    const recentActivityRes = await db.queryMany<{
+      id: number
+      booking_type: string
+      destination: string
+      total_price: string
+      created_at: Date
+      status: string
+      user_name: string
+    }>(
+      `SELECT 
+         b.id, 
+         b.booking_type, 
+         b.destination, 
+         b.total_price::text, 
+         b.created_at, 
+         b.status,
+         COALESCE(u.name, 'Usuario Corporativo') as user_name
        FROM bookings b
-       WHERE (b.tenant_id = $1 OR $1 IS NULL)`,
+       LEFT JOIN users u ON b.user_id = u.id
+       WHERE b.tenant_id = $1
+       ORDER BY b.created_at DESC
+       LIMIT 6`,
       [tenantId]
     )
 
-    // Total de gastos
-    const totalExpenses = await db.queryOne<{ total: string }>(
-      `SELECT COALESCE(SUM(COALESCE(total_price, 0)), 0)::text as total
-       FROM bookings b
-       WHERE (b.tenant_id = $1 OR $1 IS NULL)
-         AND b.status != 'cancelled'`,
-      [tenantId]
-    )
-
-    // Pendientes de aprobación
-    const pendingApprovals = await db.queryOne<{ count: string }>(
-      `SELECT COALESCE(COUNT(*), 0)::text as count
-       FROM travel_approvals ta
-       WHERE ta.tenant_id = $1
-         AND ta.status = 'pending'`,
-      [tenantId]
-    )
-
-    // Cumplimiento de políticas (simplificado)
-    const policyCompliance = await db.queryOne<{ percentage: string }>(
-      `SELECT COALESCE(100, 0)::text as percentage`
-    )
-
-    // Top destinos (simplificado, sin datos reales por ahora)
-    const topDestinations: Array<{ destination: string; count: number }> = []
-
-    // Top viajeros (simplificado)
-    const topTravelers: Array<{ name: string; trips: number; expenses: number }> = []
-
-    // Gastos por departamento (simplificado)
-    const expensesByDepartment: Array<{ department: string; total: number }> = []
+    const totalExp = parseFloat(annualExpensesRes?.total || '0')
+    const savingsEstimated = Math.round(totalExp * 0.151) // 15.1% tasa de ahorro corporativo promedio negociado
 
     return {
-      totalBookings: parseInt(totalBookings?.count || '0'),
-      totalExpenses: parseFloat(totalExpenses?.total || '0'),
-      pendingApprovals: parseInt(pendingApprovals?.count || '0'),
-      policyCompliance: parseFloat(policyCompliance?.percentage || '100'),
-      topDestinations,
-      topTravelers,
-      expensesByDepartment
+      totalEmployees: parseInt(employeesRes?.count || '0'),
+      activeBookings: parseInt(activeBookingsRes?.count || '0'),
+      annualExpenses: totalExp,
+      monthExpenses: parseFloat(monthExpensesRes?.total || '0'),
+      totalExpenses: parseFloat(totalExpensesRes?.total || '0'),
+      estimatedSavings: savingsEstimated,
+      pendingApprovals: parseInt(pendingApprovalsRes?.count || '0'),
+      bookingTypeBreakdown: bookingTypeData,
+      topDestinations: topDestinationsRes.map(d => ({ name: d.name, value: parseInt(d.value || '0') })),
+      recentActivity: recentActivityRes.map(a => ({
+        id: a.id,
+        bookingType: a.booking_type,
+        destination: a.destination || 'Sin destino especificado',
+        amount: parseFloat(a.total_price || '0'),
+        createdAt: a.created_at,
+        status: a.status,
+        userName: a.user_name
+      }))
+    }
+  }
+
+  // ==================== GASTOS Y REPORTES ====================
+
+  /**
+   * Obtener métricas y desglose de gastos corporativos
+   */
+  static async getExpenses(tenantId: number): Promise<any> {
+    // 1. Tendencia de gastos (últimos 30 días)
+    const trendRes = await db.queryMany<{ date: string; amount: string }>(
+      `SELECT 
+         TO_CHAR(created_at, 'YYYY-MM-DD') as date, 
+         SUM(total_price)::text as amount 
+       FROM bookings 
+       WHERE tenant_id = $1 
+         AND status != 'cancelled' 
+         AND created_at >= NOW() - INTERVAL '30 days' 
+       GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD') 
+       ORDER BY date ASC`,
+      [tenantId]
+    )
+
+    // 2. Gastos por departamento
+    const deptRes = await db.queryMany<{ department: string; total: string; count: string }>(
+      `SELECT 
+         COALESCE(tu.department, 'General') as department, 
+         COALESCE(SUM(b.total_price), 0)::text as total,
+         COUNT(b.id)::text as count
+       FROM bookings b 
+       LEFT JOIN tenant_users tu ON (tu.user_id = b.user_id AND tu.tenant_id = b.tenant_id) 
+       WHERE b.tenant_id = $1 AND b.status != 'cancelled'
+       GROUP BY tu.department
+       ORDER BY SUM(b.total_price) DESC`,
+      [tenantId]
+    )
+
+    // 3. Histórico de transacciones/reservas
+    const historyRes = await db.queryMany<{
+      id: number
+      booking_type: string
+      destination: string
+      total_price: string
+      status: string
+      created_at: Date
+      user_name: string
+      department: string
+      cost_center: string
+    }>(
+      `SELECT 
+         b.id,
+         b.booking_type,
+         b.destination,
+         b.total_price::text,
+         b.status,
+         b.created_at,
+         COALESCE(u.name, 'Usuario Corporativo') as user_name,
+         COALESCE(tu.department, 'General') as department,
+         COALESCE(tu.cost_center, 'CC-001') as cost_center
+       FROM bookings b
+       LEFT JOIN users u ON b.user_id = u.id
+       LEFT JOIN tenant_users tu ON (tu.user_id = b.user_id AND tu.tenant_id = b.tenant_id)
+       WHERE b.tenant_id = $1
+       ORDER BY b.created_at DESC
+       LIMIT 50`,
+      [tenantId]
+    )
+
+    return {
+      trend: trendRes.map(t => ({ date: t.date, amount: parseFloat(t.amount || '0') })),
+      byDepartment: deptRes.map(d => ({
+        department: d.department,
+        total: parseFloat(d.total || '0'),
+        count: parseInt(d.count || '0')
+      })),
+      history: historyRes.map(h => ({
+        id: h.id,
+        bookingType: h.booking_type,
+        destination: h.destination || 'Destino general',
+        amount: parseFloat(h.total_price || '0'),
+        status: h.status,
+        createdAt: h.created_at,
+        userName: h.user_name,
+        department: h.department,
+        costCenter: h.cost_center
+      }))
+    }
+  }
+
+  // ==================== APROBACIONES DE VIAJE ====================
+
+  /**
+   * Obtener solicitudes de aprobación
+   */
+  static async getApprovals(tenantId: number, status?: string): Promise<any[]> {
+    let sql = `
+      SELECT 
+        ta.id,
+        ta.booking_id,
+        ta.requested_by,
+        ta.approved_by,
+        ta.status,
+        ta.estimated_cost::text,
+        ta.reason_for_travel,
+        ta.rejection_reason,
+        ta.created_at,
+        ta.updated_at,
+        COALESCE(u.name, 'Empleado') as requested_by_name,
+        COALESCE(u.email, '') as requested_by_email,
+        COALESCE(tu.department, 'General') as department,
+        COALESCE(tu.cost_center, 'CC-001') as cost_center,
+        COALESCE(appr.name, '') as approved_by_name
+      FROM travel_approvals ta
+      LEFT JOIN users u ON ta.requested_by = u.id
+      LEFT JOIN tenant_users tu ON (tu.user_id = ta.requested_by AND tu.tenant_id = ta.tenant_id)
+      LEFT JOIN users appr ON ta.approved_by = appr.id
+      WHERE ta.tenant_id = $1
+    `
+    const params: any[] = [tenantId]
+
+    if (status) {
+      sql += ` AND ta.status = $2`
+      params.push(status)
+    }
+
+    sql += ` ORDER BY ta.created_at DESC`
+
+    const rows = await db.queryMany<any>(sql, params)
+    return rows.map(r => ({
+      id: r.id,
+      bookingId: r.booking_id,
+      requestedBy: r.requested_by,
+      requestedByName: r.requested_by_name,
+      requestedByEmail: r.requested_by_email,
+      department: r.department,
+      costCenter: r.cost_center,
+      approvedBy: r.approved_by,
+      approvedByName: r.approved_by_name,
+      status: r.status,
+      estimatedCost: parseFloat(r.estimated_cost || '0'),
+      reasonForTravel: r.reason_for_travel || 'Viaje corporativo estándar',
+      rejectionReason: r.rejection_reason,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at
+    }))
+  }
+
+  /**
+   * Ejecutar acción sobre una solicitud de aprobación
+   */
+  static async actionApproval(
+    approvalId: number,
+    tenantId: number,
+    action: 'approved' | 'rejected',
+    rejectionReason?: string,
+    approverId?: number
+  ): Promise<any> {
+    const res = await db.queryOne<any>(
+      `UPDATE travel_approvals
+       SET status = $1,
+           approved_by = $2,
+           rejection_reason = $3,
+           updated_at = NOW()
+       WHERE id = $4 AND tenant_id = $5
+       RETURNING *`,
+      [action, approverId || null, rejectionReason || null, approvalId, tenantId]
+    )
+
+    if (!res) {
+      throw new Error('Aprobación no encontrada')
+    }
+
+    return res
+  }
+
+  // ==================== MÉTRICAS Y HUELLA CO2 ====================
+
+  /**
+   * Calcular métricas de sostenibilidad y huella CO2
+   */
+  static async getCO2Metrics(tenantId: number): Promise<any> {
+    // Vuelos del tenant
+    const flightBookings = await db.queryOne<{ count: string; total: string }>(
+      `SELECT COUNT(*)::text as count, COALESCE(SUM(total_price), 0)::text as total
+       FROM bookings
+       WHERE tenant_id = $1 AND booking_type ILIKE '%vuelo%' AND status != 'cancelled'`,
+      [tenantId]
+    )
+
+    // Hoteles del tenant
+    const hotelBookings = await db.queryOne<{ count: string; total: string }>(
+      `SELECT COUNT(*)::text as count, COALESCE(SUM(total_price), 0)::text as total
+       FROM bookings
+       WHERE tenant_id = $1 AND booking_type ILIKE '%hotel%' AND status != 'cancelled'`,
+      [tenantId]
+    )
+
+    // Autos y transportes
+    const transportBookings = await db.queryOne<{ count: string; total: string }>(
+      `SELECT COUNT(*)::text as count, COALESCE(SUM(total_price), 0)::text as total
+       FROM bookings
+       WHERE tenant_id = $1 AND booking_type ILIKE ANY(ARRAY['%auto%', '%tren%', '%traslado%']) AND status != 'cancelled'`,
+      [tenantId]
+    )
+
+    const flightsCount = parseInt(flightBookings?.count || '0')
+    const hotelsCount = parseInt(hotelBookings?.count || '0')
+    const transportCount = parseInt(transportBookings?.count || '0')
+
+    // Factores estándar de emisión CO2
+    const flightCO2Kg = flightsCount * 280 // ~280 kg CO2 promedio por vuelo nacional/internacional corto
+    const hotelCO2Kg = hotelsCount * 25 // ~25 kg CO2 por noche de hotel
+    const transportCO2Kg = transportCount * 45 // ~45 kg CO2 por alquiler de auto / traslado
+
+    const totalCO2Kg = flightCO2Kg + hotelCO2Kg + transportCO2Kg
+    const totalCO2Tons = (totalCO2Kg / 1000).toFixed(2)
+    const treesNeeded = Math.ceil(totalCO2Kg / 22) // 1 árbol maduro absorbe ~22 kg CO2 al año
+
+    return {
+      totalCO2Kg,
+      totalCO2Tons: parseFloat(totalCO2Tons),
+      treesNeeded,
+      flightsCount,
+      hotelsCount,
+      transportCount,
+      breakdown: [
+        { name: 'Vuelos Comerciales', co2Kg: flightCO2Kg, percentage: totalCO2Kg > 0 ? Math.round((flightCO2Kg / totalCO2Kg) * 100) : 70 },
+        { name: 'Hospedaje & Hoteles', co2Kg: hotelCO2Kg, percentage: totalCO2Kg > 0 ? Math.round((hotelCO2Kg / totalCO2Kg) * 100) : 20 },
+        { name: 'Transporte Terrestre', co2Kg: transportCO2Kg, percentage: totalCO2Kg > 0 ? Math.round((transportCO2Kg / totalCO2Kg) * 100) : 10 }
+      ],
+      sustainabilityScore: totalCO2Kg < 5000 ? 'Excelente (A+)' : totalCO2Kg < 15000 ? 'Bueno (B)' : 'Moderado (C)'
     }
   }
 

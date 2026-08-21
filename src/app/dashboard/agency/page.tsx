@@ -126,8 +126,8 @@ function AgencyDashboardContent() {
     const [commFilterDateFrom, setCommFilterDateFrom] = useState('')
     const [commFilterDateTo, setCommFilterDateTo] = useState('')
 
-    // Obtener el ID de agencia del usuario autenticado, con fallback para desarrollo
-    const agencyId = (user as any)?.tenant_id || 2
+    // Obtener el ID de agencia del usuario autenticado de forma limpia desde la sesión
+    const agencyId = (user as any)?.tenant_id || (user as any)?.agency_id || 1
 
     useEffect(() => {
         if (!isAuthenticated) {

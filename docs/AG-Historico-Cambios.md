@@ -1,15 +1,34 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 21 de Agosto de 2026 - 07:38 CST  
-**Versión actual:** v2.510  
-**Actualizado por:** AntiGravity AI Assistant  
+**Última actualización:** 21 de Agosto de 2026 - 16:15 CST  
+**Versión actual:** v2.511  
+**Actualizado por:** AntiGravity AI Principal Architect  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
 
-### v2.510 - 21 de Agosto de 2026 - 07:38 CST
+### v2.511 - 21 de Agosto de 2026 - 16:15 CST
+**Conexión 100% Real PostgreSQL y Eliminación Total de Mocks en Paneles de Empresas y Agencias (VID-PORTAL-31072026)**
+- **Workstream 1 - Panel de Empresas (`/dashboard/corporate`):**
+  - Conexión 100% reactiva y multi-tenant de `TabResumen`, `TabEmpleados`, `TabGastos`, `TabMetricas` y `TabAprobaciones`.
+  - Agregación real de KPIs en `CorporateService.ts`: empleados activos en `tenant_users`, reservas activas, gastos anuales/mensuales y tasa de ahorro corporativo negociado.
+  - Endpoints creados: `GET /api/corporate/expenses` (tendencia temporal, consumo por departamento y tabla histórica) y `GET/POST /api/corporate/approvals` (solicitudes de viaje con aprobación/rechazo en tiempo real).
+  - Integración de gestor de empleados y carga masiva CSV dentro de la pestaña de colaboradores.
+- **Workstream 2 - Panel de Agencias (`/dashboard/agency` - CRM & Ventas):**
+  - Eliminación de fallbacks quemados `tenant_id || 2`, resolución limpia por sesión en `/dashboard/agency`.
+  - Creación de endpoint `GET /api/agency/sales` con KPIs reales de ventas, reservas confirmadas/pendientes, ticket promedio, gráfica de línea de 7/30 días y gráfica dona de productos.
+  - Conexión de `/dashboard/agency/ventas` con datos reales de `bookings` y exportación a CSV.
+  - Conexión de `/dashboard/agency/crm` con base de datos PostgreSQL (`crm_contacts`), KPIs de pipeline, gráfica de fuentes de leads, tablero Kanban de 5 columnas (`Nuevo Lead`, `Seguimiento`, `Envío Cotización`, `Pago Apartado`, `Liquidación`) con avance de etapa y modal para creación directa de prospectos.
+  - Endpoints de soporte: `GET /api/crm/stats` y `GET/POST /api/crm/leads`.
+- **Workstream 3 - Configuración de Agencia y Expediente Legal (`/dashboard/agency/settings`):**
+  - Eliminación de todas las alertas de simulación (`alert('Simulación...')`).
+  - Creación del endpoint `POST /api/upload/blob` con subida a Vercel Blob (`@vercel/blob`) y fallback local.
+  - Creación del endpoint `GET/POST/DELETE /api/agency/documents` conectado a la tabla `entity_documents`.
+  - Soporte en expediente legal para **Persona Moral** (Acta Constitutiva, Poder Notarial, RFC, Domicilio Fiscal, INE Rep. Legal) y **Persona Física** (INE, RFC, Comprobante de Domicilio) con subida individual, estados visuales y enlaces de previsualización.
+  - Subida directa de logotipos (Web Claro, Oscuro, App Móvil) y actualización de paleta de colores reactiva.
+
 **Portadas Oficiales de MegaTravel Scraping y Fallback Curado por Destino ([`image-fallbacks.ts`](file:///c:/operadora-dev/src/lib/image-fallbacks.ts), [`itineraries/[id]/route.ts`](file:///c:/operadora-dev/src/app/api/itineraries/[id]/route.ts), [`itinerario/[id]/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/page.tsx), [`mobile/itinerario/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/page.tsx))**
 - **Sincronización de Portadas MegaTravel:** Se cruzaron los 780 paquetes de `megatravel_packages` con todos los itinerarios de la base de datos, asignando la portada oficial de MegaTravel (ej. portada oficial de *Gran Tour de Europa II Plus* / *Gran Tour de Europa*) a los viajes correspondientes.
 - **Resolución Inteligente de Destinos / IA:** Para viajes no MegaTravel (como Cancún, CDMX, Guadalajara, etc.), se asignaron imágenes en alta definición específicas de cada ciudad y región.

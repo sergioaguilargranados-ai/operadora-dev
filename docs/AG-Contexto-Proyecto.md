@@ -1,8 +1,8 @@
 # 🎯 AG-Contexto-Proyecto - AS Operadora
 
-**Última actualización:** 21 de Agosto de 2026 - 07:38 CST  
-**Versión actual:** v2.510  
-**Actualizado por:** AntiGravity AI Assistant  
+**Última actualización:** 21 de Agosto de 2026 - 16:15 CST  
+**Versión actual:** v2.511  
+**Actualizado por:** AntiGravity AI Principal Architect  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity, trabajar de esta manera es para tener un mejor control de los cambios que se hacen en el proyecto y asegurar que todo funcione correctamente. 
 
 ## 📌 REGLAS DE COMUNICACIÓN (IMPORTANTE)
@@ -40,6 +40,7 @@ Sergio Aguilar Granados
 - **Dominio de Desarrollo:** `https://www.as-ope-viajes.company/` (Usado para pruebas y desarrollo)
 - **Repositorio Producción Legacy:** `https://github.com/sergioaguilargranados-ai/as-operadora.git`
 - **Deploy:** Liberaciones en ambiente de pruebas sobre `operadora-dev`
+- **Directorio de Indicaciones y Multimedia del Portal (IMPORTANTE):** `docs/VID-PORTAL-31072026/` (O en sincronización remota: `G:\Otros ordenadores\Mi PC\operadora-dev\docs\VID-PORTAL-31072026`). Contiene 48 imágenes, maquetas, formatos y videos con las especificaciones y flujos originales del portal.
 
 ### Objetivo
 Resumen ejecutivo y flujo de desarrollo.

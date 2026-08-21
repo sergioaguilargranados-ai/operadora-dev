@@ -87,3 +87,10 @@ Registrado en [`DOCS/AG-Contexto-Proyecto.md`](file:///c:/operadora-dev/DOCS/AG-
 - `src/components/layout/PortalSidebar.tsx`: Menú lateral conectado a la API de navegación y permisos.
 - `src/app/dashboard/crm/contacts/page.tsx`: Vistas adaptadas a `<PermissionGate>`.
 - `DOCS/AG-Contexto-Proyecto.md` & `DOCS/AG-Historico-Cambios.md`: Documentación oficial actualizada.
+
+---
+
+## 📁 5. Directorio de Indicaciones y Multimedia del Portal (IMPORTANTE)
+
+- **Ruta Local:** `docs/VID-PORTAL-31072026/` (O `G:\Otros ordenadores\Mi PC\operadora-dev\docs\VID-PORTAL-31072026`).
+- **Contenido:** Contiene 48 archivos (videos de demostración, imágenes de maquetas, especificaciones de CRM, formatos de recibos, PDFs de itinerario, pre-visualizaciones de factura) que cualquier agente debe consultar para revisar los requerimientos originales y flujos del portal.
