@@ -235,7 +235,9 @@ export default function MobileItineraryListPage({ params }: { params?: { id: str
             console.error("Error fetching user documents:", pe)
           }
 
-          const resBookings = await fetch(`/api/bookings?userId=${user.id}`, {
+          const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(user?.role || '')
+          const bookingsUrl = isAdmin ? '/api/bookings?userId=all' : `/api/bookings?userId=${user.id}`
+          const resBookings = await fetch(bookingsUrl, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
           if (resBookings.ok) {
@@ -279,6 +281,19 @@ export default function MobileItineraryListPage({ params }: { params?: { id: str
               setActiveBooking(matchedBooking)
             } else if (userToursMap.has(targetId)) {
               setActiveBooking(userToursMap.get(targetId))
+            } else if (dbItinerary) {
+              // Si no coincide con una reserva en lista pero el itinerario existe en BD
+              const itinDateObj = dbItinerary.start_date ? new Date(dbItinerary.start_date) : new Date()
+              setActiveBooking({
+                tour_id: targetId,
+                booking_id: dbItinerary.booking_id || targetId,
+                name: dbItinerary.title || 'Mi Viaje',
+                dateStr: itinDateObj.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }),
+                dateObj: itinDateObj,
+                pax: 2,
+                booking_reference: `AS-${dbItinerary.booking_id || dbItinerary.id || '1001'}`,
+                image: dbItinerary.hero_image || "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80"
+              })
             } else if (allUserBookings.length > 0) {
               const upcoming = allUserBookings.find((b: any) => new Date(b.dateObj) >= new Date()) || allUserBookings[0]
               setActiveBooking(upcoming)

@@ -1,13 +1,18 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 22:57 CST  
-**Versión actual:** v2.507  
+**Última actualización:** 20 de Agosto de 2026 - 23:15 CST  
+**Versión actual:** v2.508  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.508 - 20 de Agosto de 2026 - 23:15 CST
+**Corrección de Consulta por `booking_id` y Mapeo de `activeBooking` para Administradores ([`itineraries/[id]/route.ts`](file:///c:/operadora-dev/src/app/api/itineraries/[id]/route.ts), [`itinerario/[id]/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/page.tsx), [`mobile/page.tsx`](file:///c:/operadora-dev/src/app/mobile/page.tsx))**
+- **Prioridad de `booking_id` en API:** La ruta de itinerarios ahora busca por `booking_id = $1` en primer lugar antes de intentar por `id = $1`, asegurando que al entrar desde la lista de reservas móviles siempre se devuelva el itinerario correcto.
+- **Mapeo Robusto de `activeBooking`:** Se implementó `userId=all` para administradores en la pantalla de detalle y un generador sintético a partir de `dbItinerary` si no hay coincidencia directa, eliminando el fallback "AS-123456" y los "0 días".
 
 ### v2.507 - 20 de Agosto de 2026 - 22:57 CST
 **Poblado Global de Itinerarios para SuperAdmin y Todas las Reservas de la Plataforma**

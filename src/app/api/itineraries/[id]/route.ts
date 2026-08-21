@@ -16,12 +16,11 @@ export async function GET(
 
     let itinerary = null;
 
-    // 1. Try finding by id in itineraries
+    // 1. Try finding by booking_id FIRST (since mobile links by booking_id), then by id in itineraries
     if (!itinerary && !isNaN(Number(idOrTourId))) {
-      let result = await dbQuery('SELECT * FROM itineraries WHERE id = $1 LIMIT 1', [Number(idOrTourId)])
+      let result = await dbQuery('SELECT * FROM itineraries WHERE booking_id = $1 LIMIT 1', [Number(idOrTourId)])
       if (result.rows.length === 0) {
-        // Fallback: search by booking_id in itineraries
-        result = await dbQuery('SELECT * FROM itineraries WHERE booking_id = $1 LIMIT 1', [Number(idOrTourId)])
+        result = await dbQuery('SELECT * FROM itineraries WHERE id = $1 LIMIT 1', [Number(idOrTourId)])
       }
       if (result.rows.length > 0) itinerary = result.rows[0]
     }
