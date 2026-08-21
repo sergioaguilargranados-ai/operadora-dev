@@ -1,13 +1,18 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 22:27 CST  
-**Versión actual:** v2.506  
+**Última actualización:** 20 de Agosto de 2026 - 22:57 CST  
+**Versión actual:** v2.507  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.507 - 20 de Agosto de 2026 - 22:57 CST
+**Poblado Global de Itinerarios para SuperAdmin y Todas las Reservas de la Plataforma**
+- **Vista Global de SuperAdmin:** Cuando el SuperAdmin o Administrador entra a la PWA móvil, la consulta `/api/bookings?userId=all` recupera todas las reservas del sistema. Se poblaron y generaron los itinerarios para todas las 122 reservas existentes en la plataforma (Cancún, Europa, CDMX, Monterrey, Guadalajara, etc.).
+- **Reparación de Itinerarios Huérfanos:** Se actualizó el itinerario #2 perteneciente al usuario SuperAdmin (`superadmin@asoperadora.com`) para contener 7 días completos y enriquecidos.
 
 ### v2.506 - 20 de Agosto de 2026 - 22:27 CST
 **Sincronización Total de Itinerarios Multidía y Corrección de Constraints ([`CustomItineraryService.ts`](file:///c:/operadora-dev/src/services/CustomItineraryService.ts), [`itineraries/[id]/route.ts`](file:///c:/operadora-dev/src/app/api/itineraries/[id]/route.ts))**
