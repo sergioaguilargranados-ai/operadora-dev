@@ -99,6 +99,11 @@ export const PLACE_CATALOG: Record<string, string> = {
 
 // ==================== CATÁLOGO CURADO DE CIUDADES / HERO ====================
 export const CITY_HERO_CATALOG: Record<string, string> = {
+  'europa': 'https://one.cdnmega.com/images/viajes/covers/12226-gran-tour-de-europa-ii-plus-1024x575_6a566d029f9d2.webp?width=844',
+  'gran tour': 'https://one.cdnmega.com/images/viajes/covers/12226-gran-tour-de-europa-ii-plus-1024x575_6a566d029f9d2.webp?width=844',
+  'cancun': 'https://images.unsplash.com/photo-1552074284-5e88ef1aef18?auto=format&fit=crop&w=1200&q=80',
+  'cancún': 'https://images.unsplash.com/photo-1552074284-5e88ef1aef18?auto=format&fit=crop&w=1200&q=80',
+  'riviera maya': 'https://images.unsplash.com/photo-1552074284-5e88ef1aef18?auto=format&fit=crop&w=1200&q=80',
   'londres': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1200&q=80',
   'london': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1200&q=80',
   'paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80',
@@ -116,10 +121,19 @@ export const CITY_HERO_CATALOG: Record<string, string> = {
   'viena': 'https://images.unsplash.com/photo-1516550893923-42d28e5677af?auto=format&fit=crop&w=1200&q=80',
   'budapest': 'https://images.unsplash.com/photo-1549877452-9c387954fbc2?auto=format&fit=crop&w=1200&q=80',
   'mexico': 'https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?auto=format&fit=crop&w=1200&q=80',
-  'cancun': 'https://images.unsplash.com/photo-1552074284-5e88ef1aef18?auto=format&fit=crop&w=1200&q=80',
+  'méxico': 'https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?auto=format&fit=crop&w=1200&q=80',
+  'cdmx': 'https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?auto=format&fit=crop&w=1200&q=80',
+  'ciudad de méxico': 'https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?auto=format&fit=crop&w=1200&q=80',
+  'guadalajara': 'https://images.unsplash.com/photo-1596701062351-8c2c14d1fdd0?auto=format&fit=crop&w=1200&q=80',
+  'monterrey': 'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&w=1200&q=80',
+  'la paz': 'https://images.unsplash.com/photo-1580655653885-65763b2597d0?auto=format&fit=crop&w=1200&q=80',
+  'los cabos': 'https://images.unsplash.com/photo-1580655653885-65763b2597d0?auto=format&fit=crop&w=1200&q=80',
+  'puerto vallarta': 'https://images.unsplash.com/photo-1512815456648-ed6807c6e7e7?auto=format&fit=crop&w=1200&q=80',
   'tokio': 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1200&q=80',
   'vuelo': 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1200&q=80',
-  'default': 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1200&q=80'
+  'vb': 'https://images.unsplash.com/photo-1552074284-5e88ef1aef18?auto=format&fit=crop&w=1200&q=80',
+  'aeroméxico': 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1200&q=80',
+  'default': 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?auto=format&fit=crop&w=1200&q=80'
 };
 
 // ==================== CATÁLOGO CURADO DE SOUVENIRS ====================
@@ -133,6 +147,27 @@ export const SOUVENIR_CATALOG: Record<string, string> = {
   'artesania': 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=600&q=80',
   'default': 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80'
 };
+
+// ==================== FUNCIONES HELPER ====================
+
+/**
+ * Obtiene la imagen de cabecera para un viaje resolviendo primero por MegaTravel / Destino
+ */
+export function getTourOrDestinationHeroImage(
+  title?: string, 
+  destination?: string, 
+  tourId?: string, 
+  existingImage?: string
+): string {
+  if (existingImage && !isInvalidOrGenericImage(existingImage)) {
+    return existingImage;
+  }
+  const query = `${title || ''} ${destination || ''} ${tourId || ''}`.toLowerCase();
+  for (const [key, url] of Object.entries(CITY_HERO_CATALOG)) {
+    if (query.includes(key)) return url;
+  }
+  return CITY_HERO_CATALOG.default;
+}
 
 // ==================== FUNCIONES HELPER ====================
 

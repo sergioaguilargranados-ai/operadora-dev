@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Loader2, ChevronRight, Calendar as CalendarIcon, Users, MapPin, Search, ArrowLeft } from "lucide-react"
 import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
+import { getTourOrDestinationHeroImage, handleImageFallback } from "@/lib/image-fallbacks"
 
 export default function MobileTripsListPage() {
   const router = useRouter()
@@ -53,6 +54,7 @@ export default function MobileTripsListPage() {
                 const now = new Date()
                 
                 const isPast = b.status === 'completed' || (hasExplicitDate && tripDate < now)
+                const heroImg = getTourOrDestinationHeroImage(tripName, details.destination || b.destination, tripId, details.image_url)
                 
                 userToursMap.set(tripId, {
                   tour_id: tripId,
@@ -63,7 +65,7 @@ export default function MobileTripsListPage() {
                   dateObj: tripDate,
                   pax: b.pax || details.pax || details.pasajeros || b.adults || 2,
                   isPast: isPast,
-                  image: details.image_url || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80"
+                  image: heroImg
                 })
               }
             } catch(e) {}
@@ -98,36 +100,42 @@ export default function MobileTripsListPage() {
       {/* Header */}
       <div className="px-4 pt-6 pb-2 flex items-center justify-center sticky top-0 bg-[#FDFDFD] z-30 border-b border-gray-100 shadow-sm relative">
         <button 
-          onClick={() => router.back()} 
-          className="absolute left-4 top-1/2 -translate-y-1/2 mt-2 p-2 hover:bg-gray-100 rounded-full transition-colors"
+          onClick={() => router.push('/mobile')} 
+          className="absolute left-4 p-2 text-black hover:text-gray-600 -ml-2"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-900" />
+          <ArrowLeft className="w-6 h-6" />
         </button>
-        <MobileLogo variant="dark" size="md" logoUrl={customLogoUrl} />
+        <MobileLogo variant="dark" size="sm" logoUrl={customLogoUrl} />
       </div>
 
       {/* Title */}
-      <div className="px-6 pt-6 pb-4">
-        <h1 className="text-3xl font-serif font-bold text-gray-900 mb-2">Mis viajes</h1>
-        <p className="text-sm text-gray-500">
-          Consulta y organiza todos los viajes que tienes planeados en un solo lugar.
-        </p>
+      <div className="px-6 py-6">
+        <h1 className="text-3xl font-serif font-bold text-gray-900 mb-1">Mis Viajes</h1>
+        <p className="text-xs text-gray-500">Gestiona y consulta todos tus itinerarios de viaje.</p>
       </div>
 
-      {/* Tabs */}
-      <div className="px-6 mb-6">
-        <div className="flex bg-gray-100 p-1 rounded-2xl">
-          <button 
+      {/* Tabs Switcher */}
+      <div className="px-4 mb-6">
+        <div className="flex bg-gray-100 p-1.5 rounded-full">
+          <button
             onClick={() => setActiveTab('upcoming')}
-            className={`flex-1 py-2.5 text-sm font-medium rounded-xl transition-all ${activeTab === 'upcoming' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`flex-1 py-2.5 text-xs font-bold rounded-full transition-all ${
+              activeTab === 'upcoming' 
+                ? 'bg-black text-white shadow-sm' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
           >
-            Próximos
+            Próximos ({upcomingTours.length})
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('past')}
-            className={`flex-1 py-2.5 text-sm font-medium rounded-xl transition-all ${activeTab === 'past' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`flex-1 py-2.5 text-xs font-bold rounded-full transition-all ${
+              activeTab === 'past' 
+                ? 'bg-black text-white shadow-sm' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
           >
-            Pasados
+            Pasados ({pastTours.length})
           </button>
         </div>
       </div>
@@ -150,6 +158,7 @@ export default function MobileTripsListPage() {
                 src={tour.image} 
                 alt={tour.name} 
                 className="w-24 h-32 rounded-2xl object-cover flex-shrink-0" 
+                onError={(e) => handleImageFallback(e, 'hero', tour.name, tour.name)}
               />
               <div className="flex-1 flex flex-col justify-center py-1">
                 <h3 className="font-serif font-bold text-gray-900 text-lg leading-tight mb-2 pr-6 relative">

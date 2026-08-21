@@ -15,6 +15,7 @@ import { useWhiteLabel } from "@/contexts/WhiteLabelContext"
 import { MobileLogo } from "@/components/mobile/MobileLogo"
 import { ItineraryRouteMap } from "@/components/mobile/ItineraryRouteMap"
 import { useToast } from "@/hooks/use-toast"
+import { getTourOrDestinationHeroImage, handleImageFallback, isInvalidOrGenericImage } from "@/lib/image-fallbacks"
 
 const DESTINATION_CITY_IMAGES: Record<string, string> = {
   // Ciudades del Reino Unido & Europa
@@ -481,11 +482,22 @@ export default function MobileItineraryListPage({ params }: { params?: { id: str
       {/* Hero Card Image */}
       <div className="px-4 mb-4">
         <div className="relative rounded-3xl overflow-hidden shadow-lg h-56">
-          <img 
-            src={activeBooking?.image || "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80"} 
-            alt={itinerary?.title || "Viaje"} 
-            className="w-full h-full object-cover"
-          />
+          {(() => {
+            const resolvedHeroImg = getTourOrDestinationHeroImage(
+              itinerary?.title,
+              itinerary?.destination,
+              itinerary?.tour_id,
+              activeBooking?.image || dbItinerary?.hero_image
+            );
+            return (
+              <img 
+                src={resolvedHeroImg} 
+                alt={itinerary?.title || "Viaje"} 
+                className="w-full h-full object-cover"
+                onError={(e) => handleImageFallback(e, 'hero', itinerary?.title, itinerary?.destination)}
+              />
+            );
+          })()}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           
           {/* Floating days remaining tag */}

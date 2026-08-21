@@ -69,6 +69,33 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Itinerario no encontrado' }, { status: 404 })
     }
 
+    // Resolve hero_image dynamically from MegaTravel scraping or destination catalog
+    let resolvedHero = null;
+    let daysParsed = typeof itinerary.days === 'string' ? JSON.parse(itinerary.days) : (itinerary.days || []);
+    if (Array.isArray(daysParsed) && daysParsed.length > 0 && daysParsed[0]?.hero_image) {
+      resolvedHero = daysParsed[0].hero_image;
+    }
+
+    if (!resolvedHero && itinerary.tour_id) {
+      const codeDigits = itinerary.tour_id.replace(/\D/g, '');
+      if (codeDigits) {
+        const mtRes = await dbQuery('SELECT main_image FROM megatravel_packages WHERE mt_code ILIKE $1 AND main_image IS NOT NULL LIMIT 1', [`%${codeDigits}%`]);
+        if (mtRes.rows.length > 0) resolvedHero = mtRes.rows[0].main_image;
+      }
+    }
+
+    if (!resolvedHero && itinerary.title) {
+      const mtNameRes = await dbQuery('SELECT main_image FROM megatravel_packages WHERE name ILIKE $1 AND main_image IS NOT NULL LIMIT 1', [`%${itinerary.title}%`]);
+      if (mtNameRes.rows.length > 0) resolvedHero = mtNameRes.rows[0].main_image;
+    }
+
+    if (!resolvedHero) {
+      const { getTourOrDestinationHeroImage } = await import('@/lib/image-fallbacks');
+      resolvedHero = getTourOrDestinationHeroImage(itinerary.title, itinerary.destination, itinerary.tour_id);
+    }
+
+    itinerary.hero_image = resolvedHero;
+
     return NextResponse.json({
       success: true,
       data: itinerary

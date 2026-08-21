@@ -1,13 +1,19 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 23:35 CST  
-**Versión actual:** v2.509  
+**Última actualización:** 21 de Agosto de 2026 - 07:38 CST  
+**Versión actual:** v2.510  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.510 - 21 de Agosto de 2026 - 07:38 CST
+**Portadas Oficiales de MegaTravel Scraping y Fallback Curado por Destino ([`image-fallbacks.ts`](file:///c:/operadora-dev/src/lib/image-fallbacks.ts), [`itineraries/[id]/route.ts`](file:///c:/operadora-dev/src/app/api/itineraries/[id]/route.ts), [`itinerario/[id]/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/page.tsx), [`mobile/itinerario/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/page.tsx))**
+- **Sincronización de Portadas MegaTravel:** Se cruzaron los 780 paquetes de `megatravel_packages` con todos los itinerarios de la base de datos, asignando la portada oficial de MegaTravel (ej. portada oficial de *Gran Tour de Europa II Plus* / *Gran Tour de Europa*) a los viajes correspondientes.
+- **Resolución Inteligente de Destinos / IA:** Para viajes no MegaTravel (como Cancún, CDMX, Guadalajara, etc.), se asignaron imágenes en alta definición específicas de cada ciudad y región.
+- **Eliminación Total de la Combi Genérica:** Se reemplazó la imagen placeholder de la combi en toda la app móvil por el helper `getTourOrDestinationHeroImage`.
 
 ### v2.509 - 20 de Agosto de 2026 - 23:35 CST
 **Soporte de Ruta Activa `/api/itineraries/active` y Auto-Resolución en Cascada ([`itineraries/[id]/route.ts`](file:///c:/operadora-dev/src/app/api/itineraries/[id]/route.ts), [`itinerario/[id]/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/page.tsx))**
