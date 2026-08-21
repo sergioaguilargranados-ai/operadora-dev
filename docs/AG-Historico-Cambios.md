@@ -1,13 +1,18 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 23:15 CST  
-**Versión actual:** v2.508  
+**Última actualización:** 20 de Agosto de 2026 - 23:35 CST  
+**Versión actual:** v2.509  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.509 - 20 de Agosto de 2026 - 23:35 CST
+**Soporte de Ruta Activa `/api/itineraries/active` y Auto-Resolución en Cascada ([`itineraries/[id]/route.ts`](file:///c:/operadora-dev/src/app/api/itineraries/[id]/route.ts), [`itinerario/[id]/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/page.tsx))**
+- **Ruta Especial `active`:** Se implementó soporte en `/api/itineraries/[id]` para el parámetro `active` o `current`, devolviendo el itinerario más próximo o activo en lugar de error 404.
+- **Resolución en Cascada:** Si la pantalla de detalle no obtiene días en la primera llamada, ejecuta una consulta secundaria con el `booking_id` activo y un fallback al itinerario global para garantizar que siempre se visualice el viaje completo.
 
 ### v2.508 - 20 de Agosto de 2026 - 23:15 CST
 **Corrección de Consulta por `booking_id` y Mapeo de `activeBooking` para Administradores ([`itineraries/[id]/route.ts`](file:///c:/operadora-dev/src/app/api/itineraries/[id]/route.ts), [`itinerario/[id]/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/page.tsx), [`mobile/page.tsx`](file:///c:/operadora-dev/src/app/mobile/page.tsx))**

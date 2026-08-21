@@ -300,6 +300,37 @@ export default function MobileItineraryListPage({ params }: { params?: { id: str
             } else {
               setActiveBooking(null)
             }
+
+            // Si el itinerario aún no se cargó, intentar con el ID de la reserva activa
+            if (!dbItinerary && (matchedBooking?.booking_id || targetId)) {
+              const tryId = matchedBooking?.booking_id || targetId
+              try {
+                const resRetry = await fetch(`/api/itineraries/${tryId}`)
+                const dataRetry = await resRetry.json()
+                if (dataRetry.success && dataRetry.data) {
+                  dbItinerary = dataRetry.data
+                  if (typeof dbItinerary.days === 'string') {
+                    try { dbItinerary.days = JSON.parse(dbItinerary.days) } catch (e) { dbItinerary.days = [] }
+                  }
+                  setItinerary(dbItinerary)
+                }
+              } catch(e) {}
+            }
+
+            // Si aún sigue siendo nulo, consultar el viaje activo global
+            if (!dbItinerary) {
+              try {
+                const resActive = await fetch('/api/itineraries/active')
+                const dataActive = await resActive.json()
+                if (dataActive.success && dataActive.data) {
+                  dbItinerary = dataActive.data
+                  if (typeof dbItinerary.days === 'string') {
+                    try { dbItinerary.days = JSON.parse(dbItinerary.days) } catch (e) { dbItinerary.days = [] }
+                  }
+                  setItinerary(dbItinerary)
+                }
+              } catch(e) {}
+            }
           }
         }
       } catch (error) {

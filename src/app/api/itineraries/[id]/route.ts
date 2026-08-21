@@ -16,6 +16,21 @@ export async function GET(
 
     let itinerary = null;
 
+    // 0. Handle 'active' / 'current' special parameter
+    if (idOrTourId === 'active' || idOrTourId === 'current') {
+      const resActive = await dbQuery(`
+        SELECT * FROM itineraries 
+        WHERE (start_date >= CURRENT_DATE OR end_date >= CURRENT_DATE) 
+        ORDER BY start_date ASC LIMIT 1
+      `)
+      if (resActive.rows.length > 0) {
+        itinerary = resActive.rows[0]
+      } else {
+        const resFallback = await dbQuery('SELECT * FROM itineraries ORDER BY id DESC LIMIT 1')
+        if (resFallback.rows.length > 0) itinerary = resFallback.rows[0]
+      }
+    }
+
     // 1. Try finding by booking_id FIRST (since mobile links by booking_id), then by id in itineraries
     if (!itinerary && !isNaN(Number(idOrTourId))) {
       let result = await dbQuery('SELECT * FROM itineraries WHERE booking_id = $1 LIMIT 1', [Number(idOrTourId)])
