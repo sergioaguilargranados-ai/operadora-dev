@@ -16,7 +16,8 @@ export async function GET(req: Request) {
                     address, legal_representative, b2b_agent_number,
                     support_email, support_phone, support_whatsapp,
                     logo_url, mobile_logo_url, logo_dark_url, primary_color, secondary_color, 
-                    accent_color, slogan, custom_domain, is_active
+                    accent_color, slogan, custom_domain, is_active,
+                    favicon_url, bg_color, font_family, custom_email, use_custom_email
                 FROM tenants
                 WHERE id = $1
             `, [tenantId])
@@ -31,8 +32,16 @@ export async function GET(req: Request) {
                 WHERE entity_type = 'agency' AND entity_id = $1
             `, [tenantId])
 
+            const settingsRes = await client.query(`
+                SELECT setting_key, setting_value FROM tenant_settings WHERE tenant_id = $1
+            `, [tenantId])
+
             const data = result.rows[0]
             data.documents = docsRes.rows
+            
+            settingsRes.rows.forEach(row => {
+                data[row.setting_key] = row.setting_value
+            })
 
             return NextResponse.json({ success: true, data })
         } finally {
@@ -50,7 +59,9 @@ export async function PUT(req: Request) {
         const { 
             id, company_name, legal_name, address, legal_representative, b2b_agent_number,
             support_email, support_phone, support_whatsapp,
-            logo_url, mobile_logo_url, logo_dark_url, primary_color, secondary_color, accent_color, slogan, custom_domain
+            logo_url, mobile_logo_url, logo_dark_url, primary_color, secondary_color, accent_color, slogan, custom_domain,
+            favicon_url, bg_color, font_family, custom_email, use_custom_email,
+            ai_model, ai_prompt, ai_language, ai_timezone
         } = body
 
         if (!id) {
@@ -78,17 +89,36 @@ export async function PUT(req: Request) {
                     slogan = COALESCE($15, slogan),
                     custom_domain = COALESCE($16, custom_domain),
                     logo_dark_url = COALESCE($17, logo_dark_url),
+                    favicon_url = COALESCE($18, favicon_url),
+                    bg_color = COALESCE($19, bg_color),
+                    font_family = COALESCE($20, font_family),
+                    custom_email = COALESCE($21, custom_email),
+                    use_custom_email = COALESCE($22, use_custom_email),
                     updated_at = NOW()
                 WHERE id = $1
             `
             const values = [
                 id, company_name, legal_name, address, legal_representative, b2b_agent_number,
                 support_email, support_phone, support_whatsapp,
-                logo_url, mobile_logo_url, primary_color, secondary_color, accent_color, slogan, custom_domain, logo_dark_url
+                logo_url, mobile_logo_url, primary_color, secondary_color, accent_color, slogan, custom_domain, logo_dark_url,
+                favicon_url, bg_color, font_family, custom_email, use_custom_email
             ]
             
             await client.query(query, values)
             
+            // Save AI settings if present
+            const aiSettings = { ai_model, ai_prompt, ai_language, ai_timezone }
+            for (const [key, val] of Object.entries(aiSettings)) {
+                if (val !== undefined) {
+                    await client.query(`
+                        INSERT INTO tenant_settings (tenant_id, setting_key, setting_value)
+                        VALUES ($1, $2, $3)
+                        ON CONFLICT (tenant_id, setting_key) 
+                        DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()
+                    `, [id, key, val])
+                }
+            }
+
             return NextResponse.json({ success: true })
         } finally {
             client.release()

@@ -28,6 +28,19 @@ interface AgencySettings {
   slogan: string
   custom_domain: string
   documents: any[]
+  
+  // Apariencia
+  favicon_url?: string
+  font_family?: string
+  bg_color?: string
+  custom_email?: string
+  use_custom_email?: boolean
+
+  // AS AI
+  ai_model?: string
+  ai_prompt?: string
+  ai_language?: string
+  ai_timezone?: string
 }
 
 const MORAL_DOCS = [
@@ -61,6 +74,7 @@ export default function AgencySettingsPage() {
   const logoDarkInputRef = useRef<HTMLInputElement>(null)
   const mobileLogoInputRef = useRef<HTMLInputElement>(null)
   const docInputRef = useRef<HTMLInputElement>(null)
+  const faviconInputRef = useRef<HTMLInputElement>(null)
   const [selectedDocType, setSelectedDocType] = useState<string | null>(null)
 
   useEffect(() => {
@@ -106,7 +120,7 @@ export default function AgencySettingsPage() {
     }
   }
 
-  const handleInputChange = (field: keyof AgencySettings, value: string) => {
+  const handleInputChange = (field: keyof AgencySettings, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
@@ -213,6 +227,7 @@ export default function AgencySettingsPage() {
       <input type="file" ref={logoInputRef} onChange={e => handleFileUpload(e, 'logo_url')} accept="image/*" className="hidden" />
       <input type="file" ref={logoDarkInputRef} onChange={e => handleFileUpload(e, 'logo_dark_url')} accept="image/*" className="hidden" />
       <input type="file" ref={mobileLogoInputRef} onChange={e => handleFileUpload(e, 'mobile_logo_url')} accept="image/*" className="hidden" />
+      <input type="file" ref={faviconInputRef} onChange={e => handleFileUpload(e, 'favicon_url')} accept="image/*" className="hidden" />
       <input type="file" ref={docInputRef} onChange={handleDocFileChange} accept=".pdf,image/*" className="hidden" />
 
       <div className="max-w-6xl mx-auto px-4 py-6">
@@ -247,13 +262,31 @@ export default function AgencySettingsPage() {
               onClick={() => setActiveTab('branding')}
               className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium text-sm transition-all ${activeTab === 'branding' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}
             >
-              <PaintBucket className="w-4 h-4" /> Marca Blanca & Logos
+              <PaintBucket className="w-4 h-4" /> Apariencia
             </button>
             <button 
               onClick={() => setActiveTab('documents')}
               className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium text-sm transition-all ${activeTab === 'documents' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}
             >
               <FileText className="w-4 h-4" /> Expediente Legal
+            </button>
+            <button 
+              onClick={() => setActiveTab('ai')}
+              className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium text-sm transition-all ${activeTab === 'ai' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}
+            >
+              <Loader2 className="w-4 h-4" /> AS AI
+            </button>
+            <button 
+              onClick={() => setActiveTab('subscription')}
+              className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium text-sm transition-all ${activeTab === 'subscription' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}
+            >
+              <CheckCircle2 className="w-4 h-4" /> Suscripción
+            </button>
+            <button 
+              onClick={() => setActiveTab('payments')}
+              className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium text-sm transition-all ${activeTab === 'payments' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}
+            >
+              <Save className="w-4 h-4" /> Pagos
             </button>
           </div>
 
@@ -328,7 +361,7 @@ export default function AgencySettingsPage() {
                   <p className="text-xs text-slate-500">Sube tus logotipos oficiales para personalizar el portal web y app móvil.</p>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                   {/* Logo Claro */}
                   <div className="border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-between text-center bg-white shadow-sm">
                     <p className="text-xs font-bold text-slate-700 mb-2">Logo Web (Fondo Claro)</p>
@@ -394,33 +427,104 @@ export default function AgencySettingsPage() {
                       {formData.mobile_logo_url ? 'Cambiar Icono' : 'Subir Archivo'}
                     </Button>
                   </div>
+
+                  {/* Favicon */}
+                  <div className="border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-between text-center bg-white shadow-sm">
+                    <p className="text-xs font-bold text-slate-700 mb-2">Favicon (32x32)</p>
+                    <div className="h-20 w-full flex items-center justify-center p-2 bg-slate-50 rounded-lg border border-slate-100 mb-3">
+                      {formData.favicon_url ? (
+                        <img src={formData.favicon_url} alt="Favicon" className="max-h-12 max-w-full object-contain" />
+                      ) : (
+                        <UploadCloud className="w-8 h-8 text-slate-300" />
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={uploadingField === 'favicon_url'}
+                      onClick={() => faviconInputRef.current?.click()}
+                      className="w-full text-xs"
+                    >
+                      {uploadingField === 'favicon_url' ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
+                      {formData.favicon_url ? 'Cambiar Favicon' : 'Subir Archivo'}
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Colores de Marca */}
                 <div className="pt-2">
                   <h3 className="font-semibold text-sm text-slate-800 mb-3">Colores Principales</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                     <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
                       <div>
                         <p className="text-xs font-semibold text-slate-700">Primario</p>
-                        <p className="text-[11px] text-slate-400">Botones de acción</p>
+                        <p className="text-[11px] text-slate-400">Botones</p>
                       </div>
                       <input type="color" value={formData.primary_color || '#2563eb'} onChange={e => handleInputChange('primary_color', e.target.value)} className="w-8 h-8 rounded border-0 cursor-pointer" />
                     </div>
                     <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
                       <div>
                         <p className="text-xs font-semibold text-slate-700">Secundario</p>
-                        <p className="text-[11px] text-slate-400">Headers y fondos</p>
+                        <p className="text-[11px] text-slate-400">Headers</p>
                       </div>
                       <input type="color" value={formData.secondary_color || '#1e293b'} onChange={e => handleInputChange('secondary_color', e.target.value)} className="w-8 h-8 rounded border-0 cursor-pointer" />
                     </div>
                     <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
                       <div>
                         <p className="text-xs font-semibold text-slate-700">Acento</p>
-                        <p className="text-[11px] text-slate-400">Insignias y badges</p>
+                        <p className="text-[11px] text-slate-400">Insignias</p>
                       </div>
                       <input type="color" value={formData.accent_color || '#f59e0b'} onChange={e => handleInputChange('accent_color', e.target.value)} className="w-8 h-8 rounded border-0 cursor-pointer" />
                     </div>
+                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <div>
+                        <p className="text-xs font-semibold text-slate-700">Fondo</p>
+                        <p className="text-[11px] text-slate-400">Background</p>
+                      </div>
+                      <input type="color" value={formData.bg_color || '#f8fafc'} onChange={e => handleInputChange('bg_color', e.target.value)} className="w-8 h-8 rounded border-0 cursor-pointer" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                  {/* Tipografía */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-800 mb-2">Tipografía Principal</label>
+                    <select 
+                      value={formData.font_family || 'Inter'} 
+                      onChange={e => handleInputChange('font_family', e.target.value)}
+                      className="w-full border border-slate-300 rounded-lg p-2.5 text-sm"
+                      style={{ fontFamily: formData.font_family || 'Inter' }}
+                    >
+                      <option value="Inter">Inter (Predeterminada)</option>
+                      <option value="Roboto">Roboto</option>
+                      <option value="Open Sans">Open Sans</option>
+                      <option value="Poppins">Poppins</option>
+                      <option value="Montserrat">Montserrat</option>
+                      <option value="Lato">Lato</option>
+                    </select>
+                    <p className="text-xs text-slate-500 mt-1" style={{ fontFamily: formData.font_family || 'Inter' }}>La tipografía actual se ve así.</p>
+                  </div>
+
+                  {/* Correo Personalizado */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-800 mb-2">Correo Electrónico del Sistema</label>
+                    <input 
+                      type="email" 
+                      value={formData.custom_email || ''} 
+                      onChange={e => handleInputChange('custom_email', e.target.value)} 
+                      className="w-full border border-slate-300 rounded-lg p-2.5 text-sm mb-2" 
+                      placeholder="reservas@miagencia.com" 
+                    />
+                    <label className="flex items-center gap-2 text-xs text-slate-700">
+                      <input 
+                        type="checkbox" 
+                        checked={formData.use_custom_email || false} 
+                        onChange={e => handleInputChange('use_custom_email', (e.target.checked as any))} 
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" 
+                      />
+                      Usar como remitente predeterminado
+                    </label>
                   </div>
                 </div>
               </motion.div>
@@ -496,6 +600,323 @@ export default function AgencySettingsPage() {
                       </div>
                     )
                   })}
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'ai' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">AS AI - Inteligencia Artificial</h2>
+                  <p className="text-xs text-slate-500">Configura el comportamiento del agente de IA para tu agencia.</p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-800 mb-2">Instrucciones para AS AI (System Prompt)</label>
+                    <textarea 
+                      value={formData.ai_prompt || ''} 
+                      onChange={e => handleInputChange('ai_prompt', e.target.value)} 
+                      className="w-full border border-slate-300 rounded-lg p-2.5 text-sm h-32" 
+                      placeholder="Ej. Eres un experto agente de viajes de la agencia X..."
+                      maxLength={2000}
+                    ></textarea>
+                    <p className="text-right text-xs text-slate-500 mt-1">{(formData.ai_prompt || '').length}/2000</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-800 mb-2">Modelo de IA</label>
+                      <select 
+                        value={formData.ai_model || 'gpt-4o'} 
+                        onChange={e => handleInputChange('ai_model', e.target.value)}
+                        className="w-full border border-slate-300 rounded-lg p-2.5 text-sm"
+                      >
+                        <option value="gpt-4o">GPT-4o (Recomendado)</option>
+                        <option value="gpt-4">GPT-4</option>
+                        <option value="gpt-3.5">GPT-3.5</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-800 mb-2">Idioma Principal</label>
+                      <select 
+                        value={formData.ai_language || 'es'} 
+                        onChange={e => handleInputChange('ai_language', e.target.value)}
+                        className="w-full border border-slate-300 rounded-lg p-2.5 text-sm"
+                      >
+                        <option value="es">Español</option>
+                        <option value="en">Inglés</option>
+                        <option value="pt">Portugués</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-800 mb-2">Zona Horaria</label>
+                      <select 
+                        value={formData.ai_timezone || 'America/Mexico_City'} 
+                        onChange={e => handleInputChange('ai_timezone', e.target.value)}
+                        className="w-full border border-slate-300 rounded-lg p-2.5 text-sm"
+                      >
+                        <option value="America/Mexico_City">GMT-06:00 Ciudad de México</option>
+                        <option value="America/Bogota">GMT-05:00 Bogotá</option>
+                        <option value="America/Argentina/Buenos_Aires">GMT-03:00 Buenos Aires</option>
+                        <option value="Europe/Madrid">GMT+01:00 Madrid</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'subscription' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">Suscripción y Plan</h2>
+                  <p className="text-xs text-slate-500">Gestiona tu plan y revisa el consumo de tu licencia actual.</p>
+                </div>
+                
+                <div className="bg-slate-900 text-white p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold">Plan Free <span className="text-sm font-normal text-slate-400 ml-2">(Anual)</span></h3>
+                    <p className="text-sm text-slate-300 mt-1">2 licencias en uso de 5 permitidas.</p>
+                  </div>
+                  <Button variant="outline" className="text-slate-900 border-slate-700 hover:bg-slate-800 hover:text-white">Actualizar Plan</Button>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+                    <p className="text-xs font-semibold text-slate-500">Licencias</p>
+                    <p className="text-lg font-bold text-slate-900 mt-1">2 <span className="text-sm text-slate-400">/ 5</span></p>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                      <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: '40%' }}></div>
+                    </div>
+                  </div>
+                  <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+                    <p className="text-xs font-semibold text-slate-500">Viajes</p>
+                    <p className="text-lg font-bold text-slate-900 mt-1">45 <span className="text-sm text-slate-400">/ 100</span></p>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                      <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '45%' }}></div>
+                    </div>
+                  </div>
+                  <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+                    <p className="text-xs font-semibold text-slate-500">Biblioteca</p>
+                    <p className="text-lg font-bold text-slate-900 mt-1">12 <span className="text-sm text-slate-400">/ 50</span></p>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                      <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '24%' }}></div>
+                    </div>
+                  </div>
+                  <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+                    <p className="text-xs font-semibold text-slate-500">Visitas / mes</p>
+                    <p className="text-lg font-bold text-slate-900 mt-1">850 <span className="text-sm text-slate-400">/ 10k</span></p>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                      <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: '8.5%' }}></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <div className="flex justify-center items-center gap-3 mb-6">
+                    <span className="text-sm font-medium text-slate-600">Mensual</span>
+                    <button className="w-12 h-6 bg-blue-600 rounded-full relative flex items-center px-1">
+                      <div className="w-4 h-4 bg-white rounded-full translate-x-6"></div>
+                    </button>
+                    <span className="text-sm font-medium text-slate-900">Anual</span>
+                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">Ahorra 20%</Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* Free */}
+                    <div className="border border-slate-200 p-4 rounded-xl flex flex-col">
+                      <h4 className="font-bold text-slate-900">Free</h4>
+                      <p className="text-2xl font-bold mt-2">$0</p>
+                      <ul className="text-xs text-slate-600 mt-4 space-y-2 flex-grow">
+                        <li className="flex gap-2 items-start"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5" /> 5 Licencias</li>
+                        <li className="flex gap-2 items-start"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5" /> CRM Básico</li>
+                      </ul>
+                      <Button className="w-full mt-4" variant="outline" disabled>Plan Actual</Button>
+                    </div>
+                    {/* Basico */}
+                    <div className="border border-slate-200 p-4 rounded-xl flex flex-col">
+                      <h4 className="font-bold text-slate-900">Básico</h4>
+                      <p className="text-2xl font-bold mt-2">$1,199<span className="text-xs font-normal text-slate-500">/año</span></p>
+                      <ul className="text-xs text-slate-600 mt-4 space-y-2 flex-grow">
+                        <li className="flex gap-2 items-start"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5" /> 10 Licencias</li>
+                        <li className="flex gap-2 items-start"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5" /> App Móvil</li>
+                      </ul>
+                      <Button className="w-full mt-4" variant="outline">Seleccionar</Button>
+                    </div>
+                    {/* Profesional */}
+                    <div className="border border-blue-200 bg-blue-50/30 p-4 rounded-xl flex flex-col relative">
+                      <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2">
+                        <Badge className="bg-blue-600 text-white border-0">Más popular</Badge>
+                      </div>
+                      <h4 className="font-bold text-slate-900 mt-2">Profesional</h4>
+                      <p className="text-2xl font-bold mt-2">$2,399<span className="text-xs font-normal text-slate-500">/año</span></p>
+                      <ul className="text-xs text-slate-600 mt-4 space-y-2 flex-grow">
+                        <li className="flex gap-2 items-start"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5" /> 25 Licencias</li>
+                        <li className="flex gap-2 items-start"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5" /> Marca Blanca Web</li>
+                      </ul>
+                      <Button className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white">Seleccionar</Button>
+                    </div>
+                    {/* Avanzado */}
+                    <div className="border border-slate-200 p-4 rounded-xl flex flex-col">
+                      <h4 className="font-bold text-slate-900">Avanzado</h4>
+                      <p className="text-2xl font-bold mt-2">$4,799<span className="text-xs font-normal text-slate-500">/año</span></p>
+                      <ul className="text-xs text-slate-600 mt-4 space-y-2 flex-grow">
+                        <li className="flex gap-2 items-start"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5" /> Ilimitadas</li>
+                        <li className="flex gap-2 items-start"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5" /> Marca Blanca Completa</li>
+                        <li className="flex gap-2 items-start"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5" /> API Access</li>
+                      </ul>
+                      <Button className="w-full mt-4" variant="outline">Seleccionar</Button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'payments' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">Configuración de Pagos</h2>
+                  <p className="text-xs text-slate-500">Gestiona tus métodos de cobro e historial de pagos de reservas.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Stripe */}
+                  <div className="border border-slate-200 p-5 rounded-xl bg-white shadow-sm flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-bold text-slate-900 flex items-center gap-2">Tarjeta (Stripe) <Badge className="bg-purple-100 text-purple-700 border-0">NUEVO</Badge></h3>
+                        <p className="text-xs text-slate-500 mt-1">Estatus: <span className="font-semibold text-slate-400">No conectado</span></p>
+                      </div>
+                      <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center font-bold text-slate-400">S</div>
+                    </div>
+                    <Button variant="outline" className="w-full mt-2">Conectar Stripe</Button>
+                  </div>
+
+                  {/* Pago externo */}
+                  <div className="border border-slate-200 p-5 rounded-xl bg-white shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-bold text-slate-900">Pago Externo</h3>
+                        <button className="w-10 h-5 bg-blue-600 rounded-full relative">
+                          <div className="w-3.5 h-3.5 bg-white rounded-full absolute top-0.5 right-1"></div>
+                        </button>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">Permitir registro de transferencias y efectivo manualmente.</p>
+                    </div>
+                    <div className="mt-4">
+                      <div className="flex justify-between text-xs mb-1 font-medium">
+                        <span className="text-slate-600">Volumen sin comisión</span>
+                        <span className="text-slate-900">$12,400 / $50,000</span>
+                      </div>
+                      <div className="w-full bg-slate-100 rounded-full h-1.5">
+                        <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: '25%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tarjeta Corporativa (Mock Form) */}
+                <div className="mt-6 border border-slate-200 rounded-xl p-5 bg-slate-50/50">
+                  <h3 className="font-bold text-slate-900 mb-4">Agregar Tarjeta Corporativa</h3>
+                  <div className="flex items-center gap-6 mb-4 text-sm">
+                    <label className="flex items-center gap-2"><input type="radio" name="card_type" defaultChecked /> Crédito</label>
+                    <label className="flex items-center gap-2"><input type="radio" name="card_type" /> Contado</label>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Titular de la Tarjeta</label>
+                      <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Número de Tarjeta</label>
+                      <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm" placeholder="0000 0000 0000 0000" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Tipo</label>
+                      <select className="w-full border border-slate-300 rounded-lg p-2.5 text-sm">
+                        <option>Visa</option>
+                        <option>Mastercard</option>
+                        <option>Amex</option>
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Expiración</label>
+                        <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm" placeholder="MM/YY" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">CVV</label>
+                        <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm" placeholder="123" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Código Postal</label>
+                      <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm" />
+                    </div>
+                    <div className="sm:col-span-2 flex items-start gap-2 mt-2">
+                      <input type="checkbox" className="mt-1" defaultChecked />
+                      <div>
+                        <p className="text-sm font-medium text-slate-800">Usar dirección fiscal de la agencia</p>
+                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Encriptación nivel bancario SSL de 256 bits.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Historial de Pagos (Mock Table) */}
+                <div className="mt-8 border-t border-slate-100 pt-6">
+                  <h3 className="font-bold text-slate-900 mb-4">Historial de Pagos de Reservas</h3>
+                  
+                  {/* Filters mock */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <select className="border border-slate-300 rounded-md p-1.5 text-xs text-slate-700"><option>Todos los periodos</option></select>
+                    <select className="border border-slate-300 rounded-md p-1.5 text-xs text-slate-700"><option>Tipo de servicio</option></select>
+                    <select className="border border-slate-300 rounded-md p-1.5 text-xs text-slate-700"><option>Cualquier estado</option></select>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-slate-600">
+                      <thead className="text-xs text-slate-500 uppercase bg-slate-50">
+                        <tr>
+                          <th className="px-4 py-3">Fecha</th>
+                          <th className="px-4 py-3">Reserva</th>
+                          <th className="px-4 py-3">Cliente</th>
+                          <th className="px-4 py-3">Método</th>
+                          <th className="px-4 py-3 text-right">Monto</th>
+                          <th className="px-4 py-3 text-center">Estado</th>
+                          <th className="px-4 py-3 text-center">Comprobante</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        <tr>
+                          <td className="px-4 py-3">21/08/2026</td>
+                          <td className="px-4 py-3 font-medium text-slate-900">RES-1029<br/><span className="text-xs font-normal text-slate-500">Cancún</span></td>
+                          <td className="px-4 py-3">Juan Pérez</td>
+                          <td className="px-4 py-3">Visa ****4242</td>
+                          <td className="px-4 py-3 text-right font-medium">$12,500.00 MXN</td>
+                          <td className="px-4 py-3 text-center"><Badge className="bg-emerald-100 text-emerald-700 border-0">Pagado</Badge></td>
+                          <td className="px-4 py-3 text-center"><button className="text-blue-600 hover:underline">PDF</button></td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-3">18/08/2026</td>
+                          <td className="px-4 py-3 font-medium text-slate-900">RES-1028<br/><span className="text-xs font-normal text-slate-500">Madrid</span></td>
+                          <td className="px-4 py-3">María García</td>
+                          <td className="px-4 py-3">Transf. SPEI</td>
+                          <td className="px-4 py-3 text-right font-medium">$45,000.00 MXN</td>
+                          <td className="px-4 py-3 text-center"><Badge className="bg-emerald-100 text-emerald-700 border-0">Pagado</Badge></td>
+                          <td className="px-4 py-3 text-center"><button className="text-blue-600 hover:underline">PDF</button></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex justify-end mt-4">
+                    <div className="flex items-center gap-1 text-xs">
+                      <button className="px-2 py-1 border border-slate-300 rounded text-slate-500" disabled>&lt;</button>
+                      <button className="px-2 py-1 bg-blue-600 text-white rounded">1</button>
+                      <button className="px-2 py-1 border border-slate-300 rounded text-slate-500">&gt;</button>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             )}

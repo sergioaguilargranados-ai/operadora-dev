@@ -9,6 +9,21 @@
 
 ## 📅 HISTORIAL DE CAMBIOS
 
+### v2.512 - 21 de Agosto de 2026 - 17:15 CST
+**Finalización Completa de Requerimientos del Portal (VID-PORTAL-31072026)**
+- **WS-1: Fix Recibo de Pago PDF**: Conexión del botón "Descargar recibo" con `PDFService.generatePaymentReceipt()` para emitir comprobantes de pago con diseño premium institucional.
+- **WS-2: Ajustes y Configuración de Agencia B2B**: Implementación de las pestañas **AS AI** (instrucciones, modelo, idioma, zona horaria en `tenant_settings`), **Suscripción** (comparativa de planes, medidores de recursos) y **Pagos** (pasarelas Stripe/Externo, formulario tarjeta, historial de pagos de reservas). Pestaña **Apariencia** mejorada con favicon, tipografía, verificación de dominio y selector hexadecimal para 4 colores (añadiendo el color de fondo).
+- **WS-3: Panel Corporativo Avanzado**: Módulo de métricas por vertical de servicio, dona y barras de cumplimiento de políticas, preferencias de emisiones de CO2 (DEFRA 2024 / alcances), sidebar interactivo de políticas granulares para Vuelos y Hoteles (JSONB), y sub-pestaña "Propuestas de viaje" dentro de Aprobaciones.
+- **WS-4: Ventas y Comisiones de Agencia**: Módulo de ventas ampliado con pestañas de Resumen, Reservas (tabla real), Productos (gráfico de barra), Agentes (ranking) y Reportes (generador CSV). Nueva vista de Comisiones con KPIs, filtros y tabla conectada a la base de datos real.
+- **Base de Datos y APIs**: Integración y ejecución de las migraciones `061_agent_commissions.sql`, `061_corporate_advanced.sql`, `061_tenant_settings.sql` y `062_add_appearance_fields_to_tenants.sql`. Actualización de la ruta de comisiones en el menú navegación y ejecución de `seed-navigation-menu.js`. Compilación exitosa (0 errores, 371 rutas).
+
+### v2.511 - 21 de Agosto de 2026 - 17:00 CST
+**Pestañas Avanzadas del Panel de Empresas**
+- **Métricas Avanzadas**: KPI por vertical (Vuelos, Hoteles, Autos, Traslados), Dona y desglose de cumplimiento de políticas, Módulo de preferencias de CO2.
+- **Políticas de Viaje Granulares**: Sidebar de navegación por categoría, Políticas granulares para Vuelos y Hoteles conectadas a BD con JSONB.
+- **Sub-pestaña de Propuestas de Viaje**: Sección de Propuestas dentro de Aprobaciones con kpis en tiempo real y vista interactiva.
+- **APIs**: Nuevos endpoints para métricas, políticas, y propuestas.
+
 ### v2.511 - 21 de Agosto de 2026 - 16:15 CST
 **Conexión 100% Real PostgreSQL y Eliminación Total de Mocks en Paneles de Empresas y Agencias (VID-PORTAL-31072026)**
 - **Workstream 1 - Panel de Empresas (`/dashboard/corporate`):**

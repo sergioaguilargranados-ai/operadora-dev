@@ -653,20 +653,20 @@ function TabGastos({ tenantId }: { tenantId: number }) {
 // TAB: MÉTRICAS & CO2
 // ═══════════════════════════════════════
 function TabMetricas({ tenantId }: { tenantId: number }) {
-  const [stats, setStats] = useState<any>(null)
+  const [metrics, setMetrics] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!tenantId) return
-    fetchStats()
+    fetchMetrics()
   }, [tenantId])
 
-  const fetchStats = async () => {
+  const fetchMetrics = async () => {
     try {
       setLoading(true)
-      const res = await fetch(`/api/corporate/stats?tenantId=${tenantId}`)
+      const res = await fetch(`/api/corporate/metrics?tenantId=${tenantId}`)
       const json = await res.json()
-      if (json.success) setStats(json.data)
+      if (json.success) setMetrics(json.data)
     } catch (e) {
       console.error(e)
     } finally {
@@ -674,72 +674,140 @@ function TabMetricas({ tenantId }: { tenantId: number }) {
     }
   }
 
-  // Cálculos CO2
-  const bookingsCount = stats?.activeBookings || 0
-  const totalCO2Kg = bookingsCount * 280 + 120
-  const tonsCO2 = (totalCO2Kg / 1000).toFixed(2)
-  const trees = Math.ceil(totalCO2Kg / 22)
+  if (loading) {
+    return <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600" /></div>
+  }
+
+  const { flights, hotels, cars, trains, meals, groundTransport, co2, compliance, emissionPreferences } = metrics || {}
+  const trees = Math.ceil((co2?.totalTons || 0) * 1000 / 22)
+
+  const complianceData = [
+    { name: 'Cumple', value: compliance?.breakdown?.compliant || 0, color: '#10b981' },
+    { name: 'Excepciones', value: compliance?.breakdown?.exceptions || 0, color: '#f59e0b' },
+    { name: 'No Cumple', value: compliance?.breakdown?.nonCompliant || 0, color: '#ef4444' }
+  ]
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-slate-900">Huella de Carbono</h3>
-              <Activity className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div className="text-3xl font-bold text-slate-900">{tonsCO2} <span className="text-base font-normal text-slate-500">t CO2e</span></div>
-            <p className="text-xs text-muted-foreground mt-2">Emisiones generadas por viajes corporativos en el año.</p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-emerald-700 bg-emerald-50 p-2.5 rounded-lg">
-            <span>Árboles para compensar:</span>
-            <span className="font-bold text-sm">{trees} árboles/año</span>
-          </div>
+      {/* MÉTRICAS POR VERTICAL */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2"><Plane className="h-4 w-4 text-blue-600" /> Vuelos</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between"><span>Precio medio:</span> <span className="font-semibold">${flights?.avgPrice?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span></div>
+            <div className="flex justify-between"><span>Anticipación media:</span> <span className="font-semibold">{flights?.avgAdvance} días</span></div>
+            <div className="flex justify-between"><span>Tasa de ahorro:</span> <span className="font-semibold text-emerald-600">{flights?.savingsRate}%</span></div>
+            <div className="flex justify-between"><span>Costo por milla:</span> <span className="font-semibold">${flights?.costPerMile}</span></div>
+          </CardContent>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="font-semibold text-slate-900 mb-4">Desglose de Emisiones</h3>
-          <div className="space-y-3 text-sm">
-            <div>
-              <div className="flex justify-between mb-1">
-                <span>Vuelos Comerciales</span>
-                <span className="font-medium">70%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div className="bg-blue-600 h-2 rounded-full" style={{ width: '70%' }} />
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between mb-1">
-                <span>Hospedaje & Hoteles</span>
-                <span className="font-medium">20%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div className="bg-emerald-600 h-2 rounded-full" style={{ width: '20%' }} />
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between mb-1">
-                <span>Transporte Terrestre</span>
-                <span className="font-medium">10%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div className="bg-amber-500 h-2 rounded-full" style={{ width: '10%' }} />
-              </div>
-            </div>
-          </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2"><Building2 className="h-4 w-4 text-emerald-600" /> Hoteles</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between"><span>Precio medio/noche:</span> <span className="font-semibold">${hotels?.avgPricePerNight?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span></div>
+            <div className="flex justify-between"><span>Tarifa fijación:</span> <span className="font-semibold">{hotels?.attachmentRate}%</span></div>
+            <div className="flex justify-between"><span>Tasa de ahorro:</span> <span className="font-semibold text-emerald-600">{hotels?.savingsRate}%</span></div>
+          </CardContent>
         </Card>
 
-        <Card className="p-6 flex flex-col justify-between">
-          <div>
-            <h3 className="font-semibold text-slate-900 mb-2">Adopción de Políticas</h3>
-            <p className="text-xs text-muted-foreground mb-4">Cumplimiento de tarifas dentro de política de viaje.</p>
-            <div className="text-3xl font-bold text-blue-600">92.4%</div>
-          </div>
-          <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg mt-4">
-            Políticas activas: Máximo en vuelos y hoteles según rol de colaborador.
-          </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2"><Car className="h-4 w-4 text-amber-600" /> Autos y Traslados</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between"><span>Autos (medio/día):</span> <span className="font-semibold">${cars?.avgPricePerDay?.toLocaleString('es-MX')}</span></div>
+            <div className="flex justify-between"><span>% Clase económica:</span> <span className="font-semibold">{cars?.economyPercent}%</span></div>
+            <div className="flex justify-between"><span>Traslados (medio/día):</span> <span className="font-semibold">${groundTransport?.avgCostPerDay?.toLocaleString('es-MX')}</span></div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* CUMPLIMIENTO DE POLÍTICAS */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Cumplimiento de Políticas</CardTitle>
+            <CardDescription>Adherencia general {compliance?.overall}%</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col md:flex-row items-center gap-6">
+            <div className="w-40 h-40">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={complianceData} innerRadius={40} outerRadius={60} paddingAngle={2} dataKey="value">
+                    {complianceData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex-1 space-y-3 w-full">
+              {['Vuelos', 'Hoteles', 'Autos', 'Trenes'].map((cat) => {
+                const val = compliance?.byCategory?.[cat.toLowerCase()] || 0
+                return (
+                  <div key={cat} className="text-sm">
+                    <div className="flex justify-between mb-1">
+                      <span>{cat}</span>
+                      <span className="font-medium">{val}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5">
+                      <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${val}%` }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* EMISIONES Y PREFERENCIAS */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Emisiones CO₂ y Preferencias</CardTitle>
+            <CardDescription>Configuración de cálculo</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
+              <div>
+                <p className="text-sm font-semibold">Total Emisiones</p>
+                <p className="text-xs text-slate-500">Compensación est. ${co2?.compensationCost}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xl font-bold text-slate-900">{co2?.totalTons} <span className="text-sm font-normal">t CO2e</span></p>
+                <p className="text-xs text-emerald-600 font-medium">{trees} árboles requeridos</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-2 text-sm">
+              <div className="flex justify-between items-center">
+                <Label>Método de cálculo</Label>
+                <Select defaultValue={emissionPreferences?.method || "Estándar DEFRA 2024"}>
+                  <SelectTrigger className="w-48 h-8"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Estándar DEFRA 2024">Estándar DEFRA 2024</SelectItem>
+                    <SelectItem value="GHG Protocol">GHG Protocol</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-between items-center">
+                <Label>Alcance 1 (Directo)</Label>
+                <Switch defaultChecked={emissionPreferences?.scope1} />
+              </div>
+              <div className="flex justify-between items-center">
+                <Label>Alcance 2 (Indirecto Elec.)</Label>
+                <Switch defaultChecked={emissionPreferences?.scope2} />
+              </div>
+              <div className="flex justify-between items-center">
+                <Label>Alcance 3 (Proveedores)</Label>
+                <Switch defaultChecked={emissionPreferences?.scope3} />
+              </div>
+            </div>
+          </CardContent>
         </Card>
       </div>
     </div>
@@ -751,23 +819,37 @@ function TabMetricas({ tenantId }: { tenantId: number }) {
 // ═══════════════════════════════════════
 function TabAprobaciones({ tenantId }: { tenantId: number }) {
   const [approvals, setApprovals] = useState<any[]>([])
+  const [proposals, setProposals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [processingId, setProcessingId] = useState<number | null>(null)
+  const [subTab, setSubTab] = useState<'reservaciones' | 'propuestas'>('reservaciones')
   const { toast } = useToast()
 
   useEffect(() => {
     if (!tenantId) return
-    fetchApprovals()
-  }, [tenantId])
+    if (subTab === 'reservaciones') fetchApprovals()
+    else fetchProposals()
+  }, [tenantId, subTab])
 
   const fetchApprovals = async () => {
     try {
       setLoading(true)
       const res = await fetch(`/api/corporate/approvals?tenantId=${tenantId}`)
       const json = await res.json()
-      if (json.success) {
-        setApprovals(json.data || [])
-      }
+      if (json.success) setApprovals(json.data || [])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchProposals = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/corporate/proposals?tenantId=${tenantId}`)
+      const json = await res.json()
+      if (json.success) setProposals(json.data || [])
     } catch (e) {
       console.error(e)
     } finally {
@@ -781,19 +863,34 @@ function TabAprobaciones({ tenantId }: { tenantId: number }) {
       const res = await fetch('/api/corporate/approvals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          approvalId,
-          tenantId,
-          action
-        })
+        body: JSON.stringify({ approvalId, tenantId, action })
       })
       const data = await res.json()
       if (data.success) {
-        toast({
-          title: action === 'approved' ? 'Solicitud Aprobada' : 'Solicitud Rechazada',
-          description: data.message
-        })
+        toast({ title: action === 'approved' ? 'Solicitud Aprobada' : 'Solicitud Rechazada', description: data.message })
         fetchApprovals()
+      } else {
+        toast({ title: 'Error', description: data.error, variant: 'destructive' })
+      }
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' })
+    } finally {
+      setProcessingId(null)
+    }
+  }
+
+  const handleProposalAction = async (proposalId: number, status: 'approved' | 'rejected') => {
+    try {
+      setProcessingId(proposalId)
+      const res = await fetch(`/api/corporate/proposals/${proposalId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId, status })
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: 'Éxito', description: `Propuesta ${status === 'approved' ? 'aprobada' : 'rechazada'}` })
+        fetchProposals()
       } else {
         toast({ title: 'Error', description: data.error, variant: 'destructive' })
       }
@@ -808,87 +905,130 @@ function TabAprobaciones({ tenantId }: { tenantId: number }) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">Solicitudes de Aprobación</h2>
-          <p className="text-sm text-muted-foreground">Revisa y autoriza viajes de colaboradores de la empresa.</p>
+          <h2 className="text-xl font-semibold text-slate-900">Aprobaciones</h2>
+          <p className="text-sm text-muted-foreground">Gestiona las solicitudes y propuestas de viaje de tu equipo.</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchApprovals}>
+        <Button variant="outline" size="sm" onClick={subTab === 'reservaciones' ? fetchApprovals : fetchProposals}>
           <RefreshCw className="h-4 w-4 mr-2" /> Actualizar
         </Button>
       </div>
 
-      <Card>
-        {loading ? (
-          <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600" /></div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Folio</TableHead>
-                <TableHead>Solicitante</TableHead>
-                <TableHead>Departamento</TableHead>
-                <TableHead>Motivo de Viaje</TableHead>
-                <TableHead>Costo Estimado</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {approvals.length > 0 ? (
-                approvals.map((appr) => (
-                  <TableRow key={appr.id}>
-                    <TableCell className="font-mono text-xs">REQ-{appr.id}</TableCell>
-                    <TableCell>
-                      <div className="font-medium">{appr.requestedByName}</div>
-                      <div className="text-xs text-slate-400">{appr.requestedByEmail}</div>
-                    </TableCell>
-                    <TableCell>{appr.department}</TableCell>
-                    <TableCell className="text-sm max-w-xs truncate">{appr.reasonForTravel}</TableCell>
-                    <TableCell className="font-semibold text-slate-900">
-                      ${appr.estimatedCost.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN
-                    </TableCell>
-                    <TableCell>
-                      {appr.status === 'approved' && <Badge className="bg-emerald-100 text-emerald-800">Aprobado</Badge>}
-                      {appr.status === 'pending' && <Badge className="bg-amber-100 text-amber-800">Pendiente</Badge>}
-                      {appr.status === 'rejected' && <Badge className="bg-red-100 text-red-800">Rechazado</Badge>}
-                    </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      {appr.status === 'pending' ? (
-                        <>
-                          <Button
-                            size="sm"
-                            disabled={processingId === appr.id}
-                            onClick={() => handleAction(appr.id, 'approved')}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white h-8"
-                          >
-                            <Check className="h-3.5 w-3.5 mr-1" /> Aprobar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={processingId === appr.id}
-                            onClick={() => handleAction(appr.id, 'rejected')}
-                            className="text-red-600 border-red-200 hover:bg-red-50 h-8"
-                          >
-                            <X className="h-3.5 w-3.5 mr-1" /> Rechazar
-                          </Button>
-                        </>
-                      ) : (
-                        <span className="text-xs text-slate-400">Procesado</span>
-                      )}
-                    </TableCell>
+      <Tabs value={subTab} onValueChange={(val: any) => setSubTab(val)} className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="reservaciones">Reservaciones</TabsTrigger>
+          <TabsTrigger value="propuestas">Propuestas de viaje</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="reservaciones">
+          <Card>
+            {loading ? (
+              <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600" /></div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Folio</TableHead>
+                    <TableHead>Solicitante</TableHead>
+                    <TableHead>Departamento</TableHead>
+                    <TableHead>Motivo de Viaje</TableHead>
+                    <TableHead>Costo Estimado</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-slate-400">
-                    No hay solicitudes de viaje pendientes.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {approvals.length > 0 ? approvals.map((appr) => (
+                    <TableRow key={appr.id}>
+                      <TableCell className="font-mono text-xs">REQ-{appr.id}</TableCell>
+                      <TableCell>
+                        <div className="font-medium">{appr.requestedByName}</div>
+                        <div className="text-xs text-slate-400">{appr.requestedByEmail}</div>
+                      </TableCell>
+                      <TableCell>{appr.department}</TableCell>
+                      <TableCell className="text-sm max-w-xs truncate">{appr.reasonForTravel}</TableCell>
+                      <TableCell className="font-semibold text-slate-900">
+                        ${appr.estimatedCost.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN
+                      </TableCell>
+                      <TableCell>
+                        {appr.status === 'approved' && <Badge className="bg-emerald-100 text-emerald-800">Aprobado</Badge>}
+                        {appr.status === 'pending' && <Badge className="bg-amber-100 text-amber-800">Pendiente</Badge>}
+                        {appr.status === 'rejected' && <Badge className="bg-red-100 text-red-800">Rechazado</Badge>}
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        {appr.status === 'pending' ? (
+                          <>
+                            <Button size="sm" disabled={processingId === appr.id} onClick={() => handleAction(appr.id, 'approved')} className="bg-emerald-600 hover:bg-emerald-700 text-white h-8"><Check className="h-3.5 w-3.5 mr-1" /> Aprobar</Button>
+                            <Button size="sm" variant="outline" disabled={processingId === appr.id} onClick={() => handleAction(appr.id, 'rejected')} className="text-red-600 border-red-200 hover:bg-red-50 h-8"><X className="h-3.5 w-3.5 mr-1" /> Rechazar</Button>
+                          </>
+                        ) : <span className="text-xs text-slate-400">Procesado</span>}
+                      </TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-slate-400">No hay solicitudes de viaje pendientes.</TableCell></TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="propuestas">
+          <div className="grid grid-cols-4 gap-4 mb-4">
+            <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Totales</p><p className="text-2xl font-bold">{proposals.length}</p></CardContent></Card>
+            <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Pendientes</p><p className="text-2xl font-bold text-amber-600">{proposals.filter(p => p.status === 'pending').length}</p></CardContent></Card>
+            <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Aprobadas</p><p className="text-2xl font-bold text-emerald-600">{proposals.filter(p => p.status === 'approved').length}</p></CardContent></Card>
+            <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Rechazadas</p><p className="text-2xl font-bold text-red-600">{proposals.filter(p => p.status === 'rejected').length}</p></CardContent></Card>
+          </div>
+
+          <Card>
+            {loading ? (
+              <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600" /></div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Folio</TableHead>
+                    <TableHead>Fecha Solicitud</TableHead>
+                    <TableHead>Empleado</TableHead>
+                    <TableHead>Destino</TableHead>
+                    <TableHead>Fechas Viaje</TableHead>
+                    <TableHead>Ppto. MXN</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {proposals.length > 0 ? proposals.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-mono text-xs">{p.folio}</TableCell>
+                      <TableCell className="text-xs">{new Date(p.created_at).toLocaleDateString('es-MX')}</TableCell>
+                      <TableCell className="font-medium">{p.requested_by_name || 'Empleado'}</TableCell>
+                      <TableCell>{p.destination}</TableCell>
+                      <TableCell className="text-xs">{p.travel_dates}</TableCell>
+                      <TableCell className="font-semibold">${Number(p.estimated_budget || 0).toLocaleString('es-MX')}</TableCell>
+                      <TableCell>
+                        {p.status === 'approved' && <Badge className="bg-emerald-100 text-emerald-800">Aprobada</Badge>}
+                        {p.status === 'pending' && <Badge className="bg-amber-100 text-amber-800">Pendiente</Badge>}
+                        {p.status === 'rejected' && <Badge className="bg-red-100 text-red-800">Rechazada</Badge>}
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        {p.status === 'pending' ? (
+                          <>
+                            <Button size="sm" disabled={processingId === p.id} onClick={() => handleProposalAction(p.id, 'approved')} className="bg-emerald-600 hover:bg-emerald-700 text-white h-8"><Check className="h-3.5 w-3.5" /></Button>
+                            <Button size="sm" variant="outline" disabled={processingId === p.id} onClick={() => handleProposalAction(p.id, 'rejected')} className="text-red-600 border-red-200 hover:bg-red-50 h-8"><X className="h-3.5 w-3.5" /></Button>
+                          </>
+                        ) : <span className="text-xs text-slate-400">Procesado</span>}
+                      </TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow><TableCell colSpan={8} className="text-center py-8 text-slate-400">No hay propuestas de viaje.</TableCell></TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
@@ -898,80 +1038,230 @@ function TabAprobaciones({ tenantId }: { tenantId: number }) {
 // ═══════════════════════════════════════
 function TabPoliticas({ tenantId }: { tenantId: number }) {
   const { toast } = useToast()
-  const [maxFlight, setMaxFlight] = useState(15000)
-  const [maxHotel, setMaxHotel] = useState(3500)
-  const [flightClass, setFlightClass] = useState('economy')
+  const [activeCategory, setActiveCategory] = useState('vuelos')
   const [saving, setSaving] = useState(false)
+  const [policies, setPolicies] = useState<any>({
+    vuelos: { isActive: true, maxAmount: 15000, maxClass: 'economy', minAdvance: 7, maxAdvance: 60, baggageMano: 1, baggageDocPieces: 1, baggageDocKg: 25, allowCompanions: false, companionLimit: 0, restrictAirlines: 'none', airlines: [] },
+    hoteles: { isActive: true, maxAmount: 3500, maxStars: '4', hotelType: 'business', roomType: 'standard', allowCompanions: false, minAdvance: 7, cancellationDays: 2, cancellationPenalty: 0, amenities: [] }
+  })
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true)
-    setTimeout(() => {
+    try {
+      const res = await fetch(`/api/corporate/policies/${activeCategory}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenantId,
+          isActive: policies[activeCategory].isActive,
+          detailedRules: policies[activeCategory]
+        })
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: 'Políticas actualizadas', description: 'Los límites y reglas de viaje han sido guardados.' })
+      } else {
+        toast({ title: 'Error', description: data.error, variant: 'destructive' })
+      }
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' })
+    } finally {
       setSaving(false)
-      toast({ title: 'Políticas actualizadas', description: 'Los límites y reglas de viaje han sido guardados.' })
-    }, 600)
+    }
   }
 
+  const updatePolicy = (key: string, value: any) => {
+    setPolicies((prev: any) => ({
+      ...prev,
+      [activeCategory]: { ...prev[activeCategory], [key]: value }
+    }))
+  }
+
+  const categories = [
+    { id: 'vuelos', label: 'Vuelos', icon: Plane },
+    { id: 'hoteles', label: 'Hoteles', icon: Building2 },
+    { id: 'autos', label: 'Renta de autos', icon: Car },
+    { id: 'trenes', label: 'Trenes', icon: Train },
+    { id: 'traslados', label: 'Traslados', icon: MapPin },
+    { id: 'gastos', label: 'Gastos adicionales', icon: Receipt },
+  ]
+
+  const currentPolicy = policies[activeCategory] || {}
+
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div>
-        <h2 className="text-xl font-semibold text-slate-900">Políticas Corporativas de Viaje</h2>
-        <p className="text-sm text-muted-foreground">Establece techos de gasto y reglas por categoría.</p>
+    <div className="flex flex-col md:flex-row gap-6">
+      {/* Sidebar Selector */}
+      <div className="w-full md:w-64 flex-shrink-0">
+        <h2 className="text-xl font-semibold text-slate-900 mb-4">Categorías</h2>
+        <div className="space-y-1">
+          {categories.map(c => {
+            const Icon = c.icon
+            return (
+              <button
+                key={c.id}
+                onClick={() => setActiveCategory(c.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeCategory === c.id ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'}`}
+              >
+                <Icon className={`w-4 h-4 ${activeCategory === c.id ? 'text-blue-600' : 'text-slate-400'}`} />
+                {c.label}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-2">
-            <Plane className="h-5 w-5 text-blue-600" />
-            <CardTitle className="text-base">Vuelos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label>Máximo por tramo (MXN)</Label>
-              <Input type="number" value={maxFlight} onChange={(e) => setMaxFlight(Number(e.target.value))} />
+      {/* Main Content */}
+      <div className="flex-1 space-y-6">
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-2xl font-bold text-slate-900">Política de {categories.find(c => c.id === activeCategory)?.label}</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-500">Activa</span>
+              <Switch checked={currentPolicy.isActive || false} onCheckedChange={(val) => updatePolicy('isActive', val)} />
             </div>
-            <div className="grid gap-2">
-              <Label>Cabina permitida</Label>
-              <Select value={flightClass} onValueChange={setFlightClass}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="economy">Económica</SelectItem>
-                  <SelectItem value="premium">Premium Economy</SelectItem>
-                  <SelectItem value="business">Business</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+          <p className="text-sm text-muted-foreground">Configura los límites y permisos granulares para esta categoría.</p>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-2">
-            <Building2 className="h-5 w-5 text-emerald-600" />
-            <CardTitle className="text-base">Hoteles</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label>Máximo por noche (MXN)</Label>
-              <Input type="number" value={maxHotel} onChange={(e) => setMaxHotel(Number(e.target.value))} />
-            </div>
-            <div className="grid gap-2">
-              <Label>Categoría máxima</Label>
-              <Select defaultValue="4">
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="3">3 Estrellas</SelectItem>
-                  <SelectItem value="4">4 Estrellas</SelectItem>
-                  <SelectItem value="5">5 Estrellas</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        {currentPolicy.isActive ? (
+          <Card>
+            <CardContent className="p-6 space-y-6">
+              {activeCategory === 'vuelos' && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Límite de gasto por tramo (MXN)</Label>
+                      <Input type="number" value={currentPolicy.maxAmount} onChange={e => updatePolicy('maxAmount', Number(e.target.value))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Clase de vuelo permitida</Label>
+                      <Select value={currentPolicy.maxClass} onValueChange={val => updatePolicy('maxClass', val)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="economy">Económica</SelectItem>
+                          <SelectItem value="premium">Premium Economy</SelectItem>
+                          <SelectItem value="business">Business</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white">
-          {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Guardar Políticas
-        </Button>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Anticipación mínima (días)</Label>
+                      <Input type="number" value={currentPolicy.minAdvance} onChange={e => updatePolicy('minAdvance', Number(e.target.value))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Anticipación máxima (días)</Label>
+                      <Input type="number" value={currentPolicy.maxAdvance} onChange={e => updatePolicy('maxAdvance', Number(e.target.value))} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Equipaje mano (piezas)</Label>
+                      <Input type="number" value={currentPolicy.baggageMano} onChange={e => updatePolicy('baggageMano', Number(e.target.value))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Doc. (piezas)</Label>
+                      <Input type="number" value={currentPolicy.baggageDocPieces} onChange={e => updatePolicy('baggageDocPieces', Number(e.target.value))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Doc. (kg)</Label>
+                      <Input type="number" value={currentPolicy.baggageDocKg} onChange={e => updatePolicy('baggageDocKg', Number(e.target.value))} />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="companions" checked={currentPolicy.allowCompanions} onCheckedChange={(val: boolean) => updatePolicy('allowCompanions', val)} />
+                      <Label htmlFor="companions">Permitir acompañantes</Label>
+                    </div>
+                    {currentPolicy.allowCompanions && (
+                      <div className="flex items-center gap-2">
+                        <Label>Límite:</Label>
+                        <Input type="number" className="w-20" value={currentPolicy.companionLimit} onChange={e => updatePolicy('companionLimit', Number(e.target.value))} />
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {activeCategory === 'hoteles' && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Límite de gasto por noche (MXN)</Label>
+                      <Input type="number" value={currentPolicy.maxAmount} onChange={e => updatePolicy('maxAmount', Number(e.target.value))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Categoría máxima (Estrellas)</Label>
+                      <Select value={currentPolicy.maxStars} onValueChange={val => updatePolicy('maxStars', val)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="3">3 Estrellas</SelectItem>
+                          <SelectItem value="4">4 Estrellas</SelectItem>
+                          <SelectItem value="5">5 Estrellas</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Tipo de hotel</Label>
+                      <Select value={currentPolicy.hotelType} onValueChange={val => updatePolicy('hotelType', val)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="business">Negocios</SelectItem>
+                          <SelectItem value="all">Cualquiera</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Tipo de habitación</Label>
+                      <Select value={currentPolicy.roomType} onValueChange={val => updatePolicy('roomType', val)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="standard">Estándar</SelectItem>
+                          <SelectItem value="superior">Superior</SelectItem>
+                          <SelectItem value="suite">Suite</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Cancelación: Plazo mínimo (días)</Label>
+                      <Input type="number" value={currentPolicy.cancellationDays} onChange={e => updatePolicy('cancellationDays', Number(e.target.value))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Cancelación: Penalización máxima (%)</Label>
+                      <Input type="number" value={currentPolicy.cancellationPenalty} onChange={e => updatePolicy('cancellationPenalty', Number(e.target.value))} />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {['autos', 'trenes', 'traslados', 'gastos'].includes(activeCategory) && (
+                <div className="text-sm text-slate-500 py-10 text-center">
+                  Configuración detallada en desarrollo para esta categoría.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="p-12 text-center border rounded-xl bg-slate-50 text-slate-500">
+            Esta política está inactiva actualmente.
+          </div>
+        )}
+
+        <div className="flex justify-end">
+          <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white">
+            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Guardar Políticas de {categories.find(c => c.id === activeCategory)?.label}
+          </Button>
+        </div>
       </div>
     </div>
   )

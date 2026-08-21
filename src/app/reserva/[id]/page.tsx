@@ -112,6 +112,36 @@ export default function BookingDetailsPage() {
     }
   }
 
+  const handleDownloadReceipt = async () => {
+    if (!booking) return
+    setGeneratingPDF(true)
+    try {
+      const travelerInfo = safeParseJSON(booking.traveler_info, {})
+      
+      const receiptData = {
+        transactionId: booking.payment_intent_id || booking.payment_id || `TRX-${booking.booking_reference}`,
+        bookingReference: booking.booking_reference,
+        customerName: travelerInfo.name || booking.lead_traveler_name || 'Cliente',
+        customerEmail: travelerInfo.email || booking.lead_traveler_email || '',
+        amount: parseFloat(booking.total_price || booking.total_amount) || 0,
+        currency: booking.currency || 'MXN',
+        paymentMethod: booking.payment_method || 'Tarjeta',
+        status: booking.payment_status || booking.status,
+        paidAt: booking.paid_at || booking.updated_at || booking.created_at,
+        serviceName: booking.service_name || booking.destination || 'Servicio Turístico',
+        bookingType: booking.booking_type || 'general'
+      }
+
+      const pdf = PDFService.generatePaymentReceipt(receiptData)
+      PDFService.downloadPDF(pdf, `Recibo_${booking.booking_reference}.pdf`)
+      toast({ title: 'Recibo descargado' })
+    } catch (error) {
+      toast({ title: 'Error al generar recibo', variant: 'destructive' })
+    } finally {
+      setGeneratingPDF(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -389,7 +419,7 @@ export default function BookingDetailsPage() {
 
                 {/* Descargar recibo */}
                 <button 
-                  onClick={handleDownloadVoucher}
+                  onClick={handleDownloadReceipt}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-50 font-medium transition-colors"
                 >
                   <Download className="w-4 h-4 text-slate-500" />

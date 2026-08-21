@@ -114,7 +114,7 @@ const DEFAULT_MENU_STRUCTURE = [
           { item_key: 'agency_overview', label: 'Resumen General', route: '/dashboard/agency', sort_order: 1 },
           { item_key: 'agency_agents', label: 'Gestión Agentes', route: '/dashboard/agency?tab=agentes', sort_order: 2 },
           { item_key: 'agency_clients', label: 'Clientes Agencia', route: '/dashboard/agency?tab=clientes', sort_order: 3 },
-          { item_key: 'agency_commissions', label: 'Comisiones', route: '/dashboard/agency?tab=comisiones', sort_order: 4 }
+          { item_key: 'agency_commissions', label: 'Comisiones', route: '/dashboard/agency/comisiones', sort_order: 4 }
         ]
       }
     ]

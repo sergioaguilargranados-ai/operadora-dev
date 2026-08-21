@@ -1,5 +1,5 @@
 // Componente de mapa interactivo con marcadores para tours
-// Build: 21 Aug 2026 - v2.511 - Robusto: try/catch global, timeout, fallback estático
+// Build: 21 Aug 2026 - v2.512 - Robusto: try/catch global, timeout, fallback estático
 
 'use client'
 
