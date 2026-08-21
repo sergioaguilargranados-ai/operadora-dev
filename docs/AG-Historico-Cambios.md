@@ -1,13 +1,18 @@
 # 📋 AG-Histórico de Cambios - AS Operadora
 
-**Última actualización:** 20 de Agosto de 2026 - 21:21 CST  
-**Versión actual:** v2.505  
+**Última actualización:** 20 de Agosto de 2026 - 22:27 CST  
+**Versión actual:** v2.506  
 **Actualizado por:** AntiGravity AI Assistant  
 **Propósito:** Documento maestro del proyecto para trabajo con agentes AntiGravity
 
 ---
 
 ## 📅 HISTORIAL DE CAMBIOS
+
+### v2.506 - 20 de Agosto de 2026 - 22:27 CST
+**Sincronización Total de Itinerarios Multidía y Corrección de Constraints ([`CustomItineraryService.ts`](file:///c:/operadora-dev/src/services/CustomItineraryService.ts), [`itineraries/[id]/route.ts`](file:///c:/operadora-dev/src/app/api/itineraries/[id]/route.ts))**
+- **Corrección de Restricción `end_date` NOT NULL:** Se reparó la función generadora de itinerarios para calcular automáticamente `end_date = start_date + total_days`, evitando fallos de inserción silenciosos en PostgreSQL.
+- **Sincronización de Reservas Históricas:** Se vincularon y generaron los itinerarios enriquecidos de 19 días, 20 días y 7 días para todas las reservas del usuario (`#126`, `#125`, `#123`, `#122`), eliminando la pantalla de 0 días.
 
 ### v2.505 - 20 de Agosto de 2026 - 21:21 CST
 **Filtrado de Placeholders Ocultos de Pexels y Sanitización de Monumentos ([`image-fallbacks.ts`](file:///c:/operadora-dev/src/lib/image-fallbacks.ts), [`dia/[dayIndex]/page.tsx`](file:///c:/operadora-dev/src/app/mobile/itinerario/[id]/dia/[dayIndex]/page.tsx))**

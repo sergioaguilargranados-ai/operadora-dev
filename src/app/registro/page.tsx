@@ -1,4 +1,4 @@
-// Build: 20 Aug 2026 - v2.505
+// Build: 20 Aug 2026 - v2.506
 "use client"
 
 import { useState, useEffect, Suspense } from "react"

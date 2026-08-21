@@ -189,6 +189,9 @@ Asegúrate de que las palabras clave de la imagen estén en inglés para obtener
       const cleanJson = rawText.replace(/\\x60\\x60\\x60json\\s*/gi, '').replace(/\\x60\\x60\\x60\\s*/gi, '').trim();
       const parsed: CustomItinerary = JSON.parse(cleanJson);
 
+      const finalStartDate = startDateStr || new Date().toISOString().split('T')[0];
+      const finalEndDate = endDateStr || new Date(new Date(finalStartDate).getTime() + (numDays || parsed.total_days || 5) * 86400000).toISOString().split('T')[0];
+
       await client.query('BEGIN');
 
       // Borrar si existía uno previo
@@ -196,16 +199,17 @@ Asegúrate de que las palabras clave de la imagen estén en inglés para obtener
 
       // Guardar
       const insertItin = await client.query(`
-        INSERT INTO itineraries (booking_id, user_id, title, description, destination, start_date, end_date, days)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
+        INSERT INTO itineraries (booking_id, user_id, title, description, destination, start_date, end_date, total_days, days)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id
       `, [
         bookingId, 
         booking.user_id, 
-        parsed.title, 
-        parsed.description, 
+        parsed.title || `Viaje a ${destination}`, 
+        parsed.description || '', 
         destination, 
-        startDateStr || null, 
-        endDateStr || null, 
+        finalStartDate, 
+        finalEndDate, 
+        numDays || parsed.total_days || (parsed.days ? parsed.days.length : 5),
         JSON.stringify(parsed.days)
       ]);
       
