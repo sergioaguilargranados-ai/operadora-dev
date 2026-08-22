@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Generar PDF
-    const doc = generateItineraryPDF(itineraryData)
+    const doc = await generateItineraryPDF(itineraryData)
     const pdfOutput = doc.output('arraybuffer')
 
     // 4. Retornar como PDF

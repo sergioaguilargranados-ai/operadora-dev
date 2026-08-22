@@ -123,7 +123,7 @@ export function PortalSidebar({ collapsed: externalCollapsed, onToggleCollapse }
       icon: Globe,
       items: [
         { label: 'Tus Reservas', icon: Package, route: '/mis-reservas' },
-        { label: 'Tus Itinerarios', icon: MapPin, route: '/mobile/itinerario', badge: 'IA' },
+        { label: 'Tus Itinerarios', icon: MapPin, route: '/itineraries', badge: 'IA' },
         { label: 'Seguros de Viajero', icon: ShieldCheck, route: '/seguros', badge: '24/7' },
         { label: 'Mi Perfil', icon: UserIcon, route: '/perfil' },
         { label: 'Mis Facturas', icon: Receipt, route: '/facturacion' }

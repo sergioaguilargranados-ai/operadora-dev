@@ -1,5 +1,5 @@
 // MegaTravelScrapingService.ts - Servicio de scraping completo de MegaTravel
-// Build: 21 Aug 2026 - v2.512 - Scraping con puppeteer-core + @sparticuz/chromium para Vercel
+// Build: 22 Aug 2026 - v2.513 - Scraping con puppeteer-core + @sparticuz/chromium para Vercel
 //
 // Este servicio extrae TODA la información de MegaTravel usando:
 // - Cheerio para datos estáticos (HTML simple)

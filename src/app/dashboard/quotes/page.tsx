@@ -1,5 +1,5 @@
 "use client"
-// Build: 21 Aug 2026 - v2.512 - Cenefa estándar, botones texto blanco, acciones PDF/WhatsApp/Email en tours
+// Build: 22 Aug 2026 - v2.513 - Cenefa estándar, botones texto blanco, acciones PDF/WhatsApp/Email en tours
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'

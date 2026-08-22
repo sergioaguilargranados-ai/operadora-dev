@@ -1,6 +1,6 @@
 // src/app/api/admin/scrape-all/route.ts
 // API endpoint para ejecutar scraping completo de MegaTravel por batches
-// Build: 21 Aug 2026 - v2.512 - Auth mejorada con cookies + métricas detalladas
+// Build: 22 Aug 2026 - v2.513 - Auth mejorada con cookies + métricas detalladas
 
 import { NextRequest, NextResponse } from 'next/server';
 import { MegaTravelScrapingService } from '@/services/MegaTravelScrapingService';

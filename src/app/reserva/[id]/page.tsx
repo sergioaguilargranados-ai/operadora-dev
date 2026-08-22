@@ -112,6 +112,44 @@ export default function BookingDetailsPage() {
     }
   }
 
+  const handleDownloadItinerary = async () => {
+    if (!booking) return
+    setGeneratingPDF(true)
+    try {
+      const travelerInfo = safeParseJSON(booking.traveler_info, {})
+      const customItinerary = booking.custom_itinerary || {}
+      
+      const dataForPDF = {
+        ...customItinerary,
+        booking_reference: booking.booking_reference,
+        lead_traveler_name: travelerInfo.name || booking.lead_traveler_name || 'Cliente',
+        lead_traveler_email: travelerInfo.email || booking.lead_traveler_email || '',
+        lead_traveler_phone: travelerInfo.phone || booking.lead_traveler_phone || '',
+        check_in: booking.check_in || customItinerary.start_date,
+        check_out: booking.check_out || customItinerary.end_date,
+        adults: booking.adults || 2,
+        children: booking.children || 0,
+        created_at: booking.created_at
+      }
+
+      // If no custom itinerary or empty days, fallback to voucher
+      if (!customItinerary.days || customItinerary.days.length === 0) {
+        handleDownloadVoucher()
+        return
+      }
+
+      const { generateItineraryPDF } = await import('@/lib/pdfGenerator')
+      const pdf = await generateItineraryPDF(dataForPDF)
+      pdf.save(`Itinerario_AS_${booking.booking_reference}.pdf`)
+      toast({ title: 'Itinerario premium descargado' })
+    } catch (error) {
+      console.error('Error generating Premium PDF:', error)
+      toast({ title: 'Error al generar itinerario', variant: 'destructive' })
+    } finally {
+      setGeneratingPDF(false)
+    }
+  }
+
   const handleDownloadReceipt = async () => {
     if (!booking) return
     setGeneratingPDF(true)
@@ -343,7 +381,7 @@ export default function BookingDetailsPage() {
 
                 {/* Descargar itinerario */}
                 <button 
-                  onClick={handleDownloadVoucher}
+                  onClick={handleDownloadItinerary}
                   disabled={generatingPDF}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-50 font-medium transition-colors"
                 >

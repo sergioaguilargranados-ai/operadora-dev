@@ -85,7 +85,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             {/* Versión al final del contenido (scrollable) */}
             {isAuthenticated && !isLoginPage && (
               <div className="w-full text-center py-4 opacity-70">
-                <span className="text-[8px] text-gray-400">v2.512 | 21 Aug 2026 17:12 CST | AS Operadora viajes y eventos</span>
+                <span className="text-[8px] text-gray-400">v2.513 | 22 Aug 2026 11:47 CST | AS Operadora viajes y eventos</span>
               </div>
             )}
           </main>
